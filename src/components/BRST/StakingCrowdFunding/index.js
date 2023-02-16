@@ -95,7 +95,7 @@ export default class Trading extends Component {
 
     var texto = inicio+"..."+fin;
 
-    document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+accountAddress+'" class="logibtn gradient-btn">'+texto+'</a>';
+    document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+accountAddress+'" className="logibtn gradient-btn">'+texto+'</a>';
 
     var aprovadoUSDT = await window.tronWeb.trx.getBalance();
 
@@ -436,7 +436,7 @@ export default class Trading extends Component {
           <div className="row">
 
           <div className="col-lg-12">
-                <h2><i class="fa fa-user-circle" aria-hidden="true"></i> Mis Solicitudes pendientes</h2>
+                <h2><i className="fa fa-user-circle" aria-hidden="true"></i> Mis Solicitudes pendientes</h2>
             </div>
 
           </div>
@@ -455,7 +455,7 @@ export default class Trading extends Component {
           <div className="row">
 
           <div className="col-lg-12">
-                <h2><i class="fa fa-globe" aria-hidden="true"></i> Solicitudes Globales</h2>
+                <h2><i className="fa fa-globe" aria-hidden="true"></i> Solicitudes Globales</h2>
             </div>
 
           </div>

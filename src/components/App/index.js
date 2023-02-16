@@ -45,7 +45,6 @@ class App extends Component {
       var tronWeb = this.state.tronWeb;
 
       tronWeb['installed'] = true;
-      tronWeb['loggedIn'] = false;
       tronWeb['web3'] = window.tronLink.tronWeb;
 
       this.setState({
@@ -56,9 +55,6 @@ class App extends Component {
 
       window.tronLink.request({method: 'tron_requestAccounts'})
         .then(()=>{
-
-          tronWeb['installed'] = true;
-          tronWeb['loggedIn'] = false;
 
          window.tronWeb.trx.getAccount()
          .then((account)=>{

@@ -38,8 +38,8 @@ const TronLinkGuide = props => {
     }
 
     return (
-    <>  
-        <div className='tronLink row' style={{'padding': '3em','decoration':'none','color':'white'}} onClick={() => {window.tronLink.request({ method: 'tron_requestAccounts' })}}>
+    <>  <a href={url}>
+        <div className='tronLink row' style={{'padding': '3em','decoration':'none','color':'white'}} >
 
             <div className='info col-sm-8'>
                 <h1>Desbloquear su wallet</h1>
@@ -50,9 +50,8 @@ const TronLinkGuide = props => {
             </div>
             { logo }
         </div>
-
+        </a>
         
-
     </>
     );
 };
