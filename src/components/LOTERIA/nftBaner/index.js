@@ -43,7 +43,7 @@ export default class nftBaner extends Component {
                       </div>
                       <div className="col-12 col-md-6">
                           <div className="welcome-img">
-                              <img src="assets/img/brgy.png" alt="Brutus Staking" />
+                              <img src="assets/img/brlt.png" alt="Brutus Staking" />
                           </div>
                       </div>
                   </div>
