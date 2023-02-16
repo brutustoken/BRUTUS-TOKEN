@@ -83,6 +83,21 @@ export default class Inicio extends Component {
                         </div>
                     </div>
 
+                    <div className="col-12 col-md-6 col-lg-4">
+                        <div className="single-team">
+                            <div className="single-team-img">
+                              <a href="/?loteria"><img src="assets/img/breb.png" alt="robot de breb" /></a>
+                            </div>
+                            <div className="space-30"></div>
+                            <div className="single-team-content">
+                                <h3>Brutus Lotería (BRLT)</h3>
+                                <div className="space-10"></div>
+                                <h6>Nuestro bot automatizado logra recoger las ganancias en un periodo de tiempo y la sortea entre los tenedores del NFT.</h6>
+                            </div>
+                            <div className="space-10"></div>
+                        </div>
+                    </div>
+
 
                 </div>
             </div>
