@@ -45,7 +45,8 @@ class App extends Component {
       var tronWeb = this.state.tronWeb;
 
       tronWeb['installed'] = true;
-      tronWeb['web3'] = window.tronWeb;
+      tronWeb['loggedIn'] = false;
+      tronWeb['web3'] = window.tronLink.tronWeb;
 
       this.setState({
 
@@ -57,16 +58,21 @@ class App extends Component {
         .then(()=>{
 
           tronWeb['installed'] = true;
-          tronWeb['loggedIn'] = true;
+          tronWeb['loggedIn'] = false;
 
          window.tronWeb.trx.getAccount()
          .then((account)=>{
+          tronWeb['loggedIn'] = true;
+
 
           this.setState({
 
             accountAddress: window.tronWeb.address.fromHex(account.address)
         
           });
+
+         }).catch(()=>{
+          tronWeb['loggedIn'] = false;
 
          })
         
@@ -142,6 +148,7 @@ class App extends Component {
       case "BRUT":
       case "token":
       case "TOKEN":
+   
         if (!this.state.tronWeb.installed) return (
           <>
             <HomeBaner/>

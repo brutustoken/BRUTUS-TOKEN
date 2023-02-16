@@ -15,6 +15,7 @@ const openTronLink = () => {
     window.open(WEBSTORE_URL, '_blank');
 };
 
+
 const TronLinkGuide = props => {
     var {
         installed = false,
@@ -25,11 +26,10 @@ const TronLinkGuide = props => {
         return (
             <div className='row' onClick={ openTronLink }>
                 <div className='col-sm-8'>
-                    <h1>TronLink Required</h1>
+                    <h1>Por favor instale TronLink</h1>
                     <p>
-                        To create a post or tip others you must install TronLink. TronLink is a TRON wallet for the browser
-                        that can be <a href={ WEBSTORE_URL } target='_blank' rel='noopener noreferrer'>installed from the Chrome Webstore</a>.
-                        Once installed, return back and refresh the page.
+                        Para acceder a esta pagina debe instalar TronLink. TronLink es una wallet de TRON wallet para el navegador la puede instalar desde la <a href={ WEBSTORE_URL } target='_blank' rel='noopener noreferrer'>Chrome Webstore</a>.
+                        una vez instalada, regrese y actualice la pagina.
                     </p>
                 </div>
                 { logo }
@@ -38,20 +38,20 @@ const TronLinkGuide = props => {
     }
 
     return (
-    <>  <a href={url}>
-        <div className='tronLink row' style={{'padding': '3em','decoration':'none','color':'black'}}>
+    <>  
+        <div className='tronLink row' style={{'padding': '3em','decoration':'none','color':'white'}} onClick={() => {window.tronLink.request({ method: 'tron_requestAccounts' })}}>
 
             <div className='info col-sm-8'>
-                <h1>Log in Required</h1>
+                <h1>Desbloquear su wallet</h1>
                 <p>
-                    TronLink is installed but you must first log in. Open TronLink from the browser bar and set up your
-                    first wallet or decrypt a previously created wallet.
+                    TronLink esta instalado. Abra TronLink desde la barra de su navegador si no lo ha hecho configure su primer wallet desde cero, 
+                    si usted ya tiene una wallet con fondos solo desbloquee la wallet para usar esta pagina.
                 </p>
             </div>
             { logo }
         </div>
 
-        </a>
+        
 
     </>
     );
