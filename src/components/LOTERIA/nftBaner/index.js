@@ -33,7 +33,7 @@ export default class nftBaner extends Component {
                       <div className="col-12 col-md-6 align-self-center">
                         <div className="welcome-right">
                           <div className="welcome-text">
-                            <h1>BRUTUS LOTERIA</h1>
+                            <h1>BRUTUS LOTERY, LA PRIMER LOTERIA GARANTIZADA.</h1>
                             <h6>
                               
                             </h6>

@@ -357,8 +357,8 @@ export default class Trading extends Component {
           <div className="row">
 
             <div className="col-lg-4">
-                <h2>TRX en SR</h2>
-                <p>{this.state.enBrutus} TRX</p>
+                <h2>{this.state.enBrutus} TRX</h2>
+                <p>Super Representative</p>
             </div>
 
             <div className="col-lg-4">
@@ -367,8 +367,8 @@ export default class Trading extends Component {
             </div>
 
             <div className="col-lg-4">
-                <h2>BRST emitidos</h2>
-                <p>{this.state.tokensEmitidos} BRST</p>
+                <h2>{this.state.tokensEmitidos}</h2>
+                <p>BRST Emitidos</p>
             </div>
 
           </div>

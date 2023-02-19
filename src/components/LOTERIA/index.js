@@ -13,7 +13,7 @@ export default class nfts extends Component {
             <div className="container">
               <div className="convert-wrap">
                 <div className="row justify-content-center align-items-center flex-column pb-30">
-                  <h1 className="text-white text-center">¡¡SUMATE A LA REVOLUCIÓN DE LOS NFT!!</h1>
+                  <h1 className="text-white text-center">JUEGAS Y NUNCA ¡PIERDES!</h1>
                 </div>
                 <div className="row justify-content-center align-items-start">
         
@@ -30,7 +30,7 @@ export default class nfts extends Component {
             <div className="container">
               <div className="convert-wrap">
                 <div className="row justify-content-center align-items-center flex-column pb-30">
-                  <h1 className="text-white  text-center">Mis Brutus Gallery (BRGY)</h1>
+                  <h1 className="text-white  text-center">Mis Tickets Brutus loteria (BRLT)</h1>
                 </div>
                 <div className="row justify-content-center align-items-start">
         

@@ -47,6 +47,11 @@ class App extends Component {
       tronWeb['installed'] = true;
       tronWeb['web3'] = window.tronLink.tronWeb;
 
+      if(window.tronLink.tronWeb.fullNode.host != "https://api.trongrid.io" || "https://api.tronstack.io"){
+        //console.log("estas en la tesnet: "+window.tronLink.tronWeb.fullNode.host)
+
+      }
+
       this.setState({
 
         tronWeb: tronWeb
@@ -54,31 +59,30 @@ class App extends Component {
       });
 
       window.tronLink.request({method: 'tron_requestAccounts'})
-        .then(()=>{
+      .then(()=>{
 
-         window.tronWeb.trx.getAccount()
-         .then((account)=>{
+        window.tronWeb.trx.getAccount()
+        .then((account)=>{
           tronWeb['loggedIn'] = true;
 
-
           this.setState({
-
+            tronWeb: tronWeb,
             accountAddress: window.tronWeb.address.fromHex(account.address)
         
           });
 
-         }).catch(()=>{
+        }).catch(()=>{
           tronWeb['loggedIn'] = false;
-
-         })
-        
           this.setState({
 
             tronWeb: tronWeb
         
           });
+
         })
-        .catch(()=>{
+        
+          
+      }).catch(()=>{
 
           tronWeb['installed'] = false;
           tronWeb['loggedIn'] = false;
@@ -89,7 +93,7 @@ class App extends Component {
         
           });
 
-        })
+      })
 
 
 

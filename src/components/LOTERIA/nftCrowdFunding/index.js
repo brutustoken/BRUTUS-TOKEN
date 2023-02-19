@@ -112,16 +112,16 @@ export default class nftCrowdFunding extends Component {
             <div className="col-lg-12">
               <img 
                 className="img-fluid"
-                src="assets/img/MISTERY2.gif" 
-                alt="mistery box brutus"
+                src="nft/loteria/image.gif" 
+                alt="brutus loteria"
               />
-                <h2>Mistery box</h2>
-                <p>10'000.000 APENFT</p>
+                <h2>Tickets BRLT</h2>
+                <p>100 TRX</p>
                 <button className="btn btn-success" style={{"cursor":"pointer"}} onClick={() => this.compra()}>Buy Mistery Box</button>
 
                 <br></br><br></br>
 
-                Mistery Box compradas: {this.state.mc}
+                Tickets comprados: {this.state.mc}
 
                 <br></br>
 
@@ -140,7 +140,7 @@ export default class nftCrowdFunding extends Component {
                     
                   }
                   
-                  }}>Abrir {this.state.mb} Mistery Box</button>
+                  }}>Reclamar {this.state.mb} TRX ganados</button>
             </div>
 
           </div>
