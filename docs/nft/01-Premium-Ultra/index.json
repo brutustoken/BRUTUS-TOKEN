@@ -1,0 +1,36 @@
+{
+  "title": "Brutus Dorado",
+  "name": "Brutus Dorado",
+  "image": "https://brutustoken.com/nft/01-Premium-Ultra/01-Premium-Ultra.jpg",
+  "fileUrl": "https://brutustoken.com/nft/01-Premium-Ultra/01-Premium-Ultra.jpg",
+  "description": "Colección: Brutus primera edición,\nPosición: #1,\nTipología: Ultra Premium,\nFamilia: Brutus,\nArtista: Xiz Art,\nVMG Inicial: 20.000.000 APENFT",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Brutus Dorado"
+    },
+    "description": {
+      "type": "string",
+      "description": "Colección: Brutus primera edición\nPosición: #1,\nTipología: Ultra Premium\nFamilia: Brutus\nArtista: Xiz Art \nVMG Inicial: 20.000.000 APENFT"
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/01-Premium-Ultra/01-Premium-Ultra.jpg"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2021-11-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}

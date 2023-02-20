@@ -90,7 +90,7 @@ export default class Inicio extends Component {
                             </div>
                             <div className="space-30"></div>
                             <div className="single-team-content">
-                                <h3>Brutus Lotería (BRLT)</h3>
+                                <h3>Brutus Lottery (BRLT)</h3>
                                 <div className="space-10"></div>
                                 <h6>Nuestro bot automatizado logra recoger las ganancias en un periodo de tiempo y la sortea entre los tenedores del NFT.</h6>
                             </div>

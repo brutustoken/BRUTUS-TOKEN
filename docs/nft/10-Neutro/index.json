@@ -1,0 +1,36 @@
+{
+  "title": "LightGreen",
+  "name": "LightGreen",
+  "image": "https://brutustoken.com/nft/10-Neutro/10-Neutro.jpg",
+  "fileUrl": "https://brutustoken.com/nft/10-Neutro/10-Neutro.jpg",
+  "description": "Colección: Brutus primera edición,\nPosición: #10,\nTipología: Original,\nFamilia: Brutus,\nEnfoque: Staking,\nArtista: Xiz Art,\nVMG Inicial: 10.000.000 APENFT",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "LightGreen"
+    },
+    "description": {
+      "type": "string",
+      "description": "Colección: Brutus primera edición,\nPosición: #10,\nTipología: Original,\nFamilia: Brutus,\nEnfoque: Staking,\nArtista: Xiz Art,\nVMG Inicial: 10.000.000 APENFT"
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/10-Neutro/10-Neutro.jpg"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2021-11-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}

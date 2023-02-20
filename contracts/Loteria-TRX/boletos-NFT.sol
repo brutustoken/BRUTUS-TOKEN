@@ -217,7 +217,7 @@ contract  TRC721 is Context, TRC165, MinterRole  {
 
 
     // Token name
-    string private _name = "Brutus Loter\xc3\xada \xf0\x9f\x8e\xb0";
+    string private _name = "Brutus Lottery \xf0\x9f\x8e\xb0";
 
     // Token symbol
     string private _symbol = "BRLT";

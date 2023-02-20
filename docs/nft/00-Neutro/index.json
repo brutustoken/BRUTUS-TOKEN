@@ -1,0 +1,36 @@
+{
+  "title": "Brutus Neutro",
+  "name": "Brutus Neutro",
+  "image": "https://brutustoken.com/nft/00-Neutro/00-Neutro.png",
+  "fileUrl": "https://brutustoken.com/nft/00-Neutro/00-Neutro.png",
+  "description": "Colección: Brutus primera edición,\nPosición: #0,\nTipología: Neutro,\nFamilia: Brutus,\nArtista: Xiz Art,\nVMG Inicial: 0 APENFT",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Brutus Neutro"
+    },
+    "description": {
+      "type": "string",
+      "description": "Colección: Brutus primera edición,\nPosición: #0,\nTipología: Neutro,\nFamilia: Brutus,\nArtista: Xiz Art,\nVMG Inicial: 0 APENFT"
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/00-Neutro/00-Neutro.png"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2021-11-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}

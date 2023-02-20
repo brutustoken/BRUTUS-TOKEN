@@ -1,0 +1,36 @@
+{
+  "title": "Brutus Plateado",
+  "name": "Brutus Plateado",
+  "image": "https://brutustoken.com/nft/02-Premium/02-Premium.jpg",
+  "fileUrl": "https://brutustoken.com/nft/02-Premium/02-Premium.jpg",
+  "description": "Colección: Brutus primera edición,\nPosición: #2,\nTipología: Premium,\nFamilia: Brutus,\nEnfoque: Staking,\nArtista: Xiz Art,\nVMG Inicial: 16.000.000 APENFT",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Brutus Plateado"
+    },
+    "description": {
+      "type": "string",
+      "description": "Colección: Brutus primera edición\nPosición: #2,\nTipología: Premium,\nFamilia: Brutus,\nEnfoque: Staking,\nArtista: Xiz Art,\nVMG Inicial: 16.000.000 APENFT"
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/02-Premium/02-Premium.jpg"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2021-11-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}

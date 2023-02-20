@@ -1,0 +1,36 @@
+{
+  "title": "Energy Card",
+  "name": "CERTIFIED PROVIDER 4",
+  "image": "https://brutustoken.com/nft/ID/04/image.gif",
+  "fileUrl": "https://brutustoken.com/nft/ID/04/image.gif",
+"description": "Este NFT verifica que el titular del mismo es un \"certified provider\" de Brutus Energy.\n This NFT verifies that the holder of the NFT is a \"certified supplier\" of Brutus Energy.",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "CERTIFIED PROVIDER 4"
+    },
+    "description": {
+      "type": "string",
+      "description": "Este NFT verifica que el titular del mismo es un \"certified provider\" de Brutus Energy.\n This NFT verifies that the holder of the NFT is a \"certified supplier\" of Brutus Energy."
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/ID/04/image.gif"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2022-10-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}

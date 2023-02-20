@@ -1,0 +1,36 @@
+{
+  "title": "Brutus Futbolista #2",
+  "name": "Brutus Futbolista #2",
+  "image": "https://brutustoken.com/nft/04-Raro/04-Raro.jpg",
+  "fileUrl": "https://brutustoken.com/nft/04-Raro/04-Raro.jpg",
+  "description": "Colección: Brutus primera edición,\nPosición: #4,\nTipología: Raro,\nFamilia: Brutus,\nArtista: Xiz Art,\nVMG Inicial: 14.500.000 APENFT",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Brutus Futbolista #2"
+    },
+    "description": {
+      "type": "string",
+      "description": "Colección: Brutus primera edición,\nPosición: #4,\nTipología: Raro,\nFamilia: Brutus,\nArtista: Xiz Art,\nVMG Inicial: 14.500.000 APENFT"
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/04-Raro/04-Raro.jpg"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2021-11-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}

@@ -40,14 +40,14 @@ class App extends Component {
 
   async conectar(){
 
-    if (typeof window.tronLink !== 'undefined' && typeof window.tronWeb !== 'undefined' ) { 
+    if (typeof window.tronLink !== 'undefined' && typeof window.tronWeb !== 'undefined' && document.location.href.indexOf('?')>0 ) { 
 
       var tronWeb = this.state.tronWeb;
 
       tronWeb['installed'] = true;
       tronWeb['web3'] = window.tronLink.tronWeb;
 
-      if(window.tronLink.tronWeb.fullNode.host != "https://api.trongrid.io" || "https://api.tronstack.io"){
+      if(window.tronLink.tronWeb.fullNode.host !== "https://api.trongrid.io" || "https://api.tronstack.io"){
         //console.log("estas en la tesnet: "+window.tronLink.tronWeb.fullNode.host)
 
       }

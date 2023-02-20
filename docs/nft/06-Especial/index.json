@@ -1,0 +1,36 @@
+{
+  "title": "Brutus Staking PurpleGold",
+  "name": "Brutus Staking PurpleGold",
+  "image": "https://brutustoken.com/nft/06-Especial/06-Especial.jpg",
+  "fileUrl": "https://brutustoken.com/nft/06-Especial/06-Especial.jpg",
+  "description": "Colección: Brutus primera edición,\nPosición: #6,\nTipología: Ultra Premium,\nFamilia: Brutus,\nArtista: Xiz Art,\nVMG Inicial: 12.500.000 APENFT",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Brutus Staking PurpleGold"
+    },
+    "description": {
+      "type": "string",
+      "description": "Colección: Brutus primera edición,\nPosición: #6,\nTipología: Ultra Premium,\nFamilia: Brutus,\nArtista: Xiz Art,\nVMG Inicial: 12.500.000 APENFT"
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/06-Especial/06-Especial.jpg"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2021-11-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}

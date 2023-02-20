@@ -1,0 +1,36 @@
+{
+  "title": "PurpleGreen",
+  "name": "PurpleGreen",
+  "image": "https://brutustoken.com/nft/25-BRST/25-BRST.jpg",
+  "fileUrl": "https://brutustoken.com/nft/25-BRST/25-BRST.jpg",
+  "description": "Colección: Brutus primera edición,\nPosición: #25,\nTipología: Común,\nFamilia: Brutus,\nEnfoque: Staking,\nArtista: Xiz Art,\nVMG Inicial: 5.000.000 APENFT",
+  "externalLink": "https://brutustoken.com",
+  "attributes": [
+    {
+      "trait_type": "Creator",
+      "value": "Xiz Art"
+    }
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "PurpleGreen"
+    },
+    "description": {
+      "type": "string",
+      "description": "Colección: Brutus primera edición,\nPosición: #25,\nTipología: Común,\nFamilia: Brutus,\nEnfoque: Staking,\nArtista: Xiz Art,\nVMG Inicial: 5.000.000 APENFT"
+    },
+    "image":{
+      "type": "string",
+      "description": "https://brutustoken.com/nft/25-BRST/25-BRST.jpg"
+    },
+    "created_at": {
+      "type": "datetime",
+      "description": "2021-11-21T22:29:12.628Z"
+    },
+    "digital_media_file_type": {
+      "type": "string",
+      "description": "collectible"
+    }
+  }
+}
