@@ -42,7 +42,7 @@ contract RandomNumber{
     }
 }
 
-contract Loteria is RandomNumber, Ownable{
+contract Lottery is RandomNumber, Ownable{
 
     uint256 public precio = 100 * 10**6;
 
