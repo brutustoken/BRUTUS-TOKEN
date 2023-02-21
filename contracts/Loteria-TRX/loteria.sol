@@ -7,6 +7,9 @@ interface ITRC721 {
     function totalSupply() external view returns(uint256);
     function transferFrom(address from, address to, uint256 tokenId) external;
     function ownerOf(uint256 tokenId) external view returns (address);
+    function balanceOf(address from) external view returns(uint256);
+    function tokenOfOwnerByIndex(address owner, uint256 index) external view returns(uint256);
+    function mintLoteryToken(address to) external returns(bool);
 
 }
 
@@ -63,16 +66,31 @@ contract Lottery is RandomNumber, Ownable{
 
         require(msg.value == precio);
 
+        // comprar BRST y registrar cuanto TRX ingresó
 
-        //imprimir NFT y enviar
+
+        //seleccionar NFT disponible o imprimir NFT
+
+        if(TRC721_Contract.balanceOf(address(this))>0){
+            TRC721_Contract.transferFrom(address(this), msg.sender, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
+        }else{
+            TRC721_Contract.mintLoteryToken(msg.sender);
+        }
         
-        TRC721_Contract.transferFrom(address(this), msg.sender, 1 );
-
         doneRandom();
 
     }
 
     function premio() public view returns(uint256){
+
+        // consulta cuanto TRX ha ganado hasta el momento 
+
+    }
+
+    function reclamarPremio() public view returns(uint256){
+
+        // consulta cuanto TRX ha ganado hasta el momento 
+        //y los reclama si no hay disponible le dice intenta mas tarde
 
     }
 
@@ -86,7 +104,7 @@ contract Lottery is RandomNumber, Ownable{
             proximaRonda = proximaRonda+periodo;
         }
 
-        //      cantidad de personas || precio
+        //      cantidad de personas || tiempo
         uint256 myNumber = randMod(TRC721_Contract.totalSupply(), block.timestamp);
 
         //consulta cuanto se ha ganado hasta el momento 
@@ -94,7 +112,7 @@ contract Lottery is RandomNumber, Ownable{
         //busca al dueño del nft que gano
         TRC721_Contract.ownerOf(myNumber);
         
-        //si hay pagan los trx sino se le pagan vurtuales
+        //los trx se le pagan vurtuales
 
     }
 

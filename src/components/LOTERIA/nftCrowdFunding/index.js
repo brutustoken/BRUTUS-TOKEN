@@ -117,7 +117,7 @@ export default class nftCrowdFunding extends Component {
               />
                 <h2>Tickets BRLT</h2>
                 <p>100 TRX</p>
-                <button className="btn btn-success" style={{"cursor":"pointer"}} onClick={() => this.compra()}>Buy Mistery Box</button>
+                <button className="btn btn-success" style={{"cursor":"pointer"}} onClick={() => this.compra()}>Buy Tikcet</button>
 
                 <br></br><br></br>
 

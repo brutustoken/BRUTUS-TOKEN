@@ -512,7 +512,6 @@ contract  TRC721 is Context, TRC165, MinterRole  {
         return _allTokens.length;
     }
 
-
     function tokenByIndex(uint256 index) public view returns (uint256) {
         require(index < totalSupply(), "TRC721Enumerable: global index out of bounds");
         return _allTokens[index];
