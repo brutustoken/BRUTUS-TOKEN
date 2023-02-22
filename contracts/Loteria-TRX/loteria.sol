@@ -63,6 +63,8 @@ interface IPOOL {
 
 interface ITRC20 {
     function balanceOf(address owner) external view returns(uint256);
+    function allowance(address owner, address spender) external view returns (uint256);
+    function approve(address spender, uint256 value) external returns (bool);
 }
 
 contract Ownable {
@@ -105,6 +107,11 @@ contract Lottery is RandomNumber, Ownable{
 
     uint256 public trxPooled;
 
+    uint256 public paso;
+
+    uint256 public administradores = 1;
+    uint256 public colaborador = 1; // en porcentaje y en cantidad
+
     uint256 public proximaRonda = 0;
     uint256 public periodo = 15*86400;
 
@@ -132,6 +139,7 @@ contract Lottery is RandomNumber, Ownable{
         // comprar BRST y registrar cuanto TRX ingresó
 
         POOL_Contract.staking{value:msg.value}();
+        trxPooled = trxPooled.add(msg.value);
 
         //seleccionar NFT disponible o imprimir NFT
 
@@ -165,6 +173,8 @@ contract Lottery is RandomNumber, Ownable{
 
     function sorteo() public {
 
+        // variable paso se toma el total supply y se guarda para la siguiente participan estos numeros 
+
         //verificar que si tenha allowed el BRST para transacciones
 
         //seguro de tiempo, administrador
@@ -180,10 +190,14 @@ contract Lottery is RandomNumber, Ownable{
 
         //consulta cuanto se ha ganado hasta el momento y se pone en venta el BRST
 
+
+            //evalua si tiene para pagar el premio o sino retira
         POOL_Contract.solicitudRetiro(premio());// recibo premio en TRX debo convertir a BRST para solicitar retiro
 
         //busca al dueño del nft que gano y se le asignan los TRX virtuales
         TRC721_Contract.ownerOf(myNumber);
+
+        //si hay TRX ejecuta la funcion de retiro si no hay solo los asigna virtuales y queda a la espera
         
 
     }
@@ -199,5 +213,10 @@ contract Lottery is RandomNumber, Ownable{
         precio = _precio;
         return true;
     }
+
+    //retirar TRC20
+
+    fallback() external payable{}
+    receive() external payable{}
 
 }
