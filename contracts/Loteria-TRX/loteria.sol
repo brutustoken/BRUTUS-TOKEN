@@ -115,7 +115,7 @@ contract Lottery is RandomNumber, Ownable{
     uint256 public proximaRonda = 0;
     uint256 public periodo = 15*86400;
 
-    address public tokenBRST = 0xebb9bf74543Fb8b86DEd187eD2Ca38e01840d592;
+    address public tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;
 
     address public tokenTRC721 = 0xebb9bf74543Fb8b86DEd187eD2Ca38e01840d592;
     address public contractPool = 0xebb9bf74543Fb8b86DEd187eD2Ca38e01840d592;
