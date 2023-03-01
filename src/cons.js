@@ -20,9 +20,13 @@ var BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//token brutus LOTERIA
 const testnet = false;
 
 if(testnet){
+
+    SC2 = "TSZ679Wh1L8sG7VYcjfAEMLmWu7vV1aoTM"; //Pool BRST
+    SC4 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk"; // Loteria 
+
     BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";
-    BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";
-    BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//LOTERIA
+    BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//BFT Galeria
+    BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//NFT LOTERIA
 }
 
 
