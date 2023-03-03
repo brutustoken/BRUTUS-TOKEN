@@ -65,6 +65,7 @@ interface ITRC20 {
     function balanceOf(address owner) external view returns(uint256);
     function allowance(address owner, address spender) external view returns (uint256);
     function approve(address spender, uint256 value) external returns (bool);
+    function transfer(address recipient, uint256 amount) external returns (bool);
 }
 
 contract Ownable {
@@ -108,6 +109,7 @@ contract Lottery is RandomNumber, Ownable{
     uint256 public trxPooled;
 
     uint256 public paso;
+    uint256 public lastWiner;
 
     uint256 public administradores = 1;
     uint256 public colaborador = 1; // en porcentaje y en cantidad
@@ -118,7 +120,7 @@ contract Lottery is RandomNumber, Ownable{
     address public tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;
 
     address public tokenTRC721 = 0xebb9bf74543Fb8b86DEd187eD2Ca38e01840d592;
-    address public contractPool = 0xebb9bf74543Fb8b86DEd187eD2Ca38e01840d592;
+    address public contractPool = 0xb5Ea6649ddb66cC296A7ee0e07d5B526dbaf01F8;
 
     ITRC20 BRST_Contract = ITRC20(tokenBRST);
 
@@ -126,31 +128,48 @@ contract Lottery is RandomNumber, Ownable{
 
     IPOOL POOL_Contract = IPOOL(contractPool);
 
-    function buyLoteria() public payable {
+    mapping(uint256 => uint256) vaul;
+
+    function buyLoteria(bool _brst, address _user) public payable {
 
         if(proximaRonda == 0){
             proximaRonda = block.timestamp+periodo;
         }
 
-        //confirmar cantidad de 100 TRX
+        //confirmar cantidad de 100 TRX o BRST
 
-        require(msg.value == precio);
+        if(_brst){
 
+
+        }else{
         // comprar BRST y registrar cuanto TRX ingresó
 
-        POOL_Contract.staking{value:msg.value}();
-        trxPooled = trxPooled.add(msg.value);
+            require(msg.value == precio);
+            POOL_Contract.staking{value:msg.value}();
+            trxPooled = trxPooled.add(msg.value);
+
+
+        }
 
         //seleccionar NFT disponible o imprimir NFT
 
         if(TRC721_Contract.balanceOf(address(this))>0){
-            TRC721_Contract.transferFrom(address(this), msg.sender, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
+            TRC721_Contract.transferFrom(address(this), _user, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
         }else{
-            TRC721_Contract.mintLoteryToken(msg.sender);
+            TRC721_Contract.mintLoteryToken(_user);
         }
         
         doneRandom();
 
+    }
+
+    function sellLoteria(bool _brst) public {
+        TRC721_Contract.transferFrom(address(this), msg.sender, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
+        if(_brst){
+
+        }else{
+            payable(msg.sender).transfer(precio);
+        }
     }
 
     function premio() public view returns(uint256){
@@ -162,22 +181,20 @@ contract Lottery is RandomNumber, Ownable{
 
     }
 
-    function reclamarPremio() public {
-
-        // consulta cuanto TRX ha ganado hasta el momento 
-        //y los reclama si no hay disponible le dice intenta mas tarde
-
-        payable(msg.sender).transfer(100);
+    function reclamarPremio(uint256 _nft) public {
+        require(vaul[_nft] > 0); 
+        payable(TRC721_Contract.ownerOf(_nft)).transfer(vaul[_nft]);
 
     }
 
-    function sorteo() public {
+    function sorteo() public returns(uint myNumber){
+        uint256 ganado = premio(); //trx
 
-        // variable paso se toma el total supply y se guarda para la siguiente participan estos numeros 
+        if(BRST_Contract.allowance(address(this), contractPool) <= 1000 * 10e6){
+            BRST_Contract.approve(contractPool, 2**256 - 1);
+        }
 
-        //verificar que si tenha allowed el BRST para transacciones
-
-        //seguro de tiempo, administrador
+        require(proximaRonda < block.timestamp);
 
         if(proximaRonda == 0){
             proximaRonda = block.timestamp+periodo;
@@ -185,23 +202,23 @@ contract Lottery is RandomNumber, Ownable{
             proximaRonda = proximaRonda+periodo;
         }
 
-        //      cantidad de tickets || tiempo
-        uint256 myNumber = randMod(TRC721_Contract.totalSupply(), block.timestamp);
+        if(paso > 0){
+            myNumber = randMod(paso, block.timestamp);
 
-        //consulta cuanto se ha ganado hasta el momento y se pone en venta el BRST
+            POOL_Contract.solicitudRetiro((ganado.mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
 
+            if(address(this).balance >= ganado){
+                reclamarPremio(myNumber);
+            }else{
+                vaul[myNumber] += ganado;
+            }
 
-            //evalua si tiene para pagar el premio o sino retira
-        POOL_Contract.solicitudRetiro(premio());// recibo premio en TRX debo convertir a BRST para solicitar retiro
+            lastWiner = myNumber;
+        }
 
-        //busca al dueño del nft que gano y se le asignan los TRX virtuales
-        TRC721_Contract.ownerOf(myNumber);
-
-        //si hay TRX ejecuta la funcion de retiro si no hay solo los asigna virtuales y queda a la espera
-        
+        paso = TRC721_Contract.totalSupply();
 
     }
-
   
     function update_tokenTRC721(address _tokenTRC721) public onlyOwner returns(bool){
         tokenTRC721 = _tokenTRC721;
@@ -215,6 +232,14 @@ contract Lottery is RandomNumber, Ownable{
     }
 
     //retirar TRC20
+    function retiroTRC20(uint256 _value, address _TRC20) public onlyOwner {
+        ITRC20(_TRC20).transfer(msg.sender, _value);
+    }
+
+    //retirar TRC721
+    function retiroTRC20(uint256 _tokenId) public onlyOwner {
+        ITRC721(TRC721_Contract).transferFrom(address(this), msg.sender, _tokenId);
+    }
 
     fallback() external payable{}
     receive() external payable{}

@@ -26,7 +26,7 @@ const TronLinkGuide = props => {
         return (
             <div className='row' onClick={ openTronLink }>
                 <div className='col-sm-8'>
-                    <h1>Por favor instale TronLink</h1>
+                    <h1>Instale TronLink</h1>
                     <p>
                         Para acceder a esta pagina debe instalar TronLink. TronLink es una wallet de TRON wallet para el navegador la puede instalar desde la <a href={ WEBSTORE_URL } target='_blank' rel='noopener noreferrer'>Chrome Webstore</a>.
                         una vez instalada, regrese y actualice la pagina.
@@ -42,7 +42,7 @@ const TronLinkGuide = props => {
         <div className='tronLink row' style={{'padding': '3em','decoration':'none','color':'white'}} >
 
             <div className='info col-sm-8'>
-                <h1>Desbloquear su wallet</h1>
+                <h1>Desbloquee su wallet</h1>
                 <p>
                     TronLink esta instalado. Abra TronLink desde la barra de su navegador si no lo ha hecho configure su primer wallet desde cero, 
                     si usted ya tiene una wallet con fondos solo desbloquee la wallet para usar esta pagina.

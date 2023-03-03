@@ -131,6 +131,7 @@ contract PoolBRSTv3 is Ownable{
 
   function RATE() public view returns (uint){
 
+    //1 BRST -> TRX
     return (TRON_BALANCE().mul(10**BRTS_Contract.decimals())).div( BRTS_Contract.totalSupply() );
 
   }

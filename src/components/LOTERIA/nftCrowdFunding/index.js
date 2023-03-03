@@ -115,7 +115,7 @@ export default class nftCrowdFunding extends Component {
                 src="nft/loteria/image.gif" 
                 alt="brutus loteria"
               />
-                <h2>Tickets BRLT</h2>
+                <h2>Comprar Tickets BRLT</h2>
                 <button className="btn btn-success" style={{"cursor":"pointer"}} onClick={() => this.compra()}>100 TRX</button> <br />ó<br />
                 <button className="btn btn-success" style={{"cursor":"pointer"}} onClick={() => this.compra()}>### BRST</button>
 
