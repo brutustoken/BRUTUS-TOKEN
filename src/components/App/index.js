@@ -11,6 +11,8 @@ import NftBaner from "../BRGY/nftBaner";
 import LOTERIA from "../LOTERIA";
 import LOTERIABaner from "../LOTERIA/nftBaner";
 import TronLinkGuide from "../TronLinkGuide";
+import FAQ from "../FAQ";
+
 
 
 class App extends Component {
@@ -229,6 +231,17 @@ class App extends Component {
                   </>
                 );
       
+
+      case "faq":
+      case "FAQ":
+      case "preguntasfrecuentes":
+        
+        return (
+          <>
+            <FAQ/>
+          </>
+        );
+        
     
       default:  
 
