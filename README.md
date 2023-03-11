@@ -1,6 +1,6 @@
 ## Brutus Token
 
-[brutustoken.com](https://brutustoken.com) | [brutustoken.tk](https://brutustoken.tk)
+[brutustoken.com](https://brutustoken.com)
 
 Dapp construida en la red TRON para acercar el trading automatizado a todos quellos que quieren disfrutar de los beneficios sin enferntarse con el mercado a un nivel tan tecnico. 
 + Maneja repositorios de [TronWeb](https://github.com/tronprotocol/tron-web)
