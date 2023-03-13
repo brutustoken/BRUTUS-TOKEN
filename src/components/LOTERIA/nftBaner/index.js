@@ -2,26 +2,6 @@ import React, { Component } from "react";
 
 export default class nftBaner extends Component {
 
-  constructor(props) {
-    super(props);
-
-    this.state = {
-
-      minCompra: 10,
-      minventa: 1,
-      deposito: "Cargando...",
-      wallet: "Cargando...",
-      valueBRUT: "",
-      valueUSDT: "",
-      value: "",
-      cantidad: 0,
-      tiempo: ""
-
-    };
-    
-  }
-
-  
   render() {
 
       return (

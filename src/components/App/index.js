@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import cons from "../../cons.js";
+
 
 import Inicio from "../Inicio";
 
@@ -33,70 +35,68 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    
-    setInterval(async() => {
+    this.conectar();
+    setInterval(async () => {
       await this.conectar();
-    }, 7*1000);
-      
+    }, 7 * 1000);
+
   }
 
-  async conectar(){
+  async conectar() {
 
-    if ( typeof window.tronLink !== 'undefined' && typeof window.tronWeb !== 'undefined' && document.location.href.indexOf('?')>0 ) { 
+    if (typeof window.tronLink !== 'undefined' && typeof window.tronLink.tronWeb !== 'undefined' && document.location.href.indexOf('?') > 0) {
 
       var tronWeb = this.state.tronWeb;
 
       tronWeb['installed'] = true;
-      tronWeb['web3'] = window.tronLink.tronWeb;
 
-    
-      this.setState({
+      window.tronLink.request({ method: 'tron_requestAccounts' })
+        .then(() => {
 
-        tronWeb: tronWeb
-    
-      });
+          window.tronWeb.trx.getAccount()
+            .then((account) => {
+              tronWeb['loggedIn'] = true;
 
-      window.tronLink.request({method: 'tron_requestAccounts'})
-      .then(()=>{
+              this.setState({
+                tronWeb: tronWeb,
+                accountAddress: window.tronWeb.address.fromHex(account.address)
 
-      
-        window.tronWeb.trx.getAccount()
-        .then((account)=>{
-          tronWeb['loggedIn'] = true;
+              });
 
-          this.setState({
-            tronWeb: tronWeb,
-            accountAddress: window.tronWeb.address.fromHex(account.address)
-        
-          });
+            }).catch(() => {
+              tronWeb['loggedIn'] = false;
+              this.setState({
+                tronWeb: tronWeb
 
-        }).catch(()=>{
-          tronWeb['loggedIn'] = false;
-          this.setState({
+              });
 
-            tronWeb: tronWeb
-        
-          });
+            })
 
-        })
-        
-          
-      }).catch(()=>{
+
+        }).catch(() => {
 
           tronWeb['installed'] = false;
           tronWeb['loggedIn'] = false;
 
           this.setState({
-
             tronWeb: tronWeb
-        
+
           });
 
-      })
+        })
+
+      tronWeb['web3'] = window.tronWeb;
+
+      this.setState({
+        tronWeb: tronWeb,
+        contrato: {
+          loteria: await window.tronWeb.contract().at(cons.SC4),
+          BRLT: await window.tronWeb.contract().at(cons.BRLT),
+        }
+
+      });
 
 
-
-      
     }
   }
 
@@ -106,70 +106,69 @@ class App extends Component {
     var getString = "";
     var loc = document.location.href;
     //console.log(loc);
-    if(loc.indexOf('?')>0){
-              
+    if (loc.indexOf('?') > 0) {
+
       getString = loc.split('?')[1];
       getString = getString.split('#')[0];
 
     }
 
     switch (getString) {
-      case "staking": 
+      case "staking":
       case "brst":
-      case "BRST": 
+      case "BRST":
         if (!this.state.tronWeb.installed) return (
           <>
-            <StakingBaner/>
+            <StakingBaner />
             <div className="container">
-              <TronLinkGuide  url={"/?"+getString}/>
+              <TronLinkGuide url={"/?" + getString} />
             </div>
           </>
-          );
-    
+        );
+
         if (!this.state.tronWeb.loggedIn) return (
           <>
-            <StakingBaner/>
+            <StakingBaner />
             <div className="container">
-              <TronLinkGuide installed url={"/?"+getString}/>
+              <TronLinkGuide installed url={"/?" + getString} />
             </div>
           </>
-          );
-    
+        );
+
         return (
           <>
-            <StakingBaner getString={getString}/>
+            <StakingBaner getString={getString} />
             <Staking />
           </>
         );
-      
 
       case "brut":
       case "BRUT":
       case "token":
       case "TOKEN":
-   
+
         if (!this.state.tronWeb.installed) return (
           <>
-            <HomeBaner/>
+            <HomeBaner />
             <div className="container">
-              <TronLinkGuide url={"/?"+getString}/>
+              <TronLinkGuide url={"/?" + getString} />
             </div>
           </>
-          );
-    
+        );
+
         if (!this.state.tronWeb.loggedIn) return (
           <>
-            <HomeBaner/>
+            <HomeBaner />
             <div className="container">
-              <TronLinkGuide installed url={"/?"+getString}/>
+              <TronLinkGuide installed url={"/?" + getString} />
             </div>
           </>
-          );
-    
+        );
+
         return (
           <>
-            <HomeBaner getString={getString}/>
-            <Home accountAddress={this.state.accountAddress}/>
+            <HomeBaner getString={getString} />
+            <Home accountAddress={this.state.accountAddress} />
           </>
         );
 
@@ -177,83 +176,79 @@ class App extends Component {
       case "BRGY":
       case "nft":
       case "NFT":
-          if (!this.state.tronWeb.installed) return (
-            <>
-              <NftBaner/>
-              <div className="container">
-                <TronLinkGuide url={"/?"+getString}/>
-              </div>
-            </>
-            );
-      
-          if (!this.state.tronWeb.loggedIn) return (
-            <>
-              <NftBaner/>
-              <div className="container">
-                <TronLinkGuide installed url={"/?"+getString}/>
-              </div>
-            </>
-            );
-      
-          return (
-            <>
-              <NftBaner getString={getString}/>
-              <Nft accountAddress={this.state.accountAddress} />
-            </>
-          );
+        if (!this.state.tronWeb.installed) return (
+          <>
+            <NftBaner />
+            <div className="container">
+              <TronLinkGuide url={"/?" + getString} />
+            </div>
+          </>
+        );
 
+        if (!this.state.tronWeb.loggedIn) return (
+          <>
+            <NftBaner />
+            <div className="container">
+              <TronLinkGuide installed url={"/?" + getString} />
+            </div>
+          </>
+        );
+
+        return (
+          <>
+            <NftBaner getString={getString} />
+            <Nft accountAddress={this.state.accountAddress} />
+          </>
+        );
 
       case "loteria":
       case "rifa":
       case "sorteo":
-                if (!this.state.tronWeb.installed) return (
-                  <>
-                    <LOTERIABaner/>
-                    <div className="container">
-                      <TronLinkGuide url={"/?"+getString}/>
-                    </div>
-                  </>
-                  );
-            
-                if (!this.state.tronWeb.loggedIn) return (
-                  <>
-                    <LOTERIABaner/>
-                    <div className="container">
-                      <TronLinkGuide installed url={"/?"+getString}/>
-                    </div>
-                  </>
-                  );
-            
-                return (
-                  <>
-                    <LOTERIABaner getString={getString}/>
-                    <LOTERIA accountAddress={this.state.accountAddress} />
-                  </>
-                );
-      
+        if (!this.state.tronWeb.installed) return (
+          <>
+            <LOTERIABaner />
+            <div className="container">
+              <TronLinkGuide url={"/?" + getString} />
+            </div>
+          </>
+        );
+
+        if (!this.state.tronWeb.loggedIn) return (
+          <>
+            <LOTERIABaner />
+            <div className="container">
+              <TronLinkGuide installed url={"/?" + getString} />
+            </div>
+          </>
+        );
+
+        return (
+          <>
+            <LOTERIABaner getString={getString} />
+            <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+          </>
+        );
 
       case "faq":
       case "FAQ":
-      case "preguntasfrecuentes":
-        
-        return (
-          <>
-            <FAQ/>
-          </>
-        );
-        
-    
-      default:  
+      case "preguntasfrecuentes": return (
+        <>
+          <FAQ />
+        </>
+      );
+
+
+      default:
 
         return (<><Inicio /></>);
-      
+
     }
 
 
-    
+
   }
 
-  
+
 }
 export default App;
 

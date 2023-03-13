@@ -1,6 +1,6 @@
 {
   "name": "brutustoken",
-  "version": "1.10.0",
+  "version": "1.20.0",
   "description": "Es la aplicacion para hacer Crowd Funding en la Blockchain tron",
   "scripts": {
     "start": "node scripts/start.js",

@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 
 
+
 export default class Inicio extends Component {
   
   render() {
@@ -92,7 +93,7 @@ export default class Inicio extends Component {
                             <div className="single-team-content">
                                 <h3>Brutus Lottery (BRLT)</h3>
                                 <div className="space-10"></div>
-                                <h6>Nuestro bot automatizado logra recoger las ganancias en un periodo de tiempo y la sortea entre los tenedores del NFT.</h6>
+                                <h6>Nuestro bot automatizado logra recoger las ganancias en un periodo de tiempo y la sortea entre los poseedores del NFT.</h6>
                             </div>
                             <div className="space-10"></div>
                         </div>
@@ -103,7 +104,6 @@ export default class Inicio extends Component {
             </div>
 
           </div>
-        
 
           <div className="team-bg">
         <div className="team-area wow fadeInUp section-padding" id="team">

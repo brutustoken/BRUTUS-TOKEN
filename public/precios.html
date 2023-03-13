@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <title>Brutus Group | precios</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="description" content="Especialistas en desarrollar productos Blockchain respaldados.">
+    <meta name="keywords" content="Brutus, Token, Blockchain">
+    <meta name="author" content="Bruts Team Core">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- SEO tags -->
+
+    <meta property="og:title" content="Brutus Group" />
+    <meta property="og:description" content="Especialistas en desarrollar productos Blockchain respaldados." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://brutustoken.com/" />
+    <meta property="og:image" content="https://brutustoken.com/assets/img/Brutus.png" />
+
+    <!-- carousel CSS -->
+    <link rel="stylesheet" href="assets/css/owl.carousel.min.css">
+    <!--header icon CSS -->
+    <link rel="icon" href="assets/img/fabicon.png">
+    <!-- animations CSS -->
+    <link rel="stylesheet" href="assets/css/animate.min.css">
+    <!-- font-awsome CSS -->
+    <link rel="stylesheet" href="assets/css/font-awesome.min.css">
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <!-- mobile menu CSS -->
+    <link rel="stylesheet" href="assets/css/slicknav.min.css">
+    <!--css animation-->
+    <link rel="stylesheet" href="assets/css/animation.css">
+    <!--css animation-->
+    <link rel="stylesheet" href="assets/css/material-design-iconic-font.min.css">
+    <!-- style CSS -->
+    <link rel="stylesheet" href="style.css">
+    <!-- responsive CSS -->
+    <link rel="stylesheet" href="assets/css/responsive.css">
+
+
+  </head>
+  <body>
+    <!--header area start-->
+    <div class="header-area wow fadeInDown header-absolate" id="nav" data-0="position:fixed;" data-top-top="position:fixed;top:0;" data-edge-strategy="set">
+        <div class="container">
+            <div class="row">
+                <div class="col-4 d-block d-lg-none">
+                    <div class="mobile-menu"></div>
+                </div>
+                <div class="col-4 col-lg-2 text-center">
+                        <a href="/" id="imagelink" target="_blank" class="scroll">
+                            <img id="imagen" src="assets/img/BRUTUS_TOKEN_PNG_LETRA_blanca.png" alt="logo de brutus" height="50px">
+                        </a>
+                        <br />
+                        <span id="p1" class="scroll text-uppercase"  >Loading...</span>
+                             
+    
+                                <script type="text/javascript">
+
+                                    var API = "https://chainlist.tk/";
+
+                                    function consulta(){
+                                        var apiUrl = API+'api/v1/precio/BRUT';
+                                        fetch(apiUrl)
+                                        .then(response => {return response.json();})
+                                        .then(data => {
+                                            
+                                            var price = data.Data.usd;
+
+                                            var elem = document.getElementById("imagen");
+                                            elem.src = "assets/img/BRUTUS_TOKEN_PNG_LETRA_blanca.png";
+                                            elem = document.getElementById("imagelink");
+                                            elem.href = 'https://bit.ly/3HqnI1Z';
+            
+                                            document.getElementById("p1").innerHTML = "$"+price+" USDT";
+                                        }).catch(err => {
+                                            console.log(err);
+                                            document.getElementById("p1").innerHTML = "Loading...";
+                                        
+                                        });
+                                    }
+
+                                    function consulta2(){
+                                        var apiUrl = API+'api/v1/precio/BRST';
+                                        fetch(apiUrl).then(response => {return response.json();})
+                                        .then(data => {
+                                            
+                                            var price = data.Data.trx;
+
+                                            var elem = document.getElementById("imagen");
+                                            elem.src = "assets/img/BRUTUS_BRST_PNG_LETRA_blanca.png";
+                                            elem = document.getElementById("imagelink");
+                                            elem.href = `https://bit.ly/3rqIxES`;
+            
+                                            document.getElementById("p1").innerHTML = price+" TRX";
+                                        }).catch(err => {
+                                            console.log(err);
+                                            document.getElementById("p1").innerHTML = "Loading...";
+                                        
+                                        });
+                                    }
+
+                                    var getString = "";
+                                    var loc = document.location.href;
+                                    
+                                    if(loc.indexOf('?')>0){
+                                                
+                                        getString = loc.split('?')[1];
+                                        getString = getString.split('#')[0];
+
+                                    }
+
+                                    switch (getString) {
+                                    case "BRST": 
+                                    case "brst": 
+                                    case "staking": 
+                                        consulta2();
+                                        break;
+                                    default:
+                                        consulta();
+                                        break;
+                                    }
+
+                                
+                                </script>
+                </div>
+                <div class="col-4 col-lg-8 d-none d-lg-block">
+                    <div class="main-menu text-center">
+                        <nav>
+                            <ul id="slick-nav">
+                                <li><a class="scroll" href="/">Inicio</a></li>
+                                <li><a class="scroll" href="/?BRUT">BRUT</a></li>
+                                <li><a class="scroll" href="/?BRST">BRST</a></li>
+                                <li><a class="scroll" href="/?nft">BRGY</a></li>
+                                <li><a class="scroll" href="/?loteria">LOTERY</a></li>
+                                <li><a class="scroll" target="_blank" href="https://bit.ly/3L780Ls">SR</a></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+                <div id="login" class="col-4 col-lg-2 text-right">
+                    <a href="/" class="logibtn gradient-btn">login</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!--header area end-->
+
+    <!-- React JS  STC-->
+
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script> 
+    <script type="text/javascript"> 
+    google.load('visualization', '1.0', {'packages':['corechart'], 'callback': drawChart}); 
+    
+    function drawChart() { 
+        var apiKey = 'AIzaSyApMuMgRT0oOPcRK3y8DZgX6cGwVl9l7nc'; 
+        var spreadsheetId = '1yLhzed3F6Ashlf8ye0SCrkmGac-HZ_CwR5cYUHGsO9I'; 
+        var range = 'Hoja1!A:B'; 
+        var query = new google.visualization.Query('https://docs.google.com/spreadsheets/d/' + spreadsheetId + '/gviz/tq?key=' + apiKey + '&range=' + range); 
+        query.send(handleQueryResponse); 
+    } 
+    
+    function handleQueryResponse(response) { 
+        if (response.isError()) { 
+        console.error('Error en la consulta: ' + response.getMessage() + ' ' + response.getDetailedMessage()); 
+        return; 
+        } 
+    
+        var data = response.getDataTable(); 
+    
+        var options = { 
+        'title': 'Precio BRST', 
+        'width': 600, 
+        'height': 400 
+        }; 
+    
+        var chart = new google.visualization.LineChart(document.getElementById('chart_div')); 
+        chart.draw(data, options); 
+    } 
+    </script>
+
+<div id="chart_div" style="width:400; height:300"></div>
+
+    <!-- End react js -->
+
+    <div class="footera-area section-padding wow fadeInDown">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 col-sm-6 col-lg-6">
+                    <div class="single-footer">
+                        <div class="logo-area footer">
+                            <a href="#"><img src="assets/img/BRUTUS_TOKEN_PNG_LETRA_blanca.png" alt=""></a>
+                        </div>
+                        <div class="space-20"></div>
+                        <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved <br /> 
+This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+</p>
+                    </div>
+                </div>
+                <div class="col-6 col-lg-4">
+                    <div class="single-footer">
+                        <ul>
+                            <li><a target="_black" href="?faq">FAQ</a></li>
+                            <li><a target="_black" href="?roadmap">Road MAP</a></li>
+                            <li><a target="_black" href="?whitepaper">White Papers</a></li>
+                            <li><a target="_black" href="/assets/pdf/BRUTUS-TOKEN-WHITEPAPER.pdf">Brutus Token (BRUT) - White Paper</a></li>
+                            <li><a target="_black" href="https://docs.google.com/document/d/e/2PACX-1vTcdLdWf8LDS5WMl2O2uJA9jo5F484lZc4lFovCiEHyiM6ZGwRzXwQtEu13afh2c8_QUyXE5sAQzkhm/pub">Brutus Staking (BRST) - White Paper</a></li>
+                            <li><a target="_black" href="https://docs.google.com/document/d/e/2PACX-1vTcdLdWf8LDS5WMl2O2uJA9jo5F484lZc4lFovCiEHyiM6ZGwRzXwQtEu13afh2c8_QUyXE5sAQzkhm/pub">Brutus Gallery (BRGY) - White Paper</a></li>
+                            <li><a target="_black" href="https://docs.google.com/document/d/e/2PACX-1vTcdLdWf8LDS5WMl2O2uJA9jo5F484lZc4lFovCiEHyiM6ZGwRzXwQtEu13afh2c8_QUyXE5sAQzkhm/pub">Brutus Energy Bot (BREB) - White Paper</a></li>
+                            <li><a target="_black" href="https://docs.google.com/document/d/e/2PACX-1vTcdLdWf8LDS5WMl2O2uJA9jo5F484lZc4lFovCiEHyiM6ZGwRzXwQtEu13afh2c8_QUyXE5sAQzkhm/pub">Brutus Lottery (BRLT) - White Paper</a></li>
+
+
+
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!--footer area end-->
+
+
+    <!-- jquery 2.2.4 js-->
+    <script src="assets/js/jquery-2.2.4.min.js"></script>
+    <!-- popper js-->
+    <script src="assets/js/popper.js"></script>
+    <!-- carousel js-->
+    <script src="assets/js/owl.carousel.min.js"></script>
+    <!-- wow js-->
+    <script src="assets/js/wow.min.js"></script>
+    <!-- bootstrap js-->
+    <script src="assets/js/bootstrap.min.js"></script>
+    <!--mobile menu js-->
+    <script src="assets/js/jquery.slicknav.min.js"></script>
+    <!--particle s-->
+    <script src="assets/js/particles.min.js"></script>
+    <!-- main js-->
+    <script src="assets/js/main.js"></script>
+  </body>
+</html>
