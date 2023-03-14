@@ -144,7 +144,8 @@ contract Lottery is RandomNumber, Ownable{
 
         if(_brst){
 
-            BRST_Contract.tra
+            BRST_Contract.transferFrom(msg.sender, address(this));
+
         }else{
         // comprar BRST y registrar cuanto TRX ingresó
 
