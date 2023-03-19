@@ -4,7 +4,7 @@ const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 
 const WS = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";//T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb recibe los huerfanos por defecto
 
-var SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato
+var SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
 var SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking 
 var SC3 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk";//contrato Mixtery box
 var SC4 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk";//contrato sorteo de loteria 15 dias
@@ -17,7 +17,8 @@ var APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery bo
 var BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY 
 var BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//token brutus LOTERIA
 
-const testnet = true;
+const testnet = false;
+const conProxy = false;
 
 if(testnet){
 
@@ -28,8 +29,10 @@ if(testnet){
     BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//NFT Galeria
     BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//NFT LOTERIA
 
-    proxy = ""
+    
 }
+
+if(!conProxy)proxy = "";
 
 
 export default {proxy, PRU, WS,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT};

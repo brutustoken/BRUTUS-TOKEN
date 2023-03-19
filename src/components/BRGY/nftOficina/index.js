@@ -42,10 +42,11 @@ export default class nftOficina extends Component {
   async estado(){
 
     var contractMistery = await window.tronWeb.contract().at(cons.SC3);
+    var contractNFT = await window.tronWeb.contract().at(cons.BRGY);
+
 
     var robots = [];
 
-    var contractNFT = await window.tronWeb.contract().at(cons.SC4);
 
     for (let index = 0; index < 25; index++) {
       var conteo = await contractMistery.entregaNFT(this.props.accountAddress, index).call()
@@ -67,7 +68,8 @@ export default class nftOficina extends Component {
     var estonuevo = [];
 
     for(let index = 0; index < robots.length; index++){
-      estonuevo[index] = window.tronWeb.address.fromHex(await contractNFT.ownerOf(robots[index]).call()) === this.props.accountAddress
+      let user = await contractNFT.ownerOf(robots[index]).call();
+      estonuevo[index] = window.tronWeb.address.fromHex(user) === this.props.accountAddress;
     }
 
     //console.log(estonuevo)

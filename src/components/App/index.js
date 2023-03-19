@@ -1,6 +1,6 @@
 import React, { Component } from "react";
+import {  BrowserRouter,  Routes,  Route } from "react-router-dom";
 import cons from "../../cons.js";
-
 
 import Inicio from "../Inicio";
 
@@ -13,8 +13,6 @@ import NftBaner from "../BRGY/nftBaner";
 import LOTERIA from "../LOTERIA";
 import LOTERIABaner from "../LOTERIA/nftBaner";
 import TronLinkGuide from "../TronLinkGuide";
-import FAQ from "../FAQ";
-
 
 
 class App extends Component {
@@ -22,12 +20,21 @@ class App extends Component {
     super(props);
 
     this.state = {
-      accountAddress: "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
+      accountAddress:"T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
       tronWeb: {
         address: "Cargando...",
         installed: false,
         loggedIn: false,
         web3: null
+      },
+      contratos: {
+        BRUT_USDT: null,
+        BRUT: null,
+        MBOX: null,
+        loteria: null,
+        BRLT: null,
+        USDT: null,
+        
       }
     };
 
@@ -35,71 +42,98 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    this.conectar();
-    setInterval(async () => {
-      await this.conectar();
-    }, 7 * 1000);
+
+    setInterval(() => {
+      this.conectar();
+    }, 3 * 1000);
 
   }
 
   async conectar() {
 
-    if (typeof window.tronLink !== 'undefined' && typeof window.tronLink.tronWeb !== 'undefined' && document.location.href.indexOf('?') > 0) {
+    var {tronWeb, wallet, contratos} = this.state;
+    var conexion = 0;
 
-      var tronWeb = this.state.tronWeb;
+
+    if ( typeof window.tronWeb !== 'undefined' && typeof window.tronLink !== 'undefined' ) {
 
       tronWeb['installed'] = true;
 
-      window.tronLink.request({ method: 'tron_requestAccounts' })
-        .then(() => {
+      try {
+        conexion = (await window.tronLink.request({ method: 'tron_requestAccounts' })).code;
+      } catch(e) {
+        conexion = 0
+      }
 
-          window.tronWeb.trx.getAccount()
-            .then((account) => {
-              tronWeb['loggedIn'] = true;
+      if(conexion === 200){
+        tronWeb['loggedIn'] = true;
+        wallet = window.tronLink.tronWeb.defaultAddress.base58
 
-              this.setState({
-                tronWeb: tronWeb,
-                accountAddress: window.tronWeb.address.fromHex(account.address)
+      }else{
+        tronWeb['loggedIn'] = false;
+        wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
 
-              });
-
-            }).catch(() => {
-              tronWeb['loggedIn'] = false;
-              this.setState({
-                tronWeb: tronWeb
-
-              });
-
-            })
-
-
-        }).catch(() => {
-
-          tronWeb['installed'] = false;
-          tronWeb['loggedIn'] = false;
-
-          this.setState({
-            tronWeb: tronWeb
-
-          });
-
-        })
+      }
 
       tronWeb['web3'] = window.tronWeb;
 
-      this.setState({
-        tronWeb: tronWeb,
-        contrato: {
-          loteria: await window.tronWeb.contract().at(cons.SC4),
-          BRLT: await window.tronWeb.contract().at(cons.BRLT),
+      try {
+        var BRUT_USDT = await window.tronWeb.contract().at(cons.SC);
+        var BRUT = await window.tronWeb.contract().at(cons.SC2);
+        var MBOX = await window.tronWeb.contract().at(cons.SC3);
+        var loteria = await window.tronWeb.contract().at(cons.SC4);
+        var BRLT = await window.tronWeb.contract().at(cons.BRLT);
+        var USDT = await window.tronWeb.contract().at(cons.USDT);
+        var contratos = { BRUT_USDT, BRUT, MBOX, loteria, BRLT, USDT }
+      } catch(e) {
+        contratos = {
+          BRUT_USDT: null,
+          BRUT: null,
+          MBOX: null,
+          loteria: null,
+          BRLT: null,
+          USDT: null,
+          
         }
+      }
+
+      console.log("entro")
+
+
+      this.setState({
+        accountAddress: wallet,
+        tronWeb: tronWeb,
+        contrato: contratos
 
       });
 
 
+    } else {
+
+      console.log("se salio")
+
+
+      tronWeb['installed'] = false;
+      tronWeb['loggedIn'] = false;
+
+      this.setState({
+        tronWeb: tronWeb
+
+      });
     }
+
+    var inicio = wallet.substr(0,4);
+    var fin = wallet.substr(-4);
+
+    var texto = wallet; //inicio+"..."+fin;
+
+    document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+texto+'</a>';
+
+
+
   }
 
+  /*
   render() {
 
 
@@ -121,7 +155,7 @@ class App extends Component {
           <>
             <StakingBaner />
             <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
+              <TronLinkGuide installed={this.state.tronWeb.installed} url={"/?" + getString} />
             </div>
           </>
         );
@@ -130,7 +164,7 @@ class App extends Component {
           <>
             <StakingBaner />
             <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
+              <TronLinkGuide installed={this.state.tronWeb.installed} url={"/?" + getString} />
             </div>
           </>
         );
@@ -247,6 +281,40 @@ class App extends Component {
 
 
   }
+*/
+
+  render(){
+
+    if (!this.state.tronWeb.installed) return (
+
+        <div className="container">
+          <TronLinkGuide installed={this.state.tronWeb.installed}  />
+        </div>
+    );
+
+    if (!this.state.tronWeb.loggedIn) return (
+
+        <div className="container">
+          <TronLinkGuide installed={this.state.tronWeb.installed}  />
+        </div>
+    );
+
+    return(
+      <BrowserRouter>
+        <Routes>
+          <Route index element={<Inicio />} />
+          <Route exact path="/" element={<Inicio />} />
+          <Route path="/brut" element={<Home accountAddress={this.state.accountAddress} />} />
+          <Route path="/brst" element={<Staking accountAddress={this.state.accountAddress} />} />
+          <Route path="/brgy" element={<Nft accountAddress={this.state.accountAddress} />}  />
+          <Route path="/brlt" element={<LOTERIA accountAddress={this.state.accountAddress} />} />
+
+        </Routes>
+
+      </BrowserRouter>
+    )
+  }
+  
 
 
 }

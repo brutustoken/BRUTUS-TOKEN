@@ -9,239 +9,534 @@ export default class Inicio extends Component {
       return (
         <>
 
-        <div className="welcome-area wow fadeInUp" id="home">
-              <div id="particles-js"></div>
-          
-            <div className="container">
+<div className="row">
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<img className="mb-3 currency-icon" src="images/logo.png" width="80" height="80" />
+								
+								<h2 className="text-black mb-2 font-w600">$13.01</h2>
+								<p className="mb-0 fs-14">
+									<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
+										xmlns="http://www.w3.org/2000/svg">
+										<g filter="url(#filter0_d1)">
+											<path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
+												stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+										</g>
+										<defs>
+											<filter id="filter0_d1" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
+												height="22.0001" filterUnits="userSpaceOnUse"
+												colorInterpolationFilters="sRGB">
+												<feFlood floodOpacity="0" result="BackgroundImageFix" />
+												<feColorMatrix in="SourceAlpha" type="matrix"
+													values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+												<feOffset dy="1" />
+												<feGaussianBlur stdDeviation="2" />
+												<feColorMatrix type="matrix"
+													values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
+												<feBlend mode="normal" in2="BackgroundImageFix"
+													result="effect1_dropShadow" />
+												<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
+													result="shape" />
+											</filter>
+										</defs>
+									</svg>
+									<span className="text-success me-1">30%</span>APR
+								</p>
+							</div>
+						</div>
+					</div>
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<svg className="mb-3 currency-icon" width="80" height="80" viewBox="0 0 80 80" fill="none"
+									xmlns="http://www.w3.org/2000/svg">
+									<circle cx="40" cy="40" r="40" fill="white" />
+									<path
+										d="M40 0C17.9083 0 0 17.9083 0 40C0 62.0917 17.9083 80 40 80C62.0917 80 80 62.0917 80 40C80 17.9083 62.0917 0 40 0ZM40 72.5C22.0783 72.5 7.5 57.92 7.5 40C7.5 22.08 22.0783 7.5 40 7.5C57.9217 7.5 72.5 22.0783 72.5 40C72.5 57.9217 57.92 72.5 40 72.5Z"
+										fill="#FFAB2D" />
+									<path
+										d="M42.065 41.2983H36.8133V49.1H42.065C43.125 49.1 44.1083 48.67 44.7983 47.9483C45.52 47.2566 45.95 46.275 45.95 45.1833C45.9517 43.0483 44.2 41.2983 42.065 41.2983Z"
+										fill="#FFAB2D" />
+									<path
+										d="M40 10.8333C23.9167 10.8333 10.8333 23.9166 10.8333 40C10.8333 56.0833 23.9167 69.1666 40 69.1666C56.0833 69.1666 69.1667 56.0816 69.1667 40C69.1667 23.9183 56.0817 10.8333 40 10.8333ZM45.935 53.5066H42.495V58.9133H38.8867V53.5066H36.905V58.9133H33.28V53.5066H26.9067V50.1133H30.4233V29.7799H26.9067V26.3866H33.28V21.0883H36.905V26.3866H38.8867V21.0883H42.495V26.3866H45.6283C47.3783 26.3866 48.9917 27.1083 50.1433 28.26C51.295 29.4116 52.0167 31.025 52.0167 32.775C52.0167 36.2 49.3133 38.995 45.935 39.1483C49.8967 39.1483 53.0917 42.3733 53.0917 46.335C53.0917 50.2816 49.8983 53.5066 45.935 53.5066Z"
+										fill="#FFAB2D" />
+									<path
+										d="M44.385 36.5066C45.015 35.8766 45.3983 35.0316 45.3983 34.08C45.3983 32.1916 43.8633 30.655 41.9733 30.655H36.8133V37.52H41.9733C42.91 37.52 43.77 37.12 44.385 36.5066Z"
+										fill="#FFAB2D" />
+								</svg>
+								<h2 className="text-black mb-2 font-w600">1.242296 TRX</h2>
+								<p className="mb-0 fs-13">
+									<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
+										xmlns="http://www.w3.org/2000/svg">
+										<g filter="url(#filter0_d2)">
+											<path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
+												stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+										</g>
+										<defs>
+											<filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
+												height="22.0001" filterUnits="userSpaceOnUse"
+												colorInterpolationFilters="sRGB">
+												<feFlood floodOpacity="0" result="BackgroundImageFix" />
+												<feColorMatrix in="SourceAlpha" type="matrix"
+													values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+												<feOffset dy="1" />
+												<feGaussianBlur stdDeviation="2" />
+												<feColorMatrix type="matrix"
+													values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
+												<feBlend mode="normal" in2="BackgroundImageFix"
+													result="effect1_dropShadow" />
+												<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
+													result="shape" />
+											</filter>
+										</defs>
+									</svg>
+									<span className="text-success me-1">30%</span>APR
+								</p>
+							</div>
+						</div>
+					</div>
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<svg className="mb-3 currency-icon" width="80" height="80" viewBox="0 0 80 80" fill="none"
+									xmlns="http://www.w3.org/2000/svg">
+									<circle cx="40" cy="40" r="40" fill="white" />
+									<path
+										d="M40.725 0.00669178C18.6241 -0.393325 0.406678 17.1907 0.00666126 39.275C-0.393355 61.3592 17.1907 79.5933 39.2749 79.9933C61.3592 80.3933 79.5933 62.8093 79.9933 40.7084C80.3933 18.6241 62.8092 0.390041 40.725 0.00669178ZM39.4083 72.493C21.4909 72.1597 7.17362 57.3257 7.50697 39.4083C7.82365 21.4909 22.6576 7.17365 40.575 7.49033C58.5091 7.82368 72.8096 22.6576 72.493 40.575C72.1763 58.4924 57.3257 72.8097 39.4083 72.493Z"
+										fill="#374C98" />
+									<path
+										d="M40.5283 10.8305C24.4443 10.5471 11.1271 23.3976 10.8438 39.4816C10.5438 55.549 23.3943 68.8662 39.4783 69.1662C55.5623 69.4495 68.8795 56.599 69.1628 40.5317C69.4462 24.4477 56.6123 11.1305 40.5283 10.8305ZM52.5455 56.9324H26.0111L29.2612 38.9483L25.4944 39.7317V36.6649L29.8279 35.7482L32.6447 20.2809H43.2284L40.8283 33.4481L44.5285 32.6647V35.7315L40.2616 36.6149L37.7949 50.2154H54.5122L52.5455 56.9324Z"
+										fill="#374C98" />
+								</svg>
+								<h2 className="text-black mb-2 font-w600">3 BRGY</h2>
+								<p className="mb-0 fs-14">
+									
+									Colectibles
+								</p>
+							</div>
+						</div>
+					</div>
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<svg className="mb-3 currency-icon" width="80" height="80" viewBox="0 0 80 80" fill="none"
+									xmlns="http://www.w3.org/2000/svg">
+									<circle cx="40" cy="40" r="40" fill="white" />
+									<path
+										d="M40.725 0.00669178C18.6241 -0.393325 0.406708 17.1907 0.00669178 39.275C-0.393325 61.3592 17.1907 79.5933 39.275 79.9933C61.3592 80.3933 79.5933 62.8093 79.9933 40.7084C80.3933 18.6241 62.8093 0.390041 40.725 0.00669178ZM39.4083 72.493C21.4909 72.1597 7.17365 57.3257 7.507 39.4083C7.82368 21.4909 22.6576 7.17365 40.575 7.49033C58.5091 7.82368 72.8097 22.6576 72.493 40.575C72.1763 58.4924 57.3257 72.8097 39.4083 72.493Z"
+										fill="#FF782C" />
+									<path
+										d="M40.525 10.8238C24.441 10.5405 11.1238 23.391 10.8405 39.475C10.7455 44.5352 11.9605 49.3204 14.1639 53.5139H23.3326V24.8027C23.3326 23.0476 25.7177 22.4893 26.4928 24.0643L40 51.4171L53.5072 24.066C54.2822 22.4893 56.6674 23.0476 56.6674 24.8027V53.5139H65.8077C67.8578 49.6171 69.0779 45.2169 69.1595 40.525C69.4429 24.441 56.609 11.1238 40.525 10.8238Z"
+										fill="#FF782C" />
+									<path
+										d="M53.3339 55.1806V31.943L41.4934 55.919C40.9334 57.0574 39.065 57.0574 38.5049 55.919L26.6661 31.943V55.1806C26.6661 56.1007 25.9211 56.8474 24.9994 56.8474H16.2474C21.4326 64.1327 29.8629 68.9795 39.475 69.1595C49.4704 69.3362 58.3908 64.436 63.786 56.8474H55.0006C54.0789 56.8474 53.3339 56.1007 53.3339 55.1806Z"
+										fill="#FF782C" />
+								</svg>
+								<h2 className="text-black mb-2 font-w600">5 BRLT</h2>
+								<p className="mb-0 fs-14">
+									Lottery Tickets
+								</p>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				
+				<div className="row">
+					<div className="col-xl-12 col-xxl-12">
+						<div className="row">
+							<div className="col-xl-12">
+								<div className="card">
+									<div className="card-header border-0 pb-0">
+										<h4 className="mb-0 fs-20 text-black">Coin Holding</h4>
+										<div className="dropdown custom-dropdown mb-0 tbl-orders-style">
+											<div className="btn sharp tp-btn" data-bs-toggle="dropdown">
+												<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+													<path d="M12 13C12.5523 13 13 12.5523 13 12C13 11.4477 12.5523 11 12 11C11.4477 11 11 11.4477 11 12C11 12.5523 11.4477 13 12 13Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+													<path d="M12 6C12.5523 6 13 5.55228 13 5C13 4.44772 12.5523 4 12 4C11.4477 4 11 4.44772 11 5C11 5.55228 11.4477 6 12 6Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+													<path d="M12 20C12.5523 20 13 19.5523 13 19C13 18.4477 12.5523 18 12 18C11.4477 18 11 18.4477 11 19C11 19.5523 11.4477 20 12 20Z" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+												</svg>
+											</div>
+										</div>
+									</div>
+									<div className="card-body">
+										<div className="bg-success coin-holding flex-wrap">
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<path d="M30.5437 0.00501883C13.9681 -0.294993 0.305031 12.893 0.00501883 29.4562C-0.294993 46.0194 12.893 59.6949 29.4562 59.9949C46.0194 60.2949 59.6949 47.1069 59.9949 30.5312C60.2949 13.9681 47.1069 0.29253 30.5437 0.00501883ZM29.5562 54.3697C16.1182 54.1197 5.38023 42.9942 5.63024 29.5562C5.86775 16.1182 16.9932 5.38023 30.4312 5.61774C43.8818 5.86775 54.6072 16.9932 54.3697 30.4312C54.1322 43.8693 42.9942 54.6072 29.5562 54.3697Z" fill="white"/>
+															<path d="M30.3962 8.12284C18.3333 7.91034 8.34535 17.5482 8.13284 29.6112C7.90784 41.6617 17.5457 51.6496 29.6087 51.8746C41.6717 52.0871 51.6596 42.4492 51.8721 30.3987C52.0846 18.3358 42.4592 8.34785 30.3962 8.12284ZM30.0025 14.3581L36.954 26.7598L30.61 23.2297C30.2312 23.0197 29.7725 23.0197 29.3937 23.2297L23.0497 26.7598L30.0025 14.3581ZM30.0025 45.6381L23.0497 33.2364L29.3937 36.7665C29.5825 36.8715 29.7925 36.924 30.0012 36.924C30.21 36.924 30.42 36.8715 30.6087 36.7665L36.9528 33.2364L30.0025 45.6381ZM30.0025 34.2426L22.3722 29.9975L30.0025 25.7523L37.6315 29.9975L30.0025 34.2426Z" fill="white"/>
+														</svg>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Token</h4>
+														<p className="mb-0 text-white op-6">BRUT</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="coin-bx-one">
+														<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<rect width="4.71425" height="34.5712" rx="2.35713" transform="matrix(-1 0 0 1 33 0)" fill="white"/>
+															<rect width="4.71425" height="25.1427" rx="2.35713" transform="matrix(-1 0 0 1 23.5713 9.42853)" fill="white"/>
+															<rect width="4.71425" height="10.9999" rx="2.35713" transform="matrix(-1 0 0 1 14.1436 23.5713)" fill="white"/>
+															<rect width="5.31864" height="21.2746" rx="2.65932" transform="matrix(-1 0 0 1 5.31836 13.2966)" fill="white"/>
+														</svg>
+													</div>	
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">$667,224</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<svg width="21" height="14" viewBox="0 0 21 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+														<path d="M1 13C1.91797 11.9157 4.89728 8.72772 6.5 7L12.5 10L19.5 1" stroke="#2BC155" strokeWidth="2" strokeLinecap="round"/>
+													</svg>
+													<p className="mb-0 ms-2 text-success">45%</p>
+													<p className="mb-0 ms-2 font-w400 text-white">This Week</p>	
+												</div>
+											</div>
+										</div>
+										<div className="bg-secondary coin-holding mt-4 flex-wrap">
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<path d="M30.5437 0.00501883C13.9681 -0.294993 0.305031 12.893 0.00501883 29.4562C-0.294993 46.0194 12.893 59.6949 29.4562 59.9949C46.0194 60.2949 59.6949 47.1069 59.9949 30.5312C60.2949 13.9681 47.1069 0.29253 30.5437 0.00501883ZM29.5562 54.3697C16.1182 54.1197 5.38023 42.9942 5.63024 29.5562C5.86775 16.1182 16.9932 5.38023 30.4312 5.61774C43.8818 5.86775 54.6072 16.9932 54.3697 30.4312C54.1322 43.8693 42.9942 54.6072 29.5562 54.3697Z" fill="white"/>
+															<path d="M30.3962 8.12284C18.3333 7.91034 8.34535 17.5482 8.13284 29.6112C7.90784 41.6617 17.5457 51.6496 29.6087 51.8746C41.6717 52.0871 51.6596 42.4492 51.8721 30.3987C52.0846 18.3358 42.4592 8.34785 30.3962 8.12284ZM39.4091 42.6992H19.5083L21.9459 29.2112L19.1208 29.7987V27.4986L22.3709 26.8111L24.4835 15.2106H32.4213L30.6212 25.086L33.3964 24.4985V26.7986L30.1962 27.4611L28.3462 37.6615H40.8842L39.4091 42.6992Z" fill="white"/>
+														</svg>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Tron Staking</h4>
+														<p className="mb-0 text-white">BRST</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="coin-bx-one">
+														<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<rect width="4.71425" height="34.5712" rx="2.35713" transform="matrix(-1 0 0 1 33 0)" fill="white"/>
+															<rect width="4.71425" height="25.1427" rx="2.35713" transform="matrix(-1 0 0 1 23.5713 9.42853)" fill="white"/>
+															<rect width="4.71425" height="10.9999" rx="2.35713" transform="matrix(-1 0 0 1 14.1436 23.5713)" fill="white"/>
+															<rect width="5.31864" height="21.2746" rx="2.65932" transform="matrix(-1 0 0 1 5.31836 13.2966)" fill="white"/>
+														</svg>
+													</div>	
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">$168,331.09</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+														<g filter="url(#filter0_d)">
+														<path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round"/>
+														</g>
+														<defs>
+														<filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+														<feFlood floodOpacity="0" result="BackgroundImageFix"/>
+														<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0"/>
+														<feOffset dy="1"/>
+														<feGaussianBlur stdDeviation="2"/>
+														<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0"/>
+														<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow"/>
+														<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape"/>
+														</filter>
+														</defs>
+													</svg>
+
+													<p className="mb-0 ms-2 text-danger">45%</p>
+													<p className="mb-0 ms-2 font-w400 text-white">This Week</p>	
+												</div>
+											</div>
+										</div>
+										<div className="bg-warning coin-holding mt-4 flex-wrap">
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<path d="M30 0C13.4312 0 0 13.4312 0 30C0 46.5688 13.4312 60 30 60C46.5688 60 60 46.5688 60 30C60 13.4312 46.5688 0 30 0ZM30 54.375C16.5587 54.375 5.625 43.44 5.625 30C5.625 16.56 16.5587 5.625 30 5.625C43.4413 5.625 54.375 16.5587 54.375 30C54.375 43.4413 43.44 54.375 30 54.375Z" fill="white"/>
+															<path d="M31.5488 30.9737H27.61V36.825H31.5488C32.3438 36.825 33.0813 36.5025 33.5988 35.9612C34.14 35.4425 34.4625 34.7062 34.4625 33.8875C34.4638 32.2862 33.15 30.9737 31.5488 30.9737Z" fill="white"/>
+															<path d="M30 8.12496C17.9375 8.12496 8.125 17.9375 8.125 30C8.125 42.0625 17.9375 51.875 30 51.875C42.0625 51.875 51.875 42.0612 51.875 30C51.875 17.9387 42.0612 8.12496 30 8.12496ZM34.4512 40.13H31.8712V44.185H29.165V40.13H27.6787V44.185H24.96V40.13H20.18V37.585H22.8175V22.335H20.18V19.79H24.96V15.8162H27.6787V19.79H29.165V15.8162H31.8712V19.79H34.2212C35.5337 19.79 36.7437 20.3312 37.6075 21.195C38.4712 22.0587 39.0125 23.2687 39.0125 24.5812C39.0125 27.15 36.985 29.2462 34.4512 29.3612C37.4225 29.3612 39.8187 31.78 39.8187 34.7512C39.8187 37.7112 37.4237 40.13 34.4512 40.13Z" fill="white"/>
+															<path d="M33.2888 27.38C33.7613 26.9075 34.0488 26.2737 34.0488 25.56C34.0488 24.1437 32.8975 22.9912 31.48 22.9912H27.61V28.14H31.48C32.1825 28.14 32.8275 27.84 33.2888 27.38Z" fill="white"/>
+														</svg>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Gallery</h4>
+														<p className="mb-0 text-white">BRGY</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="coin-bx-one">
+														<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<rect width="4.71425" height="34.5712" rx="2.35713" transform="matrix(-1 0 0 1 33 0)" fill="white"/>
+															<rect width="4.71425" height="25.1427" rx="2.35713" transform="matrix(-1 0 0 1 23.5713 9.42853)" fill="white"/>
+															<rect width="4.71425" height="10.9999" rx="2.35713" transform="matrix(-1 0 0 1 14.1436 23.5713)" fill="white"/>
+															<rect width="5.31864" height="21.2746" rx="2.65932" transform="matrix(-1 0 0 1 5.31836 13.2966)" fill="white"/>
+														</svg>
+													</div>	
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">$667,224</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<svg width="21" height="14" viewBox="0 0 21 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+														<path d="M1 13C1.91797 11.9157 4.89728 8.72772 6.5 7L12.5 10L19.5 1" stroke="#2BC155" strokeWidth="2" strokeLinecap="round"/>
+													</svg>
+													<p className="mb-0 ms-2 text-success">45%</p>
+													<p className="mb-0 ms-2 font-w400 text-white">This Week</p>	
+												</div>
+											</div>
+										</div>
+										<div className="bg-primary coin-holding mt-4 flex-wrap">
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<svg width="60" height="60" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<path d="M30.5438 0.00501884C13.9681 -0.294993 0.305031 12.893 0.00501884 29.4562C-0.294993 46.0194 12.893 59.695 29.4562 59.995C46.0194 60.295 59.695 47.107 59.995 30.5313C60.295 13.9681 47.107 0.292531 30.5438 0.00501884ZM29.5562 54.3698C16.1182 54.1197 5.38024 42.9943 5.63025 29.5562C5.86776 16.1182 16.9932 5.38024 30.4313 5.61775C43.8818 5.86776 54.6073 16.9932 54.3698 30.4313C54.1322 43.8693 42.9943 54.6073 29.5562 54.3698Z" fill="white"/>
+															<path d="M30.3938 8.11785C18.3308 7.90534 8.34286 17.5432 8.13035 29.6062C8.0591 33.4014 8.97039 36.9903 10.623 40.1354H17.4995V18.602C17.4995 17.2857 19.2883 16.867 19.8696 18.0483L30 38.5629L40.1304 18.0495C40.7117 16.867 42.5005 17.2857 42.5005 18.602V40.1354H49.3558C50.8934 37.2128 51.8084 33.9127 51.8696 30.3938C52.0822 18.3308 42.4568 8.34286 30.3938 8.11785Z" fill="white"/>
+															<path d="M40.0004 41.3855V23.9573L31.12 41.9392C30.7 42.793 29.2987 42.793 28.8787 41.9392L19.9996 23.9573V41.3855C19.9996 42.0755 19.4408 42.6355 18.7495 42.6355H12.1855C16.0744 48.0995 22.3972 51.7346 29.6062 51.8696C37.1028 52.0022 43.7931 48.327 47.8395 42.6355H41.2505C40.5592 42.6355 40.0004 42.0755 40.0004 41.3855Z" fill="white"/>
+														</svg>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Lottery</h4>
+														<p className="mb-0 text-white">BRLT</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="coin-bx-one">
+														<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg">
+															<rect width="4.71425" height="34.5712" rx="2.35713" transform="matrix(-1 0 0 1 33 0)" fill="white"/>
+															<rect width="4.71425" height="25.1427" rx="2.35713" transform="matrix(-1 0 0 1 23.5713 9.42853)" fill="white"/>
+															<rect width="4.71425" height="10.9999" rx="2.35713" transform="matrix(-1 0 0 1 14.1436 23.5713)" fill="white"/>
+															<rect width="5.31864" height="21.2746" rx="2.65932" transform="matrix(-1 0 0 1 5.31836 13.2966)" fill="white"/>
+														</svg>
+													</div>	
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">$24,098</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<svg width="21" height="14" viewBox="0 0 21 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+														<path d="M1 13C1.91797 11.9157 4.89728 8.72772 6.5 7L12.5 10L19.5 1" stroke="#2BC155" strokeWidth="2" strokeLinecap="round"/>
+													</svg>
+													<p className="mb-0 ms-2 text-success">45%</p>
+													<p className="mb-0 ms-2 font-w400 text-white">This Week</p>	
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div className="row page-titles mx-0">
+                    <div className="col-sm-6 p-md-0">
+                        <div className="welcome-text">
+                            <h4>Colectibles</h4>
+                            <p className="mb-0">BRGY</p>
+                        </div>
+                    </div>
+                    <div className="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+                        <ol className="breadcrumb">
+                            <li className="breadcrumb-item"><a href="/">BRUTUS</a></li>
+                            <li className="breadcrumb-item active"><a href="/brgy">NFT</a></li>
+                        </ol>
+                    </div>
+                </div>
                 <div className="row">
-                    <div className="col-12 text-center">
-                        <div className="heading">
-                            <h1>BRUTUS GROUP</h1>
-                            <div className="space-10"></div>
-                            <h5>Tús especialistas en productos Blockchain respaldados.</h5>
-
-                        </div>
-                        <div className="space-60"></div>
-                    </div>
-                </div>
-                <div className="row text-center">
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <a href="/?token"><img src="assets/img/brut.png" alt="brut" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Token (BRUT) </h3>
-                                <div className="space-10"></div>
-                                <h6>Respaldado por USDT, su precio depende de la operativa de una estrategia de trading automatizado basada en Backtesting</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="/?staking"><img src="assets/img/brst.png" alt="brst" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Tron Staking (BRST) </h3>
-                                <div className="space-10"></div>
-                                <h6>Su valor siempre es creciente frente a TRX, ya que basa su valor en el Staking a interés compuesto y el alquiler de energía.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="/?brgy"><img src="assets/img/brgy.png" alt="brgy" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Gallery (BRGY)</h3>
-                                <div className="space-10"></div>
-                                <h6>Es el contrato NFT de Brutus y a diferencia de otras colecciones, estos están respaldados por un valor tangible además de su valor subjetivo y artístico.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="https://t.me/BRUTUS_ENERGY"><img src="assets/img/breb.png" alt="robot de breb" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Energy Bot (BREB)</h3>
-                                <div className="space-10"></div>
-                                <h6>Nuestro bot automatizado de alquiler de energía, te permitirá alquilar Tron energy al mejor precio.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="/?loteria"><img src="assets/img/brlt.png" alt="robot brlt brutus" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Lottery (BRLT)</h3>
-                                <div className="space-10"></div>
-                                <h6>Nuestro bot automatizado logra recoger las ganancias en un periodo de tiempo y la sortea entre los poseedores del NFT.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
-
-
-                </div>
-            </div>
-
-          </div>
-
-          <div className="team-bg">
-        <div className="team-area wow fadeInUp section-padding" id="team">
-
-            <div className="container">
-                <div className="row">
-                    <div className="col-12 text-center">
-                        <div className="heading">
-                            <h5>Somos un proyecto con cara y nombre</h5>
-                            <div className="space-10"></div>
-                            <h1>Nuestro Equipo</h1>
-                        </div>
-                        <div className="space-60"></div>
-                    </div>
-                </div>
-                <div className="row text-center">
-
-                <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <img src="assets/img/vicente.jpg" alt="vicente nires" />
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>VICENTE NIRES <img src="https://images.emojiterra.com/twitter/v13.0/512px/1f1fa-1f1fe.png" height="25px" alt="bandera uruguay" /></h3>
-                                <div className="space-10"></div>
-                                <h6>CO-FOUNDER</h6>
-                                <p>COO (Chief Operating Officer)<br /><br />
-                                    Creador de BRUTUS BOT y RESPONSABLE de OPERATIVA es UN AMANTE del TRADING y uno de los REFERENTES en la venta P2P en URUGUAY y BRASIL.
-                                </p>
-                            </div>
-                            <div className="space-10"></div>
-                            <div className="single-team-social">
-                                <ul>
-                                    <li><a className="ico-3" href="https://twitter.com/NiresVicente"><i className="fa fa-twitter "></i></a></li>
-                                </ul>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/1.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">Bonorum et Malorum</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star-half-empty"></i></li>
+                                            <li><i className="fa fa-star-half-empty"></i></li>
+                                        </ul>
+                                        <span className="price">$761.00</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <img src="assets/img/manuel.jpg" alt="manuel montijano" />
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>MANUEL MONTIJANO <img src="https://images.emojiterra.com/twitter/v13.0/512px/1f1ea-1f1f8.png" height="25px" alt="bandera españa" /></h3>
-                                <div className="space-10"></div>
-                                <h6>CO-FOUNDER</h6>
-                                <p>CMO (Chief Marketing Officer)<br /><br />
-                                    Desarrolla la idea de NEGOCIO y RESPONSABLE de la DISTRIBUCIÓN del TOKEN le avala una trayectoria PROFESIONAL de más de 15 años en el MUNDO de las VENTAS.
-                                </p>
-                            </div>
-                            <div className="space-10"></div>
-                            <div className="single-team-social">
-                                <ul>
-                                    <li><a className="ico-3" href="https://twitter.com/BrutusToken"><i className="fa fa-twitter "></i></a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <img src="assets/img/steven.jpg" alt="Steven cabrera TRON" />
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>STEVEN CABRERA <img src="https://images.emojiterra.com/twitter/v13.0/512px/1f1e8-1f1f4.png" height="25px" alt="bandera colombia" /></h3>
-                                <div className="space-10"></div>
-                                <h6>TRON DEVELOPER</h6>
-                                <p>
-                                    CTO (Chief Technology Officer)<br /><br />
-                                    Creador del TOKEN y desarrolla la WEB con la INTEGRACIÓN de TRONLINK, jovencísimo DESARROLLADOR de CONTRATOS INTELIGENTES especializado en la BLOCKCHAIN de TRON.
-                                </p>
-                            </div>
-                            <div className="space-10"></div>
-                            <div className="single-team-social">
-                                <ul>
-                                    <li><a className="ico-1" href="https://www.youtube.com/channel/UCBImqITHBD_aVzAu-AL8pTw"><i className="fa fa-youtube"></i></a></li>
-                                    <li><a className="ico-2" href="https://github.com/stevenstc"><i className="fa fa-github"></i></a></li>
-                                    <li><a className="ico-3" href="https://twitter.com/steven_Cabr"><i className="fa fa-twitter "></i></a></li>
-                                </ul>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/2.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">Striped Dress</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                        </ul>
+                                        <span className="price">$159.00</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-
-                </div>
-            </div>
-
-        </div>
-
-    </div>
-    <div className="community-area wow fadeInUp section-padding" id="contact">
-        <div className="container">
-            <div className="row">
-                <div className="col-12 text-center">
-                    <div className="heading">
-                        <div className="space-10"></div>
-                        <h1>Nuestra Comunidad </h1>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/3.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">BBow polka-dot</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                        </ul>
+                                        <span className="price">$357.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                <div className="space-60"></div>
-                
-                </div>
-            </div>
-            <div className="row">
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="twitter" href="https://t.me/brutus_comunidad_sr"><i className="fa fa-telegram"></i></a>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/4.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">Z Product 360</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star-half-empty"></i></li>
+                                            <li><i className="fa fa-star-half-empty"></i></li>
+                                        </ul>
+                                        <span className="price">$654.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/5.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">Chair Grey</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                        </ul>
+                                        <span className="price">$369.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/6.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">fox sake withe</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                        </ul>
+                                        <span className="price">$245.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/7.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">Back Bag</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                        </ul>
+                                        <span className="price">$364.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="col-xl-3 col-lg-6 col-sm-6">
+                        <div className="card">
+                            <div className="card-body">
+                                <div className="new-arrival-product">
+                                    <div className="new-arrivals-img-contnent">
+                                        <img className="img-fluid" src="images/product/1.jpg" alt="" />
+                                    </div>
+                                    <div className="new-arrival-content text-center mt-3">
+                                        <h4><a href="ecom-product-detail.html">FLARE DRESS</a></h4>
+                                        <ul className="star-rating">
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star"></i></li>
+                                            <li><i className="fa fa-star-half-empty"></i></li>
+                                            <li><i className="fa fa-star-half-empty"></i></li>
+                                        </ul>
+                                        <span className="price">$548.00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="github" href="https://github.com/brutustoken/"><i className="fa fa-github"></i></a>
-                    </div>
-                </div>
-                <div className="col-6 col-lg">
-            
-                    <div className="single-community mid-social">
-                        <a className="whatsapp" href="https://wa.link/nfl9sa"><i className="fa fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="youtube" href="https://www.youtube.com/channel/UCKr7p3cwb86oVyt_HF4PvZQ"><i className="fa fa-youtube"></i></a>
-                    </div>
-                </div>
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="twitter" href="https://twitter.com/BrutusToken"><i className="fa fa-twitter"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
         </>
       );

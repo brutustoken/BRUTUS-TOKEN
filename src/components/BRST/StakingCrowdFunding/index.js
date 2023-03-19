@@ -90,13 +90,6 @@ export default class Trading extends Component {
     var accountAddress =  await window.tronWeb.trx.getAccount();
     accountAddress = window.tronWeb.address.fromHex(accountAddress.address);
 
-    var inicio = accountAddress.substr(0,4);
-    var fin = accountAddress.substr(-4);
-
-    var texto = inicio+"..."+fin;
-
-    document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+accountAddress+'" className="logibtn gradient-btn">'+texto+'</a>';
-
     var aprovadoUSDT = await window.tronWeb.trx.getBalance();
 
     aprovadoUSDT = aprovadoUSDT/10**6;
