@@ -5,6 +5,7 @@
  var dzChartlist = function(){
 	
 	var screenWidth = $(window).width();
+	
 		var chartBarRunning = function(){
 			 var options = {
           series: [{
@@ -242,7 +243,7 @@
 		
 	}
 	
-	var handleDaterange = function(){
+	/*var handleDaterange = function(){
 		$('.input-daterange-timepicker').daterangepicker({
 			timePicker: true,
 			format: 'MM/DD/YYYY h:mm A',
@@ -253,7 +254,7 @@
 			applyClass: 'btn-danger',
 			cancelClass: 'btn-inverse'
 		});
-	}
+	}*/
 	
 	/* Function ============ */
 		return {
@@ -266,7 +267,7 @@
 				chartBarRunning1();			
 				chartBarRunning2();			
 				chartBarRunning3();			
-				handleDaterange();			
+							
 			},
 			
 			resize:function(){
@@ -274,6 +275,8 @@
 		}
 	
 	}();
+
+	//handleDaterange();
 
 	
 		

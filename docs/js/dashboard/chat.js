@@ -8,7 +8,7 @@ $('.message-search-area > input').on('keyup', function() {
 });
 
 $('.chat-list-area').on('click', function(event) {
-    if ($(this).hasClass('.active')) {
+    if ($(this).hasClass('.active') && false) {
         return false;
     } else {
         var findChat = $(this).attr('data-chat');

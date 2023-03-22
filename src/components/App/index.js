@@ -5,13 +5,9 @@ import cons from "../../cons.js";
 import Inicio from "../Inicio";
 
 import Home from "../BRUT";
-import HomeBaner from "../BRUT/HomeBaner";
 import Staking from "../BRST";
-import StakingBaner from "../BRST/StakingBaner";
 import Nft from "../BRGY";
-import NftBaner from "../BRGY/nftBaner";
 import LOTERIA from "../LOTERIA";
-import LOTERIABaner from "../LOTERIA/nftBaner";
 import TronLinkGuide from "../TronLinkGuide";
 
 
@@ -22,18 +18,18 @@ class App extends Component {
     this.state = {
       accountAddress:"T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
       tronWeb: {
-        address: "Cargando...",
         installed: false,
         loggedIn: false,
         web3: null
       },
-      contratos: {
+      contrato: {
         BRUT_USDT: null,
         BRUT: null,
         MBOX: null,
         loteria: null,
         BRLT: null,
         USDT: null,
+        BRGY: null
         
       }
     };
@@ -51,7 +47,7 @@ class App extends Component {
 
   async conectar() {
 
-    var {tronWeb, wallet, contratos} = this.state;
+    var {tronWeb, wallet, contrato} = this.state;
     var conexion = 0;
 
 
@@ -79,20 +75,24 @@ class App extends Component {
 
       try {
         var BRUT_USDT = await window.tronWeb.contract().at(cons.SC);
-        var BRUT = await window.tronWeb.contract().at(cons.SC2);
-        var MBOX = await window.tronWeb.contract().at(cons.SC3);
-        var loteria = await window.tronWeb.contract().at(cons.SC4);
-        var BRLT = await window.tronWeb.contract().at(cons.BRLT);
+        var BRUT =  await window.tronWeb.contract().at(cons.SC2);
+        var MBOX =  await window.tronWeb.contract().at(cons.SC3);
         var USDT = await window.tronWeb.contract().at(cons.USDT);
-        var contratos = { BRUT_USDT, BRUT, MBOX, loteria, BRLT, USDT }
+        var BRGY = await window.tronWeb.contract().at(cons.BRGY)
+        var loteria = null//await window.tronWeb.contract().at(cons.SC4);
+        var BRLT = null// await window.tronWeb.contract().at(cons.BRLT);
+        var contrato = { BRUT_USDT, BRUT, MBOX, loteria, BRLT, BRGY, USDT }
       } catch(e) {
-        contratos = {
+
+        console.log(e)
+        contrato = {
           BRUT_USDT: null,
           BRUT: null,
           MBOX: null,
           loteria: null,
           BRLT: null,
           USDT: null,
+          BRGY: null
           
         }
       }
@@ -103,7 +103,7 @@ class App extends Component {
       this.setState({
         accountAddress: wallet,
         tronWeb: tronWeb,
-        contrato: contratos
+        contrato: contrato
 
       });
 
@@ -302,8 +302,8 @@ class App extends Component {
     return(
       <BrowserRouter>
         <Routes>
-          <Route index element={<Inicio />} />
-          <Route exact path="/" element={<Inicio />} />
+          <Route index element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>} />
+          <Route exact path="/" element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
           <Route path="/brut" element={<Home accountAddress={this.state.accountAddress} />} />
           <Route path="/brst" element={<Staking accountAddress={this.state.accountAddress} />} />
           <Route path="/brgy" element={<Nft accountAddress={this.state.accountAddress} />}  />
