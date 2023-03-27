@@ -1,9 +1,108 @@
 import React, { Component } from "react";
+import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
 
 import CrowdFunding from "./StakingCrowdFunding";
 import Oficina from "./StakingOficina";
 
+
 export default class Staking extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      minCompra: 10
+
+    };
+
+    this.grafico = this.grafico.bind(this);
+  }
+  componentDidMount() {
+    this.grafico();
+  }
+
+  async grafico() {
+    let root = am5.Root.new("chartdiv");
+
+    root.setThemes([
+      am5themes_Animated.new(root)
+    ]);
+
+    let chart = root.container.children.push(am5xy.XYChart.new(root, {
+      panX: true,
+      panY: true,
+      wheelX: "panX",
+      wheelY: "zoomX",
+      pinchZoomX: true
+    }));
+
+    // Add cursor
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+    let cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
+      behavior: "none"
+    }));
+    cursor.lineY.set("visible", true);
+
+   
+    // Create axes
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+    let xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
+      maxDeviation: 0.5,
+      baseInterval: {
+        timeUnit: "day",
+        count: 1
+      },
+      renderer: am5xy.AxisRendererX.new(root, {
+        pan: "zoom"
+      }),
+      tooltip: am5.Tooltip.new(root, {})
+    }));
+
+    let yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
+      maxDeviation: 0.5,
+      renderer: am5xy.AxisRendererY.new(root, {
+        pan: "zoom"
+      })
+    }));
+
+    // Add series
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+    let series = chart.series.push(am5xy.SmoothedXLineSeries.new(root, {
+      name: "Series",
+      xAxis: xAxis,
+      yAxis: yAxis,
+      valueYField: "value",
+      valueXField: "date",
+      tooltip: am5.Tooltip.new(root, {
+        labelText: "{valueY}",
+      })
+    }));
+
+    series.fills.template.setAll({
+      visible: true,
+      fillOpacity: 0.2
+    });
+
+    series.bullets.push(function () {
+      return am5.Bullet.new(root, {
+        locationY: 0,
+        sprite: am5.Circle.new(root, {
+          radius: 4,
+          stroke: root.interfaceColors.get("background"),
+          strokeWidth: 2,
+          fill: series.get("fill")
+        })
+      });
+    });
+
+    let data = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brst")).json()).Data
+    series.data.setAll(data);
+
+    series.appear(1000);
+    chart.appear(1000, 100);
+  }
 
   render() {
 
@@ -12,7 +111,7 @@ export default class Staking extends Component {
       <div className="row">
         <div className="col-xl-3 col-xxl-4 mt-4">
           <div className="card">
-            
+
             <div className="card-body height400 dz-scroll" id="about-1">
               <div className="d-flex align-items-start mb-3 about-coin">
                 <div>
@@ -21,11 +120,11 @@ export default class Staking extends Component {
                 <div className="ms-3">
                   <h2 className="font-w600 text-black mb-0 title">Tron Staking</h2>
                   <p className="font-w600 text-black sub-title">BRST</p>
-                  <span>1 BRST = 1.243 TRX</span>
+                  <span>1 BRST = 1.250 TRX</span>
                 </div>
               </div>
               <p className="fs-14">Dash is an open source cryptocurrency. It is an altcoin that was forked from the Bitcoin protocol. It is also a decentralized autonomous organization (DAO) run by a subset of its users, which are called "masternodes". The currency permits transactions that can be untraceable.</p>
-              </div>
+            </div>
             <div className="card-footer border-0 p-0 caret">
               <a href="coin-details.html" className="btn-link"><i className="fa fa-caret-down" aria-hidden="true"></i></a>
             </div>
@@ -39,22 +138,23 @@ export default class Staking extends Component {
                 <div className="col-lg-4 col-xxl-4 col-sm-4 d-flex flex-wrap align-items-center">
                   <div className="px-2 info-group">
                     <p className="fs-18 mb-1">Precio TRX</p>
-                    <h2 className="fs-28 font-w600 text-black">1.243618</h2>
+                    <h2 className="fs-28 font-w600 text-black">1.250801</h2>
                   </div>
                 </div>
                 <div className="d-flex col-lg-8 col-xxl-8 col-sm-8 align-items-center mt-sm-0 mt-3 justify-content-end">
-                  
+
                   <div className="px-2 info-group">
                     <p className="fs-14 mb-1">Respaldo TRX</p>
-                    <h3 className="fs-20 font-w600 text-black">461377.249637</h3>
+                    <h3 className="fs-20 font-w600 text-black">472,067.48</h3>
                   </div>
                   <div className="px-2 info-group">
                     <p className="fs-14 mb-1">Market Cap</p>
-                    <h3 className="fs-20 font-w600 text-black">$30872.73</h3>
+                    <h3 className="fs-20 font-w600 text-black">$30279.92</h3>
                   </div>
                 </div>
               </div>
-              <div id="chartBarRunning" className="bar-chart"></div>
+              <div id="chartdiv" style={{height: "300px"}}></div>
+
             </div>
           </div>
         </div>
@@ -111,7 +211,7 @@ export default class Staking extends Component {
           </div>
         </div>
         <CrowdFunding />
-                    <Oficina />
+        <Oficina />
       </div>
 
     );
