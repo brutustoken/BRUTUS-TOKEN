@@ -29,7 +29,9 @@ class App extends Component {
         loteria: null,
         BRLT: null,
         USDT: null,
-        BRGY: null
+        BRGY: null,
+        BRST: null,
+        BRST_TRX: null,
         
       }
     };
@@ -73,32 +75,18 @@ class App extends Component {
 
       tronWeb['web3'] = window.tronWeb;
 
-      try {
-        var BRUT_USDT = await window.tronWeb.contract().at(cons.SC);
-        var BRUT =  await window.tronWeb.contract().at(cons.SC2);
-        var MBOX =  await window.tronWeb.contract().at(cons.SC3);
-        var USDT = await window.tronWeb.contract().at(cons.USDT);
+        var USDT = await window.tronWeb.contract().at(cons.USDT)
+        var BRUT =  await window.tronWeb.contract().at(cons.BRUT)
+        var BRUT_USDT = await window.tronWeb.contract().at(cons.SC)
+        var BRST = await window.tronWeb.contract().at(cons.BRST)
+        var BRST_TRX = await window.tronWeb.contract().at(cons.SC2)
         var BRGY = await window.tronWeb.contract().at(cons.BRGY)
-        var loteria = null//await window.tronWeb.contract().at(cons.SC4);
+        var MBOX =  await window.tronWeb.contract().at(cons.SC3)
         var BRLT = null// await window.tronWeb.contract().at(cons.BRLT);
-        var contrato = { BRUT_USDT, BRUT, MBOX, loteria, BRLT, BRGY, USDT }
-      } catch(e) {
-
-        console.log(e)
-        contrato = {
-          BRUT_USDT: null,
-          BRUT: null,
-          MBOX: null,
-          loteria: null,
-          BRLT: null,
-          USDT: null,
-          BRGY: null
-          
-        }
-      }
-
-      console.log("entro")
-
+        var loteria = null//await window.tronWeb.contract().at(cons.SC4);
+        contrato = {USDT,BRUT, BRUT_USDT, BRST, BRST_TRX, BRGY, MBOX, BRLT, loteria  }
+      
+      
 
       this.setState({
         accountAddress: wallet,
@@ -122,8 +110,8 @@ class App extends Component {
       });
     }
 
-    var inicio = wallet.substr(0,4);
-    var fin = wallet.substr(-4);
+    /*var inicio = wallet.substr(0,4);
+    var fin = wallet.substr(-4);*/
 
     var texto = wallet; //inicio+"..."+fin;
 
@@ -132,156 +120,6 @@ class App extends Component {
 
 
   }
-
-  /*
-  render() {
-
-
-    var getString = "";
-    var loc = document.location.href;
-    //console.log(loc);
-    if (loc.indexOf('?') > 0) {
-
-      getString = loc.split('?')[1];
-      getString = getString.split('#')[0];
-
-    }
-
-    switch (getString) {
-      case "staking":
-      case "brst":
-      case "BRST":
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <StakingBaner />
-            <div className="container">
-              <TronLinkGuide installed={this.state.tronWeb.installed} url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <StakingBaner />
-            <div className="container">
-              <TronLinkGuide installed={this.state.tronWeb.installed} url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <StakingBaner getString={getString} />
-            <Staking />
-          </>
-        );
-
-      case "brut":
-      case "BRUT":
-      case "token":
-      case "TOKEN":
-
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <HomeBaner />
-            <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <HomeBaner />
-            <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <HomeBaner getString={getString} />
-            <Home accountAddress={this.state.accountAddress} />
-          </>
-        );
-
-      case "brgy":
-      case "BRGY":
-      case "nft":
-      case "NFT":
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <NftBaner />
-            <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <NftBaner />
-            <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <NftBaner getString={getString} />
-            <Nft accountAddress={this.state.accountAddress} />
-          </>
-        );
-
-      case "loteria":
-      case "rifa":
-      case "sorteo":
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <LOTERIABaner />
-            <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <LOTERIABaner />
-            <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <LOTERIABaner getString={getString} />
-            <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
-          </>
-        );
-
-      case "faq":
-      case "FAQ":
-      case "preguntasfrecuentes": return (
-        <>
-          <FAQ />
-        </>
-      );
-
-
-      default:
-
-        return (<><Inicio /></>);
-
-    }
-
-
-
-  }
-*/
 
   render(){
 
@@ -304,10 +142,10 @@ class App extends Component {
         <Routes>
           <Route index element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>} />
           <Route exact path="/" element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-          <Route path="/brut" element={<Home accountAddress={this.state.accountAddress} />} />
-          <Route path="/brst" element={<Staking accountAddress={this.state.accountAddress} />} />
-          <Route path="/brgy" element={<Nft accountAddress={this.state.accountAddress} />}  />
-          <Route path="/brlt" element={<LOTERIA accountAddress={this.state.accountAddress} />} />
+          <Route path="/brut" element={<Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
+          <Route path="/brst" element={<Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
+          <Route path="/brgy" element={<Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />}  />
+          <Route path="/brlt" element={<LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
 
         </Routes>
 

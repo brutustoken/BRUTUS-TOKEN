@@ -61,9 +61,7 @@ export default class Trading extends Component {
   }
 
   async componentDidMount() {
-    await Utils.setContract(window.tronWeb, contractAddress);
-    this.estado();
-    setInterval(() => this.estado(),1*1000);
+    
   };
 
   async consultarPrecio(){
@@ -200,7 +198,6 @@ export default class Trading extends Component {
     });
 
   }
-
 
   async compra() {
 
