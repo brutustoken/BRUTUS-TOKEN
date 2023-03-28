@@ -45,17 +45,20 @@ export default class Staking extends Component {
 
   }
  
-
-  
   componentDidMount() {
     document.title = "Brutus Finance | BRST"
     this.grafico();
 
     this.estado();
     setInterval(() => {
-      this.estado()
+      this.estado();
 
     },3*1000);
+
+    setInterval(() => {
+      this.root.dispose();
+      this.grafico();
+    },60*1000);
   }
 
   componentWillUnmount() {
