@@ -116,7 +116,7 @@ export default class Inicio extends Component {
 		
 		});
 
-		var apiUrl = API+'api/v1/precio/brst';
+		apiUrl = API+'api/v1/precio/brst';
 		fetch(apiUrl).then(response => {return response.json();})
 		.then(data => {
 
@@ -151,7 +151,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<img className="mb-3 currency-icon" src="assets/img/brut.png" width="80" height="80" />
+								<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
 
 								<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
 								<p className="mb-0 fs-14">
@@ -164,7 +164,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<img className="mb-3 currency-icon" src="assets/img/brst.png" width="80" height="80" />
+								<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
 
 								<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
 								<p className="mb-0 fs-13">
@@ -177,7 +177,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-							<img className="mb-3 currency-icon" src="assets/img/brgy.png" width="80" height="80" />
+							<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
 								<h2 className="text-black mb-2 font-w600">{this.state.BRGY} BRGY</h2>
 								<p className="mb-0 fs-14">
 
@@ -189,7 +189,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-							<img className="mb-3 currency-icon" src="assets/img/brlt.png" width="80" height="80" />
+							<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
 								<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BRLT</h2>
 								<p className="mb-0 fs-14">
 									Lottery Tickets
