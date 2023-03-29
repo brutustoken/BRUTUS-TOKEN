@@ -68,11 +68,22 @@ export default class Staking extends Component {
   }
 
   handleChangeBRUT(event) {
-    this.setState({ valueBRUT: event.target.value });
+    let dato = event.target.value;
+    console.log(dato)
+    this.setState({ 
+      valueBRUT:  dato,
+      valueUSDT: dato*this.state.precioBRUT
+    });
   }
 
   handleChangeUSDT(event) {
-    this.setState({ valueUSDT: event.target.value });
+    let dato = event.target.value;
+    console.log(dato)
+
+    this.setState({ 
+      valueUSDT: event.target.value,
+      valueBRUT:  dato/this.state.precioBRUT,
+    });
   }
 
   llenarBRUT() {
@@ -354,81 +365,6 @@ export default class Staking extends Component {
       am5themes_Animated.new(root)
     ]);
 
-    /*
-
-    let chart = root.container.children.push(am5xy.XYChart.new(root, {
-      panX: true,
-      panY: true,
-      wheelX: "panX",
-      wheelY: "zoomX",
-      pinchZoomX: true
-    }));
-
-    // Add cursor
-    // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
-    let cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
-      behavior: "none"
-    }));
-    cursor.lineY.set("visible", true);
-
-   
-    // Create axes
-    // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
-    let xAxis = chart.xAxes.push(am5xy.DateAxis.new(root, {
-      maxDeviation: 0.5,
-      baseInterval: {
-        timeUnit: "day",
-        count: 1
-      },
-      renderer: am5xy.AxisRendererX.new(root, {
-        pan: "zoom"
-      }),
-      tooltip: am5.Tooltip.new(root, {})
-    }));
-
-    let yAxis = chart.yAxes.push(am5xy.ValueAxis.new(root, {
-      maxDeviation: 0.5,
-      renderer: am5xy.AxisRendererY.new(root, {
-        pan: "zoom"
-      })
-    }));
-
-    // Add series
-    // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
-    let series = chart.series.push(am5xy.SmoothedXLineSeries.new(root, {
-      name: "Series",
-      xAxis: xAxis,
-      yAxis: yAxis,
-      valueYField: "value",
-      valueXField: "date",
-      tooltip: am5.Tooltip.new(root, {
-        labelText: "{valueY}",
-      })
-    }));
-
-    series.fills.template.setAll({
-      visible: true,
-      fillOpacity: 0.2
-    });
-
-    series.bullets.push(function () {
-      return am5.Bullet.new(root, {
-        locationY: 0,
-        sprite: am5.Circle.new(root, {
-          radius: 4,
-          stroke: root.interfaceColors.get("background"),
-          strokeWidth: 2,
-          fill: series.get("fill")
-        })
-      });
-    });
-    var data = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brst?dias=30")).json()).Data
-    series.data.setAll(data);
-
-    series.appear(1000);
-    chart.appear(1000, 100);
-    */
-
     // Create chart
     // https://www.amcharts.com/docs/v5/charts/xy-chart/
     let chart = root.container.children.push(
@@ -484,7 +420,7 @@ export default class Staking extends Component {
     }
 
     async function generateDatas(count) {
-      let consulta = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brut?dias=" + count)).json()).Data
+      let consulta = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brst?dias=" + count)).json()).Data
       let data = []
       for (var i = consulta.length - 1; i > 0; --i) {
         data.push(generateData(consulta[i]));
@@ -665,17 +601,17 @@ export default class Staking extends Component {
                   <div className="form-group">
                     <div className="input-group input-group-lg">
                       <div className="input-group-prepend">
-                        <span className="input-group-text">Monto BRST</span>
+                        <span className="input-group-text">BRST: {this.state.balanceBRUT}</span>
                       </div>
-                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} />
+                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5}/>
                     </div>
                   </div>
                   <div className="form-group">
                     <div className="input-group input-group-lg">
                       <div className="input-group-prepend">
-                        <span className="input-group-text ">Valor TRX</span>
+                        <span className="input-group-text ">TRX: {this.state.balanceUSDT}</span>
                       </div>
-                      <input type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} />
+                      <input type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
                     </div>
                   </div>
                   <div className="row mt-4 align-items-center">
