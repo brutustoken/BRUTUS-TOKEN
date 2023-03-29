@@ -151,6 +151,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
+								<a href="/brut">
 								<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
 
 								<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
@@ -158,12 +159,14 @@ export default class Inicio extends Component {
 									{this.subeobaja(this.state.varBrut)}
 									<span className={"text-"+this.textoE(this.state.varBrut)+" me-1"}>{(this.state.varBrut).toFixed(3)}%</span> 24h
 								</p>
+								</a>
 							</div>
 						</div>
 					</div>
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
+								<a href="/brst">
 								<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
 
 								<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
@@ -171,29 +174,33 @@ export default class Inicio extends Component {
 									{this.subeobaja(this.state.varBrst)}
 									<span className={"text-"+this.textoE(this.state.varBrst)+" me-1"}>{(this.state.varBrst).toFixed(3)}%</span> 24h
 								</p>
+								</a>
 							</div>
 						</div>
 					</div>
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-							<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
+								<a href="/brgy">
+								<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
 								<h2 className="text-black mb-2 font-w600">{this.state.BRGY} BRGY</h2>
 								<p className="mb-0 fs-14">
-
 									Colectibles
 								</p>
+								</a>
 							</div>
 						</div>
 					</div>
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-							<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
+								<a href="/brlt">
+								<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
 								<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BRLT</h2>
 								<p className="mb-0 fs-14">
 									Lottery Tickets
 								</p>
+								</a>
 							</div>
 						</div>
 					</div>
