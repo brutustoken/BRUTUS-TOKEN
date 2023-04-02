@@ -41,7 +41,6 @@ export default class Staking extends Component {
     this.llenarUSDT = this.llenarUSDT.bind(this);
 
     this.consultarPrecio = this.consultarPrecio.bind(this);
-    this.completarSolicitud = this.completarSolicitud.bind(this);
 
   }
 
@@ -69,20 +68,19 @@ export default class Staking extends Component {
 
   handleChangeBRUT(event) {
     let dato = event.target.value;
-    console.log(dato)
-    this.setState({ 
-      valueBRUT:  dato,
-      valueUSDT: dato*this.state.precioBRUT
+
+    this.setState({
+      valueBRUT: dato,
+      valueUSDT: dato * this.state.precioBRUT
     });
   }
 
   handleChangeUSDT(event) {
     let dato = event.target.value;
-    console.log(dato)
 
-    this.setState({ 
+    this.setState({
       valueUSDT: event.target.value,
-      valueBRUT:  dato/this.state.precioBRUT,
+      valueBRUT: dato / this.state.precioBRUT,
     });
   }
 
@@ -112,11 +110,6 @@ export default class Staking extends Component {
 
   };
 
-  async completarSolicitud(id, trx) {
-
-    await this.props.contrato.BRST_TRX.completarSolicitud(id).send({ callValue: trx });
-
-  }
 
   async estado() {
 
@@ -157,45 +150,56 @@ export default class Staking extends Component {
 
     var precioBRUT = await this.consultarPrecio();
 
-    var deposito = await this.props.contrato.BRST_TRX.todasSolicitudes(accountAddress).call();
-
     var tiempo = await this.props.contrato.BRST_TRX.TIEMPO().call();
 
     tiempo = parseInt(tiempo._hex) * 1000;
 
-    var misDepositos = [];
-    var id;
-
-    for (let index = 0; index < deposito.brst.length; index++) {
+    var deposito = await this.props.contrato.BRST_TRX.todasSolicitudes(accountAddress).call();
+    var myids = []
+    for (let index = 0; index < deposito.completado.length; index++) {
       if (!deposito.completado[index]) {
-        id = parseInt(deposito.id[index]._hex);
-        misDepositos.push(<div className="col-lg-12" key={"mis-" + id}>
-          <p># {id} | {parseInt(deposito.brst[index]._hex) / 10 ** 6} BRST -&gt; {parseInt(deposito.trxx[index]._hex) / 10 ** 6} TRX  {" "}
-            <button type="button" className="btn btn-warning" onClick={() => this.completarSolicitud(parseInt(deposito.id[index]._hex), 0)}>Cancelar</button></p>
-          <hr></hr>
-        </div>)
+        myids.push(parseInt(deposito.id[index]._hex));
       }
-
+      
     }
 
     var deposits = await this.props.contrato.BRST_TRX.solicitudesPendientesGlobales().call();
-
     var globDepositos = [];
-
-    var pen;
 
     for (let index = 0; index < deposits.length; index++) {
 
-      pen = await this.props.contrato.BRST_TRX.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
+      let pen = await this.props.contrato.BRST_TRX.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
 
-      globDepositos[index] = (<div className="col-lg-12" key={"glob" + parseInt(deposits[index]._hex)}>
-        <p># {parseInt(deposits[index]._hex)} | {parseInt(pen[3]._hex) / 10 ** 6} BRST -&gt; {parseInt(pen[2]._hex) / 10 ** 6} TRX  {" "}
-          <button type="button" className="btn btn-prymary" onClick={async () => {
-            var local = await this.props.contrato.BRST_TRX.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
-            this.completarSolicitud(parseInt(deposits[index]._hex), parseInt(local[2]._hex));
-          }}>Completar</button></p>
-        <hr></hr>
-      </div>)
+      var boton = <></>
+      if(myids.includes(parseInt(deposits[index]._hex))){
+        boton = (
+        <button className="btn btn-danger ms-4 mb-2" onClick={async() => {
+              await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: 0 });
+            }}>
+              Cancelar {" "} <i className="bi bi-x-lg"></i>
+            </button>
+        )
+      }
+
+      globDepositos[index] = (
+
+        <div className="row mt-4 align-items-center" key={"glob" + parseInt(deposits[index]._hex)}>
+          <div className="col-sm-6 mb-3">
+            <h4 className="fs-20 text-black">{parseInt(pen[2]._hex) / 10 ** 6} TRX x {parseInt(pen[3]._hex) / 10 ** 6} BRST</h4>
+            <p className="mb-0 fs-14">Solicitud de venta # {parseInt(deposits[index]._hex)}</p>
+          </div>
+          <div className="col-sm-6 text-sm-right text-start">
+
+            <button className="btn  btn-success text-white mb-2" onClick={async() => {
+              await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
+
+            }}>
+              Completar {" "} <i className="bi bi-check-lg"></i>
+            </button>
+            {boton}
+          </div>
+        </div>
+      )
 
 
     }
@@ -205,15 +209,11 @@ export default class Staking extends Component {
     var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
     var enPool = await this.props.contrato.BRST_TRX.TRON_PAY_BALANCE().call();
     var solicitado = await this.props.contrato.BRST_TRX.TRON_SOLICITADO().call();
-    var solicitudes = await this.props.contrato.BRST_TRX.index().call();
 
 
-
-    //console.log(tokensEmitidos);
     this.setState({
       minCompra: MIN_DEPOSIT,
       globDepositos: globDepositos,
-      misDepositos: misDepositos,
       depositoUSDT: aprovadoUSDT,
       depositoBRUT: aprovadoBRUT,
       balanceBRUT: balanceBRUT,
@@ -225,7 +225,7 @@ export default class Staking extends Component {
       tokensEmitidos: parseInt(tokensEmitidos._hex) / 10 ** 6,
       enPool: parseInt(enPool._hex) / 10 ** 6,
       solicitado: parseInt(solicitado._hex) / 10 ** 6,
-      solicitudes: parseInt(solicitudes._hex),
+      solicitudes: globDepositos.length,
     });
 
   }
@@ -425,7 +425,7 @@ export default class Staking extends Component {
       for (var i = consulta.length - 1; i > 0; --i) {
         data.push(generateData(consulta[i]));
       }
-      console.log(data)
+
       return data;
     }
 
@@ -525,7 +525,7 @@ export default class Staking extends Component {
 
 
     series.appear(time);
-    chart.appear(time, time/10);
+    chart.appear(time, time / 10);
 
     this.root = root;
   }
@@ -586,6 +586,7 @@ export default class Staking extends Component {
             </div>
           </div>
         </div>
+
         <div className="col-xl-6 col-xxl-12">
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
@@ -603,7 +604,7 @@ export default class Staking extends Component {
                       <div className="input-group-prepend">
                         <span className="input-group-text">BRST: {this.state.balanceBRUT}</span>
                       </div>
-                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5}/>
+                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5} />
                     </div>
                   </div>
                   <div className="form-group">
@@ -621,15 +622,16 @@ export default class Staking extends Component {
                     <div className="col-sm-6 text-sm-right text-start">
                       <button className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
                         BUY
-                        <svg className="ms-4 scale3" width="16" height="16" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M16.9638 11.5104L16.9721 14.9391L3.78954 1.7565C3.22815 1.19511 2.31799 1.19511 1.75661 1.7565C1.19522 2.31789 1.19522 3.22805 1.75661 3.78943L14.9392 16.972L11.5105 16.9637L11.5105 16.9637C10.7166 16.9619 10.0715 17.6039 10.0696 18.3978C10.0677 19.1919 10.7099 19.8369 11.5036 19.8388L11.5049 19.3388L11.5036 19.8388L18.3976 19.8554L18.4146 19.8555L18.4159 19.8555C18.418 19.8555 18.42 19.8555 18.422 19.8555C19.2131 19.8533 19.8528 19.2114 19.8555 18.4231C19.8556 18.4196 19.8556 18.4158 19.8556 18.4117L19.8389 11.5035L19.8389 11.5035C19.8369 10.7097 19.1919 10.0676 18.3979 10.0695C17.604 10.0713 16.9619 10.7164 16.9638 11.5103L16.9638 11.5104Z" fill="white" stroke="white"></path>
+                        <svg className="ms-4 scale5" width="16" height="16" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5.35182 13.4965L5.35182 13.4965L5.33512 6.58823C5.33508 6.5844 5.3351 6.58084 5.33514 6.57759M5.35182 13.4965L5.83514 6.58306L5.33514 6.58221C5.33517 6.56908 5.33572 6.55882 5.33597 6.5545L5.33606 6.55298C5.33585 6.55628 5.33533 6.56514 5.33516 6.57648C5.33515 6.57684 5.33514 6.57721 5.33514 6.57759M5.35182 13.4965C5.35375 14.2903 5.99878 14.9324 6.79278 14.9305C7.58669 14.9287 8.22874 14.2836 8.22686 13.4897L8.22686 13.4896L8.21853 10.0609M5.35182 13.4965L8.21853 10.0609M5.33514 6.57759C5.33752 5.789 5.97736 5.14667 6.76872 5.14454C6.77041 5.14452 6.77217 5.14451 6.77397 5.14451L6.77603 5.1445L6.79319 5.14456L13.687 5.16121L13.6858 5.66121L13.687 5.16121C14.4807 5.16314 15.123 5.80809 15.1211 6.6022C15.1192 7.3961 14.4741 8.03814 13.6802 8.03626L13.6802 8.03626L10.2515 8.02798L23.4341 21.2106C23.9955 21.772 23.9955 22.6821 23.4341 23.2435C22.8727 23.8049 21.9625 23.8049 21.4011 23.2435L8.21853 10.0609M5.33514 6.57759C5.33513 6.57959 5.33514 6.58159 5.33514 6.5836L8.21853 10.0609M6.77407 5.14454C6.77472 5.14454 6.77537 5.14454 6.77603 5.14454L6.77407 5.14454Z" fill="white" stroke="white"></path>
                         </svg>
                       </button>
                       <button className="btn btn-danger ms-4 mb-2" onClick={() => this.venta()}>
                         SELL
-                        <svg className="ms-4 scale5" width="16" height="16" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M5.35182 13.4965L5.35182 13.4965L5.33512 6.58823C5.33508 6.5844 5.3351 6.58084 5.33514 6.57759M5.35182 13.4965L5.83514 6.58306L5.33514 6.58221C5.33517 6.56908 5.33572 6.55882 5.33597 6.5545L5.33606 6.55298C5.33585 6.55628 5.33533 6.56514 5.33516 6.57648C5.33515 6.57684 5.33514 6.57721 5.33514 6.57759M5.35182 13.4965C5.35375 14.2903 5.99878 14.9324 6.79278 14.9305C7.58669 14.9287 8.22874 14.2836 8.22686 13.4897L8.22686 13.4896L8.21853 10.0609M5.35182 13.4965L8.21853 10.0609M5.33514 6.57759C5.33752 5.789 5.97736 5.14667 6.76872 5.14454C6.77041 5.14452 6.77217 5.14451 6.77397 5.14451L6.77603 5.1445L6.79319 5.14456L13.687 5.16121L13.6858 5.66121L13.687 5.16121C14.4807 5.16314 15.123 5.80809 15.1211 6.6022C15.1192 7.3961 14.4741 8.03814 13.6802 8.03626L13.6802 8.03626L10.2515 8.02798L23.4341 21.2106C23.9955 21.772 23.9955 22.6821 23.4341 23.2435C22.8727 23.8049 21.9625 23.8049 21.4011 23.2435L8.21853 10.0609M5.33514 6.57759C5.33513 6.57959 5.33514 6.58159 5.33514 6.5836L8.21853 10.0609M6.77407 5.14454C6.77472 5.14454 6.77537 5.14454 6.77603 5.14454L6.77407 5.14454Z" fill="white" stroke="white"></path>
+                        <svg className="ms-4 scale3" width="16" height="16" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M16.9638 11.5104L16.9721 14.9391L3.78954 1.7565C3.22815 1.19511 2.31799 1.19511 1.75661 1.7565C1.19522 2.31789 1.19522 3.22805 1.75661 3.78943L14.9392 16.972L11.5105 16.9637L11.5105 16.9637C10.7166 16.9619 10.0715 17.6039 10.0696 18.3978C10.0677 19.1919 10.7099 19.8369 11.5036 19.8388L11.5049 19.3388L11.5036 19.8388L18.3976 19.8554L18.4146 19.8555L18.4159 19.8555C18.418 19.8555 18.42 19.8555 18.422 19.8555C19.2131 19.8533 19.8528 19.2114 19.8555 18.4231C19.8556 18.4196 19.8556 18.4158 19.8556 18.4117L19.8389 11.5035L19.8389 11.5035C19.8369 10.7097 19.1919 10.0676 18.3979 10.0695C17.604 10.0713 16.9619 10.7164 16.9638 11.5103L16.9638 11.5104Z" fill="white" stroke="white"></path>
                         </svg>
+
                       </button>
                     </div>
                   </div>
@@ -638,6 +640,24 @@ export default class Staking extends Component {
             </div>
           </div>
         </div>
+
+        <div className="col-xl-6 col-xxl-12">
+          <div className="card">
+            <div className="card-header d-sm-flex d-block pb-0 border-0">
+              <div>
+                <h4 className="fs-20 text-black">Solicitudes retiro en proceso ({this.state.solicitudes})</h4>
+                <p className="mb-0 fs-12">la orden esta a la espera de ser completada, tu puedes completar las ordenes de otros usuarios comprando el BRST</p>
+              </div>
+
+            </div>
+            <div className="card-body">
+
+              {this.state.globDepositos}
+
+            </div>
+          </div>
+        </div>
+
       </div>
 
     );
