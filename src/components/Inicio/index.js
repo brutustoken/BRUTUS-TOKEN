@@ -12,14 +12,18 @@ export default class Inicio extends Component {
 		  precioBrst: 0,
 		  varBrst: 0,
 		  BRGY: 0,
-		  BRLT: 0
+		  BRLT: 0,
+		  misBRUT: 0,
+		  misBRST: 0,
+		  misBRGY: 0,
+		  misBRLT: 0
 	
 		};
 	
 		this.consultaPrecios = this.consultaPrecios.bind(this);
 		this.subeobaja = this.subeobaja.bind(this);
 		this.textoE = this.textoE.bind(this);
-		this.consultaNFT = this.consultaNFT.bind(this);
+		this.estado = this.estado.bind(this);
 
 		
 	}
@@ -27,12 +31,12 @@ export default class Inicio extends Component {
 	
 	componentDidMount(){
 		this.consultaPrecios();
-		this.consultaNFT();
+		this.estado();
 
 		setInterval(() => {
 			this.consultaPrecios();
 
-			this.consultaNFT();
+			this.estado();
 		}, 5000);
 	}
 
@@ -132,12 +136,25 @@ export default class Inicio extends Component {
 		
 	}
 
-	async consultaNFT(){
+	async estado(){
 		
 		var brgy = await this.props.contrato.BRGY.totalSupply().call();
 		brgy = parseInt(brgy._hex);
+
+		var brut = await this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call();
+		brut = parseInt(brut._hex)/1e6;
+
+		var brst = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
+		brst = parseInt(brst._hex)/1e6;
+
+		var misBrgy = await this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call();
+		misBrgy = parseInt(misBrgy._hex);
+
 		this.setState({
 			BRGY: brgy,
+			misBRUT: brut,
+			misBRST: brst,
+			misBRGY: misBrgy
 		})
 
 	}
@@ -233,17 +250,15 @@ export default class Inicio extends Component {
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
 													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">5.008975</h2>
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRUT}</h2>
 													</div>
 												</div>
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<svg width="21" height="14" viewBox="0 0 21 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-														<path d="M1 13C1.91797 11.9157 4.89728 8.72772 6.5 7L12.5 10L19.5 1" stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
-													</svg>
-													<p className="mb-0 ms-2 text-success">0.4%</p>
-													<p className="mb-0 ms-2 font-w400 text-white">$6.78 USDT</p>
+													{this.subeobaja(this.state.varBrut)}
+													<p className="mb-0 ms-2"><span className={"text-"+this.textoE(this.state.varBrut)+" me-1"}>{(this.state.varBrut).toFixed(3)}%</span></p>
+													<p className="mb-0 ms-2 font-w400 text-white">${(this.state.misBRUT*this.state.precioBrut).toFixed(3)} USDT</p>
 												</div>
 											</div>
 										</div>
@@ -261,40 +276,16 @@ export default class Inicio extends Component {
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<div className="coin-bx-one">
-														<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-															<rect width="4.71425" height="34.5712" rx="2.35713" transform="matrix(-1 0 0 1 33 0)" fill="white" />
-															<rect width="4.71425" height="25.1427" rx="2.35713" transform="matrix(-1 0 0 1 23.5713 9.42853)" fill="white" />
-															<rect width="4.71425" height="10.9999" rx="2.35713" transform="matrix(-1 0 0 1 14.1436 23.5713)" fill="white" />
-															<rect width="5.31864" height="21.2746" rx="2.65932" transform="matrix(-1 0 0 1 5.31836 13.2966)" fill="white" />
-														</svg>
-													</div>
 													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">$168,331.09</h2>
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRST}</h2>
 													</div>
 												</div>
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-														<g filter="url(#filter0_d)">
-															<path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
-														</g>
-														<defs>
-															<filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-																<feFlood floodOpacity="0" result="BackgroundImageFix" />
-																<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-																<feOffset dy="1" />
-																<feGaussianBlur stdDeviation="2" />
-																<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
-																<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-																<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-															</filter>
-														</defs>
-													</svg>
-
-													<p className="mb-0 ms-2 text-danger">45%</p>
-													<p className="mb-0 ms-2 font-w400 text-white">This Week</p>
+													{this.subeobaja(this.state.varBrst)}
+													<p className="mb-0 ms-2"><span className={"text-"+this.textoE(this.state.varBrst)+" me-1"}>{(this.state.varBrst).toFixed(3)}%</span></p>
+													<p className="mb-0 ms-2 font-w400 text-white">{(this.state.misBRST*this.state.precioBrst).toFixed(3)} TRX</p>
 												</div>
 											</div>
 										</div>
@@ -312,26 +303,14 @@ export default class Inicio extends Component {
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<div className="coin-bx-one">
-														<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-															<rect width="4.71425" height="34.5712" rx="2.35713" transform="matrix(-1 0 0 1 33 0)" fill="white" />
-															<rect width="4.71425" height="25.1427" rx="2.35713" transform="matrix(-1 0 0 1 23.5713 9.42853)" fill="white" />
-															<rect width="4.71425" height="10.9999" rx="2.35713" transform="matrix(-1 0 0 1 14.1436 23.5713)" fill="white" />
-															<rect width="5.31864" height="21.2746" rx="2.65932" transform="matrix(-1 0 0 1 5.31836 13.2966)" fill="white" />
-														</svg>
-													</div>
 													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">$667,224</h2>
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRGY}</h2>
 													</div>
 												</div>
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<svg width="21" height="14" viewBox="0 0 21 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-														<path d="M1 13C1.91797 11.9157 4.89728 8.72772 6.5 7L12.5 10L19.5 1" stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
-													</svg>
-													<p className="mb-0 ms-2 text-success">45%</p>
-													<p className="mb-0 ms-2 font-w400 text-white">This Week</p>
+													<p className="mb-0 ms-2 font-w400 text-white">NFT's</p>
 												</div>
 											</div>
 										</div>
@@ -349,26 +328,14 @@ export default class Inicio extends Component {
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<div className="coin-bx-one">
-														<svg width="33" height="35" viewBox="0 0 33 35" fill="none" xmlns="http://www.w3.org/2000/svg">
-															<rect width="4.71425" height="34.5712" rx="2.35713" transform="matrix(-1 0 0 1 33 0)" fill="white" />
-															<rect width="4.71425" height="25.1427" rx="2.35713" transform="matrix(-1 0 0 1 23.5713 9.42853)" fill="white" />
-															<rect width="4.71425" height="10.9999" rx="2.35713" transform="matrix(-1 0 0 1 14.1436 23.5713)" fill="white" />
-															<rect width="5.31864" height="21.2746" rx="2.65932" transform="matrix(-1 0 0 1 5.31836 13.2966)" fill="white" />
-														</svg>
-													</div>
 													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">$24,098</h2>
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRLT}</h2>
 													</div>
 												</div>
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<svg width="21" height="14" viewBox="0 0 21 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-														<path d="M1 13C1.91797 11.9157 4.89728 8.72772 6.5 7L12.5 10L19.5 1" stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
-													</svg>
-													<p className="mb-0 ms-2 text-success">45%</p>
-													<p className="mb-0 ms-2 font-w400 text-white">This Week</p>
+													<p className="mb-0 ms-2 font-w400 text-white">{this.state.misBRLT*100} TRX</p>
 												</div>
 											</div>
 										</div>
