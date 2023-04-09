@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+import cons from "../../cons.js";
+
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
@@ -29,15 +31,26 @@ export default class Home extends Component {
 
     this.grafico = this.grafico.bind(this);
 
+    this.compra = this.compra.bind(this);
+    this.venta = this.venta.bind(this);
+
+    this.estado = this.estado.bind(this);
+
+    this.handleChangeBRUT = this.handleChangeBRUT.bind(this);
+    this.handleChangeUSDT = this.handleChangeUSDT.bind(this);
+    this.consultarPrecio = this.consultarPrecio.bind(this);
+
   }
 
   componentDidMount() {
     document.title = "Brutus Finance | BRUT"
     this.grafico(1000);
 
-    //this.estado();
+    this.consultarPrecio();
+
+    this.estado();
     setInterval(() => {
-      //this.estado();
+      this.estado();
 
     }, 3 * 1000);
 
@@ -46,6 +59,232 @@ export default class Home extends Component {
       this.grafico(0);
     }, 60 * 1000);
   }
+
+  async handleChangeBRUT(event) {
+    this.consultarPrecio();
+    await this.setState({valueBRUT: event.target.value});
+
+    this.setState({valueUSDT: parseFloat((this.state.valueBRUT*this.state.precioBRUT).toPrecision(8))});
+
+  }
+
+  async handleChangeUSDT(event) {
+    this.consultarPrecio();
+    
+    await this.setState({valueUSDT: event.target.value});
+
+    this.setState({valueBRUT: parseFloat((this.state.valueUSDT/this.state.precioBRUT).toPrecision(8))});
+
+    
+  }
+
+  async consultarPrecio(){
+
+    var proxyUrl = cons.proxy;
+    var apiUrl = cons.PRICE;
+
+    var response;
+    try {
+      response = await fetch(proxyUrl+apiUrl);
+      const json = await response.json();
+      response = json.Data.usd;
+
+      this.setState({
+        precioBRUT:response
+      })
+
+    } catch (err) {
+      console.log(err);
+      response = this.state.precioBRUT;
+
+    }
+
+    //return response;
+
+  };
+
+  async estado(){
+
+    var accountAddress =  this.props.accountAddress;
+
+    var aprovadoUSDT = await this.props.contrato.USDT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovadoUSDT.remaining){
+      aprovadoUSDT = parseInt(aprovadoUSDT.remaining._hex);
+    }else{
+      aprovadoUSDT = parseInt(aprovadoUSDT._hex);
+    }
+    
+    var balanceUSDT = await this.props.contrato.USDT.balanceOf(accountAddress).call();
+    balanceUSDT = parseInt(balanceUSDT._hex)/10**6;
+
+    if (aprovadoUSDT > 0) {
+      aprovadoUSDT = "Comprar "; 
+    }else{
+      aprovadoUSDT = "Aprobar Compras"; 
+      this.setState({
+        valueUSDT: ""
+      })
+    }
+
+    var aprovadoBRUT = await this.props.contrato.BRUT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovadoBRUT.remaining){
+      aprovadoBRUT = parseInt(aprovadoBRUT.remaining._hex);
+    }else{
+      aprovadoBRUT = parseInt(aprovadoBRUT._hex);
+    }
+
+    var balanceBRUT = await this.props.contrato.BRUT.balanceOf(accountAddress).call();
+    balanceBRUT = parseInt(balanceBRUT._hex)/10**6;
+
+    if (aprovadoBRUT > 0) {
+      aprovadoBRUT = "Vender ";
+    }else{
+      aprovadoBRUT = "Aprobar Ventas";
+      this.setState({
+        valueBRUT: ""
+      })
+    }
+
+    var precioBRUT =  await this.consultarPrecio();
+
+
+    this.setState({
+      depositoUSDT: aprovadoUSDT,
+      depositoBRUT: aprovadoBRUT,
+      balanceBRUT: balanceBRUT,
+      balanceUSDT: balanceUSDT,
+      wallet: accountAddress,
+      precioBRUT: precioBRUT
+    });
+
+  }
+
+
+  async compra() {
+
+
+    const { minCompra } = this.state;
+
+    var amount = document.getElementById("amountUSDT").value;
+    amount = parseFloat(amount);
+    amount = parseInt(amount*10**6);
+
+    var accountAddress =  this.props.accountAddress;
+
+    var aprovado = await this.props.contrato.USDT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovado.remaining){
+      aprovado = parseInt(aprovado.remaining._hex);
+    }else{
+      aprovado = parseInt(aprovado._hex);
+    }
+
+    if ( aprovado >= amount ){
+
+
+        if ( amount >= minCompra){
+
+          document.getElementById("amountUSDT").value = "";
+
+          await this.props.contrato.BRUT_USDT.comprar(amount).send();
+
+        }else{
+          window.alert("Ingrese un monto mayor a "+minCompra+" USDT");
+          document.getElementById("amountUSDT").value = minCompra;
+        }
+
+
+
+    }else{
+
+        if (aprovado <= 0) {
+          await this.props.contrato.USDT.approve(this.props.contrato.USDT, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+        }
+
+        if ( amount > aprovado) {
+          if (aprovado <= 0) {
+            document.getElementById("amountUSDT").value = minCompra;
+            window.alert("No tienen suficiente USDT");
+          }else{
+            document.getElementById("amountUSDT").value = minCompra;
+            window.alert("valor inválido");
+          }
+
+
+
+        }else{
+
+          document.getElementById("amountUSDT").value = amount;
+          window.alert("valor inválido");
+
+        }
+    }
+
+
+  };
+
+  async venta() {
+
+
+    const { minventa } = this.state;
+
+    var amount = document.getElementById("amountBRUT").value;
+    amount = parseFloat(amount);
+    amount = parseInt(amount*10**6);
+
+    var accountAddress =  this.props.accountAddress;
+
+    var aprovado = await this.props.contrato.BRUT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovado.remaining){
+      aprovado = parseInt(aprovado.remaining._hex);
+    }else{
+      aprovado = parseInt(aprovado._hex);
+    }
+
+    if ( aprovado >= amount ){
+
+
+        if ( amount >= minventa){
+
+          document.getElementById("amountBRUT").value = "";
+
+          await this.props.contrato.BRUT_USDT.vender(amount).send();
+
+        }else{
+          window.alert("coloque un monto mayor a 10 USDT");
+          document.getElementById("amountBRUT").value = 10;
+        }
+
+
+
+    }else{
+
+
+        if (aprovado <= 0) {
+          await this.props.contrato.BRUT.approve(this.props.contrato.BRUT_USDT.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+        }
+
+        if ( amount > aprovado) {
+          if (aprovado <= 0) {
+            document.getElementById("amountBRUT").value = minventa;
+            window.alert("lo minimo para vender son "+minventa+" BRUT");
+          }else{
+            document.getElementById("amountBRUT").value = minventa;
+            window.alert("valor inválido");
+          }
+
+
+
+        }else{
+
+          document.getElementById("amountBRUT").value = minventa;
+          window.alert("valor inválido");
+
+        }
+
+    }
+
+
+  };
 
   async grafico(time) {
     const root = am5.Root.new("chartdiv");
