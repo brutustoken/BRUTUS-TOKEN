@@ -1,35 +1,38 @@
 import React, { Component } from "react";
 
+import cons from "../../cons.js";
 
 export default class Inicio extends Component {
 	constructor(props) {
 		super(props);
-	
+
 		this.state = {
-	
-		  precioBrut: 0,
-		  varBrut: 0,
-		  precioBrst: 0,
-		  varBrst: 0,
-		  BRGY: 0,
-		  BRLT: 0,
-		  misBRUT: 0,
-		  misBRST: 0,
-		  misBRGY: 0,
-		  misBRLT: 0
-	
+
+			precioBrut: 0,
+			varBrut: 0,
+			precioBrst: 0,
+			varBrst: 0,
+			BRGY: 0,
+			BRLT: 0,
+			misBRUT: 0,
+			misBRST: 0,
+			misBRGY: 0,
+			misBRLT: 0,
+
+			imagerobots: []
+
 		};
-	
+
 		this.consultaPrecios = this.consultaPrecios.bind(this);
 		this.subeobaja = this.subeobaja.bind(this);
 		this.textoE = this.textoE.bind(this);
 		this.estado = this.estado.bind(this);
 
-		
+
 	}
 
-	
-	componentDidMount(){
+
+	componentDidMount() {
 		this.consultaPrecios();
 		this.estado();
 
@@ -40,62 +43,62 @@ export default class Inicio extends Component {
 		}, 5000);
 	}
 
-	subeobaja(valor){
+	subeobaja(valor) {
 		var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
-		xmlns="http://www.w3.org/2000/svg">
-		<g filter="url(#filter0_d2)">
-			<path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
-				stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
-		</g>
-		<defs>
-			<filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
-				height="22.0001" filterUnits="userSpaceOnUse"
-				colorInterpolationFilters="sRGB">
-				<feFlood floodOpacity="0" result="BackgroundImageFix" />
-				<feColorMatrix in="SourceAlpha" type="matrix"
-					values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-				<feOffset dy="1" />
-				<feGaussianBlur stdDeviation="2" />
-				<feColorMatrix type="matrix"
-					values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
-				<feBlend mode="normal" in2="BackgroundImageFix"
-					result="effect1_dropShadow" />
-				<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
-					result="shape" />
-			</filter>
-		</defs>
+			xmlns="http://www.w3.org/2000/svg">
+			<g filter="url(#filter0_d2)">
+				<path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
+					stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+			</g>
+			<defs>
+				<filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
+					height="22.0001" filterUnits="userSpaceOnUse"
+					colorInterpolationFilters="sRGB">
+					<feFlood floodOpacity="0" result="BackgroundImageFix" />
+					<feColorMatrix in="SourceAlpha" type="matrix"
+						values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+					<feOffset dy="1" />
+					<feGaussianBlur stdDeviation="2" />
+					<feColorMatrix type="matrix"
+						values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
+					<feBlend mode="normal" in2="BackgroundImageFix"
+						result="effect1_dropShadow" />
+					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
+						result="shape" />
+				</filter>
+			</defs>
 		</svg>);
 		var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-		<g filter="url(#filter0_d)">
-			<path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
-		</g>
-		<defs>
-			<filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-				<feFlood floodOpacity="0" result="BackgroundImageFix" />
-				<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-				<feOffset dy="1" />
-				<feGaussianBlur stdDeviation="2" />
-				<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
-				<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-				<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-			</filter>
-		</defs>
+			<g filter="url(#filter0_d)">
+				<path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
+			</g>
+			<defs>
+				<filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+					<feFlood floodOpacity="0" result="BackgroundImageFix" />
+					<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+					<feOffset dy="1" />
+					<feGaussianBlur stdDeviation="2" />
+					<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
+					<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+				</filter>
+			</defs>
 		</svg>);
 
 		var resultado = imgNPositivo;
 
-		if(valor <= 0){
+		if (valor <= 0) {
 			resultado = imgNegativo
 		}
 
 		return resultado;
 	}
 
-	textoE(valor){
+	textoE(valor) {
 
 		var resultado = "success";
 
-		if(valor <= 0){
+		if (valor <= 0) {
 			resultado = "danger"
 		}
 
@@ -103,52 +106,136 @@ export default class Inicio extends Component {
 
 	}
 
-	consultaPrecios(){
+	consultaPrecios() {
 		var API = "https://chainlist.tk/";
 
-		var apiUrl = API+'api/v1/precio/brut';
-		fetch(apiUrl).then(response => {return response.json();})
-		.then(data => {
+		var apiUrl = API + 'api/v1/precio/brut';
+		fetch(apiUrl).then(response => { return response.json(); })
+			.then(data => {
 
-			this.setState({
-				precioBrut: data.Data.usd,
-				varBrut: data.Data.v24h
-			})
-			
-		}).catch(err => {
-			console.log(err);
-		
-		});
+				this.setState({
+					precioBrut: data.Data.usd,
+					varBrut: data.Data.v24h
+				})
 
-		apiUrl = API+'api/v1/precio/brst';
-		fetch(apiUrl).then(response => {return response.json();})
-		.then(data => {
+			}).catch(err => {
+				console.log(err);
 
-			this.setState({
-				precioBrst: data.Data.trx,
-				varBrst: data.Data.v24h
-			})
-			
-		}).catch(err => {
-			console.log(err);
-		
-		});
-		
+			});
+
+		apiUrl = API + 'api/v1/precio/brst';
+		fetch(apiUrl).then(response => { return response.json(); })
+			.then(data => {
+
+				this.setState({
+					precioBrst: data.Data.trx,
+					varBrst: data.Data.v24h
+				})
+
+			}).catch(err => {
+				console.log(err);
+
+			});
+
 	}
 
-	async estado(){
-		
+	async estado() {
+
 		var brgy = await this.props.contrato.BRGY.totalSupply().call();
 		brgy = parseInt(brgy._hex);
 
 		var brut = await this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call();
-		brut = parseInt(brut._hex)/1e6;
+		brut = parseInt(brut._hex) / 1e6;
 
 		var brst = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
-		brst = parseInt(brst._hex)/1e6;
+		brst = parseInt(brst._hex) / 1e6;
 
 		var misBrgy = await this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call();
 		misBrgy = parseInt(misBrgy._hex);
+
+
+		var robots = [];
+
+		for (let index = 0; index < 25; index++) {
+			var conteo = await this.props.contrato.MBOX.entregaNFT(this.props.accountAddress, index).call()
+				.then((conteo) => {
+					if (conteo._hex) {
+						robots.push(parseInt(conteo._hex)); return 1;
+					}
+				})
+				.catch(() => {
+					return 0;
+				})
+
+			if (conteo === 0) {
+				break;
+			}
+
+		}
+
+		var estonuevo = [];
+
+		for (let index = 0; index < robots.length; index++) {
+			let user = await this.props.contrato.BRGY.ownerOf(robots[index]).call();
+			estonuevo[index] = window.tronWeb.address.fromHex(user) === this.props.accountAddress;
+		}
+
+
+		for (let index = 0; index < robots.length; index++) {
+
+			var URI = await this.props.contrato.BRGY.tokenURI(robots[index]).call()
+
+			var metadata = JSON.parse(await (await fetch(cons.proxy + URI)).text());
+			metadata.numero = robots[index]
+
+			robots[index] = metadata;
+
+		}
+
+
+		var imagerobots = [];
+		var recBotton = (<></>)
+
+		for (let index = 0; index < robots.length; index++) {
+
+			if (!estonuevo[index]) {
+				recBotton = (
+					<button className="btn btn-success" onClick={async () => {
+						await this.props.contrato.MBOX.claimNFT_especifico(index).send();
+					}}>Reclamar</button>
+				)
+			} else {
+				recBotton = (<></>)
+			}
+
+			imagerobots[index] = (
+				<div className="col-xl-3 col-lg-6 col-sm-6" key={"robbrutN" + index}>
+					<div className="card">
+						<div className="card-body">
+							<div className="new-arrival-product">
+								<div className="new-arrivals-img-contnent">
+									<a href={robots[index].image} rel="noopener noreferrer" target="_blank">
+										<img src={robots[index].image} alt={robots[index].name} className="img-thumbnail"></img>
+									</a>
+								</div>
+								<div className="new-arrival-content text-center mt-3">
+									<h4>#{robots[index].numero} {robots[index].name}</h4>
+									{recBotton}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+			)
+		}
+
+		this.setState({
+			robots: robots,
+			imagerobots: imagerobots
+		});
+
+
 
 		this.setState({
 			BRGY: brgy,
@@ -169,13 +256,13 @@ export default class Inicio extends Component {
 						<div className="card card-coin">
 							<div className="card-body text-center">
 								<a href="/brut">
-								<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
+									<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
 
-								<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
-								<p className="mb-0 fs-14">
-									{this.subeobaja(this.state.varBrut)}
-									<span className={"text-"+this.textoE(this.state.varBrut)+" me-1"}>{(this.state.varBrut).toFixed(3)}%</span> 24h
-								</p>
+									<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
+									<p className="mb-0 fs-14">
+										{this.subeobaja(this.state.varBrut)}
+										<span className={"text-" + this.textoE(this.state.varBrut) + " me-1"}>{(this.state.varBrut).toFixed(3)}%</span> 24h
+									</p>
 								</a>
 							</div>
 						</div>
@@ -184,13 +271,13 @@ export default class Inicio extends Component {
 						<div className="card card-coin">
 							<div className="card-body text-center">
 								<a href="/brst">
-								<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
+									<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
 
-								<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
-								<p className="mb-0 fs-13">
-									{this.subeobaja(this.state.varBrst)}
-									<span className={"text-"+this.textoE(this.state.varBrst)+" me-1"}>{(this.state.varBrst).toFixed(3)}%</span> 24h
-								</p>
+									<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
+									<p className="mb-0 fs-13">
+										{this.subeobaja(this.state.varBrst)}
+										<span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span> 24h
+									</p>
 								</a>
 							</div>
 						</div>
@@ -199,11 +286,11 @@ export default class Inicio extends Component {
 						<div className="card card-coin">
 							<div className="card-body text-center">
 								<a href="/brgy">
-								<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
-								<h2 className="text-black mb-2 font-w600">{this.state.BRGY} BRGY</h2>
-								<p className="mb-0 fs-14">
-									Colectibles
-								</p>
+									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
+									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} BRGY</h2>
+									<p className="mb-0 fs-14">
+										Colectibles
+									</p>
 								</a>
 							</div>
 						</div>
@@ -212,11 +299,11 @@ export default class Inicio extends Component {
 						<div className="card card-coin">
 							<div className="card-body text-center">
 								<a href="/brlt">
-								<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
-								<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BRLT</h2>
-								<p className="mb-0 fs-14">
-									Lottery Tickets
-								</p>
+									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
+									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BRLT</h2>
+									<p className="mb-0 fs-14">
+										Lottery Tickets
+									</p>
 								</a>
 							</div>
 						</div>
@@ -231,16 +318,16 @@ export default class Inicio extends Component {
 								<div className="card">
 									<div className="card-header border-0 pb-0">
 										<h4 className="mb-0 fs-20 text-black">Mis Tokens</h4>
-										
+
 									</div>
 									<div className="card-body">
-										
+
 										<div className="bg-warning coin-holding flex-wrap">
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
 														<a href="/brut">
-															<img  src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
+															<img src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
 														</a>
 													</div>
 													<div className="ms-3">
@@ -259,8 +346,8 @@ export default class Inicio extends Component {
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
 													{this.subeobaja(this.state.varBrut)}
-													<p className="mb-0 ms-2"><span className={"text-"+this.textoE(this.state.varBrut)+" me-1"}>{(this.state.varBrut).toFixed(3)}%</span></p>
-													<p className="mb-0 ms-2 font-w400 text-white">${(this.state.misBRUT*this.state.precioBrut).toFixed(3)} USDT</p>
+													<p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrut) + " me-1"}>{(this.state.varBrut).toFixed(3)}%</span></p>
+													<p className="mb-0 ms-2 font-w400 text-white">${(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USDT</p>
 												</div>
 											</div>
 										</div>
@@ -269,7 +356,7 @@ export default class Inicio extends Component {
 												<div className="d-flex align-items-center">
 													<div>
 														<a href="/brst">
-															<img  src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
+															<img src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
 														</a>
 													</div>
 													<div className="ms-3">
@@ -288,8 +375,8 @@ export default class Inicio extends Component {
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
 													{this.subeobaja(this.state.varBrst)}
-													<p className="mb-0 ms-2"><span className={"text-"+this.textoE(this.state.varBrst)+" me-1"}>{(this.state.varBrst).toFixed(3)}%</span></p>
-													<p className="mb-0 ms-2 font-w400 text-white">{(this.state.misBRST*this.state.precioBrst).toFixed(3)} TRX</p>
+													<p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span></p>
+													<p className="mb-0 ms-2 font-w400 text-white">{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</p>
 												</div>
 											</div>
 										</div>
@@ -298,7 +385,7 @@ export default class Inicio extends Component {
 												<div className="d-flex align-items-center">
 													<div>
 														<a href="/brgy">
-														<img  src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
+															<img src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
 														</a>
 													</div>
 													<div className="ms-3">
@@ -320,12 +407,12 @@ export default class Inicio extends Component {
 												</div>
 											</div>
 										</div>
-										<div className=" coin-holding mt-4 flex-wrap" style={{backgroundColor:"#6418c3"}}>
+										<div className=" coin-holding mt-4 flex-wrap" style={{ backgroundColor: "#6418c3" }}>
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
 														<a href="/brlt">
-														<img  src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
+															<img src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
 														</a>
 													</div>
 													<div className="ms-3">
@@ -343,7 +430,7 @@ export default class Inicio extends Component {
 											</div>
 											<div className="mb-2">
 												<div className="d-flex align-items-center">
-													<p className="mb-0 ms-2 font-w400 text-white">{this.state.misBRLT*100} TRX</p>
+													<p className="mb-0 ms-2 font-w400 text-white">{this.state.misBRLT * 100} TRX</p>
 												</div>
 											</div>
 										</div>
@@ -369,28 +456,7 @@ export default class Inicio extends Component {
 					</div>
 				</div>
 				<div className="row">
-				<div className="col-xl-3 col-lg-6 col-sm-6">
-						<div className="card">
-							<div className="card-body">
-								<div className="new-arrival-product">
-									<div className="new-arrivals-img-contnent">
-										<img className="img-fluid" src="images/product/1.jpg" alt="" />
-									</div>
-									<div className="new-arrival-content text-center mt-3">
-										<h4><a href="ecom-product-detail.html">Bonorum et Malorum</a></h4>
-										<ul className="star-rating">
-											<li><i className="fa fa-star"></i></li>
-											<li><i className="fa fa-star"></i></li>
-											<li><i className="fa fa-star"></i></li>
-											<li><i className="fa fa-star-half-empty"></i></li>
-											<li><i className="fa fa-star-half-empty"></i></li>
-										</ul>
-										<span className="price">$761.00</span>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
+					{this.state.imagerobots}
 				</div>
 
 			</>

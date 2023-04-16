@@ -26,7 +26,7 @@ export default class Home extends Component {
       totalCirculando: 0,
       enPool: 0,
       solicitado: 0,
-      data: []
+      data: [],
 
     };
 
