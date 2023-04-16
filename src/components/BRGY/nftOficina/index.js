@@ -103,21 +103,22 @@ export default class nftOficina extends Component {
       }
       
       imagerobots[index] =(
-        <div className="col-lg-3 p-2" key={"robbrutN"+index}>
-          <div className="card">
-            <br /><br />
-            
-            <h5 >
-              <strong>#{robots[index].numero} {robots[index].name}</strong><br /><br />
-            </h5>
-            <img src={robots[index].image} alt={robots[index].name} className="img-thumbnail"></img>
-            <br></br>
-   
-            {recBotton}
-            
-          </div>
-          
-        </div>
+        <div className="col-xl-3 col-lg-6 col-sm-6" key={"robbrutN"+index}>
+						<div className="card">
+							<div className="card-body">
+								<div className="new-arrival-product">
+									<div className="new-arrivals-img-contnent">
+                    <img src={robots[index].image} alt={robots[index].name} className="img-thumbnail"></img>
+									</div>
+									<div className="new-arrival-content text-center mt-3">
+										<h4>#{robots[index].numero} {robots[index].name}</h4>
+										{recBotton}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
       )
     }
 

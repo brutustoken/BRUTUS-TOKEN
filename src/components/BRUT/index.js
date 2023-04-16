@@ -23,6 +23,7 @@ export default class Home extends Component {
       tiempo: 0,
       enBrutus: 0,
       tokensEmitidos: 0,
+      totalCirculando: 0,
       enPool: 0,
       solicitado: 0,
       data: []
@@ -47,12 +48,13 @@ export default class Home extends Component {
     this.grafico(1000);
 
     this.consultarPrecio();
-
     this.estado();
+
     setInterval(() => {
+      //this.consultarPrecio();
       this.estado();
 
-    }, 3 * 1000);
+    }, 30 * 1000);
 
     setInterval(() => {
       this.root.dispose();
@@ -84,22 +86,45 @@ export default class Home extends Component {
     var apiUrl = cons.PRICE;
 
     var response;
-    try {
-      response = await fetch(proxyUrl+apiUrl);
-      const json = await response.json();
-      response = json.Data.usd;
 
-      this.setState({
-        precioBRUT:response
-      })
+    let precio;
+    try {
+      response = await fetch(proxyUrl+apiUrl).then((res)=>{return res.json()}).catch(error =>{console.error(error)})
+      precio = response.Data.usd;
 
     } catch (err) {
       console.log(err);
-      response = this.state.precioBRUT;
+      precio = this.state.precioBRUT;
 
     }
 
-    //return response;
+
+    let market=0;
+    let tokens=0;
+
+    try {
+      response = await fetch(proxyUrl+cons.market_brut).then((res)=>{return res.json()}).catch(error =>{console.error(error)})
+      market = response.marketcap.usdt;
+      console.log(response)
+      tokens = response.circulatingSupply;
+
+    } catch (err) {
+      console.log(err);
+      market = this.state.enBrutus;
+      tokens = this.state.tokensEmitidos
+
+    }
+
+    this.setState({
+      precioBRUT:precio,
+      enBrutus: market,
+      tokensEmitidos:tokens
+      
+    })
+
+    //console.log(response)
+
+    return response;
 
   };
 
@@ -145,8 +170,8 @@ export default class Home extends Component {
       })
     }
 
-    var precioBRUT =  await this.consultarPrecio();
-
+    var supplyBRUT = await this.props.contrato.BRUT.totalSupply().call();
+    supplyBRUT = supplyBRUT.toNumber()/1e6;
 
     this.setState({
       depositoUSDT: aprovadoUSDT,
@@ -154,7 +179,7 @@ export default class Home extends Component {
       balanceBRUT: balanceBRUT,
       balanceUSDT: balanceUSDT,
       wallet: accountAddress,
-      precioBRUT: precioBRUT
+      totalCirculando: supplyBRUT
     });
 
   }
@@ -462,7 +487,7 @@ export default class Home extends Component {
 
     var { minCompra, minventa } = this.state;
 
-    minCompra = "Min. " + minCompra + " TRX";
+    minCompra = "Min. " + minCompra + " USDT";
     minventa = "Min. " + minventa + " BRUT";
 
     return (
@@ -479,7 +504,7 @@ export default class Home extends Component {
                 <div className="ms-3">
                   <h2 className="font-w600 text-black mb-0 title">Brutus Token</h2>
                   <p className="font-w600 text-black sub-title">BRUT</p>
-                  <span>1 BRUT = {(this.state.enBrutus / this.state.tokensEmitidos).toFixed(3)} USDT</span>
+                  <span>1 BRUT = {this.state.precioBRUT} USDT</span>
                 </div>
               </div>
               <p className="fs-14">Su valor siempre es creciente frente a TRX, ya que basa su valor en el Staking a interés compuesto y el alquiler de energía.</p>
@@ -494,18 +519,22 @@ export default class Home extends Component {
                 <div className="col-lg-4 col-xxl-4 col-sm-4 d-flex flex-wrap align-items-center">
                   <div className="px-2 info-group">
                     <p className="fs-18 mb-1">Precio USDT</p>
-                    <h2 className="fs-28 font-w600 text-black">{(this.state.enBrutus / this.state.tokensEmitidos).toFixed(6)}</h2>
+                    <h2 className="fs-28 font-w600 text-black">{this.state.precioBRUT}</h2>
                   </div>
                 </div>
                 <div className="d-flex col-lg-8 col-xxl-8 col-sm-8 align-items-center mt-sm-0 mt-3 justify-content-end">
 
                   <div className="px-2 info-group">
                     <p className="fs-14 mb-1">Respaldo USDT</p>
-                    <h3 className="fs-20 font-w600 text-black">{(this.state.enBrutus).toFixed(2)}</h3>
+                    <h3 className="fs-20 font-w600 text-black">{(this.state.enBrutus*1).toFixed(2)}</h3>
                   </div>
                   <div className="px-2 info-group">
-                    <p className="fs-14 mb-1">BRUT Circulando</p>
-                    <h3 className="fs-20 font-w600 text-black">{(this.state.tokensEmitidos).toFixed(2)}</h3>
+                    <p className="fs-14 mb-1">BRUT Efectivo</p>
+                    <h3 className="fs-20 font-w600 text-black">{(this.state.tokensEmitidos*1).toFixed(2)}</h3>
+                  </div>
+                  <div className="px-2 info-group">
+                    <p className="fs-14 mb-1">Circulando</p>
+                    <h3 className="fs-20 font-w600 text-black">{(this.state.totalCirculando*1).toFixed(2)}</h3>
                   </div>
                 </div>
               </div>

@@ -234,12 +234,14 @@ export default class Inicio extends Component {
 										
 									</div>
 									<div className="card-body">
+										
 										<div className="bg-warning coin-holding flex-wrap">
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<img  src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
-
+														<a href="/brut">
+															<img  src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
+														</a>
 													</div>
 													<div className="ms-3">
 														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Token</h4>
@@ -266,7 +268,9 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-													<img  src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
+														<a href="/brst">
+															<img  src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
+														</a>
 													</div>
 													<div className="ms-3">
 														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Tron Staking</h4>
@@ -293,7 +297,9 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-													<img  src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
+														<a href="/brgy">
+														<img  src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
+														</a>
 													</div>
 													<div className="ms-3">
 														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Gallery</h4>
@@ -318,7 +324,9 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-													<img  src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
+														<a href="/brlt">
+														<img  src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
+														</a>
 													</div>
 													<div className="ms-3">
 														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Lottery</h4>
@@ -361,7 +369,7 @@ export default class Inicio extends Component {
 					</div>
 				</div>
 				<div className="row">
-					<div className="col-xl-3 col-lg-6 col-sm-6">
+				<div className="col-xl-3 col-lg-6 col-sm-6">
 						<div className="card">
 							<div className="card-body">
 								<div className="new-arrival-product">

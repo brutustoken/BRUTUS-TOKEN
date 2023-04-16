@@ -1,5 +1,7 @@
 var proxy = "http://localhost:8080/";
 const PRICE = "https://chainlist.tk/api/v1/precio/BRUT"; //API de precio
+const market_brut = "https://chainlist.tk/api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
+
 const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 
 const WS = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";//T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb recibe los huerfanos por defecto
@@ -35,4 +37,4 @@ if(testnet){
 if(!conProxy)proxy = "";
 
 
-export default {proxy, PRU, WS,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT};
+export default {proxy, PRU, WS,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut};
