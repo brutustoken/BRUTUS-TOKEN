@@ -255,7 +255,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/brut">
+								<a href="/?brut">
 									<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
 
 									<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
@@ -270,7 +270,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/brst">
+								<a href="/?brst">
 									<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
 
 									<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
@@ -285,7 +285,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/brgy">
+								<a href="/?brgy">
 									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
 									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} BRGY</h2>
 									<p className="mb-0 fs-14">
@@ -298,7 +298,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/brlt">
+								<a href="/?brlt">
 									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
 									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BRLT</h2>
 									<p className="mb-0 fs-14">
@@ -326,7 +326,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/brut">
+														<a href="/?brut">
 															<img src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
 														</a>
 													</div>
@@ -355,7 +355,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/brst">
+														<a href="/?brst">
 															<img src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
 														</a>
 													</div>
@@ -384,7 +384,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/brgy">
+														<a href="/?brgy">
 															<img src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
 														</a>
 													</div>
@@ -411,7 +411,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/brlt">
+														<a href="/?brlt">
 															<img src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
 														</a>
 													</div>

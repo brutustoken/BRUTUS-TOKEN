@@ -499,7 +499,7 @@ export default class Home extends Component {
             <div className="card-body height400 dz-scroll" id="about-1">
               <div className="d-flex align-items-start mb-3 about-coin">
                 <div>
-                  <img src="assets/img/brut.png" height="100px" className="rounded-circle" alt="" />
+                  <img src="assets/img/brut.png" height="100px" width="100px" className="rounded-circle" alt="brut token" />
                 </div>
                 <div className="ms-3">
                   <h2 className="font-w600 text-black mb-0 title">Brutus Token</h2>

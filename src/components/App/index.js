@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import {  BrowserRouter,  Routes,  Route } from "react-router-dom";
 import cons from "../../cons.js";
 
 import Inicio from "../Inicio";
@@ -87,7 +86,6 @@ class App extends Component {
         contrato = {USDT,BRUT, BRUT_USDT, BRST, BRST_TRX, BRGY, MBOX, BRLT, loteria  }
       
       
-
       this.setState({
         accountAddress: wallet,
         tronWeb: tronWeb,
@@ -118,7 +116,6 @@ class App extends Component {
     document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+texto+'</a>';
 
 
-
   }
 
   render(){
@@ -137,20 +134,51 @@ class App extends Component {
         </div>
     );
 
+    let url = window.location.href;
+    url = (url.split("/?"))[1]
+    
+
+    switch (url) {
+      case "usd":
+      case "usdt":
+      case "token":
+      case "brut":
+        return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+
+      case "trx":
+      case "tron":
+      case "brst":
+        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+
+      case "nft":
+      case "brgy":
+        return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
+
+      case "brlt":
+      case "suerte":
+      case "loteria":
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+
+    
+      default:
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
+    }
+
+    /*
     return(
       <BrowserRouter>
         <Routes>
           <Route index element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>} />
           <Route exact path="/" element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-          <Route path="/brut" element={<Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-          <Route path="/brst" element={<Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-          <Route path="/brgy" element={<Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />}  />
-          <Route path="/brlt" element={<LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
+          <Route path="/?brut" element={<Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
+          <Route path="/?brst" element={<Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
+          <Route path="/?brgy" element={<Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />}  />
+          <Route path="/?brlt" element={<LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
 
         </Routes>
 
       </BrowserRouter>
-    )
+    )*/
   }
   
 
