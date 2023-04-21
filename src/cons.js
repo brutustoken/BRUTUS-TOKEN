@@ -1,5 +1,5 @@
 var proxy = "http://localhost:8080/";
-const PRICE = "https://chainlist.tk/api/v1/precio/BRUT"; //API de precio
+const PRICE = process.env.REACT_APP_API_URL+"api/v1/precio/BRUT"; //API de precio
 const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 
 const WS = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";//T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb recibe los huerfanos por defecto
