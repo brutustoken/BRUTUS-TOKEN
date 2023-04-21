@@ -420,7 +420,7 @@ export default class Staking extends Component {
     }
 
     async function generateDatas(count) {
-      let consulta = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brst?dias=" + count)).json()).Data
+      let consulta = (await (await fetch(process.env.REACT_APP_API_URL+"api/v1/chartdata/brst?dias=" + count)).json()).Data
       let data = []
       for (var i = consulta.length - 1; i > 0; --i) {
         data.push(generateData(consulta[i]));
@@ -604,7 +604,7 @@ export default class Staking extends Component {
                       <div className="input-group-prepend">
                         <span className="input-group-text">BRST: {this.state.balanceBRUT}</span>
                       </div>
-                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5} />
+                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} />
                     </div>
                   </div>
                   <div className="form-group">

@@ -51,7 +51,6 @@ class App extends Component {
     var {tronWeb, wallet, contrato} = this.state;
     var conexion = 0;
 
-
     if ( typeof window.tronWeb !== 'undefined' && typeof window.tronLink !== 'undefined' ) {
 
       if(window.tronLink.ready){

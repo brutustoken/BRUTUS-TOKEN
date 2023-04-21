@@ -373,7 +373,7 @@ export default class Home extends Component {
     }
 
     async function generateDatas(count) {
-      let consulta = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brut?dias=" + count)).json()).Data
+      let consulta = (await (await fetch(process.env.REACT_APP_API_URL+"api/v1/chartdata/brut?dias=" + count)).json()).Data
       let data = []
       for (var i = consulta.length - 1; i > 0; --i) {
         data.push(generateData(consulta[i]));
