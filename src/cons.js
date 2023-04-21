@@ -1,6 +1,6 @@
 var proxy = "http://localhost:8080/";
-const PRICE = "https://chainlist.tk/api/v1/precio/BRUT"; //API de precio
-const market_brut = "https://chainlist.tk/api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
+const PRICE = process.env.REACT_APP_API_URL+"api/v1/precio/BRUT"; //API de precio
+const market_brut =  process.env.REACT_APP_API_URL+"api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
 
 const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 

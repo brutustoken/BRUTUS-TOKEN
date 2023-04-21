@@ -54,50 +54,60 @@ class App extends Component {
 
     if ( typeof window.tronWeb !== 'undefined' && typeof window.tronLink !== 'undefined' ) {
 
-      tronWeb['installed'] = true;
+      if(window.tronLink.ready){
+        tronWeb['installed'] = true;
 
-      try {
-        conexion = (await window.tronLink.request({ method: 'tron_requestAccounts' })).code;
-      } catch(e) {
-        conexion = 0
-      }
+        try {
+          conexion = (await window.tronLink.request({ method: 'tron_requestAccounts' })).code;
+        } catch(e) {
+          conexion = 0
+        }
 
-      if(conexion === 200){
-        tronWeb['loggedIn'] = true;
-        wallet = window.tronLink.tronWeb.defaultAddress.base58
+        if(conexion === 200){
+          tronWeb['loggedIn'] = true;
+          wallet = window.tronLink.tronWeb.defaultAddress.base58
 
+        }else{
+          tronWeb['loggedIn'] = false;
+          wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+
+        }
+
+        tronWeb['web3'] = window.tronWeb;
+
+          var USDT = await window.tronWeb.contract().at(cons.USDT)
+          var BRUT =  await window.tronWeb.contract().at(cons.BRUT)
+          var BRUT_USDT = await window.tronWeb.contract().at(cons.SC)
+          var BRST = await window.tronWeb.contract().at(cons.BRST)
+          var BRST_TRX = await window.tronWeb.contract().at(cons.SC2)
+          var BRGY = await window.tronWeb.contract().at(cons.BRGY)
+          var MBOX =  await window.tronWeb.contract().at(cons.SC3)
+          var BRLT = null// await window.tronWeb.contract().at(cons.BRLT);
+          var loteria = null//await window.tronWeb.contract().at(cons.SC4);
+          contrato = {USDT,BRUT, BRUT_USDT, BRST, BRST_TRX, BRGY, MBOX, BRLT, loteria  }
+        
+        
+        this.setState({
+          accountAddress: wallet,
+          tronWeb: tronWeb,
+          contrato: contrato
+
+        });
       }else{
-        tronWeb['loggedIn'] = false;
-        wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+
+        tronWeb['installed'] = true;
+
+        this.setState({
+          tronWeb: tronWeb,
+
+        });
 
       }
-
-      tronWeb['web3'] = window.tronWeb;
-
-        var USDT = await window.tronWeb.contract().at(cons.USDT)
-        var BRUT =  await window.tronWeb.contract().at(cons.BRUT)
-        var BRUT_USDT = await window.tronWeb.contract().at(cons.SC)
-        var BRST = await window.tronWeb.contract().at(cons.BRST)
-        var BRST_TRX = await window.tronWeb.contract().at(cons.SC2)
-        var BRGY = await window.tronWeb.contract().at(cons.BRGY)
-        var MBOX =  await window.tronWeb.contract().at(cons.SC3)
-        var BRLT = null// await window.tronWeb.contract().at(cons.BRLT);
-        var loteria = null//await window.tronWeb.contract().at(cons.SC4);
-        contrato = {USDT,BRUT, BRUT_USDT, BRST, BRST_TRX, BRGY, MBOX, BRLT, loteria  }
-      
-      
-      this.setState({
-        accountAddress: wallet,
-        tronWeb: tronWeb,
-        contrato: contrato
-
-      });
 
 
     } else {
 
       console.log("se salio")
-
 
       tronWeb['installed'] = false;
       tronWeb['loggedIn'] = false;
@@ -120,14 +130,7 @@ class App extends Component {
 
   render(){
 
-    if (!this.state.tronWeb.installed) return (
-
-        <div className="container">
-          <TronLinkGuide installed={this.state.tronWeb.installed}  />
-        </div>
-    );
-
-    if (!this.state.tronWeb.loggedIn) return (
+    if ( !this.state.tronWeb.loggedIn || !this.state.tronWeb.installed ) return (
 
         <div className="container">
           <TronLinkGuide installed={this.state.tronWeb.installed}  />

@@ -107,7 +107,7 @@ export default class Inicio extends Component {
 	}
 
 	consultaPrecios() {
-		var API = "https://chainlist.tk/";
+		var API = process.env.REACT_APP_API_URL;
 
 		var apiUrl = API + 'api/v1/precio/brut';
 		fetch(apiUrl).then(response => { return response.json(); })
@@ -185,9 +185,8 @@ export default class Inicio extends Component {
 
 			var URI = await this.props.contrato.BRGY.tokenURI(robots[index]).call()
 
-			var metadata = JSON.parse(await (await fetch(cons.proxy + URI)).text());
+			var metadata = await fetch(cons.proxy + URI).then((res)=>{return res.json()}).catch(console.error);
 			metadata.numero = robots[index]
-
 			robots[index] = metadata;
 
 		}
