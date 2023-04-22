@@ -468,7 +468,6 @@ export default class Home extends Component {
     );
 
     // Generate and set data  | 
-    //let data = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brut?dias=30")).json()).Data
     let data = await generateDatas(30);
     series.data.setAll(data);
     sbSeries.data.setAll(data);

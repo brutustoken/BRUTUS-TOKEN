@@ -286,9 +286,9 @@ export default class Inicio extends Component {
 							<div className="card-body text-center">
 								<a href="/?brgy">
 									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} BRGY</h2>
+									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} NFT's</h2>
 									<p className="mb-0 fs-14">
-										Colectibles
+										Coleccionables (BRGY)
 									</p>
 								</a>
 							</div>
@@ -299,9 +299,9 @@ export default class Inicio extends Component {
 							<div className="card-body text-center">
 								<a href="/?brlt">
 									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BRLT</h2>
+									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BOLETOS</h2>
 									<p className="mb-0 fs-14">
-										Lottery Tickets
+										lotería (BRLT)
 									</p>
 								</a>
 							</div>
