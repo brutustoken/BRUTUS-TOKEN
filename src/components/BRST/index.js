@@ -551,10 +551,9 @@ export default class Staking extends Component {
                 <div className="ms-3">
                   <h2 className="font-w600 text-black mb-0 title">Brutus Tron Staking</h2>
                   <p className="font-w600 text-black sub-title">BRST</p>
-                  <span>1 BRST = {(this.state.enBrutus / this.state.tokensEmitidos).toFixed(3)} TRX</span>
                 </div>
               </div>
-              <p className="fs-14">Su valor siempre es creciente frente a TRX, ya que basa su valor en el Staking a interés compuesto y el alquiler de energía.</p>
+              <p className="fs-14">Brutus Tron Staking es uno de los 127 super socios que participan en la validación de transacciones en la red de Tron, y las rentabilidades obtenidas por el staking son repartidas entre todos los miembros de la comunidad Brutus que apoyan al proyecto.</p>
             </div>
           </div>
         </div>

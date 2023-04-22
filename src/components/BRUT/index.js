@@ -495,7 +495,7 @@ export default class Home extends Component {
         <div className="col-xl-3 col-xxl-4 ">
           <div className="card">
 
-            <div className="card-body height400 dz-scroll" id="about-1">
+            <div className="card-body ">
               <div className="d-flex align-items-start mb-3 ">
                 <div>
                   <img src="assets/img/brut.png" height="100px" width="100px" className="rounded-circle" alt="brut token" />
@@ -503,10 +503,9 @@ export default class Home extends Component {
                 <div className="ms-3">
                   <h2 className="font-w600 text-black mb-0 title">Brutus Token</h2>
                   <p className="font-w600 text-black sub-title">BRUT</p>
-                  <span>1 BRUT = {this.state.precioBRUT} USDT</span>
                 </div>
               </div>
-              <p className="fs-14">Su valor siempre es creciente frente a TRX, ya que basa su valor en el Staking a interés compuesto y el alquiler de energía.</p>
+              <p > Los bots automatizados de Brutus Token operan en el mercado de futuros para generar rentabilidades y minimizar pérdidas, lo que hace que este proyecto sea una opción interesante para aquellos que buscan invertir en criptomonedas.</p>
             </div>
           </div>
         </div>
@@ -518,7 +517,7 @@ export default class Home extends Component {
                 <div className="col-lg-4 col-xxl-4 col-sm-4 d-flex flex-wrap align-items-center">
                   <div className="px-2 info-group">
                     <p className="fs-18 mb-1">Precio USDT</p>
-                    <h2 className="fs-28 font-w600 text-black">{this.state.precioBRUT}</h2>
+                    <h2 className="fs-28 font-w600 text-black">$ {this.state.precioBRUT}</h2>
                   </div>
                 </div>
                 <div className="d-flex col-lg-8 col-xxl-8 col-sm-8 align-items-center mt-sm-0 mt-3 justify-content-end">
