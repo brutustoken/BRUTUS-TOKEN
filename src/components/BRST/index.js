@@ -544,7 +544,7 @@ export default class Staking extends Component {
           <div className="card">
 
             <div className="card-body height400 dz-scroll" id="about-1">
-              <div className="d-flex align-items-start mb-3 about-coin">
+              <div className="d-flex align-items-start mb-3 ">
                 <div>
                   <img src="assets/img/brst.png" height="100px" width="100px" className="rounded-circle" alt="brst token" />
                 </div>
