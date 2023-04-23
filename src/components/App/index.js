@@ -137,9 +137,9 @@ class App extends Component {
     );
 
     let url = window.location.href;
-    url = (url.split("/?"))[1];
-    url = (url.split("&"))[0];
-    
+
+    if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
+    if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
 
     switch (url) {
       case "usd":
