@@ -137,7 +137,8 @@ class App extends Component {
     );
 
     let url = window.location.href;
-    url = (url.split("/?"))[1]
+    url = (url.split("/?"))[1];
+    url = (url.split("&"))[0];
     
 
     switch (url) {
@@ -156,35 +157,19 @@ class App extends Component {
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
 
+      /*
       case "brlt":
       case "suerte":
       case "loteria":
-        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />*/
 
     
       default:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     }
 
-    /*
-    return(
-      <BrowserRouter>
-        <Routes>
-          <Route index element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>} />
-          <Route exact path="/" element={<Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-          <Route path="/?brut" element={<Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-          <Route path="/?brst" element={<Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-          <Route path="/?brgy" element={<Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />}  />
-          <Route path="/?brlt" element={<LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />} />
-
-        </Routes>
-
-      </BrowserRouter>
-    )*/
   }
   
-
-
 }
 export default App;
 
