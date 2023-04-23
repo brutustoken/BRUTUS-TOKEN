@@ -543,7 +543,7 @@ export default class Staking extends Component {
         <div className="col-xl-3 col-xxl-4 ">
           <div className="card">
 
-            <div className="card-body height400 dz-scroll" id="about-1">
+            <div className="card-body ">
               <div className="d-flex align-items-start mb-3 ">
                 <div>
                   <img src="assets/img/brst.png" height="100px" width="100px" className="rounded-circle" alt="brst token" />
@@ -553,7 +553,7 @@ export default class Staking extends Component {
                   <p className="font-w600 text-black sub-title">BRST</p>
                 </div>
               </div>
-              <p className="fs-14">Brutus Tron Staking es uno de los 127 super socios que participan en la validación de transacciones en la red de Tron, y las rentabilidades obtenidas por el staking son repartidas entre todos los miembros de la comunidad Brutus que apoyan al proyecto.</p>
+              <p className="fs-14">Brst, es un token en la red de tron, que permite a sus holders, generar rentabillidades en trx gracias al alquiler de enegia, al staking, al 10% de lo generado por todos lo proveedores de Brutus enrgy bot y al interes compuesto automatico, que hace que las ganancias crezcan de forma exponencial de forma totalmente automatizada.</p>
             </div>
           </div>
         </div>

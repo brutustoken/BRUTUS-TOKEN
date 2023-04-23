@@ -505,7 +505,7 @@ export default class Home extends Component {
                   <p className="font-w600 text-black sub-title">BRUT</p>
                 </div>
               </div>
-              <p > Los bots automatizados de Brutus Token operan en el mercado de futuros para generar rentabilidades y minimizar pérdidas, lo que hace que este proyecto sea una opción interesante para aquellos que buscan invertir en criptomonedas.</p>
+              <p > Brutus Token es un token basado en la red Tron cuyo valor está respaldado por una estrategia de trading automatizado. Esta estrategia se basa en el backtesting y la gestión de capital, y se implementa de manera automatizada mediante la utilización de algoritmos y estrategias previamente optimizadas para maximizar las ganancias y minimizar las pérdidas. El valor del Brutus Token se establece en relación con el USDT (Tether), lo que significa que el valor del token se mantiene estable en términos de dólares estadounidenses.</p>
             </div>
           </div>
         </div>
