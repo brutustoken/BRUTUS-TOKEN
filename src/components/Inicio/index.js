@@ -249,7 +249,7 @@ export default class Inicio extends Component {
 
 		return (
 			<>
-
+				<h1>Datos Generales</h1>
 				<div className="row">
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
@@ -286,9 +286,9 @@ export default class Inicio extends Component {
 							<div className="card-body text-center">
 								<a href="/?brgy">
 									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} NFT's</h2>
+									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} NFT's </h2>
 									<p className="mb-0 fs-14">
-										Coleccionables (BRGY)
+										Minteados
 									</p>
 								</a>
 							</div>
@@ -299,9 +299,9 @@ export default class Inicio extends Component {
 							<div className="card-body text-center">
 								<a href="/?brlt">
 									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} BOLETOS</h2>
+									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} Boletos </h2>
 									<p className="mb-0 fs-14">
-										lotería (BRLT)
+										Generados
 									</p>
 								</a>
 							</div>
@@ -450,7 +450,7 @@ export default class Inicio extends Component {
 					<div className="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
 						<ol className="breadcrumb">
 							<li className="breadcrumb-item"><a href="/">BRUTUS</a></li>
-							<li className="breadcrumb-item active"><a href="/brgy">NFT</a></li>
+							<li className="breadcrumb-item active"><a href="/?brgy">NFT</a></li>
 						</ol>
 					</div>
 				</div>
