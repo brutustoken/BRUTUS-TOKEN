@@ -44,22 +44,21 @@ export default class Home extends Component {
   }
 
   componentDidMount() {
-    document.title = "Brutus Finance | BRUT"
+    document.title = "B.F | BRUT"
     this.grafico(1000);
-
     this.consultarPrecio();
-    this.estado();
 
-    setInterval(() => {
-      //this.consultarPrecio();
+    setTimeout(() => {
       this.estado();
 
-    }, 30 * 1000);
+    }, 3 * 1000);
 
+    /*
     setInterval(() => {
       this.root.dispose();
       this.grafico(0);
     }, 60 * 1000);
+    */
   }
 
   async handleChangeBRUT(event) {

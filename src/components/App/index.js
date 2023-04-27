@@ -53,8 +53,9 @@ class App extends Component {
 
     if ( typeof window.tronWeb !== 'undefined' && typeof window.tronLink !== 'undefined' ) {
 
-      if(window.tronLink.ready){
-        tronWeb['installed'] = true;
+      tronWeb['installed'] = true;
+
+      if(window.tronWeb.ready || window.tronLink.ready){
 
         try {
           conexion = (await window.tronLink.request({ method: 'tron_requestAccounts' })).code;
@@ -73,6 +74,12 @@ class App extends Component {
         }
 
         tronWeb['web3'] = window.tronWeb;
+        //var tronWeb = window.tronWeb;
+        //tronWeb = tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
+
+        if(this.state.contrato.MBOX == null){
+
+          window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
 
           var USDT = await window.tronWeb.contract().at(cons.USDT)
           var BRUT =  await window.tronWeb.contract().at(cons.BRUT)
@@ -84,17 +91,22 @@ class App extends Component {
           var BRLT = null// await window.tronWeb.contract().at(cons.BRLT);
           var loteria = null//await window.tronWeb.contract().at(cons.SC4);
           contrato = {USDT,BRUT, BRUT_USDT, BRST, BRST_TRX, BRGY, MBOX, BRLT, loteria  }
+
+
+          this.setState({
+            contrato: contrato
+  
+          });
+
+        }
         
         
         this.setState({
           accountAddress: wallet,
           tronWeb: tronWeb,
-          contrato: contrato
 
         });
       }else{
-
-        tronWeb['installed'] = true;
 
         this.setState({
           tronWeb: tronWeb,

@@ -1,6 +1,12 @@
 var proxy = "http://localhost:8080/";
-const PRICE = process.env.REACT_APP_API_URL+"api/v1/precio/BRUT"; //API de precio
-const market_brut =  process.env.REACT_APP_API_URL+"api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
+const conProxy = false;
+if(!conProxy)proxy = "";
+
+
+const PRICE = proxy+process.env.REACT_APP_API_URL+"api/v1/precio/BRUT"; //API de precio
+const market_brut =  proxy+process.env.REACT_APP_API_URL+"api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
+const testnet = false;
+
 
 const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 
@@ -19,8 +25,7 @@ var APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery bo
 var BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY 
 var BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//token brutus LOTERIA
 
-const testnet = false;
-const conProxy = false;
+
 
 if(testnet){
 
@@ -34,7 +39,6 @@ if(testnet){
     
 }
 
-if(!conProxy)proxy = "";
 
 
 export default {proxy, PRU, WS,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut};

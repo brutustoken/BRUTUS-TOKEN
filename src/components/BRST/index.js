@@ -45,19 +45,18 @@ export default class Staking extends Component {
   }
 
   componentDidMount() {
-    document.title = "Brutus Finance | BRST"
+    document.title = "B.F | BRST"
     this.grafico(1000);
 
-    this.estado();
-    setInterval(() => {
+    setTimeout(() => {
       this.estado();
 
     }, 3 * 1000);
 
-    setInterval(() => {
+    /*setInterval(() => {
       this.root.dispose();
       this.grafico(0);
-    }, 60 * 1000);
+    }, 60 * 1000);*/
   }
 
   componentWillUnmount() {
@@ -591,7 +590,7 @@ export default class Staking extends Component {
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
                 <h4 className="fs-20 text-black">Solicitud de intercambio</h4>
-                <p className="mb-0 fs-12">El retiro de los TRX desde el SR puede tomar hasta 3 dias en realizarse</p>
+                <p className="mb-0 fs-12">El retiro de los TRX desde el SR puede tomar hasta 15 dias en realizarse</p>
               </div>
 
             </div>
