@@ -64,6 +64,7 @@
     "react-copy-to-clipboard": "^5.0.2",
     "react-dev-utils": "^11.0.4",
     "react-dom": "^16.13.1",
+    "react-intl": "^6.4.1",
     "recharts": "^2.5.0",
     "resolve": "1.15.0",
     "resolve-url-loader": "^3.1.2",

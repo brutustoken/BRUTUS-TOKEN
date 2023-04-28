@@ -9,6 +9,7 @@ import Nft from "../BRGY";
 import LOTERIA from "../LOTERIA";
 import TronLinkGuide from "../TronLinkGuide";
 
+import idiomaEsCo from "../../lang/es-CO.json";
 
 class App extends Component {
   constructor(props) {
@@ -31,7 +32,10 @@ class App extends Component {
         BRGY: null,
         BRST: null,
         BRST_TRX: null,
-        
+      },
+      idioma: "es-CO",
+      textos: {
+        es_co: idiomaEsCo
       }
     };
 
@@ -43,6 +47,10 @@ class App extends Component {
     setInterval(() => {
       this.conectar();
     }, 3 * 1000);
+
+  }
+
+  lenguaje(seleccion){
 
   }
 
@@ -149,11 +157,18 @@ class App extends Component {
     );
 
     let url = window.location.href;
+    let pagina = "";
+    let idioma = 'es-CO';
 
-    if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
-    if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
+    if(url.indexOf("/?") >= 0 )pagina = (url.split("/?"))[1];
+    if(pagina.indexOf("&") >= 0 )pagina = (pagina.split("&"))[0];
 
-    switch (url) {
+    if(url.indexOf("lang=") >= 0 )idioma = (url.split("lang="))[1];
+    if(idioma.indexOf("&") >= 0 )idioma = (idioma.split("&"))[0];
+
+    console.log(idioma)
+
+    switch (pagina) {
       case "usd":
       case "usdt":
       case "token":
@@ -177,7 +192,7 @@ class App extends Component {
 
     
       default:
-        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} idioma={idioma} textos={this.state.textos}/>
     }
 
   }

@@ -230,7 +230,9 @@ export default class Inicio extends Component {
 							<div className="col-xl-12">
 								<div className="card">
 									<div className="card-header border-0 pb-0">
-										<h4 className="mb-0 fs-20 text-black">Mis Tokens</h4>
+										<h4 className="mb-0 fs-20 text-black">
+											Mis Tokens
+											</h4>
 
 									</div>
 									<div className="card-body">
