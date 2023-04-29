@@ -242,34 +242,34 @@ class App extends Component {
     return (
       <IntlProvider messages={this.state.textos} locale={this.state.idioma} defaultLocale="es-co">
 
-        <div className="offcanvas offcanvas-start bg-dark text-white" tabindex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel" style={{width:"280px"}} >
+        <div className="offcanvas offcanvas-start bg-dark text-white" tabIndex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel" style={{ width: "280px" }} >
           <div className="offcanvas-header">
             <h5 className="offcanvas-title" id="offcanvasExampleLabel"><FormattedMessage id="navegacion.titulo" defaultMessage="Menú principal" /></h5>
             <button type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
           </div>
           <div className="offcanvas-body text-white">
             <ul >
-              <li><button className="btn btn-primary mb-2"  style={{ cursor: "pointer" }} onClick={() => {
+              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
                 this.setState({ pagina: "" })
               }}>
                 <i className="bi bi-bank"></i>&nbsp;
                 <span className="nav-text"><FormattedMessage id="navegacion.inicio" defaultMessage="Vista General" /></span>
               </button>
               </li>
-              <li><button className="btn btn-primary mb-2"  style={{ cursor: "pointer" }} onClick={() => {
+              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
                 this.setState({ pagina: "brut" })
               }}>
                 <i className="bi bi-graph-up-arrow"></i>&nbsp;
                 <span className="nav-text">Brutus Token</span>
               </button>
               </li>
-              <li><button className="btn btn-primary mb-2"  style={{ cursor: "pointer" }} onClick={() => {
+              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
                 this.setState({ pagina: "brst" })
               }}>
                 <i className="bi bi-hdd-rack"></i>&nbsp;
                 <span className="nav-text">Brutus Tron Staking</span>
               </button></li>
-              <li><button className="btn btn-primary mb-2"  style={{ cursor: "pointer" }} onClick={() => {
+              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
                 this.setState({ pagina: "brgy" })
               }}>
                 <i className="bi bi-images"></i>&nbsp;
@@ -277,12 +277,12 @@ class App extends Component {
               </button>
               </li>
               <li>
-                <a className="btn btn-primary mb-2"  href="https://t.me/BRUTUS_ENERGY" >
+                <a className="btn btn-primary mb-2" href="https://t.me/BRUTUS_ENERGY" >
                   <i className="bi bi-lightning-charge"></i>&nbsp;
                   <span className="nav-text">Energy BOT</span>
                 </a>
               </li>
-              <li><button className="btn btn-primary mb-2"  style={{ cursor: "pointer" }} onClick={() => {
+              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
                 this.setState({ pagina: "" })
               }}>
                 <i className="bi bi-coin"></i>&nbsp;
@@ -298,13 +298,32 @@ class App extends Component {
             </div>
             <div className="dropdown mt-3">
               <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                Idioma
+                <FormattedMessage id="select.idioma" defaultMessage="Idioma" />
               </button>
               <ul className="dropdown-menu">
                 <li><a className="dropdown-item" href="?lang=es-co">Español</a></li>
-                <li><a className="dropdown-item" href="?lang=en-us">Englis</a></li>
-                <li><a className="dropdown-item" href="?lang=pr-br">Portuguese</a></li>
+                <li><a className="dropdown-item" href="?lang=en-us">English</a></li>
+                <li><a className="dropdown-item" href="?lang=pt-br">Português</a></li>
               </ul>
+            </div>
+          </div>
+        </div>
+
+        <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title fs-5" id="exampleModalLabel"><FormattedMessage id="regalo.titulo" defaultMessage="¡Sorpresa!" /></h1>
+                <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div className="modal-body text-white">
+                <FormattedMessage id="regalo.cuerpo" defaultMessage="Algo pasará pronto por estos lados, esta pendiente..." />
+                
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><FormattedMessage id="cerrar" defaultMessage="Cerrar" /></button>
+                <button type="button" className="btn btn-primary"><FormattedMessage id="aceptar" defaultMessage="Aceptar" /></button>
+              </div>
             </div>
           </div>
         </div>
@@ -333,7 +352,7 @@ class App extends Component {
 
                   <li className="nav-item dropdown notification_dropdown d-sm-flex d-none">
                     <a className="nav-link  ai-icon" href="#" role="button"
-                      data-bs-toggle="dropdown">
+                      data-bs-toggle="modal" data-bs-target="#exampleModal">
                       <svg width="24" height="24" viewBox="0 0 28 28" fill="none"
                         xmlns="http://www.w3.org/2000/svg">
                         <path
@@ -342,6 +361,7 @@ class App extends Component {
                       </svg>
                     </a>
                   </li>
+
                   <li className="nav-item dropdown header-profile">
                     <a className="nav-link" href={"https://tronscan.io/#/address/" + this.state.wallet} >
                       <img src="images/profile/pic1.png" width="20" alt="" />
@@ -358,15 +378,15 @@ class App extends Component {
           </div>
         </div>
 
-        <div className="container-fluid" style={{marginTop: "85px"}}>
+        <div className="container-fluid" style={{ marginTop: "85px" }}>
           {this.renderSwitch(this.state.pagina)}
         </div>
 
 
         <div className="footer">
           <div className="copyright">
-            <p>Copyright © <a href="http://brutustoken.com/" target="_blank"> Brutus Token </a> 2023</p>
-            <p>Rv. 28/04/2023 11:00pm</p>
+            <p>Copyright © <a href="http://brutus.finance/" target="_blank"> Brutus Finance </a> 2023</p>
+            <p>Rv. 29/04/2023 12:00pm</p>
           </div>
         </div>
 

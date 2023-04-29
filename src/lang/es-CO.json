@@ -6,10 +6,15 @@
     "navegacion.titulo": "MENÚ PRINCIPAL",
     "navegacion.galeria": "Galería",
     "navegacion.footer": "Hecho con ❤ por Brutus Team",
+    "select.idioma": "Idioma",
+    "regalo.titulo": "¡Sorpresa!",
+    "regalo.cuerpo": "Algo pasará pronto por estos lados, esta pendiente...",
     "inicio.titulo": "Datos Generales",
     "inicio.boletos": "BOLETOS",
     "inicio.generados": "Generados",
     "inicio.minteados": "minteados",
-    "inicio.mis": "Mis"
+    "inicio.mis": "Mis",
+    "cerrar": "Cerrar",
+    "aceptar": "Aceptar"
     
 }
