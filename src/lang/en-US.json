@@ -3,13 +3,11 @@
     "wallet.texto.instalar": "Para acceder a esta pagina debe instalar TronLink. TronLink es una wallet de TRON wallet para el navegador la puede instalar desde la Chrome Webstore.una vez instalada, regrese y actualice la pagina.",
     "wallet.titulo.desbloqueo": "Desbloquee su wallet",
     "wallet.texto.desbloqueo": "TronLink esta instalado. Abra TronLink desde la barra de su navegador si no lo ha hecho configure su primer wallet desde cero, si usted ya tiene una wallet con fondos solo desbloquee la wallet para usar esta pagina.",
-    "navegacion.titulo": "MENÚ PRINCIPAL",
-    "navegacion.galeria": "Galería",
-    "navegacion.footer": "Hecho con ❤ por Brutus Team",
-    "inicio.titulo": "Datos Generales",
-    "inicio.boletos": "BOLETOS",
-    "inicio.generados": "Generados",
-    "inicio.minteados": "minteados",
-    "inicio.mis": "Mis"
+    "navegacion.inicio": "Home",
+    "inicio.titulo": "General Data",
+    "inicio.boletos": "TIKETS",
+    "inicio.generados": "Generated",
+    "inicio.minteados": "Minted",
+    "inicio.mis": "My"
     
 }

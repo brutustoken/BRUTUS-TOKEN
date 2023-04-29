@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import {IntlProvider, FormattedMessage } from 'react-intl';
 
 export default class Inicio extends Component {
 	constructor(props) {
@@ -162,13 +163,13 @@ export default class Inicio extends Component {
 	render() {
 
 		return (
-			<>
-				<h1>Datos Generales</h1>
+			<IntlProvider messages={this.props.textos} locale={this.props.idioma} defaultLocale="es-co">
+				<h1><FormattedMessage id="inicio.titulo" defaultMessage={"Datos Generales"} /></h1>
 				<div className="row">
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/?brut">
+								<a href={"/?brut"+this.props.lang}>
 									<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
 
 									<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
@@ -183,7 +184,7 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/?brst">
+								<a href={"/?brst"+this.props.lang}>
 									<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
 
 									<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
@@ -198,11 +199,11 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/?brgy">
+								<a href={"/?brgy"+this.props.lang}>
 									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
 									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} NFT's </h2>
 									<p className="mb-0 fs-14">
-										Minteados
+										<FormattedMessage id="inicio.minteados" defaultMessage={"minteados"} />
 									</p>
 								</a>
 							</div>
@@ -211,11 +212,11 @@ export default class Inicio extends Component {
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
 							<div className="card-body text-center">
-								<a href="/?brlt">
+								<a href={"/?brlt"+this.props.lang}>
 									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} Boletos </h2>
+									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} <FormattedMessage id="inicio.boletos" defaultMessage={"BOLETOS"} /> </h2>
 									<p className="mb-0 fs-14">
-										Generados
+										<FormattedMessage id="inicio.generados" defaultMessage={"Generados"} />
 									</p>
 								</a>
 							</div>
@@ -231,7 +232,7 @@ export default class Inicio extends Component {
 								<div className="card">
 									<div className="card-header border-0 pb-0">
 										<h4 className="mb-0 fs-20 text-black">
-											Mis Tokens
+											<FormattedMessage id="inicio.mis" defaultMessage={"Mis"} /> Tokens
 											</h4>
 
 									</div>
@@ -241,7 +242,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/?brut">
+														<a href={"?brut"+this.props.lang}>
 															<img src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
 														</a>
 													</div>
@@ -270,7 +271,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/?brst">
+														<a href={"?brst"+this.props.lang}>
 															<img src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
 														</a>
 													</div>
@@ -299,7 +300,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/?brgy">
+														<a href={"?brgy"+this.props.lang}>
 															<img src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
 														</a>
 													</div>
@@ -326,7 +327,7 @@ export default class Inicio extends Component {
 											<div className="mb-2 coin-bx">
 												<div className="d-flex align-items-center">
 													<div>
-														<a href="/?brlt">
+														<a href={"?brlt"+this.props.lang}>
 															<img src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
 														</a>
 													</div>
@@ -357,7 +358,7 @@ export default class Inicio extends Component {
 				</div>
 
 
-			</>
+			</IntlProvider>
 		);
 	}
 }

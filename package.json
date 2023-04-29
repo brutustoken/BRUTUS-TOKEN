@@ -70,6 +70,7 @@
     "resolve-url-loader": "^3.1.2",
     "sass-loader": "8.0.2",
     "semver": "6.3.0",
+    "shell-quote": "^1.8.1",
     "style-loader": "0.23.1",
     "sweetalert2": "^8.19.0",
     "terser-webpack-plugin": "^4.2.3",

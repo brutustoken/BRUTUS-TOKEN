@@ -62,7 +62,6 @@
 @import url("./../icons/simple-line-icons/css/simple-line-icons.css");
 @import url("./../icons/font-awesome/css/all.min.css");
 @import url("./../icons/material-design-iconic-font/css/materialdesignicons.min.css");
-@import url("./../icons/themify-icons/css/themify-icons.css");
 @import url("./../icons/line-awesome/css/line-awesome.min.css");
 @import url("./../icons/avasta/css/style.css");
 @import url("./../icons/flaticon/flaticon.css");
@@ -8888,7 +8887,7 @@ a {
     transform: scale(1); } }
 
 .footer {
-  padding-left: 17.5rem;
+  padding-left: 0;
   background-color: #fff; }
   .footer .copyright {
     padding: 0.9375rem; }
@@ -11142,7 +11141,7 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
     border: 0; }
 
 [data-sidebar-style="full"][data-layout="vertical"] .menu-toggle + .footer {
-  padding-left: 5rem; }
+  padding-left: 0; }
   [direction="rtl"][data-sidebar-style="full"][data-layout="vertical"] .menu-toggle + .footer {
     padding-left: 0;
     padding-right: 5rem; }
@@ -11259,7 +11258,7 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
   [data-sidebar-style="mini"] .content-body {
     margin-left: 5rem; }
   [data-sidebar-style="mini"] .footer {
-    padding-left: 5rem; }
+    padding-left: 0; }
   [data-sidebar-style="mini"][data-layout="vertical"] .deznav {
     position: absolute !important; }
     [data-sidebar-style="mini"][data-layout="vertical"] .deznav .metismenu li:hover > ul {
@@ -11707,7 +11706,7 @@ Fixing Order => Base + Typography >> General Layout + Grid >> Page Layout + Comp
   [data-sidebar-style="compact"] .nav-badge {
     display: none; }
   [data-sidebar-style="compact"] .footer {
-    padding-left: 11.25rem; }
+    padding-left: 0; }
   [data-sidebar-style="compact"] .content-body {
     margin-left: 11.25rem; }
   [data-sidebar-style="compact"][data-theme-version="dark"][data-layout="horizontal"] .deznav .metismenu li > a i {
