@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React, { Component, useState, useContext } from "react";
 import { IntlProvider, FormattedMessage } from 'react-intl';
 import cons from "../../cons.js";
 
@@ -12,6 +12,8 @@ import TronLinkGuide from "../TronLinkGuide";
 
 import idiomaEsCo from "../../lang/es-CO.json";
 import idiomaEnUs from "../../lang/en-US.json";
+
+
 
 function selectLang(idioma) {
 
@@ -44,7 +46,6 @@ function selectLang(idioma) {
 
 }
 
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -73,13 +74,10 @@ class App extends Component {
     };
 
     this.conectar = this.conectar.bind(this);
+
   }
 
-
-
   async componentDidMount() {
-
-
 
     setInterval(() => {
       this.conectar();
@@ -213,6 +211,7 @@ class App extends Component {
   }
 
   render() {
+
     let url = window.location.href;
     let pagina = this.state;
     pagina = pagina + "";
@@ -318,7 +317,7 @@ class App extends Component {
               </div>
               <div className="modal-body text-white">
                 <FormattedMessage id="regalo.cuerpo" defaultMessage="Algo pasará pronto por estos lados, esta pendiente..." />
-                
+
               </div>
               <div className="modal-footer">
                 <button type="button" className="btn btn-secondary" data-bs-dismiss="modal"><FormattedMessage id="cerrar" defaultMessage="Cerrar" /></button>
@@ -328,22 +327,7 @@ class App extends Component {
           </div>
         </div>
 
-
-        <div className="nav-header">
-          <a href="https://brutus.finance" target="_blank" className="brand-logo" rel="noopener noreferrer">
-            <img className="logo-abbr" height="40px" width="40px" src="images/Brutus.svg" alt="" />
-            <img className="brand-title" src="images/logo-text-white.png" alt="" />
-          </a>
-
-          <div className="nav-control">
-            <div className="hamburger" data-bs-toggle="offcanvas" data-bs-target="#offcanvasExample">
-              <span className="line"></span><span className="line"></span><span className="line"></span>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="header">
+        <div className="header" style={{paddingLeft:"0px"}}>
           <div className="header-content">
             <nav className="navbar navbar-expand">
               <div className="collapse navbar-collapse justify-content-between">
@@ -378,9 +362,9 @@ class App extends Component {
           </div>
         </div>
 
-        <div className="container-fluid" style={{ marginTop: "85px" }}>
-          {this.renderSwitch(this.state.pagina)}
-        </div>
+
+            {this.renderSwitch(this.state.pagina)}
+          
 
 
         <div className="footer">
