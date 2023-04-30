@@ -232,7 +232,7 @@ export default class Inicio extends Component {
 								<div className="card">
 									<div className="card-header border-0 pb-0">
 										<h4 className="mb-0 fs-20 text-black">
-											<FormattedMessage id="inicio.mis" defaultMessage={"Mis"} /> Tokens
+											<FormattedMessage id="inicio.mis" defaultMessage={"Mis Tokens"} /> 
 											</h4>
 
 									</div>

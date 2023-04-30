@@ -13,8 +13,12 @@
     "inicio.boletos": "BOLETOS",
     "inicio.generados": "Generados",
     "inicio.minteados": "minteados",
-    "inicio.mis": "Mis",
+    "inicio.mis": "Mis Tokens",
     "cerrar": "Cerrar",
-    "aceptar": "Aceptar"
-    
+    "aceptar": "Aceptar",
+    "brut.descripcion": "Brutus Token es un token basado en la red Tron cuyo valor está respaldado por una estrategia de trading automatizado. Esta estrategia se basa en el backtesting y la gestión de capital, y se implementa de manera automatizada mediante la utilización de algoritmos y estrategias previamente optimizadas para maximizar las ganancias y minimizar las pérdidas. El valor del Brutus Token se establece en relación con el USDT (Tether), lo que significa que el valor del token se mantiene estable en términos de dólares estadounidenses.",
+    "brut.precio":"Precio",
+    "brut.respaldo": "Respaldo",
+    "brut.efectivo": "Efectivo",
+    "brut.circulando": "Corculando"
 }

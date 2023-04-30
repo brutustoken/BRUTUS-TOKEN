@@ -1,4 +1,4 @@
-import React, { Component, useState, useContext } from "react";
+import React, { Component } from "react";
 import { IntlProvider, FormattedMessage } from 'react-intl';
 import cons from "../../cons.js";
 
@@ -12,7 +12,6 @@ import TronLinkGuide from "../TronLinkGuide";
 
 import idiomaEsCo from "../../lang/es-CO.json";
 import idiomaEnUs from "../../lang/en-US.json";
-
 
 
 function selectLang(idioma) {
@@ -70,10 +69,12 @@ class App extends Component {
       },
       idioma: 'es-co',
       pagina: "",
-      lang: ""
+      lang: "",
+      textos: idiomaEsCo
     };
 
     this.conectar = this.conectar.bind(this);
+    this.renderSwitch = this.renderSwitch.bind(this);
 
   }
 
@@ -182,43 +183,51 @@ class App extends Component {
   }
 
   renderSwitch(pagina) {
+
     switch (pagina) {
       case "usd":
       case "usdt":
       case "token":
       case "brut":
-        return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato}  idioma={this.state.idioma} textos={this.state.textos}/>
 
       case "trx":
       case "tron":
       case "brst":
-        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} idioma={this.state.idioma} textos={this.state.textos} />
 
       case "nft":
       case "brgy":
-        return <Nft accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <Nft accountAddress={this.state.accountAddress} contrato={this.state.contrato} idioma={this.state.idioma} textos={this.state.textos} />
 
       /*
       case "brlt":
       case "suerte":
       case "loteria":
-        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />*/
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} idioma={this.state.idioma} textos={this.state.textos} />*/
 
 
       default:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} idioma={this.state.idioma} textos={this.state.textos} lang={this.state.lang} />
     }
+
+
   }
 
   render() {
 
     let url = window.location.href;
-    let pagina = this.state;
-    pagina = pagina + "";
+    let ruta = "";
     let idioma = 'es-co';
 
-    if (url.indexOf("/?") >= 0) pagina = (url.split("/?"))[1];
-    if (pagina.indexOf("&") >= 0) pagina = (pagina.split("&"))[0];
+    if (url.indexOf("/?") >= 0) ruta = (url.split("/?"))[1];
+    if (ruta.indexOf("&") >= 0) ruta = (ruta.split("&"))[0];
+
+    if(ruta !== this.state.pagina){
+      this.setState({
+        pagina: ruta
+      })
+    }
 
     if (url.indexOf("lang=") >= 0) idioma = (url.split("lang="))[1];
     if (idioma.indexOf("&") >= 0) idioma = (idioma.split("&"))[0];
@@ -238,75 +247,9 @@ class App extends Component {
       </div>
     );
 
+
     return (
       <IntlProvider messages={this.state.textos} locale={this.state.idioma} defaultLocale="es-co">
-
-        <div className="offcanvas offcanvas-start bg-dark text-white" tabIndex="-1" id="offcanvasExample" aria-labelledby="offcanvasExampleLabel" style={{ width: "280px" }} >
-          <div className="offcanvas-header">
-            <h5 className="offcanvas-title" id="offcanvasExampleLabel"><FormattedMessage id="navegacion.titulo" defaultMessage="Menú principal" /></h5>
-            <button type="button" className="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-          </div>
-          <div className="offcanvas-body text-white">
-            <ul >
-              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
-                this.setState({ pagina: "" })
-              }}>
-                <i className="bi bi-bank"></i>&nbsp;
-                <span className="nav-text"><FormattedMessage id="navegacion.inicio" defaultMessage="Vista General" /></span>
-              </button>
-              </li>
-              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
-                this.setState({ pagina: "brut" })
-              }}>
-                <i className="bi bi-graph-up-arrow"></i>&nbsp;
-                <span className="nav-text">Brutus Token</span>
-              </button>
-              </li>
-              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
-                this.setState({ pagina: "brst" })
-              }}>
-                <i className="bi bi-hdd-rack"></i>&nbsp;
-                <span className="nav-text">Brutus Tron Staking</span>
-              </button></li>
-              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
-                this.setState({ pagina: "brgy" })
-              }}>
-                <i className="bi bi-images"></i>&nbsp;
-                <span className="nav-text"><FormattedMessage id="navegacion.galeria" defaultMessage="Galería" /> NFT</span>
-              </button>
-              </li>
-              <li>
-                <a className="btn btn-primary mb-2" href="https://t.me/BRUTUS_ENERGY" >
-                  <i className="bi bi-lightning-charge"></i>&nbsp;
-                  <span className="nav-text">Energy BOT</span>
-                </a>
-              </li>
-              <li><button className="btn btn-primary mb-2" style={{ cursor: "pointer" }} onClick={() => {
-                this.setState({ pagina: "" })
-              }}>
-                <i className="bi bi-coin"></i>&nbsp;
-                <span className="nav-text">Brutus Lottery</span>
-              </button>
-              </li>
-
-            </ul>
-
-            <div className="copyright">
-              <p><strong>Brutus Finance</strong> © <script> document.write(new Date(Date.now()).getFullYear())</script></p>
-              <p className="fs-12"><FormattedMessage id="navegacion.footer" defaultMessage="Hecho con ❤ por Brutus Team" /></p>
-            </div>
-            <div className="dropdown mt-3">
-              <button className="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                <FormattedMessage id="select.idioma" defaultMessage="Idioma" />
-              </button>
-              <ul className="dropdown-menu">
-                <li><a className="dropdown-item" href="?lang=es-co">Español</a></li>
-                <li><a className="dropdown-item" href="?lang=en-us">English</a></li>
-                <li><a className="dropdown-item" href="?lang=pt-br">Português</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
 
         <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
           <div className="modal-dialog">
@@ -362,14 +305,11 @@ class App extends Component {
           </div>
         </div>
 
-
-            {this.renderSwitch(this.state.pagina)}
-          
-
-
+        {this.renderSwitch(ruta)}
+            
         <div className="footer">
           <div className="copyright">
-            <p>Copyright © <a href="http://brutus.finance/" target="_blank"> Brutus Finance </a> 2023</p>
+            <p>Copyright © <a href="http://brutus.finance/" target="_blank"> Brutus.Finance </a> 2023</p>
             <p>Rv. 29/04/2023 12:00pm</p>
           </div>
         </div>
@@ -383,5 +323,3 @@ class App extends Component {
 
 }
 export default App;
-
-// {tWeb()}
