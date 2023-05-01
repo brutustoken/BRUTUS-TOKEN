@@ -105,7 +105,6 @@ contract RandomNumber{
 }
 
 contract Lottery is RandomNumber, Ownable{
-
     using SafeMath for uint256;
 
     uint256 public precio = 100 * 10**6;
@@ -141,23 +140,17 @@ contract Lottery is RandomNumber, Ownable{
         }
 
         //confirmar cantidad de 100 TRX o BRST
-
-        if(_brst){
-
-            BRST_Contract.transferFrom(msg.sender, address(this));
-
-        }else{
-        // comprar BRST y registrar cuanto TRX ingresó
-
+        if( !_brst || msg.value == precio ){
             require(msg.value == precio);
             POOL_Contract.staking{value:msg.value}();
             trxPooled = trxPooled.add(msg.value);
-
+            
+        }else{
+            BRST_Contract.transferFrom(msg.sender, address(this));
 
         }
 
         //seleccionar NFT disponible o imprimir NFT
-
         if(TRC721_Contract.balanceOf(address(this))>0){
             TRC721_Contract.transferFrom(address(this), _user, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
         }else{
@@ -170,19 +163,22 @@ contract Lottery is RandomNumber, Ownable{
 
     function sellLoteria(bool _brst) public {
         TRC721_Contract.transferFrom(address(this), msg.sender, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
+        
         if(_brst){
+            BRST_Contract.transfer(msg.sender, precio.mul(10e6).div(POOL_Contract.RATE()) );
 
         }else{
             payable(msg.sender).transfer(precio);
+
         }
+
+        trxPooled = trxPooled.sub(precio);
+
     }
 
     function premio() public view returns(uint256){
-
         // consulta cuanto TRX ha ganado hasta el momento 
-
         return (BRST_Contract.balanceOf(address(this)).mul(POOL_Contract.RATE()).div(10e6)).sub(trxPooled);
-         
 
     }
 
@@ -225,15 +221,13 @@ contract Lottery is RandomNumber, Ownable{
 
     }
   
-    function update_tokenTRC721(address _tokenTRC721) public onlyOwner returns(bool){
+    function update_tokenTRC721(address _tokenTRC721) public onlyOwner {
         tokenTRC721 = _tokenTRC721;
         TRC721_Contract = ITRC721(_tokenTRC721);
-        return true;
     }
 
-    function update_precio(uint256 _precio) public onlyOwner returns(bool){
+    function update_precio(uint256 _precio) public onlyOwner {
         precio = _precio;
-        return true;
     }
 
     //retirar TRC20

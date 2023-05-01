@@ -1,20 +1,13 @@
 import React, { Component } from "react";
 import cons from "../../cons.js";
 
-
 import Inicio from "../Inicio";
 
 import Home from "../BRUT";
-import HomeBaner from "../BRUT/HomeBaner";
 import Staking from "../BRST";
-import StakingBaner from "../BRST/StakingBaner";
 import Nft from "../BRGY";
-import NftBaner from "../BRGY/nftBaner";
 import LOTERIA from "../LOTERIA";
-import LOTERIABaner from "../LOTERIA/nftBaner";
 import TronLinkGuide from "../TronLinkGuide";
-import FAQ from "../FAQ";
-
 
 
 class App extends Component {
@@ -22,12 +15,23 @@ class App extends Component {
     super(props);
 
     this.state = {
-      accountAddress: "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
+      accountAddress:"T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
       tronWeb: {
-        address: "Cargando...",
         installed: false,
         loggedIn: false,
         web3: null
+      },
+      contrato: {
+        BRUT_USDT: null,
+        BRUT: null,
+        MBOX: null,
+        loteria: null,
+        BRLT: null,
+        USDT: null,
+        BRGY: null,
+        BRST: null,
+        BRST_TRX: null,
+        
       }
     };
 
@@ -35,220 +39,149 @@ class App extends Component {
   }
 
   async componentDidMount() {
-    this.conectar();
-    setInterval(async () => {
-      await this.conectar();
-    }, 7 * 1000);
+
+    setInterval(() => {
+      this.conectar();
+    }, 3 * 1000);
 
   }
 
   async conectar() {
 
-    if (typeof window.tronLink !== 'undefined' && typeof window.tronLink.tronWeb !== 'undefined' && document.location.href.indexOf('?') > 0) {
+    var {tronWeb, wallet, contrato} = this.state;
+    var conexion = 0;
 
-      var tronWeb = this.state.tronWeb;
+    if ( typeof window.tronWeb !== 'undefined' && typeof window.tronLink !== 'undefined' ) {
 
       tronWeb['installed'] = true;
 
-      window.tronLink.request({ method: 'tron_requestAccounts' })
-        .then(() => {
+      if(window.tronWeb.ready || window.tronLink.ready){
 
-          window.tronWeb.trx.getAccount()
-            .then((account) => {
-              tronWeb['loggedIn'] = true;
-
-              this.setState({
-                tronWeb: tronWeb,
-                accountAddress: window.tronWeb.address.fromHex(account.address)
-
-              });
-
-            }).catch(() => {
-              tronWeb['loggedIn'] = false;
-              this.setState({
-                tronWeb: tronWeb
-
-              });
-
-            })
-
-
-        }).catch(() => {
-
-          tronWeb['installed'] = false;
-          tronWeb['loggedIn'] = false;
-
-          this.setState({
-            tronWeb: tronWeb
-
-          });
-
-        })
-
-      tronWeb['web3'] = window.tronWeb;
-
-      this.setState({
-        tronWeb: tronWeb,
-        contrato: {
-          loteria: await window.tronWeb.contract().at(cons.SC4),
-          BRLT: await window.tronWeb.contract().at(cons.BRLT),
+        try {
+          conexion = (await window.tronLink.request({ method: 'tron_requestAccounts' })).code;
+        } catch(e) {
+          conexion = 0
         }
 
+        if(conexion === 200){
+          tronWeb['loggedIn'] = true;
+          wallet = window.tronLink.tronWeb.defaultAddress.base58
+
+        }else{
+          tronWeb['loggedIn'] = false;
+          wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+
+        }
+
+        tronWeb['web3'] = window.tronWeb;
+        //var tronWeb = window.tronWeb;
+        //tronWeb = tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
+
+        if(this.state.contrato.MBOX == null){
+
+          window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
+
+          var USDT = await window.tronWeb.contract().at(cons.USDT)
+          var BRUT =  await window.tronWeb.contract().at(cons.BRUT)
+          var BRUT_USDT = await window.tronWeb.contract().at(cons.SC)
+          var BRST = await window.tronWeb.contract().at(cons.BRST)
+          var BRST_TRX = await window.tronWeb.contract().at(cons.SC2)
+          var BRGY = await window.tronWeb.contract().at(cons.BRGY)
+          var MBOX =  await window.tronWeb.contract().at(cons.SC3)
+          var BRLT = null// await window.tronWeb.contract().at(cons.BRLT);
+          var loteria = null//await window.tronWeb.contract().at(cons.SC4);
+          contrato = {USDT,BRUT, BRUT_USDT, BRST, BRST_TRX, BRGY, MBOX, BRLT, loteria  }
+
+
+          this.setState({
+            contrato: contrato
+  
+          });
+
+        }
+        
+        
+        this.setState({
+          accountAddress: wallet,
+          tronWeb: tronWeb,
+
+        });
+      }else{
+
+        this.setState({
+          tronWeb: tronWeb,
+
+        });
+
+      }
+
+
+    } else {
+
+      console.log("se salio")
+
+      tronWeb['installed'] = false;
+      tronWeb['loggedIn'] = false;
+
+      this.setState({
+        tronWeb: tronWeb
+
       });
-
-
     }
+
+    /*var inicio = wallet.substr(0,4);
+    var fin = wallet.substr(-4);*/
+
+    var texto = wallet; //inicio+"..."+fin;
+
+    document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+texto+'</a>';
+
+
   }
 
-  render() {
+  render(){
 
+    if ( !this.state.tronWeb.loggedIn || !this.state.tronWeb.installed ) return (
 
-    var getString = "";
-    var loc = document.location.href;
-    //console.log(loc);
-    if (loc.indexOf('?') > 0) {
+        <div className="container">
+          <TronLinkGuide installed={this.state.tronWeb.installed}  />
+        </div>
+    );
 
-      getString = loc.split('?')[1];
-      getString = getString.split('#')[0];
+    let url = window.location.href;
 
-    }
+    if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
+    if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
 
-    switch (getString) {
-      case "staking":
-      case "brst":
-      case "BRST":
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <StakingBaner />
-            <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <StakingBaner />
-            <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <StakingBaner getString={getString} />
-            <Staking />
-          </>
-        );
-
-      case "brut":
-      case "BRUT":
+    switch (url) {
+      case "usd":
+      case "usdt":
       case "token":
-      case "TOKEN":
+      case "brut":
+        return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <HomeBaner />
-            <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
-            </div>
-          </>
-        );
+      case "trx":
+      case "tron":
+      case "brst":
+        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <HomeBaner />
-            <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <HomeBaner getString={getString} />
-            <Home accountAddress={this.state.accountAddress} />
-          </>
-        );
-
-      case "brgy":
-      case "BRGY":
       case "nft":
-      case "NFT":
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <NftBaner />
-            <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
-            </div>
-          </>
-        );
+      case "brgy":
+        return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
 
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <NftBaner />
-            <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <NftBaner getString={getString} />
-            <Nft accountAddress={this.state.accountAddress} />
-          </>
-        );
-
+      /*
+      case "brlt":
+      case "suerte":
       case "loteria":
-      case "rifa":
-      case "sorteo":
-        if (!this.state.tronWeb.installed) return (
-          <>
-            <LOTERIABaner />
-            <div className="container">
-              <TronLinkGuide url={"/?" + getString} />
-            </div>
-          </>
-        );
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />*/
 
-        if (!this.state.tronWeb.loggedIn) return (
-          <>
-            <LOTERIABaner />
-            <div className="container">
-              <TronLinkGuide installed url={"/?" + getString} />
-            </div>
-          </>
-        );
-
-        return (
-          <>
-            <LOTERIABaner getString={getString} />
-            <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
-          </>
-        );
-
-      case "faq":
-      case "FAQ":
-      case "preguntasfrecuentes": return (
-        <>
-          <FAQ />
-        </>
-      );
-
-
+    
       default:
-
-        return (<><Inicio /></>);
-
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     }
 
-
-
   }
-
-
+  
 }
 export default App;
 

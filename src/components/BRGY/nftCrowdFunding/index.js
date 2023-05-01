@@ -27,7 +27,9 @@ export default class nftCrowdFunding extends Component {
   }
 
   async misterio() {
-    var contractNFT = await window.tronWeb.contract().at(cons.SC4);
+    
+    var contractNFT = await window.tronWeb.contract().at(cons.BRGY);
+    console.log(contractNFT)
     var contractMistery = await window.tronWeb.contract().at(cons.SC3);
 
     let mb = 0; 

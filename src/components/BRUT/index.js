@@ -1,36 +1,602 @@
 import React, { Component } from "react";
 
-import CrowdFunding from "./HomeCrowdFunding";
-import Oficina from "./HomeOficina";
+import cons from "../../cons.js";
+
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
+import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 export default class Home extends Component {
-  
+  constructor(props) {
+    super(props);
+
+    this.state = {
+
+      minCompra: 10,
+      minventa: 1,
+      deposito: "Cargando...",
+      wallet: "Cargando...",
+      valueBRUT: "",
+      valueUSDT: "",
+      value: "",
+      cantidad: 0,
+      tiempo: 0,
+      enBrutus: 0,
+      tokensEmitidos: 0,
+      totalCirculando: 0,
+      enPool: 0,
+      solicitado: 0,
+      data: [],
+
+    };
+
+    this.grafico = this.grafico.bind(this);
+
+    this.compra = this.compra.bind(this);
+    this.venta = this.venta.bind(this);
+
+    this.estado = this.estado.bind(this);
+
+    this.handleChangeBRUT = this.handleChangeBRUT.bind(this);
+    this.handleChangeUSDT = this.handleChangeUSDT.bind(this);
+    this.consultarPrecio = this.consultarPrecio.bind(this);
+
+  }
+
+  componentDidMount() {
+    document.title = "B.F | BRUT"
+    this.grafico(1000);
+    this.consultarPrecio();
+
+    setTimeout(() => {
+      this.estado();
+
+    }, 3 * 1000);
+
+    /*
+    setInterval(() => {
+      this.root.dispose();
+      this.grafico(0);
+    }, 60 * 1000);
+    */
+  }
+
+  async handleChangeBRUT(event) {
+    this.consultarPrecio();
+    await this.setState({valueBRUT: event.target.value});
+
+    this.setState({valueUSDT: parseFloat((this.state.valueBRUT*this.state.precioBRUT).toPrecision(8))});
+
+  }
+
+  async handleChangeUSDT(event) {
+    this.consultarPrecio();
+    
+    await this.setState({valueUSDT: event.target.value});
+
+    this.setState({valueBRUT: parseFloat((this.state.valueUSDT/this.state.precioBRUT).toPrecision(8))});
+
+    
+  }
+
+  async consultarPrecio(){
+
+    var proxyUrl = cons.proxy;
+    var apiUrl = cons.PRICE;
+
+    var response;
+
+    let precio;
+    try {
+      response = await fetch(proxyUrl+apiUrl).then((res)=>{return res.json()}).catch(error =>{console.error(error)})
+      precio = response.Data.usd;
+
+    } catch (err) {
+      console.log(err);
+      precio = this.state.precioBRUT;
+
+    }
+
+
+    let market=0;
+    let tokens=0;
+
+    try {
+      response = await fetch(proxyUrl+cons.market_brut).then((res)=>{return res.json()}).catch(error =>{console.error(error)})
+      market = response.marketcap.usdt;
+      console.log(response)
+      tokens = response.circulatingSupply;
+
+    } catch (err) {
+      console.log(err);
+      market = this.state.enBrutus;
+      tokens = this.state.tokensEmitidos
+
+    }
+
+    this.setState({
+      precioBRUT:precio,
+      enBrutus: market,
+      tokensEmitidos:tokens
+      
+    })
+
+    //console.log(response)
+
+    return response;
+
+  };
+
+  async estado(){
+
+    var accountAddress =  this.props.accountAddress;
+
+    var aprovadoUSDT = await this.props.contrato.USDT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovadoUSDT.remaining){
+      aprovadoUSDT = parseInt(aprovadoUSDT.remaining._hex);
+    }else{
+      aprovadoUSDT = parseInt(aprovadoUSDT._hex);
+    }
+    
+    var balanceUSDT = await this.props.contrato.USDT.balanceOf(accountAddress).call();
+    balanceUSDT = parseInt(balanceUSDT._hex)/10**6;
+
+    if (aprovadoUSDT > 0) {
+      aprovadoUSDT = "Comprar "; 
+    }else{
+      aprovadoUSDT = "Aprobar Compras"; 
+      this.setState({
+        valueUSDT: ""
+      })
+    }
+
+    var aprovadoBRUT = await this.props.contrato.BRUT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovadoBRUT.remaining){
+      aprovadoBRUT = parseInt(aprovadoBRUT.remaining._hex);
+    }else{
+      aprovadoBRUT = parseInt(aprovadoBRUT._hex);
+    }
+
+    var balanceBRUT = await this.props.contrato.BRUT.balanceOf(accountAddress).call();
+    balanceBRUT = parseInt(balanceBRUT._hex)/10**6;
+
+    if (aprovadoBRUT > 0) {
+      aprovadoBRUT = "Vender ";
+    }else{
+      aprovadoBRUT = "Aprobar Ventas";
+      this.setState({
+        valueBRUT: ""
+      })
+    }
+
+    var supplyBRUT = await this.props.contrato.BRUT.totalSupply().call();
+    supplyBRUT = supplyBRUT.toNumber()/1e6;
+
+    this.setState({
+      depositoUSDT: aprovadoUSDT,
+      depositoBRUT: aprovadoBRUT,
+      balanceBRUT: balanceBRUT,
+      balanceUSDT: balanceUSDT,
+      wallet: accountAddress,
+      totalCirculando: supplyBRUT
+    });
+
+  }
+
+
+  async compra() {
+
+
+    const { minCompra } = this.state;
+
+    var amount = document.getElementById("amountUSDT").value;
+    amount = parseFloat(amount);
+    amount = parseInt(amount*10**6);
+
+    var accountAddress =  this.props.accountAddress;
+
+    var aprovado = await this.props.contrato.USDT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovado.remaining){
+      aprovado = parseInt(aprovado.remaining._hex);
+    }else{
+      aprovado = parseInt(aprovado._hex);
+    }
+
+    if ( aprovado >= amount ){
+
+
+        if ( amount >= minCompra){
+
+          document.getElementById("amountUSDT").value = "";
+
+          await this.props.contrato.BRUT_USDT.comprar(amount).send();
+
+        }else{
+          window.alert("Ingrese un monto mayor a "+minCompra+" USDT");
+          document.getElementById("amountUSDT").value = minCompra;
+        }
+
+
+
+    }else{
+
+        if (aprovado <= 0) {
+          await this.props.contrato.USDT.approve(this.props.contrato.USDT, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+        }
+
+        if ( amount > aprovado) {
+          if (aprovado <= 0) {
+            document.getElementById("amountUSDT").value = minCompra;
+            window.alert("No tienen suficiente USDT");
+          }else{
+            document.getElementById("amountUSDT").value = minCompra;
+            window.alert("valor inválido");
+          }
+
+
+
+        }else{
+
+          document.getElementById("amountUSDT").value = amount;
+          window.alert("valor inválido");
+
+        }
+    }
+
+
+  };
+
+  async venta() {
+
+
+    const { minventa } = this.state;
+
+    var amount = document.getElementById("amountBRUT").value;
+    amount = parseFloat(amount);
+    amount = parseInt(amount*10**6);
+
+    var accountAddress =  this.props.accountAddress;
+
+    var aprovado = await this.props.contrato.BRUT.allowance(accountAddress,this.props.contrato.BRUT_USDT.address).call();
+    if(aprovado.remaining){
+      aprovado = parseInt(aprovado.remaining._hex);
+    }else{
+      aprovado = parseInt(aprovado._hex);
+    }
+
+    if ( aprovado >= amount ){
+
+
+        if ( amount >= minventa){
+
+          document.getElementById("amountBRUT").value = "";
+
+          await this.props.contrato.BRUT_USDT.vender(amount).send();
+
+        }else{
+          window.alert("coloque un monto mayor a 10 USDT");
+          document.getElementById("amountBRUT").value = 10;
+        }
+
+
+
+    }else{
+
+
+        if (aprovado <= 0) {
+          await this.props.contrato.BRUT.approve(this.props.contrato.BRUT_USDT.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+        }
+
+        if ( amount > aprovado) {
+          if (aprovado <= 0) {
+            document.getElementById("amountBRUT").value = minventa;
+            window.alert("lo minimo para vender son "+minventa+" BRUT");
+          }else{
+            document.getElementById("amountBRUT").value = minventa;
+            window.alert("valor inválido");
+          }
+
+
+
+        }else{
+
+          document.getElementById("amountBRUT").value = minventa;
+          window.alert("valor inválido");
+
+        }
+
+    }
+
+
+  };
+
+  async grafico(time) {
+    const root = am5.Root.new("chartdiv");
+
+    root.setThemes([
+      am5themes_Animated.new(root)
+    ]);
+
+    // Create chart
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/
+    let chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panX: true,
+        panY: true,
+        wheelX: "panX",
+        wheelY: "zoomX",
+        pinchZoomX: true
+      })
+    );
+
+    // Add cursor
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/cursor/
+    let cursor = chart.set("cursor", am5xy.XYCursor.new(root, {
+      behavior: "none"
+    }));
+    cursor.lineY.set("visible", false);
+
+    // Generate random data
+    let value = 0;
+    let previousValue = value;
+    let downColor = root.interfaceColors.get("negative");
+    let upColor = root.interfaceColors.get("positive");
+    let color;
+    let previousColor;
+    let previousDataObj;
+
+    function generateData(data) {
+      value = data.value;
+
+      if (value >= previousValue) {
+        color = upColor;
+      } else {
+        color = downColor;
+      }
+      previousValue = value;
+
+      let dataObj = { date: data.date, value: value, color: color }; // color will be used for tooltip background
+
+      // only if changed
+      if (color !== previousColor) {
+        if (!previousDataObj) {
+          previousDataObj = dataObj;
+        }
+        previousDataObj.strokeSettings = { stroke: color };
+      }
+
+      previousDataObj = dataObj;
+      previousColor = color;
+
+      return dataObj;
+    }
+
+    async function generateDatas(count) {
+      let consulta = (await (await fetch(process.env.REACT_APP_API_URL+"api/v1/chartdata/brut?dias=" + count)).json()).Data
+      let data = []
+      for (var i = consulta.length - 1; i > 0; --i) {
+        data.push(generateData(consulta[i]));
+      }
+
+      return data;
+    }
+
+    // Create axes
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
+    let xAxis = chart.xAxes.push(
+      am5xy.DateAxis.new(root, {
+        baseInterval: { timeUnit: "day", count: 1 },
+        renderer: am5xy.AxisRendererX.new(root, {}),
+        tooltip: am5.Tooltip.new(root, {})
+      })
+    );
+
+    let yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
+      })
+    );
+
+    // Add series
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/series/
+    let series = chart.series.push(
+      am5xy.LineSeries.new(root, {
+        name: "Series",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "value",
+        valueXField: "date"
+      })
+    );
+
+    series.strokes.template.set("templateField", "strokeSettings");
+
+    let tooltip = series.set("tooltip", am5.Tooltip.new(root, {
+      labelText: "{valueY}"
+    }));
+
+    // this is added in ored adapter to be triggered each time position changes
+    tooltip.on("pointTo", function () {
+      let background = tooltip.get("background");
+      background.set("fill", background.get("fill"));
+    });
+
+    // tooltip bacground takes color from data item
+    tooltip.get("background").adapters.add("fill", function (fill) {
+      if (tooltip.dataItem) {
+        return tooltip.dataItem.dataContext.color;
+      }
+      return fill;
+    });
+
+    // Add scrollbar
+    // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
+    //scrollbar.parent = chart.bottomAxesContainer;
+    let scrollbar = chart.set(
+      "scrollbarX",
+      am5xy.XYChartScrollbar.new(root, {
+        orientation: "horizontal",
+        height: 30
+      })
+    );
+
+    let sbDateAxis = scrollbar.chart.xAxes.push(
+      am5xy.DateAxis.new(root, {
+        baseInterval: {
+          timeUnit: "day",
+          count: 1
+        },
+        renderer: am5xy.AxisRendererX.new(root, {})
+      })
+    );
+
+    let sbValueAxis = scrollbar.chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
+      })
+    );
+
+    let sbSeries = scrollbar.chart.series.push(
+      am5xy.LineSeries.new(root, {
+        valueYField: "value",
+        valueXField: "date",
+        xAxis: sbDateAxis,
+        yAxis: sbValueAxis,
+
+      })
+    );
+
+    // Generate and set data  | 
+    let data = await generateDatas(30);
+    series.data.setAll(data);
+    sbSeries.data.setAll(data);
+
+    // Make stuff animate on load
+    // https://www.amcharts.com/docs/v5/concepts/animations/
+
+
+    series.appear(time);
+    chart.appear(time, time / 10);
+
+    this.root = root;
+  }
+
   render() {
 
-      return (
-        <>
-          
-          <section className="convert-area" id="convert">
-            <div className="container">
-              <div className="convert-wrap">
-                
-                <div className="row justify-content-center align-items-start">
-        
-                  <div className="col-lg-6 cols">
-                    <CrowdFunding accountAddress={this.props.accountAddress}/>
-                  </div>
+    var { minCompra, minventa } = this.state;
 
-                  <div className="col-lg-6 cols">
-                    <Oficina accountAddress={this.props.accountAddress}/>
-                  </div>
-        
+    minCompra = "Min. " + minCompra + " USDT";
+    minventa = "Min. " + minventa + " BRUT";
+
+    return (
+
+      <div className="row">
+        <div className="col-xl-3 col-xxl-4 ">
+          <div className="card">
+
+            <div className="card-body ">
+              <div className="d-flex align-items-start mb-3 ">
+                <div>
+                  <img src="assets/img/brut.png" height="100px" width="100px" className="rounded-circle" alt="brut token" />
+                </div>
+                <div className="ms-3">
+                  <h2 className="font-w600 text-black mb-0 title">Brutus Token</h2>
+                  <p className="font-w600 text-black sub-title">BRUT</p>
                 </div>
               </div>
+              <p > Brutus Token es un token basado en la red Tron cuyo valor está respaldado por una estrategia de trading automatizado. Esta estrategia se basa en el backtesting y la gestión de capital, y se implementa de manera automatizada mediante la utilización de algoritmos y estrategias previamente optimizadas para maximizar las ganancias y minimizar las pérdidas. El valor del Brutus Token se establece en relación con el USDT (Tether), lo que significa que el valor del token se mantiene estable en términos de dólares estadounidenses.</p>
             </div>
-          </section>
-    
-         
-        </>
-      );
+          </div>
+        </div>
+        <div className="col-xl-9 col-xxl-8 ">
+          <div className="card">
+
+            <div className="card-body pb-0 ">
+              <div className="row sp20 mb-4 align-items-center">
+                <div className="col-lg-4 col-xxl-4 col-sm-4 d-flex flex-wrap align-items-center">
+                  <div className="px-2 info-group">
+                    <p className="fs-18 mb-1">Precio USDT</p>
+                    <h2 className="fs-28 font-w600 text-black">$ {this.state.precioBRUT}</h2>
+                  </div>
+                </div>
+                <div className="d-flex col-lg-8 col-xxl-8 col-sm-8 align-items-center mt-sm-0 mt-3 justify-content-end">
+
+                  <div className="px-2 info-group">
+                    <p className="fs-14 mb-1">Respaldo USDT</p>
+                    <h3 className="fs-20 font-w600 text-black">{(this.state.enBrutus*1).toFixed(2)}</h3>
+                  </div>
+                  <div className="px-2 info-group">
+                    <p className="fs-14 mb-1">BRUT Efectivo</p>
+                    <h3 className="fs-20 font-w600 text-black">{(this.state.tokensEmitidos*1).toFixed(2)}</h3>
+                  </div>
+                  <div className="px-2 info-group">
+                    <p className="fs-14 mb-1">Circulando</p>
+                    <h3 className="fs-20 font-w600 text-black">{(this.state.totalCirculando*1).toFixed(2)}</h3>
+                  </div>
+                </div>
+              </div>
+              <div className="mb-3" id="chartdiv" style={{ height: "300px", backgroundColor: "white" }}></div>
+
+            </div>
+          </div>
+        </div>
+
+        <div className="col-xl-6 col-xxl-12">
+          <div className="card">
+            <div className="card-header d-sm-flex d-block pb-0 border-0">
+              <div>
+                <h4 className="fs-20 text-black">Solicitud de intercambio</h4>
+                <p className="mb-0 fs-12">El retiro de los TRX desde el SR puede tomar hasta 3 dias en realizarse</p>
+              </div>
+
+            </div>
+            <div className="card-body">
+              <div className="basic-form">
+                <form className="form-wrapper">
+                  <div className="form-group">
+                    <div className="input-group input-group-lg">
+                      <div className="input-group-prepend">
+                        <span className="input-group-text">BRUT: {this.state.balanceBRUT}</span>
+                      </div>
+                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5} />
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <div className="input-group input-group-lg">
+                      <div className="input-group-prepend">
+                        <span className="input-group-text ">USDT: {this.state.balanceUSDT}</span>
+                      </div>
+                      <input type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
+                    </div>
+                  </div>
+                  <div className="row mt-4 align-items-center">
+                    <div className="col-sm-6 mb-3">
+                      <p className="mb-0 fs-14">Recomendamos mantener ~ 100 TRX para realizar las transacciones</p>
+                    </div>
+                    <div className="col-sm-6 text-sm-right text-start">
+                      <button className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
+                        BUY
+                        <svg className="ms-4 scale5" width="16" height="16" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M5.35182 13.4965L5.35182 13.4965L5.33512 6.58823C5.33508 6.5844 5.3351 6.58084 5.33514 6.57759M5.35182 13.4965L5.83514 6.58306L5.33514 6.58221C5.33517 6.56908 5.33572 6.55882 5.33597 6.5545L5.33606 6.55298C5.33585 6.55628 5.33533 6.56514 5.33516 6.57648C5.33515 6.57684 5.33514 6.57721 5.33514 6.57759M5.35182 13.4965C5.35375 14.2903 5.99878 14.9324 6.79278 14.9305C7.58669 14.9287 8.22874 14.2836 8.22686 13.4897L8.22686 13.4896L8.21853 10.0609M5.35182 13.4965L8.21853 10.0609M5.33514 6.57759C5.33752 5.789 5.97736 5.14667 6.76872 5.14454C6.77041 5.14452 6.77217 5.14451 6.77397 5.14451L6.77603 5.1445L6.79319 5.14456L13.687 5.16121L13.6858 5.66121L13.687 5.16121C14.4807 5.16314 15.123 5.80809 15.1211 6.6022C15.1192 7.3961 14.4741 8.03814 13.6802 8.03626L13.6802 8.03626L10.2515 8.02798L23.4341 21.2106C23.9955 21.772 23.9955 22.6821 23.4341 23.2435C22.8727 23.8049 21.9625 23.8049 21.4011 23.2435L8.21853 10.0609M5.33514 6.57759C5.33513 6.57959 5.33514 6.58159 5.33514 6.5836L8.21853 10.0609M6.77407 5.14454C6.77472 5.14454 6.77537 5.14454 6.77603 5.14454L6.77407 5.14454Z" fill="white" stroke="white"></path>
+                        </svg>
+                      </button>
+                      <button className="btn btn-danger ms-4 mb-2" onClick={() => this.venta()}>
+                        SELL
+                        <svg className="ms-4 scale3" width="16" height="16" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M16.9638 11.5104L16.9721 14.9391L3.78954 1.7565C3.22815 1.19511 2.31799 1.19511 1.75661 1.7565C1.19522 2.31789 1.19522 3.22805 1.75661 3.78943L14.9392 16.972L11.5105 16.9637L11.5105 16.9637C10.7166 16.9619 10.0715 17.6039 10.0696 18.3978C10.0677 19.1919 10.7099 19.8369 11.5036 19.8388L11.5049 19.3388L11.5036 19.8388L18.3976 19.8554L18.4146 19.8555L18.4159 19.8555C18.418 19.8555 18.42 19.8555 18.422 19.8555C19.2131 19.8533 19.8528 19.2114 19.8555 18.4231C19.8556 18.4196 19.8556 18.4158 19.8556 18.4117L19.8389 11.5035L19.8389 11.5035C19.8369 10.7097 19.1919 10.0676 18.3979 10.0695C17.604 10.0713 16.9619 10.7164 16.9638 11.5103L16.9638 11.5104Z" fill="white" stroke="white"></path>
+                        </svg>
+
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    );
   }
 }

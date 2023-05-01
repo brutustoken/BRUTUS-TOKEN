@@ -42,10 +42,11 @@ export default class nftOficina extends Component {
   async estado(){
 
     var contractMistery = await window.tronWeb.contract().at(cons.SC3);
+    var contractNFT = await window.tronWeb.contract().at(cons.BRGY);
+
 
     var robots = [];
 
-    var contractNFT = await window.tronWeb.contract().at(cons.SC4);
 
     for (let index = 0; index < 25; index++) {
       var conteo = await contractMistery.entregaNFT(this.props.accountAddress, index).call()
@@ -67,7 +68,8 @@ export default class nftOficina extends Component {
     var estonuevo = [];
 
     for(let index = 0; index < robots.length; index++){
-      estonuevo[index] = window.tronWeb.address.fromHex(await contractNFT.ownerOf(robots[index]).call()) === this.props.accountAddress
+      let user = await contractNFT.ownerOf(robots[index]).call();
+      estonuevo[index] = window.tronWeb.address.fromHex(user) === this.props.accountAddress;
     }
 
     //console.log(estonuevo)
@@ -101,21 +103,22 @@ export default class nftOficina extends Component {
       }
       
       imagerobots[index] =(
-        <div className="col-lg-3 p-2" key={"robbrutN"+index}>
-          <div className="card">
-            <br /><br />
-            
-            <h5 >
-              <strong>#{robots[index].numero} {robots[index].name}</strong><br /><br />
-            </h5>
-            <img src={robots[index].image} alt={robots[index].name} className="img-thumbnail"></img>
-            <br></br>
-   
-            {recBotton}
-            
-          </div>
-          
-        </div>
+        <div className="col-xl-3 col-lg-6 col-sm-6" key={"robbrutN"+index}>
+						<div className="card">
+							<div className="card-body">
+								<div className="new-arrival-product">
+									<div className="new-arrivals-img-contnent">
+                    <img src={robots[index].image} alt={robots[index].name} className="img-thumbnail"></img>
+									</div>
+									<div className="new-arrival-content text-center mt-3">
+										<h4>#{robots[index].numero} {robots[index].name}</h4>
+										{recBotton}
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+
       )
     }
 

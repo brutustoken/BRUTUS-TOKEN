@@ -1,249 +1,361 @@
 import React, { Component } from "react";
 
-
-
 export default class Inicio extends Component {
-  
-  render() {
+	constructor(props) {
+		super(props);
 
-      return (
-        <>
+		this.state = {
 
-        <div className="welcome-area wow fadeInUp" id="home">
-              <div id="particles-js"></div>
-          
-            <div className="container">
-                <div className="row">
-                    <div className="col-12 text-center">
-                        <div className="heading">
-                            <h1>BRUTUS GROUP</h1>
-                            <div className="space-10"></div>
-                            <h5>Tús especialistas en productos Blockchain respaldados.</h5>
+			precioBrut: 0,
+			varBrut: 0,
+			precioBrst: 0,
+			varBrst: 0,
+			BRGY: 0,
+			BRLT: 0,
+			misBRUT: 0,
+			misBRST: 0,
+			misBRGY: 0,
+			misBRLT: 0,
 
-                        </div>
-                        <div className="space-60"></div>
-                    </div>
-                </div>
-                <div className="row text-center">
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <a href="/?token"><img src="assets/img/brut.png" alt="brut" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Token (BRUT) </h3>
-                                <div className="space-10"></div>
-                                <h6>Respaldado por USDT, su precio depende de la operativa de una estrategia de trading automatizado basada en Backtesting</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="/?staking"><img src="assets/img/brst.png" alt="brst" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Tron Staking (BRST) </h3>
-                                <div className="space-10"></div>
-                                <h6>Su valor siempre es creciente frente a TRX, ya que basa su valor en el Staking a interés compuesto y el alquiler de energía.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
+			imagerobots: []
 
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="/?brgy"><img src="assets/img/brgy.png" alt="brgy" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Gallery (BRGY)</h3>
-                                <div className="space-10"></div>
-                                <h6>Es el contrato NFT de Brutus y a diferencia de otras colecciones, estos están respaldados por un valor tangible además de su valor subjetivo y artístico.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
+		};
 
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="https://t.me/BRUTUS_ENERGY"><img src="assets/img/breb.png" alt="robot de breb" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Energy Bot (BREB)</h3>
-                                <div className="space-10"></div>
-                                <h6>Nuestro bot automatizado de alquiler de energía, te permitirá alquilar Tron energy al mejor precio.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                              <a href="/?loteria"><img src="assets/img/brlt.png" alt="robot brlt brutus" /></a>
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>Brutus Lottery (BRLT)</h3>
-                                <div className="space-10"></div>
-                                <h6>Nuestro bot automatizado logra recoger las ganancias en un periodo de tiempo y la sortea entre los poseedores del NFT.</h6>
-                            </div>
-                            <div className="space-10"></div>
-                        </div>
-                    </div>
+		this.consultaPrecios = this.consultaPrecios.bind(this);
+		this.subeobaja = this.subeobaja.bind(this);
+		this.textoE = this.textoE.bind(this);
+		this.estado = this.estado.bind(this);
 
 
-                </div>
-            </div>
-
-          </div>
-
-          <div className="team-bg">
-        <div className="team-area wow fadeInUp section-padding" id="team">
-
-            <div className="container">
-                <div className="row">
-                    <div className="col-12 text-center">
-                        <div className="heading">
-                            <h5>Somos un proyecto con cara y nombre</h5>
-                            <div className="space-10"></div>
-                            <h1>Nuestro Equipo</h1>
-                        </div>
-                        <div className="space-60"></div>
-                    </div>
-                </div>
-                <div className="row text-center">
-
-                <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <img src="assets/img/vicente.jpg" alt="vicente nires" />
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>VICENTE NIRES <img src="https://images.emojiterra.com/twitter/v13.0/512px/1f1fa-1f1fe.png" height="25px" alt="bandera uruguay" /></h3>
-                                <div className="space-10"></div>
-                                <h6>CO-FOUNDER</h6>
-                                <p>COO (Chief Operating Officer)<br /><br />
-                                    Creador de BRUTUS BOT y RESPONSABLE de OPERATIVA es UN AMANTE del TRADING y uno de los REFERENTES en la venta P2P en URUGUAY y BRASIL.
-                                </p>
-                            </div>
-                            <div className="space-10"></div>
-                            <div className="single-team-social">
-                                <ul>
-                                    <li><a className="ico-3" href="https://twitter.com/NiresVicente"><i className="fa fa-twitter "></i></a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <img src="assets/img/manuel.jpg" alt="manuel montijano" />
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>MANUEL MONTIJANO <img src="https://images.emojiterra.com/twitter/v13.0/512px/1f1ea-1f1f8.png" height="25px" alt="bandera españa" /></h3>
-                                <div className="space-10"></div>
-                                <h6>CO-FOUNDER</h6>
-                                <p>CMO (Chief Marketing Officer)<br /><br />
-                                    Desarrolla la idea de NEGOCIO y RESPONSABLE de la DISTRIBUCIÓN del TOKEN le avala una trayectoria PROFESIONAL de más de 15 años en el MUNDO de las VENTAS.
-                                </p>
-                            </div>
-                            <div className="space-10"></div>
-                            <div className="single-team-social">
-                                <ul>
-                                    <li><a className="ico-3" href="https://twitter.com/BrutusToken"><i className="fa fa-twitter "></i></a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="col-12 col-md-6 col-lg-4">
-                        <div className="single-team">
-                            <div className="single-team-img">
-                                <img src="assets/img/steven.jpg" alt="Steven cabrera TRON" />
-                            </div>
-                            <div className="space-30"></div>
-                            <div className="single-team-content">
-                                <h3>STEVEN CABRERA <img src="https://images.emojiterra.com/twitter/v13.0/512px/1f1e8-1f1f4.png" height="25px" alt="bandera colombia" /></h3>
-                                <div className="space-10"></div>
-                                <h6>TRON DEVELOPER</h6>
-                                <p>
-                                    CTO (Chief Technology Officer)<br /><br />
-                                    Creador del TOKEN y desarrolla la WEB con la INTEGRACIÓN de TRONLINK, jovencísimo DESARROLLADOR de CONTRATOS INTELIGENTES especializado en la BLOCKCHAIN de TRON.
-                                </p>
-                            </div>
-                            <div className="space-10"></div>
-                            <div className="single-team-social">
-                                <ul>
-                                    <li><a className="ico-1" href="https://www.youtube.com/channel/UCBImqITHBD_aVzAu-AL8pTw"><i className="fa fa-youtube"></i></a></li>
-                                    <li><a className="ico-2" href="https://github.com/stevenstc"><i className="fa fa-github"></i></a></li>
-                                    <li><a className="ico-3" href="https://twitter.com/steven_Cabr"><i className="fa fa-twitter "></i></a></li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
+	}
 
 
-                </div>
-            </div>
+	componentDidMount() {
+		setTimeout(() => {this.estado();}, 3*1000);
+		setTimeout(() => {this.consultaPrecios();}, 1*1000);
 
-        </div>
+		setInterval(() => {this.estado();}, 60*1000);
+		setInterval(() => {this.consultaPrecios();}, 60*1000);
+	}
 
-    </div>
-    <div className="community-area wow fadeInUp section-padding" id="contact">
-        <div className="container">
-            <div className="row">
-                <div className="col-12 text-center">
-                    <div className="heading">
-                        <div className="space-10"></div>
-                        <h1>Nuestra Comunidad </h1>
-                    </div>
-                <div className="space-60"></div>
-                
-                </div>
-            </div>
-            <div className="row">
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="twitter" href="https://t.me/brutus_comunidad_sr"><i className="fa fa-telegram"></i></a>
-                    </div>
-                </div>
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="github" href="https://github.com/brutustoken/"><i className="fa fa-github"></i></a>
-                    </div>
-                </div>
-                <div className="col-6 col-lg">
-            
-                    <div className="single-community mid-social">
-                        <a className="whatsapp" href="https://wa.link/nfl9sa"><i className="fa fa-whatsapp"></i></a>
-                    </div>
-                </div>
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="youtube" href="https://www.youtube.com/channel/UCKr7p3cwb86oVyt_HF4PvZQ"><i className="fa fa-youtube"></i></a>
-                    </div>
-                </div>
-                <div className="col-6 col-lg">
-                    <div className="single-community mid-social">
-                        <a className="twitter" href="https://twitter.com/BrutusToken"><i className="fa fa-twitter"></i></a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+	subeobaja(valor) {
+		var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
+			xmlns="http://www.w3.org/2000/svg">
+			<g filter="url(#filter0_d2)">
+				<path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
+					stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+			</g>
+			<defs>
+				<filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
+					height="22.0001" filterUnits="userSpaceOnUse"
+					colorInterpolationFilters="sRGB">
+					<feFlood floodOpacity="0" result="BackgroundImageFix" />
+					<feColorMatrix in="SourceAlpha" type="matrix"
+						values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+					<feOffset dy="1" />
+					<feGaussianBlur stdDeviation="2" />
+					<feColorMatrix type="matrix"
+						values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
+					<feBlend mode="normal" in2="BackgroundImageFix"
+						result="effect1_dropShadow" />
+					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
+						result="shape" />
+				</filter>
+			</defs>
+		</svg>);
+		var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<g filter="url(#filter0_d)">
+				<path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
+			</g>
+			<defs>
+				<filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+					<feFlood floodOpacity="0" result="BackgroundImageFix" />
+					<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+					<feOffset dy="1" />
+					<feGaussianBlur stdDeviation="2" />
+					<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
+					<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+				</filter>
+			</defs>
+		</svg>);
 
-        </>
-      );
-  }
+		var resultado = imgNPositivo;
+
+		if (valor <= 0) {
+			resultado = imgNegativo
+		}
+
+		return resultado;
+	}
+
+	textoE(valor) {
+
+		var resultado = "success";
+
+		if (valor <= 0) {
+			resultado = "danger"
+		}
+
+		return resultado;
+
+	}
+
+	consultaPrecios() {
+		var API = process.env.REACT_APP_API_URL;
+
+		var apiUrl = API + 'api/v1/precio/brut';
+		fetch(apiUrl)
+			.then(response => { return response.json(); })
+			.then(data => {
+
+				this.setState({
+					precioBrut: data.Data.usd,
+					varBrut: data.Data.v24h
+				})
+
+			}).catch(err => {
+				console.log(err);
+
+			});
+
+		apiUrl = API + 'api/v1/precio/brst';
+		fetch(apiUrl)
+			.then(response => { return response.json(); })
+			.then(data => {
+
+				this.setState({
+					precioBrst: data.Data.trx,
+					varBrst: data.Data.v24h
+				})
+
+			}).catch(err => {
+				console.log(err);
+
+			});
+
+	}
+
+	async estado() {
+
+		var brgy = await this.props.contrato.BRGY.totalSupply().call();
+		brgy = parseInt(brgy._hex);
+
+		var brut = await this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call();
+		brut = parseInt(brut._hex) / 1e6;
+
+		var brst = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
+		brst = parseInt(brst._hex) / 1e6;
+
+		var misBrgy = await this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call();
+		misBrgy = parseInt(misBrgy._hex);
+
+		this.setState({
+			BRGY: brgy,
+			misBRUT: brut,
+			misBRST: brst,
+			misBRGY: misBrgy
+		})
+
+	}
+
+	render() {
+
+		return (
+			<>
+				<h1>Datos Generales</h1>
+				<div className="row">
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<a href="/?brut">
+									<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
+
+									<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
+									<p className="mb-0 fs-14">
+										{this.subeobaja(this.state.varBrut)}
+										<span className={"text-" + this.textoE(this.state.varBrut) + " me-1"}>{(this.state.varBrut).toFixed(3)}%</span> 24h
+									</p>
+								</a>
+							</div>
+						</div>
+					</div>
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<a href="/?brst">
+									<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
+
+									<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
+									<p className="mb-0 fs-13">
+										{this.subeobaja(this.state.varBrst)}
+										<span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span> 24h
+									</p>
+								</a>
+							</div>
+						</div>
+					</div>
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<a href="/?brgy">
+									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
+									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} NFT's </h2>
+									<p className="mb-0 fs-14">
+										Minteados
+									</p>
+								</a>
+							</div>
+						</div>
+					</div>
+					<div className="col-xl-3 col-sm-6 m-t35">
+						<div className="card card-coin">
+							<div className="card-body text-center">
+								<a href="/?brlt">
+									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
+									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} Boletos </h2>
+									<p className="mb-0 fs-14">
+										Generados
+									</p>
+								</a>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+				<div className="row">
+					<div className="col-xl-12 col-xxl-12">
+						<div className="row">
+							<div className="col-xl-12">
+								<div className="card">
+									<div className="card-header border-0 pb-0">
+										<h4 className="mb-0 fs-20 text-black">Mis Tokens</h4>
+
+									</div>
+									<div className="card-body">
+
+										<div className="bg-warning coin-holding flex-wrap">
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<a href="/?brut">
+															<img src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
+														</a>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Token</h4>
+														<p className="mb-0 text-white op-6">BRUT</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRUT}</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													{this.subeobaja(this.state.varBrut)}
+													<p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrut) + " me-1"}>{(this.state.varBrut).toFixed(3)}%</span></p>
+													<p className="mb-0 ms-2 font-w400 text-white">${(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USDT</p>
+												</div>
+											</div>
+										</div>
+										<div className="bg-danger coin-holding mt-4 flex-wrap">
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<a href="/?brst">
+															<img src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
+														</a>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Tron Staking</h4>
+														<p className="mb-0 text-white">BRST</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRST}</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													{this.subeobaja(this.state.varBrst)}
+													<p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span></p>
+													<p className="mb-0 ms-2 font-w400 text-white">{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</p>
+												</div>
+											</div>
+										</div>
+										<div className="bg-info coin-holding mt-4 flex-wrap">
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<a href="/?brgy">
+															<img src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
+														</a>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Gallery</h4>
+														<p className="mb-0 text-white">BRGY</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRGY}</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<p className="mb-0 ms-2 font-w400 text-white">NFT's</p>
+												</div>
+											</div>
+										</div>
+										<div className=" coin-holding mt-4 flex-wrap" style={{ backgroundColor: "#6418c3" }}>
+											<div className="mb-2 coin-bx">
+												<div className="d-flex align-items-center">
+													<div>
+														<a href="/?brlt">
+															<img src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
+														</a>
+													</div>
+													<div className="ms-3">
+														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Lottery</h4>
+														<p className="mb-0 text-white">BRLT</p>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<div className="ms-3">
+														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRLT}</h2>
+													</div>
+												</div>
+											</div>
+											<div className="mb-2">
+												<div className="d-flex align-items-center">
+													<p className="mb-0 ms-2 font-w400 text-white">{this.state.misBRLT * 100} TRX</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+
+
+			</>
+		);
+	}
 }
