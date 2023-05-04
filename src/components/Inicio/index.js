@@ -29,7 +29,6 @@ export default class Inicio extends Component {
 
 	}
 
-
 	componentDidMount() {
 		setTimeout(() => {this.estado();}, 3*1000);
 		setTimeout(() => {this.consultaPrecios();}, 1*1000);
@@ -138,24 +137,23 @@ export default class Inicio extends Component {
 
 	async estado() {
 
-		var brgy = await this.props.contrato.BRGY.totalSupply().call();
-		brgy = parseInt(brgy._hex);
+		this.props.contrato.BRGY.totalSupply().call()
+		.then((result)=>{ this.setState({ BRGY:result.toNumber() }) })
+		.catch(console.error)
 
-		var brut = await this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call();
-		brut = parseInt(brut._hex) / 1e6;
+		this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call()
+		.then((result)=>{ this.setState({ misBRUT:result.toNumber()/ 1e6 }) })
+		.catch(console.error)
 
-		var brst = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
-		brst = parseInt(brst._hex) / 1e6;
+		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
+		.then((result)=>{ this.setState({ misBRST:result.toNumber()/ 1e6 }) })
+		.catch(console.error)
 
-		var misBrgy = await this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call();
-		misBrgy = parseInt(misBrgy._hex);
+		this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
+		.then((result)=>{ this.setState({ misBRGY:result.toNumber() }) })
+		.catch(console.error)
 
-		this.setState({
-			BRGY: brgy,
-			misBRUT: brut,
-			misBRST: brst,
-			misBRGY: misBrgy
-		})
+		
 
 	}
 

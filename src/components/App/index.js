@@ -74,12 +74,12 @@ class App extends Component {
         }
 
         tronWeb['web3'] = window.tronWeb;
-        //var tronWeb = window.tronWeb;
-        //tronWeb = tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
+
+        //windowtronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
         if(this.state.contrato.MBOX == null){
 
-          window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
+          //window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
 
           var USDT = await window.tronWeb.contract().at(cons.USDT)
           var BRUT =  await window.tronWeb.contract().at(cons.BRUT)
