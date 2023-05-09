@@ -2,6 +2,22 @@ pragma solidity >=0.5.15;
 
 // SPDX-License-Identifier: Apache-2.0 
 
+contract Context {
+
+    function _msgSender() internal view returns (address payable) {
+        return payable(msg.sender);
+    }
+
+    function _msgData() internal view returns (bytes memory) {
+        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
+        return msg.data;
+    }
+}
+
+interface ITRC165 {
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
+}
+
 library SafeMath {
   
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -51,18 +67,6 @@ library SafeMath {
     function mod(uint256 a, uint256 b, string memory errorMessage) internal pure returns (uint256) {
         require(b != 0, errorMessage);
         return a % b;
-    }
-}
-
-contract Context {
-
-    function _msgSender() internal view returns (address payable) {
-        return payable(msg.sender);
-    }
-
-    function _msgData() internal view returns (bytes memory) {
-        this; // silence state mutability warning without generating bytecode - see https://github.com/ethereum/solidity/issues/2691
-        return msg.data;
     }
 }
 
@@ -121,7 +125,6 @@ library Counters {
     }
 }
 
-
 contract MinterRole is Context {
     using Roles for Roles.Role;
 
@@ -162,10 +165,6 @@ contract MinterRole is Context {
     }
 }
 
-interface ITRC165 {
-    function supportsInterface(bytes4 interfaceId) external view returns (bool);
-}
-
 contract TRC165 is ITRC165 {
 
     bytes4 private constant _INTERFACE_ID_TRC165 = 0x01ffc9a7;
@@ -186,7 +185,6 @@ contract TRC165 is ITRC165 {
         _supportedInterfaces[interfaceId] = true;
     }
 }
-
 
 contract  TRC721 is Context, TRC165, MinterRole  {
     using SafeMath for uint256;
@@ -217,13 +215,13 @@ contract  TRC721 is Context, TRC165, MinterRole  {
 
 
     // Token name
-    string private _name = "Brutus Lottery \xf0\x9f\x8e\xb0";
+    string private _name = "Brutus Lottery";
 
     // Token symbol
     string private _symbol = "BRLT";
 
     // Base URI
-    string private _baseURI = "https://mintearte.tk/nft/loteria/";
+    string private _baseURI = "https://nft.brutus.finance/";
 
 
     bytes4 private constant _INTERFACE_ID_TRC721 = 0x80ac58cd;
@@ -459,7 +457,7 @@ contract  TRC721 is Context, TRC165, MinterRole  {
     }
 
     function mintLoteryToken(address to) public onlyMinter returns (bool) {
-        string memory token_URI = "nft/loteria/index.json";
+        string memory token_URI = "loteria/index.json";
         uint256 tokenId = totalSupply();
         _mint(to, tokenId);
         _setTokenURI(tokenId, token_URI);

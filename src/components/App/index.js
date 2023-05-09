@@ -169,11 +169,11 @@ class App extends Component {
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
 
-      /*
+      
       case "brlt":
       case "suerte":
       case "loteria":
-        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />*/
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
     
       default:

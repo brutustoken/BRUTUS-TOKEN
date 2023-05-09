@@ -34,7 +34,7 @@ if(testnet){
 
     BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";// BRST token
     BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//NFT Galeria
-    BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//NFT LOTERIA
+    BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
 
     
 }

@@ -24,7 +24,8 @@ export default class Staking extends Component {
       tokensEmitidos: 0,
       enPool: 0,
       solicitado: 0,
-      data: []
+      data: [],
+      precioBRST: "#.###"
 
     };
 
@@ -49,8 +50,8 @@ export default class Staking extends Component {
     this.grafico(1000);
 
     setTimeout(() => {
+      this.consultarPrecio();
       this.estado();
-
     }, 3 * 1000);
 
     /*setInterval(() => {
@@ -67,19 +68,21 @@ export default class Staking extends Component {
 
   handleChangeBRUT(event) {
     let dato = event.target.value;
-
+    let oper = dato * this.state.precioBRST;
+    oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
       valueBRUT: dato,
-      valueUSDT: dato * this.state.precioBRUT
+      valueUSDT: oper 
     });
   }
 
   handleChangeUSDT(event) {
     let dato = event.target.value;
-
+    let oper = dato / this.state.precioBRST
+    oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
       valueUSDT: event.target.value,
-      valueBRUT: dato / this.state.precioBRUT,
+      valueBRUT: oper,
     });
   }
 
@@ -94,39 +97,28 @@ export default class Staking extends Component {
     this.setState({ valueUSDT: this.state.balanceUSDT });
   }
 
-
-
   async consultarPrecio() {
 
     var precio = await this.props.contrato.BRST_TRX.RATE().call();
-    precio = parseInt(precio._hex) / 10 ** 6;
+    precio = precio.toNumber() / 1e6;
 
     this.setState({
-      precioBRUT: precio
+      precioBRST: precio
     });
 
     return precio;
 
   };
 
-
   async estado() {
 
     var accountAddress = this.props.accountAddress;
 
-    var aprovadoUSDT = await window.tronWeb.trx.getBalance();
+    var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
 
-    aprovadoUSDT = aprovadoUSDT / 10 ** 6;
-
-    var balanceUSDT = aprovadoUSDT;
-
-    if (aprovadoUSDT > 0) {
-      aprovadoUSDT = "Comprar ";
-    } else {
-      aprovadoUSDT = "Necesitas TRX para hacer Staking";
-      this.setState({
-        valueUSDT: ""
-      })
+    if (balance <= 0) {
+      window.alert("Necesitas TRX para hacer Staking");
+      return;
     }
 
     var MIN_DEPOSIT = await this.props.contrato.BRST_TRX.MIN_DEPOSIT().call();
@@ -147,7 +139,7 @@ export default class Staking extends Component {
       })
     }
 
-    var precioBRUT = await this.consultarPrecio();
+    var precioBRST = await this.consultarPrecio();
 
     var tiempo = await this.props.contrato.BRST_TRX.TIEMPO().call();
 
@@ -200,9 +192,7 @@ export default class Staking extends Component {
         </div>
       )
 
-
     }
-
 
     var enBrutus = await this.props.contrato.BRST_TRX.TRON_BALANCE().call();
     var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
@@ -213,17 +203,16 @@ export default class Staking extends Component {
     this.setState({
       minCompra: MIN_DEPOSIT,
       globDepositos: globDepositos,
-      depositoUSDT: aprovadoUSDT,
       depositoBRUT: aprovadoBRUT,
       balanceBRUT: balanceBRUT,
-      balanceUSDT: balanceUSDT,
+      balanceUSDT: balance,
       wallet: accountAddress,
-      precioBRUT: precioBRUT,
+      precioBRST: precioBRST,
       espera: tiempo,
-      enBrutus: parseInt(enBrutus._hex) / 10 ** 6,
-      tokensEmitidos: parseInt(tokensEmitidos._hex) / 10 ** 6,
-      enPool: parseInt(enPool._hex) / 10 ** 6,
-      solicitado: parseInt(solicitado._hex) / 10 ** 6,
+      enBrutus: enBrutus.toNumber() / 1e6,
+      tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
+      enPool: enPool.toNumber() / 1e6,
+      solicitado: solicitado.toNumber() / 1e6,
       solicitudes: globDepositos.length,
     });
 
@@ -231,53 +220,37 @@ export default class Staking extends Component {
 
   async compra() {
 
-
     const { minCompra } = this.state;
 
     var amount = document.getElementById("amountUSDT").value;
     amount = parseFloat(amount);
     amount = parseInt(amount * 10 ** 6);
 
-    var aprovado = await window.tronWeb.trx.getBalance();
+    var balance = await window.tronWeb.trx.getBalance();
 
-    if (aprovado >= amount) {
-
-
+    if (balance >= amount) {
       if (amount >= minCompra) {
 
-        document.getElementById("amountUSDT").value = "";
-
         await this.props.contrato.BRST_TRX.staking().send({ callValue: amount });
+        document.getElementById("amountUSDT").value = "";
+        window.alert("Your staking of  is ¡Done!");
 
       } else {
-        window.alert("Please enter an amount greater than " + minCompra + " USDT");
         document.getElementById("amountUSDT").value = minCompra;
+        window.alert("Please enter an amount greater than " + minCompra + " TRX");
+      this.llenarUSDT();
+
       }
-
-
 
     } else {
 
-      if (amount > aprovado) {
-        if (aprovado <= 0) {
-          document.getElementById("amountUSDT").value = minCompra;
-          window.alert("You do not have enough funds in your account you place at least 10 USDT");
-        } else {
-          document.getElementById("amountUSDT").value = minCompra;
-          window.alert("You must leave 50 TRX free in your account to make the transaction");
-        }
+      document.getElementById("amountUSDT").value = "";
+      window.alert("You do not have enough funds in your account you place at least "+minCompra+" TRX");
+      this.llenarUSDT();
 
-
-
-      } else {
-
-        document.getElementById("amountUSDT").value = amount;
-        window.alert("You must leave 50 TRX free in your account to make the transaction");
-
-      }
+    
     }
 
-    this.llenarUSDT();
 
   };
 
@@ -564,7 +537,7 @@ export default class Staking extends Component {
                 <div className="col-lg-4 col-xxl-4 col-sm-4 d-flex flex-wrap align-items-center">
                   <div className="px-2 info-group">
                     <p className="fs-18 mb-1">Precio TRX</p>
-                    <h2 className="fs-28 font-w600 text-black">{(this.state.enBrutus / this.state.tokensEmitidos).toFixed(6)}</h2>
+                    <h2 className="fs-28 font-w600 text-black">{this.state.precioBRST}</h2>
                   </div>
                 </div>
                 <div className="d-flex col-lg-8 col-xxl-8 col-sm-8 align-items-center mt-sm-0 mt-3 justify-content-end">

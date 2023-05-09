@@ -70,8 +70,6 @@ interface IPOOL {
     function RATE() external view returns (uint);
 }
 
-
-
 contract Ownable {
   address payable public owner;
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
@@ -95,8 +93,8 @@ contract RandomNumber{
     uint randNonce = 0;
 
     function randMod(uint _modulus, uint _moreRandom) public view returns(uint){
-       
-       return uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, randNonce, _moreRandom))) % _modulus;
+       return uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, _moreRandom, randNonce))) % _modulus;
+
     }
 
     function doneRandom() public {
@@ -120,10 +118,10 @@ contract Lottery is RandomNumber, Ownable{
     uint256 public proximaRonda = 0;
     uint256 public periodo = 15*86400;
 
-    address public tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;
+    address public tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;//BRST testnet
 
-    address public tokenTRC721 = 0xebb9bf74543Fb8b86DEd187eD2Ca38e01840d592;
-    address public contractPool = 0xb5Ea6649ddb66cC296A7ee0e07d5B526dbaf01F8;
+    address public tokenTRC721 = 0x922De0b0fd795Bb6Cd34B8a38EA0ba6954e93aF6; // nft loteria testnet
+    address public contractPool = 0xb5Ea6649ddb66cC296A7ee0e07d5B526dbaf01F8; // BRST_TRX testnet
 
     ITRC20 BRST_Contract = ITRC20(tokenBRST);
 
@@ -224,6 +222,16 @@ contract Lottery is RandomNumber, Ownable{
     function update_tokenTRC721(address _tokenTRC721) public onlyOwner {
         tokenTRC721 = _tokenTRC721;
         TRC721_Contract = ITRC721(_tokenTRC721);
+    }
+
+    function update_tokenTRC20(address _tokenBRST) public onlyOwner {
+        tokenBRST = _tokenBRST;
+        BRST_Contract = ITRC20(_tokenBRST);
+    }
+
+    function update_addressPOOL(address _addressPOOL) public onlyOwner {
+        contractPool = _addressPOOL;
+        POOL_Contract = IPOOL(_addressPOOL);
     }
 
     function update_precio(uint256 _precio) public onlyOwner {
