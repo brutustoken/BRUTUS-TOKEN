@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
-import CrowdFunding from "./nftCrowdFunding";
-import Oficina from "./nftOficina";
+//import CrowdFunding from "./nftCrowdFunding";
+//import Oficina from "./nftOficina";
 
 import cons from "../../cons.js";
 

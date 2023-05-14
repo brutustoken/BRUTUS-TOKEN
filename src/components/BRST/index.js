@@ -25,7 +25,8 @@ export default class Staking extends Component {
       enPool: 0,
       solicitado: 0,
       data: [],
-      precioBRST: "#.###"
+      precioBRST: "#.###",
+      solicitudes: 0,
 
     };
 
@@ -38,7 +39,7 @@ export default class Staking extends Component {
     this.handleChangeBRUT = this.handleChangeBRUT.bind(this);
     this.handleChangeUSDT = this.handleChangeUSDT.bind(this);
 
-    this.llenarBRUT = this.llenarBRUT.bind(this);
+    this.llenarBRST = this.llenarBRST.bind(this);
     this.llenarUSDT = this.llenarUSDT.bind(this);
 
     this.consultarPrecio = this.consultarPrecio.bind(this);
@@ -86,15 +87,25 @@ export default class Staking extends Component {
     });
   }
 
-  llenarBRUT() {
+  llenarBRST() {
     document.getElementById('amountBRUT').value = this.state.balanceBRUT;
-    this.setState({ valueBRUT: this.state.balanceBRUT });
+    let oper = this.state.balanceBRUT * this.state.precioBRST;
+    oper = parseInt(oper * 1e6) / 1e6;
+    this.setState({ 
+      valueBRUT: this.state.balanceBRUT,
+      valueUSDT: oper 
+    });
 
   }
 
   llenarUSDT() {
     document.getElementById('amountUSDT').value = this.state.balanceUSDT;
-    this.setState({ valueUSDT: this.state.balanceUSDT });
+    let oper = this.state.balanceUSDT / this.state.precioBRST
+    oper = parseInt(oper * 1e6) / 1e6;
+    this.setState({ 
+      valueUSDT: this.state.balanceUSDT,
+      valueBRUT: oper,
+    });
   }
 
   async consultarPrecio() {
@@ -157,7 +168,7 @@ export default class Staking extends Component {
     var deposits = await this.props.contrato.BRST_TRX.solicitudesPendientesGlobales().call();
     var globDepositos = [];
 
-    for (let index = 0; index < deposits.length; index++) {
+    for (let index = 0; index < deposits.length ; index++) {
 
       let pen = await this.props.contrato.BRST_TRX.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
 
@@ -172,7 +183,7 @@ export default class Staking extends Component {
         )
       }
 
-      globDepositos[index] = (
+      globDepositos[deposits.length-1-index] = (
 
         <div className="row mt-4 align-items-center" key={"glob" + parseInt(deposits[index]._hex)}>
           <div className="col-sm-6 mb-3">
@@ -251,6 +262,8 @@ export default class Staking extends Component {
     
     }
 
+    this.estado();
+
 
   };
 
@@ -267,17 +280,24 @@ export default class Staking extends Component {
     accountAddress = window.tronWeb.address.fromHex(accountAddress.address);
 
     var aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX.address).call();
-    aprovado = parseInt(aprovado._hex);
+    aprovado = aprovado.toNumber();
+
+    if (aprovado <= 0) {
+      await this.props.contrato.BRST.approve(this.props.contrato.BRST_TRX.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+    }
 
     if (aprovado >= amount) {
 
 
-      if (amount >= minventa) {
+      if (amount >= minventa && true) {
 
         document.getElementById("amountBRUT").value = "";
 
         var pass = window.confirm("Tu solicitud generará una orden de venta para tus BRST esperando a que sea completada por la comunidad");
-        if (pass) { await this.props.contrato.BRST_TRX.solicitudRetiro(amount).send() };
+        if (pass) { 
+          await this.props.contrato.BRST_TRX.solicitudRetiro(amount).send();
+          window.alert("Your withdrawal request  is ¡Done!");
+        }
 
         //window.alert("Estamos actualizando a la version 3 del contrato de liquidez por favor contacta atravez de telegram para intercambiar tus BRST por TRX, estamos mejorando nustro sistema ;)");
 
@@ -298,7 +318,7 @@ export default class Staking extends Component {
       if (amount > aprovado) {
         if (aprovado <= 0) {
           document.getElementById("amountBRUT").value = minventa;
-          window.alert("You do not have enough funds in your account you place at least " + minventa + " USDT");
+          window.alert("You do not have enough aproved funds in your account you place at least " + minventa + " BRST");
         } else {
           document.getElementById("amountBRUT").value = minventa;
           window.alert("You must leave 50 TRX free in your account to make the transaction");
@@ -315,7 +335,8 @@ export default class Staking extends Component {
 
     }
 
-    this.llenarBRUT();
+    this.estado();
+    this.llenarBRST();
 
   };
 
@@ -327,6 +348,7 @@ export default class Staking extends Component {
       window.alert("todavia no es tiempo de retirar");
     }
 
+    this.estado();
 
   };
 
@@ -511,7 +533,7 @@ export default class Staking extends Component {
 
     return (
 
-      <div className="row">
+      <div className="row mx-0">
         <div className="col-xl-3 col-xxl-4 ">
           <div className="card">
 
@@ -573,7 +595,7 @@ export default class Staking extends Component {
                   <div className="form-group">
                     <div className="input-group input-group-lg">
                       <div className="input-group-prepend">
-                        <span className="input-group-text">BRST: {this.state.balanceBRUT}</span>
+                        <span className="input-group-text" style={{cursor:"pointer"}}  onClick={()=>this.llenarBRST()} >BRST: {this.state.balanceBRUT}</span>
                       </div>
                       <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} />
                     </div>
@@ -581,7 +603,7 @@ export default class Staking extends Component {
                   <div className="form-group">
                     <div className="input-group input-group-lg">
                       <div className="input-group-prepend">
-                        <span className="input-group-text ">TRX: {this.state.balanceUSDT}</span>
+                        <span className="input-group-text " style={{cursor:"pointer"}} onClick={()=>this.llenarUSDT()} >TRX: {this.state.balanceUSDT}</span>
                       </div>
                       <input type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
                     </div>
@@ -616,7 +638,10 @@ export default class Staking extends Component {
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
-                <h4 className="fs-20 text-black">Solicitudes retiro en proceso ({this.state.solicitudes})</h4>
+                <h4 className="fs-20 text-black">Solicitudes retiro en proceso ({this.state.solicitudes}) {"   "}
+                <button className="btn  btn-success text-white" onClick={async() => await this.estado()}>
+                Actualizar {" "} <i className="bi bi-arrow-repeat"></i>
+                </button></h4>
                 <p className="mb-0 fs-12">la orden esta a la espera de ser completada, tu puedes completar las ordenes de otros usuarios comprando el BRST</p>
               </div>
 
