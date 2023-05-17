@@ -171,11 +171,17 @@ export default class Staking extends Component {
     for (let index = 0; index < deposits.length ; index++) {
 
       let pen = await this.props.contrato.BRST_TRX.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
+      let inicio = pen[1].toNumber()*1000
+      let tiempo = (await this.props.contrato.BRST_TRX.TIEMPO().call()).toNumber()*1000;
+
+      let pv = new Date(inicio)
+      //(inicio+tiempo - Date.now())
+      let diasrestantes = ((inicio+tiempo - Date.now()) / (86400*1000)).toPrecision(2)
 
       var boton = <></>
-      if(myids.includes(parseInt(deposits[index]._hex))){
+      if(myids.includes(parseInt(deposits[index]._hex)) && diasrestantes >= 14){
         boton = (
-        <button className="btn btn-danger ms-4 mb-2" onClick={async() => {
+        <button className="btn btn-danger ms-4 mb-2" title="Solo dispone de 24 horas para cancelar su orden después de este tiempo no la podrá cancelar" onClick={async() => {
               await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: 0 });
             }}>
               Cancelar {" "} <i className="bi bi-x-lg"></i>
@@ -183,14 +189,35 @@ export default class Staking extends Component {
         )
       }
 
+      if(diasrestantes < 14 && diasrestantes > 0){
+        boton = (
+          <button className="btn btn-warning ms-4 mb-2 disabled" role="button" aria-disabled="true" >
+              Reclamar {" "} <i className="bi bi-exclamation-circle"></i>
+          </button>
+        )
+      }
+
+      if(diasrestantes <= 0){
+        boton = (
+          <button className="btn btn-primary ms-4 mb-2" role="button" aria-disabled="true" title="Solo dispone de 24 horas para cancelar su orden después de este tiempo no la podrá cancelar" onClick={async() => {
+                await this.props.contrato.BRST_TRX.retirar(parseInt(deposits[index]._hex)).send();
+              }}>
+                Reclamar {" "} <i className="bi bi-award"></i>
+              </button>
+          )
+      }
+
       globDepositos[deposits.length-1-index] = (
 
         <div className="row mt-4 align-items-center" key={"glob" + parseInt(deposits[index]._hex)}>
-          <div className="col-sm-6 mb-3">
-            <h4 className="fs-20 text-black">{parseInt(pen[2]._hex) / 10 ** 6} TRX x {parseInt(pen[3]._hex) / 10 ** 6} BRST</h4>
-            <p className="mb-0 fs-14">Solicitud de venta # {parseInt(deposits[index]._hex)}</p>
+          <div className="col-sm-3 mb-3">
+            <p className="mb-0 fs-14">Venta N° {parseInt(deposits[index]._hex)} | <span style={{color: "white"}}>{diasrestantes} D</span> </p>
+            <h4 className="fs-20 text-black">{parseInt(pen[3]._hex) / 10 ** 6} X BRST {parseInt(pen[2]._hex) / 10 ** 6} TRX</h4>
           </div>
-          <div className="col-sm-6 text-sm-right text-start">
+          <div className="col-sm-3 mb-3">
+            <p className="mb-0 fs-14">Puesto en venta el: {pv.toString()}</p>
+          </div>
+          <div className="col-sm-6">
 
             <button className="btn  btn-success text-white mb-2" onClick={async() => {
               await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
@@ -200,6 +227,7 @@ export default class Staking extends Component {
             </button>
             {boton}
           </div>
+          <hr></hr>
         </div>
       )
 
@@ -264,11 +292,9 @@ export default class Staking extends Component {
 
     this.estado();
 
-
   };
 
   async venta() {
-
 
     const { minventa } = this.state;
 
@@ -634,7 +660,7 @@ export default class Staking extends Component {
           </div>
         </div>
 
-        <div className="col-xl-6 col-xxl-12">
+        <div className="col-12">
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>

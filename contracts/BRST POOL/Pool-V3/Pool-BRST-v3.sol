@@ -102,7 +102,7 @@ contract PoolBRSTv3 is Ownable{
 
   uint public TRON_WALLET_BALANCE;
 
-  uint public dias_de_pago = 7;
+  uint public dias_de_pago = 15;
   uint public unidades_tiempo = 86400;
 
   address public NoValido = address(0);
@@ -130,7 +130,6 @@ contract PoolBRSTv3 is Ownable{
   }
 
   function RATE() public view returns (uint){
-
     //1 BRST -> TRX
     return (TRON_BALANCE().mul(10**BRTS_Contract.decimals())).div( BRTS_Contract.totalSupply() );
 
