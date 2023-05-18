@@ -668,7 +668,7 @@ export default class Staking extends Component {
                 <button className="btn  btn-success text-white" onClick={async() => await this.estado()}>
                 Actualizar {" "} <i className="bi bi-arrow-repeat"></i>
                 </button></h4>
-                <p className="mb-0 fs-12">la orden esta a la espera de ser completada, tu puedes completar las ordenes de otros usuarios comprando el BRST</p>
+                <p className="mb-0 fs-12">Las ordenes estaran a la espera de ser completadas, puedes completar las ordenes de otros usuarios, comprando el BRST a mejor precio.</p>
               </div>
 
             </div>
