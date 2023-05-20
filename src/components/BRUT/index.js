@@ -6,6 +6,48 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
+const options = [
+  {
+    label: "Horas",
+    value: "hour",
+  },
+  {
+    label: "Diario",
+    value: "day",
+  },
+  {
+    label: "Semanal",
+    value: "week",
+  },
+  {
+    label: "Mensual",
+    value: "month",
+  },
+];
+
+const options2 = [
+  {
+    label: "Últimos 7 dias",
+    value: "7",
+  },
+  {
+    label: "Últimos 30 dias",
+    value: "30",
+  },
+  {
+    label: "Últimos 90 dias",
+    value: "90",
+  },
+  {
+    label: "Últimos 180 dias",
+    value: "180",
+  },
+  {
+    label: "Todos los datos",
+    value: "0",
+  },
+];
+
 export default class Home extends Component {
   constructor(props) {
     super(props);
@@ -27,6 +69,8 @@ export default class Home extends Component {
       enPool: 0,
       solicitado: 0,
       data: [],
+      temporalidad: "day",
+      cantidadDatos: 30
 
     };
 
@@ -37,6 +81,9 @@ export default class Home extends Component {
 
     this.estado = this.estado.bind(this);
 
+    this.handleChange = this.handleChange.bind(this);
+    this.handleChange2 = this.handleChange2.bind(this);
+
     this.handleChangeBRUT = this.handleChangeBRUT.bind(this);
     this.handleChangeUSDT = this.handleChangeUSDT.bind(this);
     this.consultarPrecio = this.consultarPrecio.bind(this);
@@ -45,7 +92,7 @@ export default class Home extends Component {
 
   componentDidMount() {
     document.title = "B.F | BRUT"
-    this.grafico(1000);
+    this.grafico(1000, "day", 30);
     this.consultarPrecio();
 
     setTimeout(() => {
@@ -59,6 +106,18 @@ export default class Home extends Component {
       this.grafico(0);
     }, 60 * 1000);
     */
+  }
+
+  handleChange(e) {
+    let evento = e.target.value;
+    this.grafico(500, evento, this.state.cantidadDatos);
+    this.setState({ temporalidad: evento });
+  }
+
+  handleChange2(e) {
+    let evento = e.target.value;
+    this.grafico(500, this.state.temporalidad, evento);
+    this.setState({ cantidadDatos: evento });
   }
 
   async handleChangeBRUT(event) {
@@ -310,7 +369,11 @@ export default class Home extends Component {
 
   };
 
-  async grafico(time) {
+  async grafico(time, temporalidad, cantidad) {
+    if (this.root) {
+      this.root.dispose();
+    }
+
     const root = am5.Root.new("chartdiv");
 
     root.setThemes([
@@ -374,9 +437,13 @@ export default class Home extends Component {
     async function generateDatas(count) {
       let consulta = (await (await fetch(process.env.REACT_APP_API_URL+"api/v1/chartdata/brut?dias=" + count)).json()).Data
       let data = []
-      for (var i = consulta.length - 1; i > 0; --i) {
+      
+      console.log(consulta)
+      for (var i = consulta.length - 1; i >= 0; --i) {
         data.push(generateData(consulta[i]));
       }
+      console.log(data)
+
 
       return data;
     }
@@ -385,7 +452,7 @@ export default class Home extends Component {
     // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/
     let xAxis = chart.xAxes.push(
       am5xy.DateAxis.new(root, {
-        baseInterval: { timeUnit: "day", count: 1 },
+        baseInterval: { timeUnit: temporalidad, count: 1 },
         renderer: am5xy.AxisRendererX.new(root, {}),
         tooltip: am5.Tooltip.new(root, {})
       })
@@ -443,7 +510,7 @@ export default class Home extends Component {
     let sbDateAxis = scrollbar.chart.xAxes.push(
       am5xy.DateAxis.new(root, {
         baseInterval: {
-          timeUnit: "day",
+          timeUnit: temporalidad,
           count: 1
         },
         renderer: am5xy.AxisRendererX.new(root, {})
@@ -467,7 +534,7 @@ export default class Home extends Component {
     );
 
     // Generate and set data  | 
-    let data = await generateDatas(30);
+    let data = await generateDatas(cantidad);
     series.data.setAll(data);
     sbSeries.data.setAll(data);
 
@@ -535,7 +602,18 @@ export default class Home extends Component {
                   </div>
                 </div>
               </div>
-              <div className="mb-3" id="chartdiv" style={{ height: "300px", backgroundColor: "white" }}></div>
+              <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
+              <select className="btn-secondary style-1 default-select  mb-3" value={this.state.temporalidad} onChange={this.handleChange}>
+                {options.map((option) => (
+                  <option key={option.label.toString()} value={option.value}>{option.label}</option>
+                ))}
+              </select>
+              {" | "}
+              <select className="btn-secondary style-1 default-select  mb-3" value={this.state.cantidadDatos} onChange={this.handleChange2}>
+                {options2.map((option) => (
+                  <option key={option.label.toString()} value={option.value}>{option.label}</option>
+                ))}
+              </select>
 
             </div>
           </div>
