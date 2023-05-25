@@ -243,12 +243,19 @@ export default class Staking extends Component {
       let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
 
       var boton = <></>
-      var boton2 = <><p className="mb-0 fs-14">La orden esta en proceso de UnStaking por los próximos 14 dias, una vez finalizado este periodo regrece y reclame los TRX correspondientes</p></>;
+      var boton2 = <><p className="mb-0 fs-14 text-white">Orden en proceso de UnStaking por los próximos 14 dias, una vez finalizado este periodo regrece y reclame los TRX correspondientes</p></>;
 
       if ( diasrestantes > 14 || this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX.owner().call())) ) {
 
         boton2 = <button className="btn  btn-success text-white mb-2" onClick={async () => {
-          await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
+          if(this.state.balanceUSDT*1 >= parseInt(pen[2]._hex) / 10 ** 6 ){
+            await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
+            this.consultarPrecio();
+            this.estado();
+            window.alert("¡Orden completada!")
+          }else{
+            window.alert("Saldo insuficiente para cumplir esta orden")
+          }
   
         }}>
           Completar {" "} <i className="bi bi-check-lg"></i>
@@ -290,17 +297,18 @@ export default class Staking extends Component {
         <div className="row mt-4 align-items-center" key={"glob" + parseInt(deposits[index]._hex)}>
           <div className="col-sm-3 mb-3">
             <p className="mb-0 fs-14">Venta N° {parseInt(deposits[index]._hex)} | <span style={{ color: "white" }}>{diasrestantes} D</span> </p>
-            <h4 className="fs-20 text-black">{parseInt(pen[3]._hex) / 10 ** 6} X BRST {parseInt(pen[2]._hex) / 10 ** 6} TRX</h4>
+            <h4 className="fs-20 text-black">{parseInt(pen[3]._hex) / 10 ** 6} BRST X {parseInt(pen[2]._hex) / 10 ** 6} TRX</h4>
           </div>
-          <div className="col-sm-3 mb-3">
-            <p className="mb-0 fs-14">Puesto en venta el: {pv.toString()}</p>
-          </div>
-          <div className="col-sm-6">
+          <div className="col-sm-6 mb-1">
 
             {boton2}
             {boton}
           </div>
-          <hr></hr>
+          <div className="col-12 mb-3">
+            <p className="mb-0 fs-14"><span className="text-white">Marca de Tiempo:</span> {pv.toString()}</p>
+            <hr></hr>
+          </div>
+          
         </div>
       )
 
@@ -700,12 +708,8 @@ export default class Staking extends Component {
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
-                <h4 className="fs-20 text-black">Solicitud de intercambio</h4>
-                <p className="mb-0 fs-12">Para retirar los TRX desde el SR tenemos que realizar 2 procesos: <br></br>
-                  <span className="text-white">3 dias</span> para retirarlo del bot de energía <br>
-                  </br><span className="text-white">14 dias</span> del UnStaking de la red<br>
-                  </br>para <span className="text-white">{this.state.dias} dias</span> en total 
-                </p>
+                <h4 className="fs-20 text-black">Intercambio</h4>
+                
               </div>
 
             </div>
@@ -746,6 +750,12 @@ export default class Staking extends Component {
                         </svg>
 
                       </button>
+
+                      <p className="mb-0 fs-12">Para retirar los TRX desde el SR tenemos que realizar 2 procesos: <br></br>
+                  <span className="text-white">3 dias</span> para retirarlo del bot de energía <br>
+                  </br><span className="text-white">14 dias</span> del UnStaking de la red<br>
+                  </br>para <span className="text-white">{this.state.dias} dias</span> en total 
+                </p>
                     </div>
                   </div>
                 </form>
