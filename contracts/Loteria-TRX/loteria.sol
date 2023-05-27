@@ -246,6 +246,10 @@ contract Lottery is RandomNumber, Ownable{
         POOL_Contract.solicitudRetiro((_valor.mul(10**6)).div(POOL_Contract.RATE()));
 
     }
+
+    function terminarRetiroTRXBRST(uint256 _id) public onlyOwner {
+        
+    }
   
     function update_tokenTRC721(address _tokenTRC721) public onlyOwner {
         tokenTRC721 = _tokenTRC721;
