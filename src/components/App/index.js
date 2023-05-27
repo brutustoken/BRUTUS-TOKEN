@@ -77,20 +77,24 @@ class App extends Component {
 
         //windowtronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
-        if(this.state.contrato.MBOX == null){
+        if(this.state.contrato.BRST == null){
 
           //window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
 
-          var USDT = await window.tronWeb.contract().at(cons.USDT)
-          var BRUT =  await window.tronWeb.contract().at(cons.BRUT)
-          var BRUT_USDT = await window.tronWeb.contract().at(cons.SC)
-          var BRST = await window.tronWeb.contract().at(cons.BRST)
-          var BRST_TRX = await window.tronWeb.contract().at(cons.SC2)
-          var BRGY = await window.tronWeb.contract().at(cons.BRGY)
-          var MBOX =  await window.tronWeb.contract().at(cons.SC3)
-          var BRLT = null// await window.tronWeb.contract().at(cons.BRLT);
-          var loteria = null//await window.tronWeb.contract().at(cons.SC4);
-          contrato = {USDT,BRUT, BRUT_USDT, BRST, BRST_TRX, BRGY, MBOX, BRLT, loteria  }
+          contrato = {};
+/*
+          contrato.USDT = await window.tronWeb.contract().at(cons.USDT);
+          contrato.BRUT =  await window.tronWeb.contract().at(cons.BRUT);
+          contrato.BRUT_USDT = await window.tronWeb.contract().at(cons.SC);
+*/
+          contrato.BRST = await window.tronWeb.contract().at(cons.BRST);
+          contrato.BRST_TRX = await window.tronWeb.contract().at(cons.SC2);
+/*
+          contrato.BRGY = await window.tronWeb.contract().at(cons.BRGY);
+          contrato.MBOX =  await window.tronWeb.contract().at(cons.SC3);
+*/
+          contrato.BRLT = await window.tronWeb.contract().at(cons.BRLT);
+          contrato.loteria = await window.tronWeb.contract().at(cons.SC4);
 
 
           this.setState({
