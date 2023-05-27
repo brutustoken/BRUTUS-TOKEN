@@ -3,11 +3,13 @@ import cons from "../../cons.js";
 
 import Inicio from "../Inicio";
 
+import TronLinkGuide from "../TronLinkGuide";
+
 import Home from "../BRUT";
 import Staking from "../BRST";
 import Nft from "../BRGY";
 import LOTERIA from "../LOTERIA";
-import TronLinkGuide from "../TronLinkGuide";
+import EBOT from "../EBOT";
 
 
 class App extends Component {
@@ -178,6 +180,16 @@ class App extends Component {
       case "suerte":
       case "loteria":
         return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+
+      case "ebot":
+      case "EBOT":
+      case "bot":
+      case "energia":
+      case "anchodebanda":
+      case "energy":
+      case "bandwidth":
+
+        return <EBOT />
 
     
       default:

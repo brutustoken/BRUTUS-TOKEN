@@ -49,7 +49,7 @@ interface ITRC20 {
     function allowance(address owner, address spender) external view returns (uint256);
     function approve(address spender, uint256 value) external returns (bool);
     function transfer(address recipient, uint256 amount) external returns (bool);
-    function transferFrom(address from, address to) external returns (bool);
+    function transferFrom(address from, address to, uint256 amount) external returns (bool);
 
 }
 
@@ -132,39 +132,47 @@ contract Lottery is RandomNumber, Ownable{
 
     mapping(uint256 => uint256) vaul;
 
-    function buyLoteria(bool _brst, address _user) public payable {
+    function buyLoteria(bool _brst, address _user, uint256 _cantidad) public payable {
 
         if(proximaRonda == 0){
             proximaRonda = block.timestamp+periodo;
         }
 
+        uint256 valor = _cantidad*precio;
+
         //confirmar cantidad de 100 TRX o BRST
-        if( !_brst || msg.value == precio ){
-            require(msg.value == precio);
+        if( !_brst || msg.value == valor ){
+            require(msg.value == valor);
             POOL_Contract.staking{value:msg.value}();
             trxPooled = trxPooled.add(msg.value);
             
         }else{
-            BRST_Contract.transferFrom(msg.sender, address(this));
+            require(BRST_Contract.transferFrom(msg.sender, address(this),toBRST(valor)));
 
         }
 
-        //seleccionar NFT disponible o imprimir NFT
-        if(TRC721_Contract.balanceOf(address(this))>0){
-            TRC721_Contract.transferFrom(address(this), _user, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
-        }else{
-            TRC721_Contract.mintLoteryToken(_user);
+        //seleccionar NFT disponible o imprimir los NFT comprados
+        for (uint256 index = 0; index < _cantidad; index++) {
+            if(TRC721_Contract.balanceOf(address(this))>0){
+                TRC721_Contract.transferFrom(address(this), _user, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
+            }else{
+                TRC721_Contract.mintLoteryToken(_user);
+            }
         }
+        
         
         doneRandom();
 
     }
 
-    function sellLoteria(bool _brst) public {
-        TRC721_Contract.transferFrom(address(this), msg.sender, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
+    function sellLoteria(bool _brst, uint256 _tokenId) public {
+
+        address propietario =  TRC721_Contract.ownerOf(_tokenId);
+
+        TRC721_Contract.transferFrom(propietario, address(this), TRC721_Contract.tokenOfOwnerByIndex(propietario, 0) );
         
         if(_brst){
-            BRST_Contract.transfer(msg.sender, precio.mul(1e6).div(POOL_Contract.RATE()) );
+            BRST_Contract.transfer(msg.sender, toBRST(precio) );
 
         }else{
             payable(msg.sender).transfer(precio);

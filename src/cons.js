@@ -29,7 +29,7 @@ var BRLT = "TXTcK8Lb34FSkojMyA27Zr4GPbwAjB6ZkU";//token brutus LOTERIA
 if(testnet){
 
     SC2 = "TSZ679Wh1L8sG7VYcjfAEMLmWu7vV1aoTM"; //Pool BRST
-    SC4 = "TYY1nbpPnvZThjdcoTiNWC2DDXG3TzwWm9"; // Loteria 
+    SC4 = "TYEC2Qeb5GYwdMZvd9M7wzhksB4fRWFaTi"; // Loteria Contract
 
     BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";// BRST token
     BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//NFT Galeria

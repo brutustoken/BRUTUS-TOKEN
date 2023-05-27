@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import cons from "../../cons.js";
 
 export default class nfts extends Component {
 
@@ -24,7 +23,9 @@ export default class nfts extends Component {
 
   async componentDidMount() {
 
-    //setTimeout(() => { this.estado() }, 3 * 1000);
+    setTimeout(async() => { 
+      await this.estado();
+    }, 3 * 1000);
   };
 
   async compra(isBRST) {
@@ -48,50 +49,10 @@ export default class nfts extends Component {
 
   async estado() {
 
-    var robots = [];
     var cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
 
-    //console.log(cantidad)
-
-    for (let index = 0; index < cantidad; index++) {
-
-      var ID = await this.props.contrato.BRLT.tokenOfOwnerByIndex(this.props.accountAddress, index).call();
-      ID = parseInt(ID._hex);
-
-      var URI = await this.props.contrato.BRLT.tokenURI(ID).call();
-
-      var metadata = JSON.parse(await (await fetch(cons.proxy + URI)).text());
-
-      robots[index] = {
-        id: ID,
-        uri: URI,
-        metadata: metadata
-      };
-
-    }
-
-    var imagerobots = [];
-
-    for (let index = 0; index < robots.length; index++) {
-
-      imagerobots[index] = (
-        <div className="col-lg-3 p-2" key={"robbrutN" + index}>
-          <div className="card">
-            <h5 >
-              <strong>#{robots[index].id} {robots[index].metadata.name}</strong><br /><br />
-            </h5>
-            <img src={robots[index].metadata.image} alt={robots[index].metadata.name} className="img-thumbnail"></img>
-            <br></br>
-
-          </div>
-
-        </div>
-      )
-    }
-
     this.setState({
-      robots: robots,
-      imagerobots: imagerobots
+      mc: cantidad
     });
 
   }
@@ -111,15 +72,7 @@ export default class nfts extends Component {
                       <div role="tabpanel" class="tab-pane fade show active" id="first">
                         <img class="img-fluid" src="https://nft.brutus.finance/loteria/image.gif" alt="brutus lottery" />
                       </div>
-                      <div role="tabpanel" class="tab-pane fade" id="second">
-                        <img class="img-fluid" src="images/product/2.jpg" alt="" />
-                      </div>
-                      <div role="tabpanel" class="tab-pane fade" id="third">
-                        <img class="img-fluid" src="images/product/3.jpg" alt="" />
-                      </div>
-                      <div role="tabpanel" class="tab-pane fade" id="for">
-                        <img class="img-fluid" src="images/product/4.jpg" alt="" />
-                      </div>
+                      
                     </div>
                     <div class="tab-slide-content new-arrival-product mb-4 mb-xl-0">
 
@@ -128,15 +81,6 @@ export default class nfts extends Component {
                           <a href="#first" role="tab" data-bs-toggle="tab">
                             <img class="img-fluid" src="images/tab/1.jpg" alt="" width="50" />
                           </a>
-                        </li>
-                        <li role="presentation">
-                          <a href="#second" role="tab" data-bs-toggle="tab"><img class="img-fluid" src="images/tab/2.jpg" alt="" width="50" /></a>
-                        </li>
-                        <li role="presentation">
-                          <a href="#third" role="tab" data-bs-toggle="tab"><img class="img-fluid" src="images/tab/3.jpg" alt="" width="50" /></a>
-                        </li>
-                        <li role="presentation">
-                          <a href="#for" role="tab" data-bs-toggle="tab"><img class="img-fluid" src="images/tab/4.jpg" alt="" width="50" /></a>
                         </li>
                       </ul>
                     </div>
@@ -169,14 +113,7 @@ export default class nfts extends Component {
                         </p>
                         <p class="text-content">¡Participa en Brutus Lottery, la emocionante lotería en la que tu participación está garantizada y los premios se generan a partir del staking y alquiler de energía en TRX durante 15 días! Adquiere un NFT y obtén todos los boletos que quieras para aumentar tus posibilidades de ganar. ¡Únete ahora y prueba tu suerte!</p>
                         <div class="d-flex align-items-end flex-wrap mt-4">
-                          <div class="filtaring-area mb-2 me-3">
-                            <div class="size-filter">
-                              <h4 class="m-b-15">Cantidad</h4>
-                            </div>
-                          </div>
-                          <div class="col-2 px-0  mb-2 me-3">
-                            <input type="number" name="num" class="form-control input-btn input-number" value="1" />
-                          </div>
+                         
                           <div class="shopping-cart  mb-2 me-3">
                             <button class="btn btn-secondary" onClick={() => this.compra(false)}><i
                               class="fa fa-shopping-basket me-2"></i>Mintear Boleto</button>
@@ -223,6 +160,7 @@ export default class nfts extends Component {
               </div>
             </div>
           </div>
+
           <div class="modal fade" id="reviewModal">
             <div class="modal-dialog" role="document">
               <div class="modal-content">
@@ -237,110 +175,23 @@ export default class nfts extends Component {
               </div>
             </div>
           </div>
+
         </div>
 
-        <section className="convert-area" id="convert">
-          <div className="container">
-            <div className="convert-wrap">
-              <div className="row justify-content-center align-items-center flex-column pb-30">
-                <h1 className="text-white text-center">JUEGAS Y NUNCA ¡PIERDES!</h1>
-              </div>
-              <div className="row justify-content-center align-items-start">
-
-                <div className="col-lg-12 cols">
-                  <div className="container text-center">
-
-                    <div className="card">
-                      <div className="row">
-
-                        <div className="col-lg-12">
-                          <img
-                            className="img-fluid"
-                            src="https://nft.brutus.finance/loteria/image.gif"
-                            alt="brutus loteria"
-                          />
-                          <h2>Comprar Tickets BRLT</h2>
-                          <button className="btn btn-success" style={{ "cursor": "pointer" }} >100 TRX</button> <br />ó<br />
-                          <button className="btn btn-success" style={{ "cursor": "pointer" }} onClick={() => this.compra(true)}>### BRST</button>
-
-
-                          <br></br><br></br>
-
-
-
-                          <br></br>
-
-                          <button className="btn btn-warning" style={{ "cursor": "pointer" }} onClick={async () => {
-
-                            if (false) {
-
-                              window.alert("por favor espera a la fecha anunciada para reclamar tu NFT")
-
-                            } else {
-
-                              await this.props.contrato.BRLT.claimNFT().send()
-                                .then(() => { window.alert("NFT's enviados a tu wallet") })
-                                .catch(() => { window.alert("Error al reclamar") })
-
-                            }
-
-                          }}>Reclamar {this.state.mb} TRX ganados</button>
-                        </div>
-
-                      </div>
-
-                    </div>
-
-
-                  </div>
+        <div class="modal fade" id="regalo">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title">¡Sopresa!</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal">
+                  </button>
                 </div>
-
+                <div class="modal-body">
+                  <p> Nos colaboras ayudando a que la loteria funcione y te retribuiremos con una pequeña recompensa, recomendamos que tengas ENERGIA y ANCHO DE BANDA para que no consumas TRX y sea realmente beneficioso.</p>
+                </div>
               </div>
             </div>
           </div>
-        </section>
-
-        <section className="convert-area pt-5" id="convert">
-          <div className="container">
-            <div className="convert-wrap">
-              <div className="row justify-content-center align-items-center flex-column pb-30">
-                <h1 className="text-white  text-center">Mis Tickets Brutus loteria (BRLT)</h1>
-              </div>
-              <div className="row justify-content-center align-items-start">
-
-                <div className="col-lg-12 cols">
-                  <div className=" container text-center">
-                    <div className="row">
-
-                      <div className="col-lg-12 p-2">
-                        <div className="card">
-                          <br /><br />
-
-                          <h5 >
-                            wallet:<br />
-                            <strong>{this.props.accountAddress}</strong><br /><br />
-                          </h5>
-
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                    <div className="row">
-
-                      {this.state.imagerobots}
-
-                    </div>
-
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </section>
       </>
     );
   }
