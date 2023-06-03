@@ -92,7 +92,7 @@ export default class Inicio extends Component {
 
 		var resultado = "success";
 
-		if (valor <= 0) {
+		if (valor < 0) {
 			resultado = "danger"
 		}
 

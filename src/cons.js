@@ -1,7 +1,7 @@
 var proxy = "http://localhost:8080/";
 const conProxy = false;
 
-const testnet = true;
+const testnet = false;
 
 if(!conProxy)proxy = "";
 
