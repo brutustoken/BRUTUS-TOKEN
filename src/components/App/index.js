@@ -57,6 +57,8 @@ class App extends Component {
 
       tronWeb['installed'] = true;
 
+      
+
       if(window.tronWeb.ready || window.tronLink.ready){
 
         try {

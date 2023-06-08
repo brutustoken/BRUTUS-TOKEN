@@ -67,6 +67,7 @@ interface ITRC721 {
 interface IPOOL {
     function staking() external payable returns (uint);
     function solicitudRetiro(uint256 _value) external returns (uint256);
+    function retirar(uint256 _id) external ;
     function RATE() external view returns (uint);
 }
 
@@ -92,12 +93,12 @@ contract RandomNumber{
 
     uint randNonce = 0;
 
-    function randMod(uint _modulus, uint _moreRandom) public view returns(uint){
+    function randMod(uint _modulus, uint _moreRandom) internal view returns(uint){
        return uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, _moreRandom, randNonce))) % _modulus;
 
     }
 
-    function doneRandom() public {
+    function doneRandom() internal {
        randNonce++; 
     }
 }
@@ -256,7 +257,7 @@ contract Lottery is RandomNumber, Ownable{
     }
 
     function terminarRetiroTRXBRST(uint256 _id) public onlyOwner {
-        
+        POOL_Contract.retirar(_id);
     }
   
     function update_tokenTRC721(address _tokenTRC721) public onlyOwner {
@@ -276,6 +277,11 @@ contract Lottery is RandomNumber, Ownable{
 
     function update_precio(uint256 _precio) public onlyOwner {
         precio = _precio;
+    }
+
+    function update_tiempo(uint256 _periodo, uint256 _proxRonda) public onlyOwner {
+        proximaRonda = _proxRonda;
+        periodo = _periodo;
     }
 
     //retirar TRC20

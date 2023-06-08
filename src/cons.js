@@ -5,10 +5,8 @@ const testnet = false;
 
 if(!conProxy)proxy = "";
 
-
 const PRICE = proxy+process.env.REACT_APP_API_URL+"api/v1/precio/BRUT"; //API de precio
 const market_brut =  proxy+process.env.REACT_APP_API_URL+"api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
-
 
 const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 
@@ -35,7 +33,6 @@ if(testnet){
     BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//NFT Galeria
     BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
 
-    
 }
 
 export default {proxy, PRU, WS,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut};

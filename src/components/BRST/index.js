@@ -12,7 +12,11 @@ const options = [
   {
     label: "Diario",
     value: "day",
-  },
+  }
+];
+
+/*
+
   {
     label: "Semanal",
     value: "week",
@@ -20,9 +24,8 @@ const options = [
   {
     label: "Mensual",
     value: "month",
-  },
-];
-
+  }
+*/
 const options2 = [
   {
     label: "Últimos 7 dias",
@@ -98,7 +101,7 @@ export default class Staking extends Component {
 
   componentDidMount() {
     document.title = "B.F | BRST"
-    this.grafico(1000, "day", 30);
+    this.grafico(1000, "day", 90);
 
     setTimeout(() => {
 
@@ -126,7 +129,7 @@ export default class Staking extends Component {
   }
 
   handleChange2(e) {
-    let evento = e.target.value;
+    let evento = parseInt(e.target.value);
     this.grafico(500, this.state.temporalidad, evento);
     this.setState({ cantidadDatos: evento });
   }
@@ -527,9 +530,12 @@ export default class Staking extends Component {
     }
 
     async function generateDatas(count) {
-      let consulta = (await (await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?dias=" + count)).json()).Data
-      let data = []
+      
+      let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad="+temporalidad+"&limite=" + count)
+      consulta = (await consulta.json()).Data
+      console.log(consulta)
 
+      let data = []
       for (var i = consulta.length - 1; i >= 0; --i) {
         data.push(generateData(consulta[i]));
       }
@@ -619,8 +625,7 @@ export default class Staking extends Component {
       })
     );
 
-    // Generate and set data  | 
-    //let data = (await (await fetch("https://chainlist.tk/api/v1/chartdata/brst?dias=30")).json()).Data
+    // Generate and set data  
     let data = await generateDatas(cantidad);
     series.data.setAll(data);
     sbSeries.data.setAll(data);
