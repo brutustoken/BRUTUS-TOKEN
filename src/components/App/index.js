@@ -79,7 +79,7 @@ class App extends Component {
 
         tronWeb['web3'] = window.tronWeb;
 
-        //windowtronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
+        //window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
         if(this.state.contrato.BRST == null){
 
@@ -87,18 +87,37 @@ class App extends Component {
 
           contrato = {};
 
-          contrato.USDT = await window.tronWeb.contract().at(cons.USDT);
-          contrato.BRUT =  await window.tronWeb.contract().at(cons.BRUT);
-          contrato.BRUT_USDT = await window.tronWeb.contract().at(cons.SC);
+          if(cons.SC !== ""){
+            contrato.BRUT_USDT = await window.tronWeb.contract().at(cons.SC);
+          }
+          if(cons.USDT !== ""){
+            contrato.USDT = await window.tronWeb.contract().at(cons.USDT);
+          }
+          if(cons.BRUT !== ""){
+            contrato.BRUT =  await window.tronWeb.contract().at(cons.BRUT);
+          }
+          
 
-          contrato.BRST = await window.tronWeb.contract().at(cons.BRST);
-          contrato.BRST_TRX = await window.tronWeb.contract().at(cons.SC2);
+          if(cons.SC2 !== ""){
+            contrato.BRST_TRX = await window.tronWeb.contract().at(cons.SC2);
+          }
+          if(cons.BRST !== ""){
+            contrato.BRST = await window.tronWeb.contract().at(cons.BRST);
+          }
+          
+          if(cons.BRGY !== ""){
+            contrato.BRGY = await window.tronWeb.contract().at(cons.BRGY);
+          }
+          if(cons.SC3 !== ""){
+            contrato.MBOX =  await window.tronWeb.contract().at(cons.SC3);
+          }
 
-          contrato.BRGY = await window.tronWeb.contract().at(cons.BRGY);
-          contrato.MBOX =  await window.tronWeb.contract().at(cons.SC3);
-
-          //contrato.BRLT = await window.tronWeb.contract().at(cons.BRLT);
-          //contrato.loteria = await window.tronWeb.contract().at(cons.SC4);
+          if(cons.BRLT !== ""){
+            contrato.BRLT = await window.tronWeb.contract().at(cons.BRLT);
+          }
+          if(cons.SC4 !== ""){
+            contrato.loteria = await window.tronWeb.contract().at(cons.SC4);
+          }
 
 
           this.setState({

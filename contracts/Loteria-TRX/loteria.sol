@@ -118,7 +118,7 @@ contract Lottery is RandomNumber, Ownable{
     uint256 public colaborador = 1; // en porcentaje y en cantidad
 
     uint256 public proximaRonda = 0;
-    uint256 public periodo = 15*86400;
+    uint256 public periodo = 30;//15*86400;
 
     address public tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;//BRST testnet
 

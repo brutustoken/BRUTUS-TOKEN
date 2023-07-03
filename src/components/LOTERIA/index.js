@@ -30,8 +30,11 @@ export default class nfts extends Component {
 
   async compra(isBRST) {
 
-    await this.props.contrato.loteria.buyLoteria(isBRST, this.props.accountAddress).send({ callValue: 100000000 });
+    await this.props.contrato.loteria.buyLoteria(isBRST, this.props.accountAddress, 1).send({ callValue: 100000000 });
 
+    alert("Boleto comprado!");
+
+    this.estado();
   }
 
   async consultarPrecio() {
@@ -61,78 +64,77 @@ export default class nfts extends Component {
 
     return (
       <>
-        <div class="row mx-0">
-          <div class="col-lg-12">
-            <div class="card">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-xl-3 col-lg-6  col-md-6 col-xxl-5 ">
+        <div className="row mx-0">
+          <div className="col-lg-12">
+            <div className="card">
+              <div className="card-body">
+                <div className="row">
+                  <div className="col-xl-3 col-lg-6  col-md-6 col-xxl-5 ">
 
-                    <div class="tab-content">
-                      <div role="tabpanel" class="tab-pane fade show active" id="first">
-                        <img class="img-fluid" src="https://nft.brutus.finance/loteria/image.gif" alt="brutus lottery" />
+                    <div className="tab-content">
+                      <div role="tabpanel" className="tab-pane fade show active" id="first">
+                        <img className="img-fluid" src="https://nft.brutus.finance/loteria/image.gif" alt="brutus lottery" />
                       </div>
                       
                     </div>
-                    <div class="tab-slide-content new-arrival-product mb-4 mb-xl-0">
+                    <div className="tab-slide-content new-arrival-product mb-4 mb-xl-0">
 
-                      <ul class="nav slide-item-list mt-3" role="tablist">
-                        <li role="presentation" class="show">
+                      <ul className="nav slide-item-list mt-3" role="tablist">
+                        <li role="presentation" className="show">
                           <a href="#first" role="tab" data-bs-toggle="tab">
-                            <img class="img-fluid" src="images/tab/1.jpg" alt="" width="50" />
+                            <img className="img-fluid" src="images/tab/1.jpg" alt="" width="50" />
                           </a>
                         </li>
                       </ul>
                     </div>
                   </div>
-                  <div class="col-xl-9 col-lg-6  col-md-6 col-xxl-7 col-sm-12">
-                    <div class="product-detail-content">
-                      <div class="new-arrival-content pr">
+                  <div className="col-xl-9 col-lg-6  col-md-6 col-xxl-7 col-sm-12">
+                    <div className="product-detail-content">
+                      <div className="new-arrival-content pr">
                         <h2>Brutus Lottery</h2>
-                        <div class="comment-review star-rating">
+                        <div className="comment-review star-rating">
                           <ul>
-                            <li><i class="fa fa-star"></i></li>
-                            <li><i class="fa fa-star"></i></li>
-                            <li><i class="fa fa-star"></i></li>
-                            <li><i class="fa fa-star"></i></li>
-                            <li><i class="fa fa-star"></i></li>
+                            <li><i className="fa fa-star"></i></li>
+                            <li><i className="fa fa-star"></i></li>
+                            <li><i className="fa fa-star"></i></li>
+                            <li><i className="fa fa-star"></i></li>
+                            <li><i className="fa fa-star"></i></li>
 
                           </ul>
-                          <span class="review-text">(Full star) / </span><a class="product-review" href="#reviewModal" data-bs-toggle="modal" data-bs-target="#reviewModal">Por qué?</a>
+                          <span className="review-text">(Full star) / </span><a className="product-review" href="#reviewModal" data-bs-toggle="modal" data-bs-target="#reviewModal">Por qué?</a>
                         </div>
-                        <div class="d-table mb-2">
-                          <p class="price float-start d-block">100 TRX</p>
+                        <div className="d-table mb-2">
+                          <p className="price float-start d-block">100 TRX</p>
                         </div>
-                        <p>Tiempo de sorteo: <span class="item"> Cada 15 dias </span>
+                        <p>Tiempo de sorteo: <span className="item"> Cada 15 dias </span>
                         </p>
                         <p>Caracteristicas:&nbsp;&nbsp;
-                          <span class="badge badge-success light">Seguro</span>{" "}
-                          <span class="badge badge-success light">Refondeable</span>{" "}
-                          <span class="badge badge-success light">Aleatorio</span>{" "}
-                          <span class="badge badge-success light">Smartcontract</span>
+                          <span className="badge badge-success light">Seguro</span>{" "}
+                          <span className="badge badge-success light">Refondeable</span>{" "}
+                          <span className="badge badge-success light">Aleatorio</span>{" "}
+                          <span className="badge badge-success light">Smartcontract</span>
                         </p>
-                        <p class="text-content">¡Participa en Brutus Lottery, la emocionante lotería en la que tu participación está garantizada y los premios se generan a partir del staking y alquiler de energía en TRX durante 15 días! Adquiere un NFT y obtén todos los boletos que quieras para aumentar tus posibilidades de ganar. ¡Únete ahora y prueba tu suerte!</p>
-                        <div class="d-flex align-items-end flex-wrap mt-4">
+                        <p className="text-content">¡Participa en Brutus Lottery, la emocionante lotería en la que tu participación está garantizada y los premios se generan a partir del staking y alquiler de energía en TRX durante 15 días! Adquiere un NFT y obtén todos los boletos que quieras para aumentar tus posibilidades de ganar. ¡Únete ahora y prueba tu suerte!</p>
+                        <div className="d-flex align-items-end flex-wrap mt-4">
                          
-                          <div class="shopping-cart  mb-2 me-3">
-                            <button class="btn btn-secondary" onClick={() => this.compra(false)}><i
-                              class="fa fa-shopping-basket me-2"></i>Mintear Boleto</button>
+                          <div className="shopping-cart  mb-2 me-3">
+                            <button className="btn btn-secondary" onClick={() => this.compra(false)}><i
+                              className="fa fa-shopping-basket me-2"></i>Mintear Boleto</button>
                           </div>
                         </div>
 
-                        <div class="d-flex align-items-end flex-wrap mt-4">
-                          <div class="filtaring-area mb-2 me-3">
-                            <div class="">
-                              <h4 class="m-b-15">Boletos</h4>
+                        <div className="d-flex align-items-end flex-wrap mt-4">
+                          <div className="filtaring-area mb-2 me-3">
+                            <div className="">
+                              <h4 className="m-b-15">Boletos</h4>
                             </div>
                           </div>
-                          <div class="col-2 px-0  mb-2 me-3" >
-                            <input type="number" name="num" class="form-control input-btn input-number" style={{cursor: "not-allowed"}} value={this.state.mc} readOnly />
-
+                          <div className="col-2 px-0  mb-2 me-3" >
+                            <input type="number" name="num" className="form-control input-btn input-number" style={{cursor: "not-allowed"}} value={this.state.mc} readOnly />
 
                           </div>
-                          <div class="shopping-cart  mb-2 me-3">
-                            <button class="btn btn-warning" onClick={async () => {
+                          <div className="shopping-cart  mb-2 me-3">
+                            <button className="btn btn-warning" onClick={async () => {
 
                               if (false) {
 
@@ -161,16 +163,17 @@ export default class nfts extends Component {
             </div>
           </div>
 
-          <div class="modal fade" id="reviewModal">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">¡Nunca pierdes!</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal">
+          <div className="modal fade" id="reviewModal">
+            <div className="modal-dialog" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">¡Nunca pierdes!</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal">
                   </button>
                 </div>
-                <div class="modal-body">
+                <div className="modal-body">
                   <p> no pierdes por que el trx que ingresas pasa a producir ganancias con otros productos como BRST una vez tenemos utilidades se genera el sorteo aletorio por contrato y las utilidades generadas son entregadas a el poseedor del NFT de la Loteria</p>
+                            
                 </div>
               </div>
             </div>
@@ -178,16 +181,17 @@ export default class nfts extends Component {
 
         </div>
 
-        <div class="modal fade" id="regalo">
-            <div class="modal-dialog" role="document">
-              <div class="modal-content">
-                <div class="modal-header">
-                  <h5 class="modal-title">¡Sopresa!</h5>
-                  <button type="button" class="btn-close" data-bs-dismiss="modal">
+        <div className="modal fade" id="regalo">
+            <div className="modal-dialog" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">¡Sopresa!</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal">
                   </button>
                 </div>
-                <div class="modal-body">
+                <div className="modal-body">
                   <p> Nos colaboras ayudando a que la loteria funcione y te retribuiremos con una pequeña recompensa, recomendamos que tengas ENERGIA y ANCHO DE BANDA para que no consumas TRX y sea realmente beneficioso.</p>
+                  <button className="btn btn-secondary" onClick={async()=>{await this.props.contrato.loteria.sorteo(false).send(); alert("¡Gracias por ayudar!")}} data-bs-dismiss="modal">Ayudar</button>
                 </div>
               </div>
             </div>
