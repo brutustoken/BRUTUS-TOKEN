@@ -1,5 +1,5 @@
-var proxy = "http://localhost:8080/";
-const conProxy = false;
+var proxy = "https://cors.brutusservices.com/";
+const conProxy = true;
 
 const testnet = false;
 
