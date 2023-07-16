@@ -1,7 +1,7 @@
 var proxy = "https://cors.brutusservices.com/";
 const conProxy = true;
 
-const testnet = false;
+const testnet = true;
 
 if(!conProxy)proxy = "";
 
@@ -27,7 +27,7 @@ if(testnet){
     SC = "";//pool USDT_BUT
     SC2 = "TSZ679Wh1L8sG7VYcjfAEMLmWu7vV1aoTM"; //Pool BRST_TRX
     SC3 = "";//pool APENFT_NFT
-    SC4 = "TXfS9jWE1PaYdSSQqDTwsUatGXnWaDnSDD"; // Loteria Contract p_BRST
+    SC4 = "TYavMYEiJ16NZvCtdWLpBNd6BDpEf7i9Yj";//"TXfS9jWE1PaYdSSQqDTwsUatGXnWaDnSDD"; // Loteria Contract NFT_BRST_TRX
 
     USDT = "";//token USDT
     BRUT = "";//token trc20 BRUT

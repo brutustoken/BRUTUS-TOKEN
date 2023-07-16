@@ -12,6 +12,9 @@ export default class nfts extends Component {
       precioBRUT: 0,
       mc: 0,
       mb: 0,
+      totalNFT: 1,
+      premio: "Cargando...",
+      LastWiner: "Cargando..."
 
     };
 
@@ -53,9 +56,16 @@ export default class nfts extends Component {
   async estado() {
 
     var cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
+    var totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
+    var premio = parseInt((await this.props.contrato.loteria.premio().call())._hex)/ 10 ** 6
+    var LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
+
 
     this.setState({
-      mc: cantidad
+      mc: cantidad,
+      totalNFT: totalNFT,
+      premio: premio,
+      LastWiner: LastWiner
     });
 
   }
@@ -91,25 +101,16 @@ export default class nfts extends Component {
                   <div className="col-xl-9 col-lg-6  col-md-6 col-xxl-7 col-sm-12">
                     <div className="product-detail-content">
                       <div className="new-arrival-content pr">
-                        <h2>Brutus Lottery</h2>
-                        <div className="comment-review star-rating">
-                          <ul>
-                            <li><i className="fa fa-star"></i></li>
-                            <li><i className="fa fa-star"></i></li>
-                            <li><i className="fa fa-star"></i></li>
-                            <li><i className="fa fa-star"></i></li>
-                            <li><i className="fa fa-star"></i></li>
-
-                          </ul>
-                          <span className="review-text">(Full star) / </span><a className="product-review" href="#reviewModal" data-bs-toggle="modal" data-bs-target="#reviewModal">Por qué?</a>
-                        </div>
+                        <h2>Brutus Lottery (BRLT)</h2>
+                       
                         <div className="d-table mb-2">
-                          <p className="price float-start d-block">100 TRX</p>
+                          <p className="price float-start d-block">Premio: {this.state.premio} TRX</p>
                         </div>
-                        <p>Tiempo de sorteo: <span className="item"> Cada 15 dias </span>
+                        <p>Próximo sorteo: <span className="item"> en 15 dias </span> <br />
+                          Ultimo ganador: <span className="item"> NFT # {this.state.LastWiner} </span>
                         </p>
                         <p>Caracteristicas:&nbsp;&nbsp;
-                          <span className="badge badge-success light">Seguro</span>{" "}
+                          <span className="badge badge-success light" style={{cursor: "pointer"}} data-bs-toggle="modal" data-bs-target="#reviewModal">Seguro</span>{" "}
                           <span className="badge badge-success light">Refondeable</span>{" "}
                           <span className="badge badge-success light">Aleatorio</span>{" "}
                           <span className="badge badge-success light">Smartcontract</span>
@@ -119,40 +120,38 @@ export default class nfts extends Component {
                          
                           <div className="shopping-cart  mb-2 me-3">
                             <button className="btn btn-secondary" onClick={() => this.compra(false)}><i
-                              className="fa fa-shopping-basket me-2"></i>Mintear Boleto</button>
+                              className="fa fa-shopping-basket me-2"></i>Comprar Boleto 100 TRX</button>
                           </div>
                         </div>
 
-                        <div className="d-flex align-items-end flex-wrap mt-4">
-                          <div className="filtaring-area mb-2 me-3">
-                            <div className="">
-                              <h4 className="m-b-15">Boletos</h4>
-                            </div>
-                          </div>
-                          <div className="col-2 px-0  mb-2 me-3" >
-                            <input type="number" name="num" className="form-control input-btn input-number" style={{cursor: "not-allowed"}} value={this.state.mc} readOnly />
+                        <p>
+                        <h4 className="my-1">Mis Boletos: {this.state.mc} BRLT</h4>
+                        <h4 className="my-1">Mi probabilidad: {(this.state.mc/this.state.totalNFT *100).toFixed(2)}%</h4>
 
-                          </div>
-                          <div className="shopping-cart  mb-2 me-3">
+                          <h4 className="my-1">Ganado: {this.state.mb} TRX</h4>
+                          <div className="shopping-cart  my-1 me-3">
                             <button className="btn btn-warning" onClick={async () => {
 
-                              if (false) {
+                              var claim = prompt("Set number of NFT want you claim our value","0")
 
-                                window.alert("por favor espera a la fecha anunciada para reclamar tu NFT")
+                              claim = parseInt(claim)
+
+                              if (parseInt(claim) <= 0 || isNaN(claim)) {
+
+                                window.alert("por favor ingrese un numero valido para reclamar")
 
                               } else {
 
-                                await this.props.contrato.BRLT.claimNFT().send()
-                                  .then(() => { window.alert("NFT's enviados a tu wallet") })
+                                await this.props.contrato.BRLT.reclamarValueNFT(claim).send()
+                                  .then(() => { window.alert("Ganancias enviadas a la wallet owner del NFT") })
                                   .catch(() => { window.alert("Error al reclamar") })
 
                               }
 
-                            }}>Reclamar {this.state.mb} TRX ganados</button>
+                            }}>Reclamar</button>
 
                           </div>
-                        </div>
-
+                        </p>
 
                       </div>
                     </div>
@@ -191,7 +190,7 @@ export default class nfts extends Component {
                 </div>
                 <div className="modal-body">
                   <p> Nos colaboras ayudando a que la loteria funcione y te retribuiremos con una pequeña recompensa, recomendamos que tengas ENERGIA y ANCHO DE BANDA para que no consumas TRX y sea realmente beneficioso.</p>
-                  <button className="btn btn-secondary" onClick={async()=>{await this.props.contrato.loteria.sorteo(false).send(); alert("¡Gracias por ayudar!")}} data-bs-dismiss="modal">Ayudar</button>
+                  <button className="btn btn-secondary" onClick={async()=>{let win = await this.props.contrato.loteria.sorteo(false).send(); console.log(win); alert("¡Gracias por ayudar! (#"+win+")"); this.estado()}} data-bs-dismiss="modal">Ayudar</button>
                 </div>
               </div>
             </div>
