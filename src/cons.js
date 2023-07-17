@@ -24,16 +24,16 @@ var BRLT = "";//token NFT LOTERIA
 
 if(testnet){
 
-    SC = "";//pool USDT_BUT
+    SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
     SC2 = "TSZ679Wh1L8sG7VYcjfAEMLmWu7vV1aoTM"; //Pool BRST_TRX
     SC3 = "";//pool APENFT_NFT
     SC4 = "TYavMYEiJ16NZvCtdWLpBNd6BDpEf7i9Yj";//"TXfS9jWE1PaYdSSQqDTwsUatGXnWaDnSDD"; // Loteria Contract NFT_BRST_TRX
 
-    USDT = "";//token USDT
-    BRUT = "";//token trc20 BRUT
+    USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";//token USDT
+    BRUT = "TTBZHmxP5H2FW8zaJgCR2x2WeB82rJo3xb";//token trc20 BRUT
     BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";//token trc20 BRST
-    APENFT = "";//token de venta de mixtery box
-    BRGY = "";//token NFT  BRGY 
+    APENFT = "TMaG566bcktJkjxQpQxshewfTqATzxmtPX";//token de venta de mixtery box
+    BRGY = "TMEmo4xexAEu3zSmSrzPJoA1FE6AEfgVyW";//token NFT  BRGY 
     BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
 
 }
