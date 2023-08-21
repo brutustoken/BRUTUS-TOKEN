@@ -81,7 +81,7 @@ export default class nfts extends Component {
 				recBotton = (
 					<button className="btn btn-success" onClick={async () => {
 						await this.props.contrato.MBOX.claimNFT_especifico(index).send();
-					}}>Reclamar</button>
+					}}>Claim</button>
 				)
 			} else {
 				recBotton = (<></>)
@@ -124,7 +124,7 @@ export default class nfts extends Component {
 				<div className="row page-titles mx-0">
 					<div className="col-sm-6 p-md-0">
 						<div className="welcome-text">
-							<h4>Mis Coleccionables</h4>
+							<h4>My Colectibles</h4>
 							<p className="mb-0">BRGY</p>
 						</div>
 					</div>

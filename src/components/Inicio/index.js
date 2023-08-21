@@ -161,7 +161,7 @@ export default class Inicio extends Component {
 
 		return (
 			<>
-				<h1>Datos Generales</h1>
+				<h1>General Information</h1>
 				<div className="row">
 					<div className="col-xl-3 col-sm-6 m-t35">
 						<div className="card card-coin">
@@ -200,7 +200,7 @@ export default class Inicio extends Component {
 									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
 									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} NFT's </h2>
 									<p className="mb-0 fs-14">
-										Minteados
+										Minted
 									</p>
 								</a>
 							</div>
@@ -211,9 +211,9 @@ export default class Inicio extends Component {
 							<div className="card-body text-center">
 								<a href="/?brlt">
 									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} Boletos </h2>
+									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} Tickets </h2>
 									<p className="mb-0 fs-14">
-										Generados
+										Generated
 									</p>
 								</a>
 							</div>
@@ -228,7 +228,7 @@ export default class Inicio extends Component {
 							<div className="col-xl-12">
 								<div className="card">
 									<div className="card-header border-0 pb-0">
-										<h4 className="mb-0 fs-20 text-black">Mis Tokens</h4>
+										<h4 className="mb-0 fs-20 text-black">My Tokens</h4>
 
 									</div>
 									<div className="card-body">

@@ -9,7 +9,7 @@ export default class nftOficina extends Component {
     super(props);
 
     this.state = {
-      deposito: "Cargando...",
+      deposito: "Loading...",
       wallet: this.props.accountAddress,
       balanceBRUT: 0,
       precioBRUT: 0
@@ -96,7 +96,7 @@ export default class nftOficina extends Component {
           <button className="btn btn-success" onClick={async()=>{
             var contractMistery = await window.tronWeb.contract().at(cons.SC3);
             await contractMistery.claimNFT_especifico(index).send();
-         }}>Reclamar</button>
+         }}>Claim</button>
         )
       }else{
         recBotton = (<></>)

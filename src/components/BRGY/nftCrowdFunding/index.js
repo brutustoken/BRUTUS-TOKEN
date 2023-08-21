@@ -9,8 +9,8 @@ export default class nftCrowdFunding extends Component {
 
     this.state = {
 
-      mc: "Cargando...",
-      mb: "Cargando..."
+      mc: "Loading...",
+      mb: "Loading..."
     };
 
     this.compra = this.compra.bind(this);
@@ -85,14 +85,13 @@ export default class nftCrowdFunding extends Component {
 
       await contractMistery.buyMisteryBox().send();
 
-      window.alert("Mistery box comprada");
+      window.alert("Mistery box buyed!");
 
 
     }else{
 
       await contractAPENFT.approve(contractAddress, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
       
-      window.alert("por favor aprueba el balance para poder comprar la mistery Box");
 
     }
 
@@ -123,7 +122,7 @@ export default class nftCrowdFunding extends Component {
 
                 <br></br><br></br>
 
-                Mistery Box compradas: {this.state.mc}
+                Mistery Box buyed: {this.state.mc}
 
                 <br></br>
 
@@ -131,18 +130,18 @@ export default class nftCrowdFunding extends Component {
 
                   if(false){
 
-                    window.alert("por favor espera a la fecha anunciada para reclamar tu NFT")
+                    window.alert("please wait to claim your NFT")
 
                   }else{
                     var contractMistery = await window.tronWeb.contract().at(cons.SC3);
 
                     await contractMistery.claimNFT().send()
-                    .then(()=>{window.alert("NFT's enviados a tu wallet")})
-                    .catch(()=>{window.alert("Error al reclamar")})
+                    .then(()=>{window.alert("NFT's sended")})
+                    .catch(()=>{window.alert("Error to reclaim")})
                     
                   }
                   
-                  }}>Abrir {this.state.mb} Mistery Box</button>
+                  }}>Open {this.state.mb} Mistery Box</button>
             </div>
 
           </div>

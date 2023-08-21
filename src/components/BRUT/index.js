@@ -8,42 +8,42 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 const options = [
   {
-    label: "Horas",
+    label: "Hours",
     value: "hour",
   },
   {
-    label: "Diario",
+    label: "Daily",
     value: "day",
   },
   {
-    label: "Semanal",
+    label: "Weekly",
     value: "week",
   },
   {
-    label: "Mensual",
+    label: "Monthly",
     value: "month",
   },
 ];
 
 const options2 = [
   {
-    label: "Últimos 7 dias",
+    label: "Last 7 days",
     value: "7",
   },
   {
-    label: "Últimos 30 dias",
+    label: "Last 30 days",
     value: "30",
   },
   {
-    label: "Últimos 90 dias",
+    label: "Last 90 days",
     value: "90",
   },
   {
-    label: "Últimos 180 dias",
+    label: "Last 180 days",
     value: "180",
   },
   {
-    label: "Todos los datos",
+    label: "All data",
     value: "0",
   },
 ];
@@ -56,8 +56,8 @@ export default class Home extends Component {
 
       minCompra: 10,
       minventa: 1,
-      deposito: "Cargando...",
-      wallet: "Cargando...",
+      deposito: "Loading...",
+      wallet: "Loading...",
       valueBRUT: "",
       valueUSDT: "",
       value: "",
@@ -201,9 +201,9 @@ export default class Home extends Component {
     balanceUSDT = parseInt(balanceUSDT._hex)/10**6;
 
     if (aprovadoUSDT > 0) {
-      aprovadoUSDT = "Comprar "; 
+      aprovadoUSDT = "Buy "; 
     }else{
-      aprovadoUSDT = "Aprobar Compras"; 
+      aprovadoUSDT = "Approve Purchases"; 
       this.setState({
         valueUSDT: ""
       })
@@ -220,9 +220,9 @@ export default class Home extends Component {
     balanceBRUT = parseInt(balanceBRUT._hex)/10**6;
 
     if (aprovadoBRUT > 0) {
-      aprovadoBRUT = "Vender ";
+      aprovadoBRUT = "Sell ";
     }else{
-      aprovadoBRUT = "Aprobar Ventas";
+      aprovadoBRUT = "Approve Sales";
       this.setState({
         valueBRUT: ""
       })
@@ -271,7 +271,7 @@ export default class Home extends Component {
           await this.props.contrato.BRUT_USDT.comprar(amount).send();
 
         }else{
-          window.alert("Ingrese un monto mayor a "+minCompra+" USDT");
+          window.alert("Enter an amount greater than "+minCompra+" USDT");
           document.getElementById("amountUSDT").value = minCompra;
         }
 
@@ -286,10 +286,10 @@ export default class Home extends Component {
         if ( amount > aprovado) {
           if (aprovado <= 0) {
             document.getElementById("amountUSDT").value = minCompra;
-            window.alert("No tienen suficiente USDT");
+            window.alert("Not enough USDT");
           }else{
             document.getElementById("amountUSDT").value = minCompra;
-            window.alert("valor inválido");
+            window.alert("invalid value");
           }
 
 
@@ -297,7 +297,7 @@ export default class Home extends Component {
         }else{
 
           document.getElementById("amountUSDT").value = amount;
-          window.alert("valor inválido");
+          window.alert("invalid value");
 
         }
     }
@@ -333,7 +333,7 @@ export default class Home extends Component {
           await this.props.contrato.BRUT_USDT.vender(amount).send();
 
         }else{
-          window.alert("coloque un monto mayor a 10 USDT");
+          window.alert("place an amount greater than $10 USDT");
           document.getElementById("amountBRUT").value = 10;
         }
 
@@ -349,10 +349,10 @@ export default class Home extends Component {
         if ( amount > aprovado) {
           if (aprovado <= 0) {
             document.getElementById("amountBRUT").value = minventa;
-            window.alert("lo minimo para vender son "+minventa+" BRUT");
+            window.alert("the minimum requirements to sell are "+minventa+" BRUT");
           }else{
             document.getElementById("amountBRUT").value = minventa;
-            window.alert("valor inválido");
+            window.alert("invalid value");
           }
 
 
@@ -571,7 +571,7 @@ export default class Home extends Component {
                   <p className="font-w600 text-black sub-title">BRUT</p>
                 </div>
               </div>
-              <p > Brutus Token es un token basado en la red Tron cuyo valor está respaldado por una estrategia de trading automatizado. Esta estrategia se basa en el backtesting y la gestión de capital, y se implementa de manera automatizada mediante la utilización de algoritmos y estrategias previamente optimizadas para maximizar las ganancias y minimizar las pérdidas. El valor del Brutus Token se establece en relación con el USDT (Tether), lo que significa que el valor del token se mantiene estable en términos de dólares estadounidenses.</p>
+              <p > Brutus Token is a token based on the Tron network whose value is backed by an automated trading strategy. This strategy is based on backtesting and capital management, and is implemented in an automated manner using algorithms and strategies previously optimized to maximize profits and minimize losses. The value of the Brutus Token is set relative to the USDT (Tether), which means that the value of the token remains stable in US dollar terms.</p>
             </div>
           </div>
         </div>
@@ -582,22 +582,22 @@ export default class Home extends Component {
               <div className="row sp20 mb-4 align-items-center">
                 <div className="col-lg-4 col-xxl-4 col-sm-4 d-flex flex-wrap align-items-center">
                   <div className="px-2 info-group">
-                    <p className="fs-18 mb-1">Precio USDT</p>
+                    <p className="fs-18 mb-1">Price USDT</p>
                     <h2 className="fs-28 font-w600 text-black">$ {this.state.precioBRUT}</h2>
                   </div>
                 </div>
                 <div className="d-flex col-lg-8 col-xxl-8 col-sm-8 align-items-center mt-sm-0 mt-3 justify-content-end">
 
                   <div className="px-2 info-group">
-                    <p className="fs-14 mb-1">Respaldo USDT</p>
+                    <p className="fs-14 mb-1">Endorsement USDT</p>
                     <h3 className="fs-20 font-w600 text-black">{(this.state.enBrutus*1).toFixed(2)}</h3>
                   </div>
                   <div className="px-2 info-group">
-                    <p className="fs-14 mb-1">BRUT Efectivo</p>
+                    <p className="fs-14 mb-1">BRUT ready cash</p>
                     <h3 className="fs-20 font-w600 text-black">{(this.state.tokensEmitidos*1).toFixed(2)}</h3>
                   </div>
                   <div className="px-2 info-group">
-                    <p className="fs-14 mb-1">Circulando</p>
+                    <p className="fs-14 mb-1">Circulating</p>
                     <h3 className="fs-20 font-w600 text-black">{(this.state.totalCirculando*1).toFixed(2)}</h3>
                   </div>
                 </div>
@@ -623,8 +623,8 @@ export default class Home extends Component {
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
-                <h4 className="fs-20 text-black">Solicitud de intercambio</h4>
-                <p className="mb-0 fs-12">El retiro de los TRX desde el SR puede tomar hasta 3 dias en realizarse</p>
+                <h4 className="fs-20 text-black">Exchange request</h4>
+                <p className="mb-0 fs-12">Removal of the TRX from the SR can take up to 3 days to complete.</p>
               </div>
 
             </div>
@@ -649,7 +649,7 @@ export default class Home extends Component {
                   </div>
                   <div className="row mt-4 align-items-center">
                     <div className="col-sm-6 mb-3">
-                      <p className="mb-0 fs-14">Recomendamos mantener ~ 100 TRX para realizar las transacciones</p>
+                      <p className="mb-0 fs-14">We recommend keeping ~ 100 TRX for transactions.</p>
                     </div>
                     <div className="col-sm-6 text-sm-right text-start">
                       <button className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>

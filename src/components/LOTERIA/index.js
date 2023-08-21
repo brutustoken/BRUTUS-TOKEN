@@ -104,31 +104,31 @@ export default class nfts extends Component {
                         <h2>Brutus Lottery (BRLT)</h2>
                        
                         <div className="d-table mb-2">
-                          <p className="price float-start d-block">Premio: {this.state.premio} TRX</p>
+                          <p className="price float-start d-block">Award: {this.state.premio} TRX</p>
                         </div>
-                        <p>Próximo sorteo: <span className="item"> en 15 dias </span> <br />
-                          Ultimo ganador: <span className="item"> NFT # {this.state.LastWiner} </span>
+                        <p>Next draw: <span className="item"> in 15 days </span> <br />
+                          Last winner: <span className="item"> NFT # {this.state.LastWiner} </span>
                         </p>
-                        <p>Caracteristicas:&nbsp;&nbsp;
-                          <span className="badge badge-success light" style={{cursor: "pointer"}} data-bs-toggle="modal" data-bs-target="#reviewModal">Seguro</span>{" "}
-                          <span className="badge badge-success light">Refondeable</span>{" "}
-                          <span className="badge badge-success light">Aleatorio</span>{" "}
+                        <p>Features:&nbsp;&nbsp;
+                          <span className="badge badge-success light" style={{cursor: "pointer"}} data-bs-toggle="modal" data-bs-target="#reviewModal">Insurance</span>{" "}
+                          <span className="badge badge-success light">Refundable</span>{" "}
+                          <span className="badge badge-success light">Random</span>{" "}
                           <span className="badge badge-success light">Smartcontract</span>
                         </p>
-                        <p className="text-content">¡Participa en Brutus Lottery, la emocionante lotería en la que tu participación está garantizada y los premios se generan a partir del staking y alquiler de energía en TRX durante 15 días! Adquiere un NFT y obtén todos los boletos que quieras para aumentar tus posibilidades de ganar. ¡Únete ahora y prueba tu suerte!</p>
+                        <p className="text-content">Participate in Brutus Lottery, the exciting lottery where your participation is guaranteed and prizes are generated from staking and renting energy on TRX for 15 days! Purchase an NFT and get as many tickets as you want to increase your chances of winning - join now and try your luck!</p>
                         <div className="d-flex align-items-end flex-wrap mt-4">
                          
                           <div className="shopping-cart  mb-2 me-3">
                             <button className="btn btn-secondary" onClick={() => this.compra(false)}><i
-                              className="fa fa-shopping-basket me-2"></i>Comprar Boleto 100 TRX</button>
+                              className="fa fa-shopping-basket me-2"></i>Buy Ticket 100 TRX</button>
                           </div>
                         </div>
 
                         <p>
-                        <h4 className="my-1">Mis Boletos: {this.state.mc} BRLT</h4>
-                        <h4 className="my-1">Mi probabilidad: {(this.state.mc/this.state.totalNFT *100).toFixed(2)}%</h4>
+                        <h4 className="my-1">My Tickets: {this.state.mc} BRLT</h4>
+                        <h4 className="my-1">My probability: {(this.state.mc/this.state.totalNFT *100).toFixed(2)}%</h4>
 
-                          <h4 className="my-1">Ganado: {this.state.mb} TRX</h4>
+                          <h4 className="my-1">I have earned: {this.state.mb} TRX</h4>
                           <div className="shopping-cart  my-1 me-3">
                             <button className="btn btn-warning" onClick={async () => {
 
@@ -138,17 +138,17 @@ export default class nfts extends Component {
 
                               if (parseInt(claim) <= 0 || isNaN(claim)) {
 
-                                window.alert("por favor ingrese un numero valido para reclamar")
+                                window.alert("please enter a valid number to make a claim")
 
                               } else {
 
                                 await this.props.contrato.BRLT.reclamarValueNFT(claim).send()
-                                  .then(() => { window.alert("Ganancias enviadas a la wallet owner del NFT") })
-                                  .catch(() => { window.alert("Error al reclamar") })
+                                  .then(() => { window.alert("Profits sent to the NFT wallet owner") })
+                                  .catch(() => { window.alert("Error when claiming") })
 
                               }
 
-                            }}>Reclamar</button>
+                            }}>Claim</button>
 
                           </div>
                         </p>
@@ -166,12 +166,12 @@ export default class nfts extends Component {
             <div className="modal-dialog" role="document">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">¡Nunca pierdes!</h5>
+                  <h5 className="modal-title">You never lose!</h5>
                   <button type="button" className="btn-close" data-bs-dismiss="modal">
                   </button>
                 </div>
                 <div className="modal-body">
-                  <p> no pierdes por que el trx que ingresas pasa a producir ganancias con otros productos como BRST una vez tenemos utilidades se genera el sorteo aletorio por contrato y las utilidades generadas son entregadas a el poseedor del NFT de la Loteria</p>
+                  <p> you do not lose because the trx you enter goes on to produce profits with other products such as BRST once we have profits the random drawing is generated by contract and the profits generated are delivered to the Lottery NFT holder.</p>
                             
                 </div>
               </div>
@@ -184,13 +184,13 @@ export default class nfts extends Component {
             <div className="modal-dialog" role="document">
               <div className="modal-content">
                 <div className="modal-header">
-                  <h5 className="modal-title">¡Sopresa!</h5>
+                  <h5 className="modal-title">Surprise!</h5>
                   <button type="button" className="btn-close" data-bs-dismiss="modal">
                   </button>
                 </div>
                 <div className="modal-body">
-                  <p> Nos colaboras ayudando a que la loteria funcione y te retribuiremos con una pequeña recompensa, recomendamos que tengas ENERGIA y ANCHO DE BANDA para que no consumas TRX y sea realmente beneficioso.</p>
-                  <button className="btn btn-secondary" onClick={async()=>{let win = await this.props.contrato.loteria.sorteo(false).send(); console.log(win); alert("¡Gracias por ayudar! (#"+win+")"); this.estado()}} data-bs-dismiss="modal">Ayudar</button>
+                  <p> You collaborate helping us to make the lottery work and we will give you a small reward, we recommend that you have ENERGY and BANDWIDTH so that you do not consume TRX and it is really beneficial.</p>
+                  <button className="btn btn-secondary" onClick={async()=>{let win = await this.props.contrato.loteria.sorteo(false).send(); console.log(win); alert("Thanks for your help! (#"+win+")"); this.estado()}} data-bs-dismiss="modal">Ayudar</button>
                 </div>
               </div>
             </div>

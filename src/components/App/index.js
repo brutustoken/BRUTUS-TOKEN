@@ -210,7 +210,7 @@ class App extends Component {
       case "energy":
       case "bandwidth":
 
-        return <EBOT />
+        return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
     
       default:
