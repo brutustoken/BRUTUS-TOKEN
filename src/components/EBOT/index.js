@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
+
 export default class nfts extends Component {
 
   constructor(props) {
@@ -8,61 +10,59 @@ export default class nfts extends Component {
     this.state = {
 
       minCompra: 32000,
-      minventa: 32000,
       deposito: "Loading...",
       wallet: "Loading...",
-      valueBRUT: "",
-      valueUSDT: "",
-      value: "",
-      cantidad: 0,
-      tiempo: 0,
-      enBrutus: 0,
-      tokensEmitidos: 0,
-      enPool: 0,
-      solicitado: 0,
-      data: [],
-      precioBRST: "#.###",
-      solicitudes: 0,
-      temporalidad: "day",
-      cantidadDatos: 30,
-      dias: "Loading..."
+      precio: "",
+      wallet_orden: "",
+      cantidad: 32000,
+      periodo: 1,
+      temporalidad: "h",
+      available_bandwidth: 0,
+      available_energy: 0,
+      total_bandwidth_pool: 0,
+      total_energy_pool: 0,
 
     };
 
+    this.handleChangeEnergy = this.handleChangeEnergy.bind(this);
+    this.handleChangeBand = this.handleChangeBand.bind(this);
+    this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
 
-    this.handleChange = this.handleChange.bind(this);
-    this.handleChange2 = this.handleChange2.bind(this);
+    this.recursos = this.recursos.bind(this);
 
-    this.handleChangeBRUT = this.handleChangeBRUT.bind(this);
-    this.handleChangeUSDT = this.handleChangeUSDT.bind(this);
+    this.handleChangeWallet = this.handleChangeWallet.bind(this);
+    this.calcularRecurso = this.calcularRecurso.bind(this);
 
+    this.compra = this.compra.bind(this);
 
   }
 
-  handleChange(e) {
-    let evento = e.target.value;
-    this.grafico(500, evento, this.state.cantidadDatos);
-    this.setState({ temporalidad: evento });
+  componentDidMount() {
+    this.recursos()
   }
 
-  handleChange2(e) {
-    let evento = parseInt(e.target.value);
-    this.grafico(500, this.state.temporalidad, evento);
-    this.setState({ cantidadDatos: evento });
-  }
-
-
-  handleChangeBRUT(event) {
+  handleChangeWallet(event) {
     let dato = event.target.value;
-    let oper = dato * this.state.precioBRST;
-    oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
-      valueBRUT: dato,
-      valueUSDT: oper
+      wallet_orden: dato
     });
   }
 
-  handleChangeUSDT(event) {
+  handleChangePeriodo(event) {
+    let dato = event.target.value;
+    this.setState({
+      periodo: dato
+    });
+  }
+
+  handleChangeEnergy(event) {
+    let dato = event.target.value;
+    this.setState({
+      cantidad: dato
+    });
+  }
+
+  handleChangeBand(event) {
     let dato = event.target.value;
     let oper = dato / this.state.precioBRST
     oper = parseInt(oper * 1e6) / 1e6;
@@ -70,6 +70,110 @@ export default class nfts extends Component {
       valueUSDT: event.target.value,
       valueBRUT: oper,
     });
+  }
+
+  async recursos() {
+    var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available"
+    var consulta = await fetch(url)
+    consulta = (await consulta.json())
+
+    url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+
+    var body = { "resource": "energy", "amount": 32000, "duration": "1h" }
+
+    var consulta2 = await fetch(url, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+    consulta2 = (await consulta2.json())
+
+    //console.log(consulta2)
+
+    this.setState({
+      available_bandwidth: consulta.available_bandwidth,
+      available_energy: consulta.available_energy,
+      total_bandwidth_pool: consulta.total_bandwidth_pool,
+      total_energy_pool: consulta.total_energy_pool
+    });
+  }
+
+  async calcularRecurso(amount, time) {
+
+    var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+
+    var body = { "resource": "energy", "amount": amount, "duration": time }
+
+    var consulta2 = await fetch(url, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    })
+    consulta2 = (await consulta2.json())
+
+    this.setState({
+      precio: consulta2.price * 1.2
+    })
+
+    return consulta2.price * 1.2
+  }
+
+  async compra() {
+    await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
+    if (this.state.wallet_orden === "" || !window.tronWeb.isAddress(this.state.wallet_orden)) {
+      this.setState({
+        wallet_orden: this.props.accountAddress
+      })
+    }
+    alert("really buy "+this.state.cantidad+" Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden + ", please sing the next transacction")
+    var hash = await window.tronWeb.trx.sendTransaction("TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26", window.tronWeb.toSun(this.state.precio));
+    await delay(3);
+    console.log(hash)
+
+    var envio = hash.transaction.raw_data.contract[0].parameter.value
+
+    if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === "TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26") {
+
+      hash = await window.tronWeb.trx.getTransaction(hash.txid);
+      console.log(hash)
+      if (hash.ret[0].contractRet === "SUCCESS") {
+
+        var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
+
+        var body = {
+          "id_api": process.env.REACT_APP_USER_ID,
+          "wallet": this.state.wallet_orden,
+          "amount": this.state.cantidad,
+          "time": this.state.periodo + this.state.temporalidad,
+          "user_id": "1999"
+        }
+
+        var consulta2 = await fetch(url, {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+        consulta2 = (await consulta2.json())
+
+        console.log(consulta2)
+
+        alert("all corect enjoy energy")
+
+      } else {
+        alert("Please contact support for: Error SUC-808831")
+      }
+
+      
+    } else {
+      alert("Please contact support")
+    }
   }
 
   render() {
@@ -121,12 +225,12 @@ export default class nfts extends Component {
             <div className="form-head mb-sm-5 mb-3 d-flex flex-wrap align-items-center">
               <h2 className="font-w600 title mb-2 me-auto ">Rental Dashboard</h2>
               <div className="weather-btn mb-2">
-                <span className="me-3 font-w600 text-white"><i className="bi bi-lightning-charge"></i>150000000</span>
+                <span className="me-3 font-w600 text-white"><i className="bi bi-lightning-charge"></i>{this.state.available_energy}</span>
                 <select className="form-control style-1 default-select  me-3 ">
                   <option className="text-dark">Energy</option>
                 </select>
 
-                <span className="me-3 font-w600 text-white"><i className="bi bi-wifi"></i>10000</span>
+                <span className="me-3 font-w600 text-white"><i className="bi bi-wifi"></i>{this.state.available_bandwidth}</span>
                 <select className="form-control style-1 default-select  me-3 ">
                   <option className="text-dark">Bandwidth</option>
                 </select>
@@ -139,7 +243,7 @@ export default class nfts extends Component {
             <div className="card">
               <div className="card-header d-sm-flex d-block pb-0 border-0">
                 <div>
-                  <h4 className="fs-20 text-black">Resources</h4>
+                  <h4 className="fs-20 text-black">Rent Energy</h4>
 
                 </div>
 
@@ -150,31 +254,37 @@ export default class nfts extends Component {
                     <div className="form-group">
                       <div className="input-group input-group-lg">
                         <div className="input-group-prepend">
-                          <span className="input-group-text" style={{ cursor: "pointer" }} onClick={() => this.llenarBRST()} >Wallet: {this.state.balanceBRUT}</span>
+                          <span className="input-group-text" style={{ cursor: "pointer" }}>Wallet:</span>
                         </div>
-                        <input type="number" className="form-control" id="amountBRUT" placeholder={this.props.accountAddress} />
+                        <input type="text" className="form-control" id="wallet_orden" onChange={this.handleChangeWallet} placeholder={this.props.accountAddress} value={this.state.wallet_orden} />
                       </div>
                     </div>
                     <div className="form-group">
                       <div className="input-group input-group-lg">
                         <div className="input-group-prepend">
-                          <span className="input-group-text" style={{ cursor: "pointer" }} onClick={() => this.llenarBRST()} >Amount: {this.state.balanceBRUT}</span>
+                          <span className="input-group-text" style={{ cursor: "pointer" }} >Amount:</span>
                         </div>
-                        <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={100000} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} />
+                        <input type="number" className="form-control" id="amount_resource" onChange={this.handleChangeEnergy} placeholder={this.state.minCompra} min={this.state.minCompra} max={this.state.available_energy} />
                       </div>
                     </div>
                     <div className="form-group">
                       <div className="input-group input-group-lg">
                         <div className="input-group-prepend">
-                          <span className="input-group-text " style={{ cursor: "pointer" }} onClick={() => this.llenarUSDT()} >Period: {this.state.balanceUSDT}</span>
+                          <span className="input-group-text " style={{ cursor: "pointer" }} >Period: </span>
                         </div>
-                        <input type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={100000} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
-                        <div class="form-check mx-2">
+                        <input type="number" className="form-control" id="period" onChange={this.handleChangePeriodo} placeholder={"Default: 1 (hour)"} />
+                        <div className="form-check mx-2">
 
-                          <label class="form-check-label">
-                            Hours
+                          <label className="form-check-label">
+                            Days
                           </label>
-                          <input class="form-check-input" type="checkbox" />
+                          <input className="form-check-input" type="checkbox" onChange={() => {
+                            if (this.state.temporalidad == "h") {
+                              this.setState({ temporalidad: "d" })
+                            } else {
+                              this.setState({ temporalidad: "h" })
+                            }
+                          }} />
 
                         </div>
                       </div>
@@ -182,35 +292,23 @@ export default class nfts extends Component {
                     <div className="form-group">
                       <div className="input-group input-group-lg">
                         <div className="input-group-prepend">
-                          <span className="input-group-text " style={{ cursor: "pointer" }} onClick={() => this.llenarUSDT()} >Total: {this.state.balanceUSDT}</span>
+                          <span className="input-group-text " style={{ cursor: "pointer" }} >Total TRX:</span>
                         </div>
-                        <input readOnly type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={100000} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} /><button className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
-                          BUY &nbsp; <i class="bi bi-bag"></i>
-                        </button>
+                        <input readOnly type="number" className="form-control" id="amountUSDT" placeholder={"Calculating..."} value={this.state.precio} />
+                        <a className="btn  btn-warning text-white mb-2" onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)}>
+                          Calculate &nbsp; <i className="bi bi-sun"></i>
+                        </a>
+                        <a className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
+                          BUY &nbsp; <i className="bi bi-bag"></i>
+                        </a>
                       </div>
                     </div>
                     <div className="row mt-4 align-items-center">
                       <div className="col-sm-6 mb-3">
                         <p className="mb-0 fs-14">We recommend keeping ~100 TRX or <a href="?ebot">energy</a> to trade</p>
                       </div>
-                      <div className="col-sm-6 text-sm-right text-start">
-
-
-                        <p className="mb-0 fs-12">To withdraw the TRX from the SR we have </p>
-                      </div>
                     </div>
-                    <div className="form-group">
-                      <div className="input-group input-group-lg">
-                        <div className="input-group-prepend">
-                          <span className="input-group-text " style={{ cursor: "pointer" }} onClick={() => this.llenarUSDT()} >Hash to confirm order: {this.state.balanceUSDT}</span>
-                        </div>
-                        <input type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={100000} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
-                        <button className="btn btn-primary text-white mb-2" onClick={() => this.compra()}>
-                          Confirm &nbsp;
-                          <i class="bi bi-check-square"></i>
-                        </button>
-                      </div>
-                    </div>
+
                   </form>
                 </div>
               </div>
