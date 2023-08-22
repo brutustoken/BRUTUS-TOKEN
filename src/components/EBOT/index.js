@@ -295,6 +295,12 @@ export default class nfts extends Component {
                           <span className="input-group-text " style={{ cursor: "pointer" }} >Total TRX:</span>
                         </div>
                         <input readOnly type="number" className="form-control" id="amountUSDT" placeholder={"Calculating..."} value={this.state.precio} />
+                        
+                      </div>
+                    </div>
+                    <div className="form-group">
+                      <div className="input-group input-group-lg">
+                       
                         <a className="btn  btn-warning text-white mb-2" onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)}>
                           Calculate &nbsp; <i className="bi bi-sun"></i>
                         </a>
