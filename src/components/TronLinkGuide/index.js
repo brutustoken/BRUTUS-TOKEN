@@ -50,7 +50,7 @@ export default class TronLinkGuide extends Component {
             <div className='tronLink row' style={{'padding': '3em','decoration':'none','color':'white'}} >
 
                 <div className='info col-sm-8'>
-                    <h1>Unlick your wallet</h1>
+                    <h1>Unlock wallet</h1>
                     <p>
                     TronLink is installed. Open TronLink from your browser bar if you haven't already set up your first wallet from scratch,
                          If you already have a wallet with funds, just unlock the wallet to use this page.

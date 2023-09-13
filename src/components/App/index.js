@@ -83,7 +83,7 @@ class App extends Component {
 
         if(this.state.contrato.BRST == null){
 
-          //window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
+          window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
 
           contrato = {};
 
@@ -97,7 +97,6 @@ class App extends Component {
             contrato.BRUT =  await window.tronWeb.contract().at(cons.BRUT);
           }
           
-
           if(cons.SC2 !== ""){
             contrato.BRST_TRX = await window.tronWeb.contract().at(cons.SC2);
           }

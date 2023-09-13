@@ -21,6 +21,8 @@ export default class nfts extends Component {
       available_energy: 0,
       total_bandwidth_pool: 0,
       total_energy_pool: 0,
+      titulo: "Titulo",
+      body: "Cuerpo del mensaje"
 
     };
 
@@ -36,8 +38,8 @@ export default class nfts extends Component {
     this.compra = this.compra.bind(this);
 
   }
-
-  componentDidMount() {
+  
+  componentDidMount(){
     this.recursos()
   }
 
@@ -77,6 +79,7 @@ export default class nfts extends Component {
     var consulta = await fetch(url)
     consulta = (await consulta.json())
 
+    /*
     url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
 
     var body = { "resource": "energy", "amount": 32000, "duration": "1h" }
@@ -91,7 +94,7 @@ export default class nfts extends Component {
     consulta2 = (await consulta2.json())
 
     //console.log(consulta2)
-
+*/
     this.setState({
       available_bandwidth: consulta.available_bandwidth,
       available_energy: consulta.available_energy,
@@ -116,10 +119,10 @@ export default class nfts extends Component {
     consulta2 = (await consulta2.json())
 
     this.setState({
-      precio: consulta2.price * 1.2
+      precio: consulta2.price * 1.1
     })
 
-    return consulta2.price * 1.2
+    return consulta2.price * 1.1
   }
 
   async compra() {
@@ -129,50 +132,105 @@ export default class nfts extends Component {
         wallet_orden: this.props.accountAddress
       })
     }
-    alert("really buy "+this.state.cantidad+" Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden + ", please sing the next transacction")
+    var si = window.confirm("really buy "+this.state.cantidad+" Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden + ", please sing the next transacction")
+    
+    if(si){
+
+      this.setState({
+        titulo: "Confirm transaction",
+        body: "Please confirm the transaction from your wallet"
+      })
+
+      window.$("#mensaje-ebot").modal("show");
+
     var hash = await window.tronWeb.trx.sendTransaction("TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26", window.tronWeb.toSun(this.state.precio));
-    await delay(3);
-    console.log(hash)
 
-    var envio = hash.transaction.raw_data.contract[0].parameter.value
+    this.setState({
+      titulo: "Waiting for the blockchain",
+      body: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute."
+    })
 
-    if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === "TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26") {
+    window.$("#mensaje-ebot").modal("show");
 
-      hash = await window.tronWeb.trx.getTransaction(hash.txid);
-      console.log(hash)
-      if (hash.ret[0].contractRet === "SUCCESS") {
+      await delay(3);
 
-        var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
+      var envio = hash.transaction.raw_data.contract[0].parameter.value
 
-        var body = {
-          "id_api": process.env.REACT_APP_USER_ID,
-          "wallet": this.state.wallet_orden,
-          "amount": this.state.cantidad,
-          "time": this.state.periodo + this.state.temporalidad,
-          "user_id": "1999"
+      this.setState({
+        titulo: "we are verifying",
+        body: "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
+      })
+  
+      window.$("#mensaje-ebot").modal("show");
+
+      if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === "TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26") {
+
+        hash = await window.tronWeb.trx.getTransaction(hash.txid);
+        console.log(hash)
+        if (hash.ret[0].contractRet === "SUCCESS") {
+
+          var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
+
+          var body = {
+            "id_api": process.env.REACT_APP_USER_ID,
+            "wallet": this.state.wallet_orden,
+            "amount": this.state.cantidad,
+            "time": this.state.periodo + this.state.temporalidad,
+            "user_id": "1999"
+          }
+
+          var consulta2 = await fetch(url, {
+            method: "POST",
+            headers: {
+              'token-api': process.env.REACT_APP_TOKEN,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          })
+          consulta2 = (await consulta2.json())
+
+          console.log(consulta2)
+
+          if(consulta2){
+
+            this.setState({
+              titulo: "Completed successfully",
+              body: "Energy rental completed successfully. Thank you!"
+            })
+        
+            window.$("#mensaje-ebot").modal("show");
+
+          }else{
+
+            this.setState({
+              titulo: "Contact support",
+              body: "Please contact support for: Error AP-0032 # "+hash.txid
+            })
+        
+            window.$("#mensaje-ebot").modal("show");
+
+          }
+
+
+
+        } else {
+          this.setState({
+            titulo: "Contact support",
+            body: "Please contact support for: Error SUC-808831"
+          })
+      
+          window.$("#mensaje-ebot").modal("show");
         }
 
-        var consulta2 = await fetch(url, {
-          method: "POST",
-          headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        })
-        consulta2 = (await consulta2.json())
-
-        console.log(consulta2)
-
-        alert("all corect enjoy energy")
-
+        
       } else {
-        alert("Please contact support for: Error SUC-808831")
+        this.setState({
+          titulo: "Contact support",
+          body: "Please contact support for: Error NN-0001"
+        })
+    
+        window.$("#mensaje-ebot").modal("show");
       }
-
-      
-    } else {
-      alert("Please contact support")
     }
   }
 
@@ -190,7 +248,7 @@ export default class nfts extends Component {
             <div className="card">
               <div className="card-body">
                 <div className="row justify-content-center">
-                  <div className="col-4">
+                  <div className="col-md-4 col-sm-12">
                     <a href="https://t.me/BRUTUS_ENERGY" style={{ color: "white" }}>
                       <img className="img-fluid pe-3 pb-4" align="left" src="assets/img/breb.png" alt="brutus energy bot" />
                       <h4 className="text-white" align="center">
@@ -200,7 +258,7 @@ export default class nfts extends Component {
                     </a>
                   </div>
 
-                  <div className="col-8">
+                  <div className="col-md-8 col-sm-12">
                     <p className="text-content">The team that won a prize at the Tron hackathon is back with an improved version. Discover the innovative "Brutus Energy bot. This revolutionary bot offers you the opportunity to rent energy and bandwidth at the best price on the market. With flexible 1-hour trades and non-blocking orders, you can take full advantage of Tron's staking 2.0.
                       <br /><br />
                       Outstanding benefits:
@@ -279,7 +337,7 @@ export default class nfts extends Component {
                             Days
                           </label>
                           <input className="form-check-input" type="checkbox" onChange={() => {
-                            if (this.state.temporalidad == "h") {
+                            if (this.state.temporalidad === "h") {
                               this.setState({ temporalidad: "d" })
                             } else {
                               this.setState({ temporalidad: "h" })
@@ -301,17 +359,17 @@ export default class nfts extends Component {
                     <div className="form-group">
                       <div className="input-group input-group-lg">
                        
-                        <a className="btn  btn-warning text-white mb-2" onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)}>
+                        <div className="btn  btn-warning text-white mb-2" onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo+this.state.temporalidad)}>
                           Calculate &nbsp; <i className="bi bi-sun"></i>
-                        </a>
-                        <a className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
+                        </div>
+                        <div className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
                           BUY &nbsp; <i className="bi bi-bag"></i>
-                        </a>
+                        </div>
                       </div>
                     </div>
                     <div className="row mt-4 align-items-center">
                       <div className="col-sm-6 mb-3">
-                        <p className="mb-0 fs-14">We recommend keeping ~100 TRX or <a href="?ebot">energy</a> to trade</p>
+                        <p className="mb-0 fs-14">We recommend keeping ~10 TRX or <a href="?ebot">energy</a> to trade</p>
                       </div>
                     </div>
 
@@ -338,6 +396,21 @@ export default class nfts extends Component {
 
         </div>
 
+        <div className="modal fade" id="mensaje-ebot">
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">{this.state.titulo}</h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal">
+                </button>
+              </div>
+              <div className="modal-body">
+                <p>{this.state.body}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="modal fade" id="regalo">
           <div className="modal-dialog" role="document">
             <div className="modal-content">
@@ -352,6 +425,7 @@ export default class nfts extends Component {
             </div>
           </div>
         </div>
+
       </>
     );
   }
