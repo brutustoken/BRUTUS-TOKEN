@@ -38,8 +38,8 @@ export default class nfts extends Component {
     this.compra = this.compra.bind(this);
 
   }
-  
-  componentDidMount(){
+
+  componentDidMount() {
     this.recursos()
   }
 
@@ -132,9 +132,9 @@ export default class nfts extends Component {
         wallet_orden: this.props.accountAddress
       })
     }
-    var si = window.confirm("really buy "+this.state.cantidad+" Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden + ", please sing the next transacction")
-    
-    if(si){
+    var si = window.confirm("really buy " + this.state.cantidad + " Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden + ", please sing the next transacction")
+
+    if (si) {
 
       this.setState({
         titulo: "Confirm transaction",
@@ -143,14 +143,14 @@ export default class nfts extends Component {
 
       window.$("#mensaje-ebot").modal("show");
 
-    var hash = await window.tronWeb.trx.sendTransaction("TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26", window.tronWeb.toSun(this.state.precio));
+      var hash = await window.tronWeb.trx.sendTransaction("TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26", window.tronWeb.toSun(this.state.precio));
 
-    this.setState({
-      titulo: "Waiting for the blockchain",
-      body: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute."
-    })
+      this.setState({
+        titulo: "Waiting for the blockchain",
+        body: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute."
+      })
 
-    window.$("#mensaje-ebot").modal("show");
+      window.$("#mensaje-ebot").modal("show");
 
       await delay(3);
 
@@ -160,7 +160,7 @@ export default class nfts extends Component {
         titulo: "we are verifying",
         body: "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
       })
-  
+
       window.$("#mensaje-ebot").modal("show");
 
       if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === "TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26") {
@@ -191,22 +191,22 @@ export default class nfts extends Component {
 
           console.log(consulta2)
 
-          if(consulta2){
+          if (consulta2) {
 
             this.setState({
               titulo: "Completed successfully",
               body: "Energy rental completed successfully. Thank you!"
             })
-        
+
             window.$("#mensaje-ebot").modal("show");
 
-          }else{
+          } else {
 
             this.setState({
               titulo: "Contact support",
-              body: "Please contact support for: Error AP-0032 # "+hash.txid
+              body: "Please contact support for: Error AP-0032 # " + hash.txid
             })
-        
+
             window.$("#mensaje-ebot").modal("show");
 
           }
@@ -218,17 +218,17 @@ export default class nfts extends Component {
             titulo: "Contact support",
             body: "Please contact support for: Error SUC-808831"
           })
-      
+
           window.$("#mensaje-ebot").modal("show");
         }
 
-        
+
       } else {
         this.setState({
           titulo: "Contact support",
           body: "Please contact support for: Error NN-0001"
         })
-    
+
         window.$("#mensaje-ebot").modal("show");
       }
     }
@@ -241,71 +241,36 @@ export default class nfts extends Component {
 
         <div className="row mx-0 ">
           <div className="col-lg-12">
-            <h1>BRUTUS ENERGY BOT</h1>
-          </div>
-
-          <div className="col-lg-12">
-            <div className="card">
-              <div className="card-body">
-                <div className="row justify-content-center">
-                  <div className="col-md-4 col-sm-12">
-                    <a href="https://t.me/BRUTUS_ENERGY" style={{ color: "white" }}>
-                      <img className="img-fluid pe-3 pb-4" align="left" src="assets/img/breb.png" alt="brutus energy bot" />
-                      <h4 className="text-white" align="center">
-                        @BRUTUS_ENERGY
-                        <img src="images/telegram.png" width="50px" alt="telegram logo" />
-                      </h4>
-                    </a>
-                  </div>
-
-                  <div className="col-md-8 col-sm-12">
-                    <p className="text-content">The team that won a prize at the Tron hackathon is back with an improved version. Discover the innovative "Brutus Energy bot. This revolutionary bot offers you the opportunity to rent energy and bandwidth at the best price on the market. With flexible 1-hour trades and non-blocking orders, you can take full advantage of Tron's staking 2.0.
-                      <br /><br />
-                      Outstanding benefits:
-                      <br /><br />
-                      Lease power and bandwidth at the best price in the market.
-                      Trade flexibly in 1-hour periods to suit your needs.
-                      Place orders without blocking, maintaining full control of your resources.
-                      Renew your orders and get additional discounts to maximize your profits.
-                      <br /><br /> <br />
-                      Join our bot on Telegram and discover an efficient and cost-effective way to rent energy and bandwidth with the powerful "Brutus Energy".
-                    </p>
-
-
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-12">
             <div className="form-head mb-sm-5 mb-3 d-flex flex-wrap align-items-center">
-              <h2 className="font-w600 title mb-2 me-auto ">Rental Dashboard</h2>
-              <div className="weather-btn mb-2">
-                <span className="me-3 font-w600 text-white"><i className="bi bi-lightning-charge"></i>{this.state.available_energy}</span>
-                <select className="form-control style-1 default-select  me-3 ">
-                  <option className="text-dark">Energy</option>
-                </select>
-
-                <span className="me-3 font-w600 text-white"><i className="bi bi-wifi"></i>{this.state.available_bandwidth}</span>
-                <select className="form-control style-1 default-select  me-3 ">
-                  <option className="text-dark">Bandwidth</option>
-                </select>
-              </div>
+              <h1 className="font-w600 title mb-2 me-auto ">Rental Dashboard</h1>
 
             </div>
           </div>
 
           <div className="col-xl-6 col-xxl-12">
+
             <div className="card">
-              <div className="card-header d-sm-flex d-block pb-0 border-0">
-                <div>
-                  <h4 className="fs-20 text-black">Rent Energy</h4>
 
+              <div class="row m-4">
+
+                <div class="col-6">
+                  <div class="">
+                    <h3 className="text-white">{(this.state.available_energy).toLocaleString('en-US')} <i className="bi bi-lightning-charge"></i> Energy</h3>
+                  </div>
+                  <div class="progress">
+                    <div class="progress-bar bg-info" style={{ "width": (this.state.available_energy*100/this.state.total_energy_pool)+"%" }}></div>
+                  </div>
                 </div>
-
+                <div class="col-6">
+                  <div class="">
+                    <h3 className="text-white">{(this.state.available_bandwidth).toLocaleString('en-US')} <i className="bi bi-wifi"></i> Bandwitdh</h3>
+                  </div>
+                  <div class="progress">
+                    <div class="progress-bar bg-warning" style={{ "width": (this.state.available_bandwidth*100/this.state.total_bandwidth_pool)+"%" }}></div>
+                  </div>
+                </div>
               </div>
+
               <div className="card-body">
                 <div className="basic-form">
                   <form className="form-wrapper">
@@ -353,13 +318,13 @@ export default class nfts extends Component {
                           <span className="input-group-text " style={{ cursor: "pointer" }} >Total TRX:</span>
                         </div>
                         <input readOnly type="number" className="form-control" id="amountUSDT" placeholder={"Calculating..."} value={this.state.precio} />
-                        
+
                       </div>
                     </div>
                     <div className="form-group">
                       <div className="input-group input-group-lg">
-                       
-                        <div className="btn  btn-warning text-white mb-2" onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo+this.state.temporalidad)}>
+
+                        <div className="btn  btn-warning text-white mb-2" onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)}>
                           Calculate &nbsp; <i className="bi bi-sun"></i>
                         </div>
                         <div className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
@@ -378,18 +343,49 @@ export default class nfts extends Component {
               </div>
             </div>
           </div>
+          <div className="col-lg-12">
+            <h2>Brutus Energy Bot</h2>
+          </div>
 
-          <div className="modal fade" id="reviewModal">
-            <div className="modal-dialog" role="document">
-              <div className="modal-content">
-                <div className="modal-header">
-                  <h5 className="modal-title">¡Nunca pierdes!</h5>
-                  <button type="button" className="btn-close" data-bs-dismiss="modal">
-                  </button>
+          <div className="col-lg-12">
+            <div className="card">
+              <div className="card-body">
+                <div className="row justify-content-center">
+                  <div className="col-md-4 col-sm-12">
+                    <div className="row">
+                      <div className="col-12">
+                        <a href="https://t.me/BRUTUS_ENERGY" style={{ color: "white" }}>
+                          <img className="img-fluid pe-3 pb-4" align="left" src="assets/img/breb.png" alt="brutus energy bot" />
+                        </a>
+                      </div>
+                      <div className="col-12">
+                        <a href="https://t.me/BRUTUS_ENERGY" style={{ color: "white" }}>
+                          <h4 className="text-white" align="center">
+                            @BRUTUS_ENERGY
+                            <img src="images/telegram.png" width="50px" alt="telegram logo" />
+                          </h4>
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-md-8 col-sm-12">
+                    <p className="text-content">The team that won a prize at the Tron hackathon is back with an improved version. Discover the innovative "Brutus Energy bot. This revolutionary bot offers you the opportunity to rent energy and bandwidth at the best price on the market. With flexible 1-hour trades and non-blocking orders, you can take full advantage of Tron's staking 2.0.
+                      <br /><br />
+                      Outstanding benefits:
+                      <br /><br />
+                      Lease power and bandwidth at the best price in the market.
+                      Trade flexibly in 1-hour periods to suit your needs.
+                      Place orders without blocking, maintaining full control of your resources.
+                      Renew your orders and get additional discounts to maximize your profits.
+                      <br /><br /> <br />
+                      Join our bot on Telegram and discover an efficient and cost-effective way to rent energy and bandwidth with the powerful "Brutus Energy".
+                    </p>
+
+
+                  </div>
                 </div>
-                <div className="modal-body">
-                  <p> no pierdes por que el trx que ingresas pasa a producir ganancias con otros productos como BRST una vez tenemos utilidades se genera el sorteo aletorio por contrato y las utilidades generadas son entregadas a el poseedor del NFT de la Loteria</p>
-                </div>
+
               </div>
             </div>
           </div>
@@ -421,6 +417,21 @@ export default class nfts extends Component {
               </div>
               <div className="modal-body">
                 <p> Nos colaboras ayudando a que la loteria funcione y te retribuiremos con una pequeña recompensa, recomendamos que tengas ENERGIA y ANCHO DE BANDA para que no consumas TRX y sea realmente beneficioso.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="modal fade" id="reviewModal">
+          <div className="modal-dialog" role="document">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">¡Nunca pierdes!</h5>
+                <button type="button" className="btn-close" data-bs-dismiss="modal">
+                </button>
+              </div>
+              <div className="modal-body">
+                <p> no pierdes por que el trx que ingresas pasa a producir ganancias con otros productos como BRST una vez tenemos utilidades se genera el sorteo aletorio por contrato y las utilidades generadas son entregadas a el poseedor del NFT de la Loteria</p>
               </div>
             </div>
           </div>
