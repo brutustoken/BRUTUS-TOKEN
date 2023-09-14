@@ -354,14 +354,14 @@ export default class nfts extends Component {
                   <div className="col-md-4 col-sm-12">
                     <div className="row">
                       <div className="col-12">
-                        <a href="https://t.me/BRUTUS_ENERGY" style={{ color: "white" }}>
+                        <a href="https://t.me/BRUTUS_ENERGY_BOT" style={{ color: "white" }}>
                           <img className="img-fluid pe-3 pb-4" align="left" src="assets/img/breb.png" alt="brutus energy bot" />
                         </a>
                       </div>
                       <div className="col-12">
-                        <a href="https://t.me/BRUTUS_ENERGY" style={{ color: "white" }}>
+                        <a href="https://t.me/BRUTUS_ENERGY_BOT" style={{ color: "white" }}>
                           <h4 className="text-white" align="center">
-                            @BRUTUS_ENERGY
+                            @BRUTUS_ENERGY_BOT
                             <img src="images/telegram.png" width="50px" alt="telegram logo" />
                           </h4>
                         </a>
