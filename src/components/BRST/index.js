@@ -222,13 +222,19 @@ export default class Staking extends Component {
     var precioBRST = await this.consultarPrecio();
 
     var deposito = await this.props.contrato.BRST_TRX.todasSolicitudes(accountAddress).call();
+
     var myids = []
+    var myidsAll = []
+
     for (let index = 0; index < deposito.completado.length; index++) {
       if (!deposito.completado[index]) {
         myids.push(parseInt(deposito.id[index]._hex));
       }
 
+      myidsAll.push(parseInt(deposito.id[index]._hex));
+
     }
+
 
     var deposits = await this.props.contrato.BRST_TRX.solicitudesPendientesGlobales().call();
     var globDepositos = [];
@@ -270,6 +276,7 @@ export default class Staking extends Component {
         boton = (<>
           <button className="btn btn-danger ms-4 mb-2" title="You only have 24 hours to cancel your order after this time you will not be able to cancel it" onClick={async () => {
             await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: 0 });
+            this.estado()
           }}>
             Cancel {" "} <i className="bi bi-x-lg"></i>
           </button>
@@ -286,9 +293,12 @@ export default class Staking extends Component {
       }
 
       if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) {
+
+        console.log(myidsAll.indexOf(parseInt(deposits[index]._hex)))
         boton = (
-          <button className="btn btn-primary ms-4 mb-2" aria-disabled="true" title="You only have 24 hours to cancel your order after this time you will not be able to cancel it" onClick={async () => {
-            await this.props.contrato.BRST_TRX.retirar(parseInt(deposits[index]._hex)).send();
+          <button className="btn btn-primary ms-4 mb-2" aria-disabled="true" onClick={async () => {
+            await this.props.contrato.BRST_TRX.retirar(myidsAll.indexOf(parseInt(deposits[index]._hex))).send();
+            this.estado()
           }}>
             Claim {" "} <i className="bi bi-award"></i>
           </button>
