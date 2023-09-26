@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
-export default class nfts extends Component {
+export default class EnergyRental extends Component {
 
   constructor(props) {
     super(props);
@@ -95,9 +95,11 @@ export default class nfts extends Component {
 
     //console.log(consulta2)
 */
+
+console.log(consulta)
     this.setState({
-      available_bandwidth: consulta.available_bandwidth,
-      available_energy: consulta.available_energy,
+      available_bandwidth: consulta["BANDWIDTH_-_Rental_duration_more_than_3_days"],
+      available_energy: consulta["ENERGY_-_Rental_duration_more_than_3_days"],
       total_bandwidth_pool: consulta.total_bandwidth_pool,
       total_energy_pool: consulta.total_energy_pool
     });
@@ -105,24 +107,68 @@ export default class nfts extends Component {
 
   async calcularRecurso(amount, time) {
 
+    var ok = true;
+
     var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
 
-    var body = { "resource": "energy", "amount": amount, "duration": time }
+    time = time.split("d")
 
-    var consulta2 = await fetch(url, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-    consulta2 = (await consulta2.json())
+    if(time.length >= 2){
 
-    this.setState({
-      precio: consulta2.price * 1.1
-    })
+      if(parseInt(time[0]) < 1 || parseInt(time[0]) > 14){
+        this.setState({
+          titulo: "Error Range",
+          body: "Please enter a range of values between 1 and 14 days"
+        })
 
-    return consulta2.price * 1.1
+        ok = false;
+  
+        window.$("#mensaje-ebot").modal("show");
+      }
+    }else{
+
+      if(parseInt(time[0]) !== 1){
+        this.setState({
+          titulo: "Error Range",
+          body: "It is only available for 1 hour operations",
+          periodo: "1"
+        })
+
+        ok = false;
+  
+        window.$("#mensaje-ebot").modal("show");
+      }
+
+    }
+
+
+    time = time[0]
+
+    if(parseInt(time) > 0 && ok ){
+      var body = { "resource": "energy", "amount": amount, "duration": time }
+
+      var consulta2 = await fetch(url, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+
+      consulta2 = (await consulta2.json())
+
+      this.setState({
+        precio: consulta2.price * 1.1
+      })
+
+      return consulta2.price * 1.1
+    }else{
+      this.setState({
+        precio: 0
+      })
+
+      return 0
+    }
   }
 
   async compra() {
@@ -189,8 +235,6 @@ export default class nfts extends Component {
           })
           consulta2 = (await consulta2.json())
 
-          console.log(consulta2)
-
           if (consulta2) {
 
             this.setState({
@@ -251,22 +295,22 @@ export default class nfts extends Component {
 
             <div className="card">
 
-              <div class="row m-4">
+              <div className="row m-4">
 
-                <div class="col-6">
-                  <div class="">
+                <div className="col-md-6 col-sm-12">
+                  <div className="">
                     <h3 className="text-white">{(this.state.available_energy).toLocaleString('en-US')} <i className="bi bi-lightning-charge"></i> Energy</h3>
                   </div>
-                  <div class="progress">
-                    <div class="progress-bar bg-info" style={{ "width": (this.state.available_energy*100/this.state.total_energy_pool)+"%" }}></div>
+                  <div className="progress">
+                    <div className="progress-bar bg-info" style={{ "width": (this.state.available_energy*100/this.state.total_energy_pool)+"%" }}></div>
                   </div>
                 </div>
-                <div class="col-6">
-                  <div class="">
+                <div className="col-md-6 col-sm-12">
+                  <div className="">
                     <h3 className="text-white">{(this.state.available_bandwidth).toLocaleString('en-US')} <i className="bi bi-wifi"></i> Bandwitdh</h3>
                   </div>
-                  <div class="progress">
-                    <div class="progress-bar bg-warning" style={{ "width": (this.state.available_bandwidth*100/this.state.total_bandwidth_pool)+"%" }}></div>
+                  <div className="progress">
+                    <div className="progress-bar bg-warning" style={{ "width": (this.state.available_bandwidth*100/this.state.total_bandwidth_pool)+"%" }}></div>
                   </div>
                 </div>
               </div>
