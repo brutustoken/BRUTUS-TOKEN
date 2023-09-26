@@ -157,11 +157,14 @@ console.log(consulta)
 
       consulta2 = (await consulta2.json())
 
+      var precio = consulta2.price * 1.1
+      precio = parseInt(precio*10**6)/10**6
+
       this.setState({
-        precio: consulta2.price * 1.1
+        precio: precio
       })
 
-      return consulta2.price * 1.1
+      return precio
     }else{
       this.setState({
         precio: 0
