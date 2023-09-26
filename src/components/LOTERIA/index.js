@@ -6,15 +6,15 @@ export default class nfts extends Component {
     super(props);
 
     this.state = {
-      deposito: "Cargando...",
+      deposito: "Loading...",
       wallet: this.props.accountAddress,
       balanceBRUT: 0,
       precioBRUT: 0,
       mc: 0,
       mb: 0,
       totalNFT: 1,
-      premio: "Cargando...",
-      LastWiner: "Cargando..."
+      premio: "Loading...",
+      LastWiner: "Loading..."
 
     };
 

@@ -772,7 +772,7 @@ export default class Staking extends Component {
                       <p className="mb-0 fs-12">To withdraw the TRX from the SR we have to carry out 2 processes: <br></br>
                   <span className="text-white">3 days</span> to remove it from the E-Bot <br>
                   </br><span className="text-white">14 days</span> to remove it from Tron Network<br>
-                  </br>para <span className="text-white">{this.state.dias} days</span> total 
+                  </br>for <span className="text-white">{this.state.dias} days</span> in total 
                 </p>
                     </div>
                   </div>
