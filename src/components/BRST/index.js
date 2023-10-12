@@ -752,7 +752,7 @@ export default class Staking extends Component {
                   </div>
                   <div className="row mt-4 align-items-center">
                     <div className="col-sm-6 mb-3">
-                      <p className="mb-0 fs-14">We recommend keeping ~100 TRX or <a href="?ebot">energy</a> to trade</p>
+                      <p className="mb-0 fs-14">We recommend keeping ~21 TRX or <a href="?ebot"> ~50000 energy</a> to trade</p>
                     </div>
                     <div className="col-sm-6 text-sm-right text-start">
                       <button className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
