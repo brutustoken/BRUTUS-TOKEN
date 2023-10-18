@@ -74,12 +74,29 @@ export default class Staking extends Component {
       solicitudes: 0,
       temporalidad: "day",
       cantidadDatos: 30,
-      dias: "Loading..."
+      dias: "Loading...",
+      precioBrut: 0,
+			varBrut: 0,
+			precioBrst: 0,
+			varBrst: 0,
+      BRGY: 0,
+			BRLT: 0,
+			misBRUT: 0,
+			misBRST: 0,
+			misBRGY: 0,
+			misBRLT: 0,
+      win7day: 0,
+      last7day: 0,
+      earn7day: 0,
+      dataBRST: [],
+
 
     };
 
 
-
+    this.subeobaja = this.subeobaja.bind(this);
+    this.textoE = this.textoE.bind(this);
+    this.consultaPrecio = this.consultaPrecio.bind(this);
     this.grafico = this.grafico.bind(this);
 
     this.compra = this.compra.bind(this);
@@ -107,6 +124,7 @@ export default class Staking extends Component {
 
       this.consultarPrecio();
       this.estado();
+      this.consultaPrecio();
 
     }, 3 * 1000);
 
@@ -122,6 +140,87 @@ export default class Staking extends Component {
     }
   }
 
+  subeobaja(valor) {
+		var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
+			xmlns="http://www.w3.org/2000/svg">
+			<g filter="url(#filter0_d2)">
+				<path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
+					stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+			</g>
+			<defs>
+				<filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
+					height="22.0001" filterUnits="userSpaceOnUse"
+					colorInterpolationFilters="sRGB">
+					<feFlood floodOpacity="0" result="BackgroundImageFix" />
+					<feColorMatrix in="SourceAlpha" type="matrix"
+						values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+					<feOffset dy="1" />
+					<feGaussianBlur stdDeviation="2" />
+					<feColorMatrix type="matrix"
+						values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
+					<feBlend mode="normal" in2="BackgroundImageFix"
+						result="effect1_dropShadow" />
+					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
+						result="shape" />
+				</filter>
+			</defs>
+		</svg>);
+		var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+			<g filter="url(#filter0_d)">
+				<path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
+			</g>
+			<defs>
+				<filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+					<feFlood floodOpacity="0" result="BackgroundImageFix" />
+					<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+					<feOffset dy="1" />
+					<feGaussianBlur stdDeviation="2" />
+					<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
+					<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+				</filter>
+			</defs>
+		</svg>);
+
+		var resultado = imgNPositivo;
+
+		if (valor < 0) {
+			resultado = imgNegativo
+		}
+
+		return resultado;
+	}
+
+  textoE(valor) {
+
+		var resultado = "success";
+
+		if (valor < 0) {
+			resultado = "danger"
+		}
+
+		return resultado;
+
+	}
+
+  consultaPrecio() {
+
+		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
+			.then(response => { return response.json(); })
+			.then(data => {
+
+				this.setState({
+					precioBrst: data.Data.trx,
+					varBrst: data.Data.v24h
+				})
+
+			}).catch(err => {
+				console.log(err);
+
+			});
+
+	}
+
   handleChange(e) {
     let evento = e.target.value;
     this.grafico(500, evento, this.state.cantidadDatos);
@@ -133,8 +232,6 @@ export default class Staking extends Component {
     this.grafico(500, this.state.temporalidad, evento);
     this.setState({ cantidadDatos: evento });
   }
-
-
 
   handleChangeBRUT(event) {
     let dato = event.target.value;
@@ -191,6 +288,23 @@ export default class Staking extends Component {
   };
 
   async estado() {
+
+    var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
+      .then((result) => { return result.toNumber() / 1e6 })
+      .catch(console.error)
+
+    let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=7")
+    consulta = (await consulta.json()).Data
+    
+    this.setState({
+      misBRST: misBRST,
+      dataBRST: consulta,
+      win7day: ((consulta[0].value-consulta[6].value)/((consulta[0].value+consulta[6].value)/2))*100,
+      earn7day: ((consulta[0].value-consulta[1].value)/((consulta[0].value+consulta[1].value)/2))*100*7,
+      last7day: (misBRST * consulta[0].value)-(misBRST * consulta[6].value)
+    })
+
+    console.log(misBRST)
 
     var accountAddress = this.props.accountAddress;
 
@@ -254,18 +368,18 @@ export default class Staking extends Component {
       var boton = <></>
       var boton2 = <><p className="mb-0 fs-14 text-white">Order in UnStaking process for the next 14 days, once this period is over, return and claim the corresponding TRX</p></>;
 
-      if ( diasrestantes > 14 || this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX.owner().call())) ) {
+      if (diasrestantes > 14 || this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX.owner().call()))) {
 
         boton2 = <button className="btn  btn-success text-white mb-2" onClick={async () => {
-          if(this.state.balanceUSDT*1 >= parseInt(pen[2]._hex) / 10 ** 6 ){
+          if (this.state.balanceUSDT * 1 >= parseInt(pen[2]._hex) / 10 ** 6) {
             await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
             this.consultarPrecio();
             this.estado();
             window.alert("Order completed!")
-          }else{
+          } else {
             window.alert("Insufficient balance to fulfill this order")
           }
-  
+
         }}>
           Complete order {" "} <i className="bi bi-check-lg"></i>
         </button>
@@ -305,7 +419,7 @@ export default class Staking extends Component {
         )
       }
 
-      if ( diasrestantes <= 0) {
+      if (diasrestantes <= 0) {
         diasrestantes = 0
       }
 
@@ -325,7 +439,7 @@ export default class Staking extends Component {
             <p className="mb-0 fs-14"><span className="text-white">Application date:</span> {pv.toString()}</p>
             <hr></hr>
           </div>
-          
+
         </div>
       )
 
@@ -543,10 +657,9 @@ export default class Staking extends Component {
     }
 
     async function generateDatas(count) {
-      
-      let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad="+temporalidad+"&limite=" + count)
+
+      let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=" + temporalidad + "&limite=" + count)
       consulta = (await consulta.json()).Data
-      console.log(consulta)
 
       let data = []
       for (var i = consulta.length - 1; i >= 0; --i) {
@@ -722,12 +835,108 @@ export default class Staking extends Component {
           </div>
         </div>
 
+
+        <div className="col-xl-12">
+          <div className="card">
+            <div className="card-header border-0 pb-0">
+              <h4 className="mb-0 fs-20 text-black">My staking</h4>
+
+            </div>
+            <div className="card-body">
+
+            <div className=" coin-holding mt-4 flex-wrap" style={{ backgroundColor: "#ff5124" }}>
+                <div className="mb-2 coin-bx">
+                  <div className="d-flex align-items-center">
+                    <div>
+                        <img src="assets/img/cash-coin.svg" alt="brutus finance brlt" style={{"filter":"invert(1)"}} width="80" height="80" />
+                    </div>
+                    <div className="ms-3">
+                      <h4 className="coin-font font-w600 mb-0 text-white">In the last 7 days </h4>
+                      <p className="mb-0 text-white">your efective profit is</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <div className="d-flex align-items-center">
+                    <div className="ms-3">
+                      <h2 className="mb-0 text-white coin-font-1"> + {(this.state.win7day).toPrecision(3)}%</h2>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <div className="d-flex align-items-center">
+                    <p className="mb-0 ms-2 font-w400 text-white">{(this.state.last7day).toFixed(3)} TRX</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-danger coin-holding mt-4 flex-wrap">
+                <div className="mb-2 coin-bx">
+                  <div className="d-flex align-items-center">
+                    <div>
+                      <a href="/?brst">
+                        <img src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
+                      </a>
+                    </div>
+                    <div className="ms-3">
+                      <h4 className="coin-font font-w600 mb-0 text-white">Brutus Tron Staking</h4>
+                      <p className="mb-0 text-white">BRST</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <div className="d-flex align-items-center">
+                    <div className="ms-3">
+                      <h2 className="mb-0 text-white coin-font-1">{this.state.misBRST}</h2>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <div className="d-flex align-items-center">
+                    {this.subeobaja(this.state.varBrst)}
+                    <p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span></p>
+                    <p className="mb-0 ms-2 font-w400 text-white">{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className=" coin-holding mt-4 flex-wrap" style={{ backgroundColor: "#32a852" }}>
+                <div className="mb-2 coin-bx">
+                  <div className="d-flex align-items-center">
+                    <div>
+                        <img src="assets/img/piggy-bank.svg" alt="brutus finance brlt" style={{"filter":"invert(1)"}} width="80" height="80" />
+                    </div>
+                    <div className="ms-3">
+                      <h4 className="coin-font font-w600 mb-0 text-white">In the next 7 days </h4>
+                      <p className="mb-0 text-white">your estimated profit</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <div className="d-flex align-items-center">
+                    <div className="ms-3">
+                      <h2 className="mb-0 text-white coin-font-1"> + {(this.state.earn7day).toPrecision(3)}% ~ {(this.state.misBRST * this.state.precioBrst*(this.state.earn7day/100)).toFixed(3)} TRX</h2>
+                    </div>
+                  </div>
+                </div>
+                <div className="mb-2">
+                  <div className="d-flex align-items-center">
+                    <p className="mb-0 ms-2 font-w400 text-white">~ {((this.state.misBRST * this.state.precioBrst*(this.state.earn7day/100))/7).toFixed(6)} TRX/DAY</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+
         <div className="col-xl-6 col-xxl-12">
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
                 <h4 className="fs-20 text-black">Exchange</h4>
-                
+
               </div>
 
             </div>
@@ -770,10 +979,10 @@ export default class Staking extends Component {
                       </button>
 
                       <p className="mb-0 fs-12">To withdraw the TRX from the SR we have to carry out 2 processes: <br></br>
-                  <span className="text-white">3 days</span> to remove it from the E-Bot <br>
-                  </br><span className="text-white">14 days</span> to remove it from Tron Network<br>
-                  </br>for <span className="text-white">{this.state.dias} days</span> in total 
-                </p>
+                        <span className="text-white">3 days</span> to remove it from the E-Bot <br>
+                        </br><span className="text-white">14 days</span> to remove it from Tron Network<br>
+                        </br>for <span className="text-white">{this.state.dias} days</span> in total
+                      </p>
                     </div>
                   </div>
                 </form>
@@ -788,7 +997,7 @@ export default class Staking extends Component {
               <div>
                 <h4 className="fs-20 text-black">Withdrawal requests in process ({this.state.solicitudes}) {"   "}
                   <button className="btn  btn-success text-white" onClick={async () => await this.estado()}>
-                  Update {" "} <i className="bi bi-arrow-repeat"></i>
+                    Update {" "} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>
                 <p className="mb-0 fs-12">You can complete the orders of other users, buying the BRST at the best price.</p>
               </div>
