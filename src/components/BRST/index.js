@@ -304,8 +304,6 @@ export default class Staking extends Component {
       last7day: (misBRST * consulta[0].value)-(misBRST * consulta[6].value)
     })
 
-    console.log(misBRST)
-
     var accountAddress = this.props.accountAddress;
 
     var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
