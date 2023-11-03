@@ -1,7 +1,7 @@
 (function($) {
     "use strict"
 
-    new dezSettings({
+    new dzSettings({
         version: "dark"
     });
 

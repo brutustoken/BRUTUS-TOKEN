@@ -16,6 +16,7 @@ export default class Inicio extends Component {
 			misBRST: 0,
 			misBRGY: 0,
 			misBRLT: 0,
+			precioBrstUSD:0,
 
 			imagerobots: []
 
@@ -30,11 +31,11 @@ export default class Inicio extends Component {
 	}
 
 	componentDidMount() {
-		setTimeout(() => {this.estado();}, 3*1000);
-		setTimeout(() => {this.consultaPrecios();}, 1*1000);
+		setTimeout(() => { this.estado(); }, 3 * 1000);
+		setTimeout(() => { this.consultaPrecios(); }, 1 * 1000);
 
-		setInterval(() => {this.estado();}, 60*1000);
-		setInterval(() => {this.consultaPrecios();}, 60*1000);
+		setInterval(() => { this.estado(); }, 60 * 1000);
+		setInterval(() => { this.consultaPrecios(); }, 60 * 1000);
 	}
 
 	subeobaja(valor) {
@@ -110,7 +111,7 @@ export default class Inicio extends Component {
 
 				this.setState({
 					precioBrut: data.Data.usd,
-					varBrut: data.Data.v24h
+					varBrut: data.Data.v24h,
 				})
 
 			}).catch(err => {
@@ -125,7 +126,8 @@ export default class Inicio extends Component {
 
 				this.setState({
 					precioBrst: data.Data.trx,
-					varBrst: data.Data.v24h
+					varBrst: data.Data.v24h,
+					precioBrstUSD: data.Data.usd
 				})
 
 			}).catch(err => {
@@ -138,22 +140,22 @@ export default class Inicio extends Component {
 	async estado() {
 
 		this.props.contrato.BRGY.totalSupply().call()
-		.then((result)=>{ this.setState({ BRGY:result.toNumber() }) })
-		.catch(console.error)
+			.then((result) => { this.setState({ BRGY: result.toNumber() }) })
+			.catch(console.error)
 
 		this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call()
-		.then((result)=>{ this.setState({ misBRUT:result.toNumber()/ 1e6 }) })
-		.catch(console.error)
+			.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
+			.catch(console.error)
 
 		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-		.then((result)=>{ this.setState({ misBRST:result.toNumber()/ 1e6 }) })
-		.catch(console.error)
+			.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
+			.catch(console.error)
 
 		this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
-		.then((result)=>{ this.setState({ misBRGY:result.toNumber() }) })
-		.catch(console.error)
+			.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+			.catch(console.error)
 
-		
+
 
 	}
 
@@ -161,189 +163,23 @@ export default class Inicio extends Component {
 
 		return (
 			<>
-				<h1>General Information</h1>
-				<div className="row">
-					<div className="col-xl-3 col-sm-6 m-t35">
-						<div className="card card-coin">
-							<div className="card-body text-center">
-								<a href="/?brut">
-									<img className="mb-3 currency-icon" src="assets/img/brut.png" alt="brutus finance" width="80" height="80" />
 
-									<h2 className="text-black mb-2 font-w600">{this.state.precioBrut} USDT</h2>
-									<p className="mb-0 fs-14">
-										{this.subeobaja(this.state.varBrut)}
-										<span className={"text-" + this.textoE(this.state.varBrut) + " me-1"}>{(this.state.varBrut).toFixed(3)}%</span> 24h
-									</p>
-								</a>
-							</div>
-						</div>
-					</div>
-					<div className="col-xl-3 col-sm-6 m-t35">
-						<div className="card card-coin">
-							<div className="card-body text-center">
-								<a href="/?brst">
-									<img className="mb-3 currency-icon" src="assets/img/brst.png" alt="brutus finance" width="80" height="80" />
-
-									<h2 className="text-black mb-2 font-w600">{this.state.precioBrst} TRX</h2>
-									<p className="mb-0 fs-13">
-										{this.subeobaja(this.state.varBrst)}
-										<span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span> 24h
-									</p>
-								</a>
-							</div>
-						</div>
-					</div>
-					<div className="col-xl-3 col-sm-6 m-t35">
-						<div className="card card-coin">
-							<div className="card-body text-center">
-								<a href="/?brgy">
-									<img className="mb-3 currency-icon" src="assets/img/brgy.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRGY} NFT's </h2>
-									<p className="mb-0 fs-14">
-										Minted
-									</p>
-								</a>
-							</div>
-						</div>
-					</div>
-					<div className="col-xl-3 col-sm-6 m-t35">
-						<div className="card card-coin">
-							<div className="card-body text-center">
-								<a href="/?brlt">
-									<img className="mb-3 currency-icon" src="assets/img/brlt.png" alt="brutus finance" width="80" height="80" />
-									<h2 className="text-black mb-2 font-w600">{this.state.BRLT} Tickets </h2>
-									<p className="mb-0 fs-14">
-										Generated
-									</p>
-								</a>
-							</div>
-						</div>
-					</div>
-				</div>
-
-
-				<div className="row">
-					<div className="col-xl-12 col-xxl-12">
-						<div className="row">
-							<div className="col-xl-12">
-								<div className="card">
-									<div className="card-header border-0 pb-0">
-										<h4 className="mb-0 fs-20 text-black">My Tokens</h4>
-
-									</div>
-									<div className="card-body">
-
-										<div className="bg-warning coin-holding flex-wrap">
-											<div className="mb-2 coin-bx">
-												<div className="d-flex align-items-center">
-													<div>
-														<a href="/?brut">
-															<img src="assets/img/brut.png" alt="brutus finance brut" width="80" height="80" />
-														</a>
-													</div>
-													<div className="ms-3">
-														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Token</h4>
-														<p className="mb-0 text-white op-6">BRUT</p>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRUT}</h2>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													{this.subeobaja(this.state.varBrut)}
-													<p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrut) + " me-1"}>{(this.state.varBrut).toFixed(3)}%</span></p>
-													<p className="mb-0 ms-2 font-w400 text-white">${(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USDT</p>
-												</div>
-											</div>
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="profile card card-body px-3 pt-3 pb-0">
+							<div class="profile-head">
+								<div class="photo-content">
+									<a href="?ebot">
+										<div class="cover-photo rounded"><img style={{borderRadius: "1%"}}
+											src="images/Optimize TRX costs with Brutus!.png" width="100%" />
 										</div>
-										<div className="bg-danger coin-holding mt-4 flex-wrap">
-											<div className="mb-2 coin-bx">
-												<div className="d-flex align-items-center">
-													<div>
-														<a href="/?brst">
-															<img src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
-														</a>
-													</div>
-													<div className="ms-3">
-														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Tron Staking</h4>
-														<p className="mb-0 text-white">BRST</p>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRST}</h2>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													{this.subeobaja(this.state.varBrst)}
-													<p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span></p>
-													<p className="mb-0 ms-2 font-w400 text-white">{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</p>
-												</div>
-											</div>
-										</div>
-										<div className="bg-info coin-holding mt-4 flex-wrap">
-											<div className="mb-2 coin-bx">
-												<div className="d-flex align-items-center">
-													<div>
-														<a href="/?brgy">
-															<img src="assets/img/brgy.png" alt="brutus finance brgy" width="80" height="80" />
-														</a>
-													</div>
-													<div className="ms-3">
-														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Gallery</h4>
-														<p className="mb-0 text-white">BRGY</p>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRGY}</h2>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													<p className="mb-0 ms-2 font-w400 text-white">NFT's</p>
-												</div>
-											</div>
-										</div>
-										<div className=" coin-holding mt-4 flex-wrap" style={{ backgroundColor: "#6418c3" }}>
-											<div className="mb-2 coin-bx">
-												<div className="d-flex align-items-center">
-													<div>
-														<a href="/?brlt">
-															<img src="assets/img/brlt.png" alt="brutus finance brlt" width="80" height="80" />
-														</a>
-													</div>
-													<div className="ms-3">
-														<h4 className="coin-font font-w600 mb-0 text-white">Brutus Lottery</h4>
-														<p className="mb-0 text-white">BRLT</p>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													<div className="ms-3">
-														<h2 className="mb-0 text-white coin-font-1">{this.state.misBRLT}</h2>
-													</div>
-												</div>
-											</div>
-											<div className="mb-2">
-												<div className="d-flex align-items-center">
-													<p className="mb-0 ms-2 font-w400 text-white">{this.state.misBRLT * 100} TRX</p>
-												</div>
-											</div>
+									</a>
+								</div>
+								<div class="profile-info">
+									<div class="profile-details d-flex flex-row-reverse">
+										<div class="text-center mt-12 mb-12 ">
+											<a href="?ebot" class="btn btn-primary mx-auto">Try it
+												now!</a>
 										</div>
 									</div>
 								</div>
@@ -352,6 +188,108 @@ export default class Inicio extends Component {
 					</div>
 				</div>
 
+
+				<div class="row">
+					<div class="col-xl-12">
+						<div class="card">
+							<div class="card-header border-0">
+								<ul class="order nav nav-tabs" id="pills-tab" role="tablist">
+									<li class="nav-item my-1" role="presentation">
+										<button class="nav-link active" id="pills-crypto-tab" data-bs-toggle="pill"
+											data-bs-target="#pills-crypto" type="button" role="tab"
+											aria-controls="pills-crypto" aria-selected="true">My Position</button>
+									</li>
+								</ul>
+							</div>
+							<div class="card-body pt-0">
+								<div class="tab-content" id="pills-tabContent">
+									<div class="tab-pane fade show active" id="pills-crypto" role="tabpanel"
+										aria-labelledby="pills-crypto-tab">
+										<div class="table-responsive dataTablemarket">
+											<table id="example" class="table shadow-hover display"
+												style={{minWidth:"845px"}}>
+												<thead>
+													<tr>
+														<th>Name</th>
+														<th class="text-center">Token Balance</th>
+														<th class="text-center">Price</th>
+														<th class="text-center">24h Change</th>
+														<th class="text-center">Total Value</th>
+														<th class="text-center">USD Value</th>
+
+													</tr>
+												</thead>
+												<tbody>
+													<tr>
+														<td>
+															<a class="market-title d-flex align-items-center"
+																href="?brut">
+																<img src="images/brut3030.png" />
+																	<h5 class="mb-0 ms-2">BRUT</h5>
+																	<span class="text-muted ms-2">Brutus Token</span>
+															</a>
+														</td>
+														<td>{this.state.misBRUT}</td>
+														<td>{this.state.precioBrut} USDT</td>
+														<td>{this.subeobaja(this.state.varBrut)}
+										<span className={"text-" + this.textoE(this.state.varBrut)}>{(this.state.varBrut).toFixed(3)}%</span></td>
+														<td>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USDT</td>
+														<td>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USD</td>
+													</tr>
+													<tr>
+														<td>
+															<a class="market-title d-flex align-items-center"
+																href="?brst">
+																<img src="images/brst3030.png" />
+																	<h5 class="mb-0 ms-2">BRST</h5>
+																	<span class="text-muted ms-2">Brutus Tron Staking</span>
+															</a>
+														</td>
+														<td>{this.state.misBRST}</td>
+														<td>{(this.state.precioBrst).toFixed(6)}</td>
+														<td>{this.subeobaja(this.state.varBrst)}<span className={"text-" + this.textoE(this.state.varBrst)}>{(this.state.varBrst).toFixed(3)}%</span></td>
+														<td>{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</td>
+														<td>{(this.state.misBRST * this.state.precioBrstUSD).toFixed(2)} USD</td>
+													</tr>
+													<tr>
+														<td>
+															<a class="market-title d-flex align-items-center"
+																href="?brgy">
+																<img src="images/brgy3030.png" />
+																	<h5 class="mb-0 ms-2">BRGY</h5>
+																	<span class="text-muted ms-2">Brutus Gallery</span>
+															</a>
+														</td>
+														<td>{this.state.misBRGY}</td>
+														<td>NFT</td>
+														<td>N/A</td>
+														<td>N/A</td>
+														<td>N/A</td>
+													</tr>
+													<tr>
+														<td>
+															<a class="market-title d-flex align-items-center"
+																href="?brlt">
+																<img src="images/brlt3030.png" />
+																	<h5 class="mb-0 ms-2">BRLT</h5>
+																	<span class="text-muted ms-2">Brutus Lottery</span>
+															</a>
+														</td>
+														<td>{this.state.misBRLT}</td>
+														<td>100 TRX</td>
+														<td>N/A</td>
+														<td>{this.state.misBRLT * 100}</td>
+														<td>N/A</td>
+													</tr>
+												</tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 
 			</>
 		);

@@ -1,7 +1,7 @@
 (function($) {
     "use strict" 
 
- var dzChartlist = function(){
+ var dlabChartlist = function(){
 	
 	var screenWidth = $(window).width();
 	
@@ -45,9 +45,9 @@
 						{
 							label: "My First dataset",
 							data:  [35, 18, 30, 35, 40, 20, 30, 25, 22, 20, 45, 35],
-							borderColor: 'rgba(235, 129, 83, 1)',
+							borderColor: 'rgba(149, 104, 255, 1)',
 							borderWidth: "0",
-							backgroundColor: 'rgba(235, 129, 83, 1)'
+							backgroundColor: 'rgba(149, 104, 255, 1)'
 							
 						}
 					]
@@ -76,7 +76,7 @@
 							},
 							ticks: {
 								stepSize: 5,
-								fontColor: "#999",
+								fontColor:	'#ffffff',
 								fontFamily: "Nunito, sans-serif"
 							}
 						}]
@@ -264,7 +264,7 @@
 							data: [65, 59, 80, 81, 56, 55, 40, 88, 45, 95, 54, 76],
 							borderColor: chart_widget_2gradientStroke,
 							borderWidth: "0",
-							backgroundColor: chart_widget_2gradientStroke, 
+							backgroundColor: 'rgba(149, 104, 255, 1)', 
 							hoverBackgroundColor: chart_widget_2gradientStroke
 						}
 					]
@@ -875,15 +875,18 @@
 				labels: ["January", "February", "March", "April", "May", "June"],
 				datasets: [{
 					label: "Sales Stats",
-					backgroundColor: "rgba(100, 24, 195, .5)",
-					borderColor: '#6418C3',
-					pointBackgroundColor: '#6418C3',
-					pointBorderColor: '#6418C3',
-					pointHoverBackgroundColor: '#6418C3',
-					pointHoverBorderColor: '#6418C3',
+					backgroundColor: "rgba(98, 126, 234, .5)",
+					borderColor: '#ffaa2b',
+					pointBackgroundColor: '#ffaa2b',
+					pointBorderColor: '#ffaa2b',
+					pointHoverBackgroundColor: '#ffaa2b',
+					pointHoverBorderColor: '#ffaa2b',
 					data: [0, 18, 14, 24, 16, 30]
 				}]
 			},
+			chart: {
+				width: 250,
+			  },
 			options: {
 				title: {
 					display: !1
@@ -1086,10 +1089,10 @@
 						{
 							label: "My First dataset",
 							data: [25, 60, 30, 71, 26, 85, 50],
-							borderColor: 'rgba(235, 129, 83, 1)',
+							borderColor: 'rgba(149, 104, 255, 1)',
 							borderWidth: "2",
-							backgroundColor: 'rgba(235, 129, 83, 1)',  
-							pointBackgroundColor: 'rgba(235, 129, 83, 1)', 
+							backgroundColor: 'rgba(149, 104, 255, 1)',  
+							pointBackgroundColor: 'rgba(149, 104, 255, 1)', 
 							pointRadius: 0
 						}
 					]
@@ -1143,84 +1146,77 @@
 		//#chart_widget_17
 		if(jQuery('#chart_widget_17').length > 0 ){
 
-			const chart_widget_17 = document.getElementById("chart_widget_17").getContext('2d');
+			let data = [];
+			const totalPoints = 50;
 
-			new Chart(chart_widget_17, {
-				type: "line",
-				data: {
-					labels: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "January", "February", "March", "April"],
+			function getRandomData() {
+				if (data.length > 0)
+					data = data.slice(1);
+				while (data.length < totalPoints) {
+					var prev = data.length > 0 ? data[data.length - 1] : 50,
+						y = prev + Math.random() * 10 - 5;
+					if (y < 0) {
+						y = 0;
+					} else if (y > 100) {
+						y = 100;
+					}
+					data.push(y);
+				}
+				const res = [];
+				for (let i = 0; i < data.length; ++i) {
+					res.push([i, data[i]])
+				}
+				return res; 
+				
+			}
 
-					datasets: [{
-						label: "Sales Stats",
-						backgroundColor: ['#EB8153'],
-						borderColor: '#EB8153',
-						pointBackgroundColor: '#EB8153',
-						pointBorderColor: '#EB8153',
-						borderWidth:4,
-						borderRadius:10,
-						pointHoverBackgroundColor: '#1EAAE7',
-						pointHoverBorderColor: '#1EAAE7',
-						
-						data: [12, 13, 10, 18, 14, 24, 16, 12, 19, 21, 16, 14, 24, 21, 13, 15, 27, 29, 21, 11, 14, 19, 21, 17]
-					}]
-				},
-				options: {
-					title: {
-						display: !1
+			// Set up the control widget
+			const updateInterval = 1000;
+
+				if(jQuery('#chart_widget_17').length > 0 ){
+			
+				 const chart = jQuery.plot('#chart_widget_17', [getRandomData()], {
+					colors: ['#430b58'],
+					series: {
+						lines: {
+							show: true,
+							lineWidth: 0,
+							fill: 0.9
+						},
+						shadowSize: 0	// Drawing is faster without shadows
 					},
-					tooltips: {
-						intersect: !1,
-						mode: "nearest",
-						xPadding: 0,
-						yPadding: 10,
-						caretPadding: 0
+					grid: {
+						borderColor: 'transparent',
+						borderWidth: 0,
+						labelMargin: 0
 					},
-					
-					legend: {
-						display: !1
-					},
-					responsive: !0,
-					maintainAspectRatio: !1,
-					hover: {
-						mode: "index"
-					},
-					scales: {
-						xAxes: [{
-							display: !1,
-							gridLines: !1,
-							scaleLabel: {
-								display: !0,
-								labelString: "Month"
-							}
-						}],
-						yAxes: [{
-							display: !1,
-							gridLines: !1,
-							scaleLabel: {
-								display: !0,
-								labelString: "Value"
-							},
-							ticks: {
-								beginAtZero: !0
-							}
-						}]
-					},
-					elements: {
-						point: {
-							radius: 0,
-							borderWidth: 0
+					xaxis: {
+						color: 'transparent',
+						font: {
+							size: 10,
+							color: '#fff'
 						}
 					},
-					layout: {
-						padding: {
-							left: 0,
-							right: 0,
-							top: 5,
-							bottom: 0
+					yaxis: {
+						min: 0,
+						max: 100,
+						color: 'transparent',
+						font: {
+							size: 10,
+							color: '#fff'
 						}
 					}
+				}); 
+
+				function update_chart() {
+					chart.setData([getRandomData()]);
+					chart.draw();
+					setTimeout(update_chart, updateInterval);
 				}
-			});
+			
+				update_chart();
+				
+			}
 		}
 	}
 	
@@ -1308,7 +1304,13 @@
 		  });
 		});
 		
-	}	
+	}
+	var donutChart1 = function(){
+		$("span.donut1").peity("donut", {
+			width: "100",
+			height: "100"
+		});
+	}
 	
 	/* Function ============ */
 		return {
@@ -1317,7 +1319,7 @@
 			
 			
 			load:function(){
-				activityChart();	
+				 activityChart();	
 				activeUser();
 				chartWidget1();	
 				chartWidget2();	
@@ -1326,7 +1328,7 @@
 				chartWidget5();
 				chartWidget6();
 				chartWidget7();
-				chartWidget8();
+				chartWidget8(); 
 				chartWidget9();
 				chartWidget10();
 				chartWidget11();
@@ -1334,7 +1336,8 @@
 				chartWidget15();
 				chartWidget16();
 				chartWidget17();
-				widgetSparkLinedash();
+				donutChart1();
+				widgetSparkLinedash(); 
 				widgetSparkBar();
 				widgetStackedBarChart();
 				widgetTristate();
@@ -1351,15 +1354,16 @@
 	
 	}();
 
-	
+	jQuery(document).ready(function(){
+	});
 		
 	jQuery(window).on('load',function(){
-		dzChartlist.load();
+		dlabChartlist.load();
 	});
 
 	jQuery(window).on('resize',function(){
 		setTimeout(function(){
-			dzChartlist.resize();	
+			dlabChartlist.resize();	
 		}, 500);
 		
 	});     

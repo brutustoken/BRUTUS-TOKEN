@@ -1,8 +1,8 @@
 (function($) {
-    "use strict"
+   "use strict"
 
 
- var dzChartlist = function(){
+ var dlabChartlist = function(){
 	
 	var screenWidth = $(window).width();
 
@@ -14,7 +14,7 @@
 				bars: {
 					show: true,
 					lineWidth: 0,
-					fillColor: '#EB8153'
+					fillColor: '#9568ff'
 				}
 			},
 			grid: {
@@ -24,14 +24,14 @@
 			yaxis: {
 				tickColor: 'transparent',
 				font: {
-					color: '#fff',
+					color: '#858282',
 					size: 10
 				}
 			},
 			xaxis: {
 				tickColor: 'transparent',
 				font: {
-					color: '#fff',
+					color: '#858282',
 					size: 10
 				}
 			}
@@ -44,14 +44,14 @@
 			bars: {
 				show: true,
 				lineWidth: 0,
-				fillColor: '#EB8153'
+				fillColor: '#9568ff'
 			}
 		}, {
 			data: [[1, 5], [3, 7], [5, 10], [7, 7], [9, 9], [11, 5], [13, 4], [15, 6]],
 			bars: {
 				show: true,
 				lineWidth: 0,
-				fillColor: '#6418C3'
+				fillColor: '#ffaa2b'
 			}
 		}], 
 		{
@@ -62,14 +62,14 @@
 			yaxis: {
 				tickColor: 'transparent',
 				font: {
-					color: '#fff',
+					color: '#858282',
 					size: 10
 				}
 			},
 			xaxis: {
 				tickColor: 'transparent',
 				font: {
-					color: '#fff',
+					color: '#858282',
 					size: 10
 				}
 			}
@@ -84,12 +84,12 @@
 			{
 				data: newCust,
 				label: 'New Customer',
-				color: '#EB8153'
+				color: '#9568ff'
 			},
 			{
 				data: retCust,
 				label: 'Returning Customer',
-				color: '#6418C3'
+				color: '#ffaa2b'
 			}
 		],
 		{
@@ -142,12 +142,12 @@
 			{
 				data: newCust,
 				label: 'New Customer',
-				color: '#EB8153'
+				color: '#9568ff'
 			},
 			{
 				data: retCust,
 				label: 'Returning Customer',
-				color: '#6418C3'
+				color: '#ffaa2b'
 			}
 		],
 		{
@@ -184,14 +184,14 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			},
 			xaxis: {
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			}
 		});		
@@ -205,12 +205,12 @@
 			{
 				data: newCust2,
 				label: 'New Customer',
-				color: '#EB8153'
+				color: '#9568ff'
 			},
 			{
 				data: retCust2,
 				label: 'Returning Customer',
-				color: '#6418C3'
+				color: '#ffaa2b'
 			}
 		],
 		{
@@ -242,14 +242,14 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			},
 			xaxis: {
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			}
 		});
@@ -263,12 +263,12 @@
 			{
 				data: newCust,
 				label: 'New Customer',
-				color: '#EB8153'
+				color: '#9568ff'
 			},
 			{
 				data: retCust,
 				label: 'Returning Customer',
-				color: '#6418C3'
+				color: '#ffaa2b'
 			}
 		],
 		{
@@ -301,14 +301,14 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			},
 			xaxis: {
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			}
 		});
@@ -322,12 +322,12 @@
 			{
 				data: newCust,
 				label: 'New Customer',
-				color: '#EB8153'
+				color: '#9568ff'
 			},
 			{
 				data: retCust,
 				label: 'Returning Customer',
-				color: '#6418C3'
+				color: '#ffaa2b'
 			}
 		],
 		{
@@ -364,14 +364,14 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			},
 			xaxis: {
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			}
 		});
@@ -446,7 +446,7 @@
 		var updateInterval = 1000;
 
 		var plot4 = $.plot('#flotRealtime1', [getRandomData()], {
-			colors: ['#EB8153'],
+			colors: ['#9568ff'],
 			series: {
 				lines: {
 					show: true,
@@ -463,7 +463,7 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			},
 			yaxis: {
@@ -472,7 +472,7 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			}
 		});
@@ -511,7 +511,7 @@
 		var updateInterval = 1000;
 		
 		var plot5 = $.plot('#flotRealtime2', [getRandomData()], {
-			colors: ['#EB8153'],
+			colors: ['#9568ff'],
 			series: {
 				lines: {
 					show: true,
@@ -529,7 +529,7 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			},
 			yaxis: {
@@ -538,7 +538,7 @@
 				color: 'transparent',
 				font: {
 					size: 10,
-					color: '#fff'
+					color: '#858282'
 				}
 			}
 		});
@@ -579,14 +579,15 @@
 
 }();
 
-
+jQuery(document).ready(function(){
+});
 	
 jQuery(window).on('load',function(){
-	dzChartlist.load();
+	dlabChartlist.load();
 });
 
 jQuery(window).on('resize',function(){
-	dzChartlist.resize();
+	dlabChartlist.resize();
 });     
 
 })(jQuery);

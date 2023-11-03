@@ -1,5 +1,7 @@
 
-var dezSettingsOptions = {};
+"use strict"
+
+var dzSettingsOptions = {};
 
 function getUrlParams(dParam) 
 	{
@@ -21,38 +23,41 @@ function getUrlParams(dParam)
 	
 	"use strict"
 	
-	var direction =  getUrlParams('dir');
-	
-	dezSettingsOptions = {
-		typography: "poppins",
-			version: "dark",
-			layout: "vertical",
-			headerBg: "color_1",
-			navheaderBg: "color_1",
-			sidebarBg: "color_1",
-			sidebarStyle: "full",
-			sidebarPosition: "fixed",
-			headerPosition: "fixed",
-			containerLayout: "full",
-			direction: direction
-		};
-
+	/* var direction =  getUrlParams('dir');
 	
 	if(direction == 'rtl')
 	{
         direction = 'rtl'; 
     }else{
         direction = 'ltr'; 
-    }
+    } */
 	
-	new dezSettings(dezSettingsOptions); 
+	dzSettingsOptions = {
+			typography: "poppins",
+			version: "light",
+			layout: "vertical",
+			primary: "color_1",
+			headerBg: "color_1",
+			navheaderBg: "color_4",
+			sidebarBg: "color_4",
+			sidebarStyle: "full",
+			sidebarPosition: "fixed",
+			headerPosition: "fixed",
+			containerLayout: "full",
+		};
+
+	
+	
+	
+	new dzSettings(dzSettingsOptions); 
 
 	jQuery(window).on('resize',function(){
         /*Check container layout on resize */
-        dezSettingsOptions.containerLayout = $('#container_layout').val();
+		///alert(dzSettingsOptions.primary);
+        dzSettingsOptions.containerLayout = $('#container_layout').val();
         /*Check container layout on resize END */
         
-		new dezSettings(dezSettingsOptions); 
+		new dzSettings(dzSettingsOptions); 
 	});
 	
 })(jQuery);
