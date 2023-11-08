@@ -76,15 +76,15 @@ export default class Staking extends Component {
       cantidadDatos: 30,
       dias: "Loading...",
       precioBrut: 0,
-			varBrut: 0,
-			precioBrst: 0,
-			varBrst: 0,
+      varBrut: 0,
+      precioBrst: 0,
+      varBrst: 0,
       BRGY: 0,
-			BRLT: 0,
-			misBRUT: 0,
-			misBRST: 0,
-			misBRGY: 0,
-			misBRLT: 0,
+      BRLT: 0,
+      misBRUT: 0,
+      misBRST: 0,
+      misBRGY: 0,
+      misBRLT: 0,
       win7day: 0,
       last7day: 0,
       earn7day: 0,
@@ -128,10 +128,10 @@ export default class Staking extends Component {
 
     }, 3 * 1000);
 
-    /*setInterval(() => {
-      this.root.dispose();
-      this.grafico(0);
-    }, 60 * 1000);*/
+    setInterval(() => {
+      this.consultarPrecio();
+      this.estado();
+    }, 30 * 1000);
   }
 
   componentWillUnmount() {
@@ -141,85 +141,85 @@ export default class Staking extends Component {
   }
 
   subeobaja(valor) {
-		var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
-			xmlns="http://www.w3.org/2000/svg">
-			<g filter="url(#filter0_d2)">
-				<path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
-					stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
-			</g>
-			<defs>
-				<filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
-					height="22.0001" filterUnits="userSpaceOnUse"
-					colorInterpolationFilters="sRGB">
-					<feFlood floodOpacity="0" result="BackgroundImageFix" />
-					<feColorMatrix in="SourceAlpha" type="matrix"
-						values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-					<feOffset dy="1" />
-					<feGaussianBlur stdDeviation="2" />
-					<feColorMatrix type="matrix"
-						values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
-					<feBlend mode="normal" in2="BackgroundImageFix"
-						result="effect1_dropShadow" />
-					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
-						result="shape" />
-				</filter>
-			</defs>
-		</svg>);
-		var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-			<g filter="url(#filter0_d)">
-				<path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
-			</g>
-			<defs>
-				<filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-					<feFlood floodOpacity="0" result="BackgroundImageFix" />
-					<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-					<feOffset dy="1" />
-					<feGaussianBlur stdDeviation="2" />
-					<feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
-					<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-					<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-				</filter>
-			</defs>
-		</svg>);
+    var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#filter0_d2)">
+        <path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
+          stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <defs>
+        <filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
+          height="22.0001" filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix in="SourceAlpha" type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+          <feOffset dy="1" />
+          <feGaussianBlur stdDeviation="2" />
+          <feColorMatrix type="matrix"
+            values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
+          <feBlend mode="normal" in2="BackgroundImageFix"
+            result="effect1_dropShadow" />
+          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
+            result="shape" />
+        </filter>
+      </defs>
+    </svg>);
+    var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#filter0_d)">
+        <path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <defs>
+        <filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+          <feOffset dy="1" />
+          <feGaussianBlur stdDeviation="2" />
+          <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
+          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+        </filter>
+      </defs>
+    </svg>);
 
-		var resultado = imgNPositivo;
+    var resultado = imgNPositivo;
 
-		if (valor < 0) {
-			resultado = imgNegativo
-		}
+    if (valor < 0) {
+      resultado = imgNegativo
+    }
 
-		return resultado;
-	}
+    return resultado;
+  }
 
   textoE(valor) {
 
-		var resultado = "success";
+    var resultado = "success";
 
-		if (valor < 0) {
-			resultado = "danger"
-		}
+    if (valor < 0) {
+      resultado = "danger"
+    }
 
-		return resultado;
+    return resultado;
 
-	}
+  }
 
   consultaPrecio() {
 
-		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
-			.then(response => { return response.json(); })
-			.then(data => {
+    fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
+      .then(response => { return response.json(); })
+      .then(data => {
 
-				this.setState({
-					precioBrst: data.Data.trx,
-					varBrst: data.Data.v24h
-				})
+        this.setState({
+          precioBrst: data.Data.trx,
+          varBrst: data.Data.v24h
+        })
 
-			}).catch(err => {
-				console.log(err);
+      }).catch(err => {
+        console.log(err);
 
-			});
+      });
 
-	}
+  }
 
   handleChange(e) {
     let evento = e.target.value;
@@ -295,23 +295,19 @@ export default class Staking extends Component {
 
     let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=7")
     consulta = (await consulta.json()).Data
-    
-    this.setState({
-      misBRST: misBRST,
-      dataBRST: consulta,
-      win7day: ((consulta[0].value-consulta[6].value)/((consulta[0].value+consulta[6].value)/2))*100,
-      earn7day: ((consulta[0].value-consulta[1].value)/((consulta[0].value+consulta[1].value)/2))*100*7,
-      last7day: (misBRST * consulta[0].value)-(misBRST * consulta[6].value)
-    })
 
     var accountAddress = this.props.accountAddress;
 
     var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
 
-    if (balance <= 0) {
-      window.alert("Need some TRX to make Staking");
-      return;
-    }
+    this.setState({
+      balanceUSDT: balance,
+      misBRST: misBRST,
+      dataBRST: consulta,
+      win7day: ((consulta[0].value - consulta[6].value) / ((consulta[0].value + consulta[6].value) / 2)) * 100,
+      earn7day: ((consulta[0].value - consulta[1].value) / ((consulta[0].value + consulta[1].value) / 2)) * 100 * 7,
+      last7day: (misBRST * consulta[0].value) - (misBRST * consulta[6].value)
+    })
 
     var MIN_DEPOSIT = await this.props.contrato.BRST_TRX.MIN_DEPOSIT().call();
     MIN_DEPOSIT = parseInt(MIN_DEPOSIT._hex) / 10 ** 6;
@@ -771,219 +767,225 @@ export default class Staking extends Component {
     minCompra = "Min. " + minCompra + " TRX";
     minventa = "Min. " + minventa + " BRST";
 
-    return (
+    return (<>
+
+      <div className="row">
+        <div className="col-xl-12">
+          <div className="tab-content" id="nav-tabContent">
+            <div className="tab-pane fade show active" id="nav-bitcoin" role="tabpanel" aria-labelledby="nav-bitcoin-tab">
+              <div className="row">
+                <div className="col-xl-9 col-xxl-9 wow fadeInLeft" data-wow-delay="0.2s">
+                  <div className="card coin-content">
+                    <div className="card-header border-0 flex-wrap">
+                      <div className="mb-2">
+                        <h4 className="heading m-0">BRST Chart</h4>
+                        <span className="fs-16">Brutus Tron Staking </span>
+                      </div>
+                      <div className="dropdown bootstrap-select">
+                        <select className="image-select default-select dashboard-select" aria-label="Default" tabindex="0">
+                          <option selected="">TRX (Tron)</option>
+                          <option selected="">USD (Dollar)</option>
+                        </select>
+                      </div>
+                    </div>
+                    <div className="card-body">
+                      <div className="d-flex align-items-center justify-content-between flex-wrap">
+                        <div className="d-flex align-items-center justify-content-between flex-wrap">
+                          <div className="price-content">
+                            <span className="fs-18 d-block mb-2">Price</span>
+                            <h4 className="fs-20 font-w600">{this.state.precioBRST} TRX</h4>
+                          </div>
+                          <div className="price-content">
+                            <span className="fs-14 d-block mb-2">24h% change</span>
+                            <h4 className="font-w600 text-success">{(this.state.varBrst).toFixed(4)}<i className="fa-solid fa-caret-up ms-1 text-success"></i></h4>
+                          </div>
+                          <div className="price-content">
+                            <span className="fs-14 d-block mb-2">Circulating</span>
+                            <h4 className="font-w600">{(this.state.tokensEmitidos * 1).toFixed(2)} BRST</h4>
+                          </div>
+                          <div className="price-content">
+                            <span className="fs-14 d-block mb-2">Endorsement</span>
+                            <h4 className="font-w600">{(this.state.enBrutus * 1).toFixed(2)} TRX</h4>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
+                      <select className="btn-secondary style-1 default-select" value={this.state.temporalidad} onChange={this.handleChange}>
+                        {options.map((option) => (
+                          <option key={option.label.toString()} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                      {" | "}
+                      <select className="btn-secondary style-1 default-select" value={this.state.cantidadDatos} onChange={this.handleChange2}>
+                        {options2.map((option) => (
+                          <option key={option.label.toString()} value={option.value}>{option.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-xl-3 col-xxl-3 col-sm-6 wow fadeInRight" data-wow-delay="0.3s">
+                  <div className="card  digital-cash">
+
+                    <div className="card-body ">
+                      <div className="text-center">
+                        <div className="media d-block">
+                          <img src="images/brst.png" width="100%" />
+                          <div className="media-content">
+                            <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">Automated Staking</h4>
+                            <span className="font-w600 text-black">Brutus</span>
+                            <span className="my-4 fs-16 font-w600 d-block">1 BRST = {this.state.precioBrst} TRX</span>
+                            <p className="text-start">BRST is a token in the tron network, which allows its holders to generate returns in TRX thanks to staking, energy rental, an additional 10% of what is generated by all Brutus Energy Bot providers and automatic compound interest. All this makes profits grow exponentially, fully automated.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="card-footer p-2 border-0">
+                      <a href="https://brutus.finance/brutusblog.html" className="btn btn-link text-primary">Read more</a>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-xl-6 col-sm-6 wow fadeInUp" data-wow-delay="0.4s">
+                  <div className="card quick-trade">
+                    <div className="card-header pb-0 border-0 flex-wrap">
+                      <div>
+                        <h4 className="heading mb-0">Quick Trade</h4>
+                        <p className="mb-0 fs-14">without fees</p>
+                      </div>
+                    </div>
+                    <div className="card-body pb-0">
+                      <div className="basic-form">
+                        <form className="form-wrapper trade-form">
+                          <div className="input-group mb-3 ">
+                            <span className="input-group-text">BRST</span>
+                            <input className="form-control form-control text-end" type="number" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5} />
+                          </div>
+                          <div className="input-group mb-3 ">
+                            <span className="input-group-text">TRX</span>
+                            <input className="form-control form-control text-end" type="number" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
+                          </div>
+                        </form>
+                      </div>
+                    </div>
+                    <div className="card-footer border-0">
+                      <div className="row">
+                        <div className="col-6">
+                          <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.compra()}>
+                            BUY
+                            <svg className="ms-4 scale5" width="16" height="16" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M5.35182 13.4965L5.35182 13.4965L5.33512 6.58823C5.33508 6.5844 5.3351 6.58084 5.33514 6.57759M5.35182 13.4965L5.83514 6.58306L5.33514 6.58221C5.33517 6.56908 5.33572 6.55882 5.33597 6.5545L5.33606 6.55298C5.33585 6.55628 5.33533 6.56514 5.33516 6.57648C5.33515 6.57684 5.33514 6.57721 5.33514 6.57759M5.35182 13.4965C5.35375 14.2903 5.99878 14.9324 6.79278 14.9305C7.58669 14.9287 8.22874 14.2836 8.22686 13.4897L8.22686 13.4896L8.21853 10.0609M5.35182 13.4965L8.21853 10.0609M5.33514 6.57759C5.33752 5.789 5.97736 5.14667 6.76872 5.14454C6.77041 5.14452 6.77217 5.14451 6.77397 5.14451L6.77603 5.1445L6.79319 5.14456L13.687 5.16121L13.6858 5.66121L13.687 5.16121C14.4807 5.16314 15.123 5.80809 15.1211 6.6022C15.1192 7.3961 14.4741 8.03814 13.6802 8.03626L13.6802 8.03626L10.2515 8.02798L23.4341 21.2106C23.9955 21.772 23.9955 22.6821 23.4341 23.2435C22.8727 23.8049 21.9625 23.8049 21.4011 23.2435L8.21853 10.0609M5.33514 6.57759C5.33513 6.57959 5.33514 6.58159 5.33514 6.5836L8.21853 10.0609M6.77407 5.14454C6.77472 5.14454 6.77537 5.14454 6.77603 5.14454L6.77407 5.14454Z" fill="white" stroke="white"></path>
+                            </svg>
+                          </button>
+                        </div>
+                        <div className="col-6">
+                          <button className="btn d-flex  btn-danger justify-content-between w-100" onClick={() => this.venta()}>
+                            SELL
+                            <svg className="ms-4 scale3" width="16" height="16" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M16.9638 11.5104L16.9721 14.9391L3.78954 1.7565C3.22815 1.19511 2.31799 1.19511 1.75661 1.7565C1.19522 2.31789 1.19522 3.22805 1.75661 3.78943L14.9392 16.972L11.5105 16.9637L11.5105 16.9637C10.7166 16.9619 10.0715 17.6039 10.0696 18.3978C10.0677 19.1919 10.7099 19.8369 11.5036 19.8388L11.5049 19.3388L11.5036 19.8388L18.3976 19.8554L18.4146 19.8555L18.4159 19.8555C18.418 19.8555 18.42 19.8555 18.422 19.8555C19.2131 19.8533 19.8528 19.2114 19.8555 18.4231C19.8556 18.4196 19.8556 18.4158 19.8556 18.4117L19.8389 11.5035L19.8389 11.5035C19.8369 10.7097 19.1919 10.0676 18.3979 10.0695C17.604 10.0713 16.9619 10.7164 16.9638 11.5103L16.9638 11.5104Z" fill="white" stroke="white"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                      <div className="d-flex mt-3 align-items-center">
+                        <div className="form-check custom-checkbox me-3">
+                          <label className="form-check-label fs-14 font-w400" for="customCheckBox1">We recommend keeping ~ 21 TRX for transactions.</label>
+                        </div>
+                        <p className="mb-0"></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-xl-6 col-sm-12 wow fadeInUp" data-wow-delay="0.6s">
+                  <div className="card price-list">
+                    <div className="card-header border-0 pb-2">
+                      <div className="chart-title">
+                        <h4 className="text-warning mb-0">My Assets</h4>
+                      </div>
+                    </div>
+                    <div className="card-body p-3 py-0">
+                      <div className="table-responsive">
+                        <table className="table text-center bg-warning-hover order-tbl">
+                          <thead>
+                            <tr>
+                              <th className="text-left">Token</th>
+                              <th className="text-center">Amount</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr style={{ cursor: "pointer" }} onClick={() => { this.handleChangeBRUT({ target: { value: this.state.balanceBRUT } }) }}>
+                              <td className="text-left">BRST</td>
+                              <td>{this.state.balanceBRUT}</td>
+                            </tr>
+                            <tr style={{ cursor: "pointer" }} onClick={() => { this.handleChangeUSDT({ target: { value: this.state.balanceUSDT } }) }}>
+                              <td className="text-left">TRX</td>
+                              <td>{this.state.balanceUSDT}</td>
+                            </tr>
+
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                    <div className="card-footer text-center py-3 border-0">
+                      <a href="/" className="btn-link text-black">Show more <i className="fa fa-caret-right"></i></a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+
+
 
       <div className="row mx-0">
-        <div className="col-xl-3 col-xxl-4 ">
+
+        <div className="col-lg-12">
           <div className="card">
-
-            <div className="card-body ">
-              <div className="d-flex align-items-start mb-3 ">
-                <div>
-                  <img src="assets/img/brst.png" height="100px" width="100px" className="rounded-circle" alt="brst token" />
-                </div>
-                <div className="ms-3">
-                  <h2 className="font-w600 text-black mb-0 title">Brutus Tron Staking</h2>
-                  <p className="font-w600 text-black sub-title">BRST</p>
-                </div>
-              </div>
-              <p className="fs-14">BRST is a token in the tron network, which allows its holders to generate returns in TRX thanks to staking, energy rental, an additional 10% of what is generated by all Brutus Energy Bot providers and automatic compound interest. All this makes profits grow exponentially, fully automated.</p>
-            </div>
-          </div>
-        </div>
-        <div className="col-xl-9 col-xxl-8 ">
-          <div className="card">
-
-            <div className="card-body pb-0 ">
-              <div className="row sp20 mb-4 align-items-center">
-                <div className="col-lg-4 col-xxl-4 col-sm-4 d-flex flex-wrap align-items-center">
-                  <div className="px-2 info-group">
-                    <p className="fs-18 mb-1">Price TRX</p>
-                    <h2 className="fs-28 font-w600 text-black">{this.state.precioBRST}</h2>
-                  </div>
-                </div>
-                <div className="d-flex col-lg-8 col-xxl-8 col-sm-8 align-items-center mt-sm-0 mt-3 justify-content-end">
-
-                  <div className="px-2 info-group">
-                    <p className="fs-14 mb-1">Endorsement TRX</p>
-                    <h3 className="fs-20 font-w600 text-black">{(this.state.enBrutus).toFixed(2)}</h3>
-                  </div>
-                  <div className="px-2 info-group">
-                    <p className="fs-14 mb-1">BRST circulating</p>
-                    <h3 className="fs-20 font-w600 text-black">{(this.state.tokensEmitidos).toFixed(2)}</h3>
-                  </div>
-                </div>
-              </div>
-              <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
-
-              <select className="btn-secondary style-1 default-select  mb-3" value={this.state.temporalidad} onChange={this.handleChange}>
-                {options.map((option) => (
-                  <option key={"brst-" + option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-              {" | "}
-              <select className="btn-secondary style-1 default-select  mb-3" value={this.state.cantidadDatos} onChange={this.handleChange2}>
-                {options2.map((option) => (
-                  <option key={"brst2-" + option.value} value={option.value}>{option.label}</option>
-                ))}
-              </select>
-
-
-            </div>
-          </div>
-        </div>
-
-
-        <div className="col-xl-12">
-          <div className="card">
-            <div className="card-header border-0 pb-0">
-              <h4 className="mb-0 fs-20 text-black">My staking</h4>
-
+            <div className="card-header">
+              <h4 className="card-title">My Staking: {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX = {this.state.misBRST} BRST</h4>
             </div>
             <div className="card-body">
-
-            <div className=" coin-holding mt-4 flex-wrap" style={{ backgroundColor: "#ff5124" }}>
-                <div className="mb-2 coin-bx">
-                  <div className="d-flex align-items-center">
-                    <div>
-                        <img src="assets/img/cash-coin.svg" alt="brutus finance brlt" style={{"filter":"invert(1)"}} width="80" height="80" />
-                    </div>
-                    <div className="ms-3">
-                      <h4 className="coin-font font-w600 mb-0 text-white">In the last 7 days </h4>
-                      <p className="mb-0 text-white">your efective profit is</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-2">
-                  <div className="d-flex align-items-center">
-                    <div className="ms-3">
-                      <h2 className="mb-0 text-white coin-font-1"> + {(this.state.win7day).toPrecision(3)}%</h2>
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-2">
-                  <div className="d-flex align-items-center">
-                    <p className="mb-0 ms-2 font-w400 text-white">{(this.state.last7day).toFixed(3)} TRX</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-danger coin-holding mt-4 flex-wrap">
-                <div className="mb-2 coin-bx">
-                  <div className="d-flex align-items-center">
-                    <div>
-                      <a href="/?brst">
-                        <img src="assets/img/brst.png" alt="brutus finance brst" width="80" height="80" />
-                      </a>
-                    </div>
-                    <div className="ms-3">
-                      <h4 className="coin-font font-w600 mb-0 text-white">Brutus Tron Staking</h4>
-                      <p className="mb-0 text-white">BRST</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-2">
-                  <div className="d-flex align-items-center">
-                    <div className="ms-3">
-                      <h2 className="mb-0 text-white coin-font-1">{this.state.misBRST}</h2>
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-2">
-                  <div className="d-flex align-items-center">
-                    {this.subeobaja(this.state.varBrst)}
-                    <p className="mb-0 ms-2"><span className={"text-" + this.textoE(this.state.varBrst) + " me-1"}>{(this.state.varBrst).toFixed(3)}%</span></p>
-                    <p className="mb-0 ms-2 font-w400 text-white">{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className=" coin-holding mt-4 flex-wrap" style={{ backgroundColor: "#32a852" }}>
-                <div className="mb-2 coin-bx">
-                  <div className="d-flex align-items-center">
-                    <div>
-                        <img src="assets/img/piggy-bank.svg" alt="brutus finance brlt" style={{"filter":"invert(1)"}} width="80" height="80" />
-                    </div>
-                    <div className="ms-3">
-                      <h4 className="coin-font font-w600 mb-0 text-white">In the next 7 days </h4>
-                      <p className="mb-0 text-white">your estimated profit</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-2">
-                  <div className="d-flex align-items-center">
-                    <div className="ms-3">
-                      <h2 className="mb-0 text-white coin-font-1"> + {(this.state.earn7day).toPrecision(3)}% ~ {(this.state.misBRST * this.state.precioBrst*(this.state.earn7day/100)).toFixed(3)} TRX</h2>
-                    </div>
-                  </div>
-                </div>
-                <div className="mb-2">
-                  <div className="d-flex align-items-center">
-                    <p className="mb-0 ms-2 font-w400 text-white">~ {((this.state.misBRST * this.state.precioBrst*(this.state.earn7day/100))/7).toFixed(6)} TRX/DAY</p>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-        </div>
-
-
-        <div className="col-xl-6 col-xxl-12">
-          <div className="card">
-            <div className="card-header d-sm-flex d-block pb-0 border-0">
-              <div>
-                <h4 className="fs-20 text-black">Exchange</h4>
-
-              </div>
-
-            </div>
-            <div className="card-body">
-              <div className="basic-form">
-                <form className="form-wrapper">
-                  <div className="form-group">
-                    <div className="input-group input-group-lg">
-                      <div className="input-group-prepend">
-                        <span className="input-group-text" style={{ cursor: "pointer" }} onClick={() => this.llenarBRST()} >BRST: {this.state.balanceBRUT}</span>
-                      </div>
-                      <input type="number" className="form-control" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} />
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <div className="input-group input-group-lg">
-                      <div className="input-group-prepend">
-                        <span className="input-group-text " style={{ cursor: "pointer" }} onClick={() => this.llenarUSDT()} >TRX: {this.state.balanceUSDT}</span>
-                      </div>
-                      <input type="number" className="form-control" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
-                    </div>
-                  </div>
-                  <div className="row mt-4 align-items-center">
-                    <div className="col-sm-6 mb-3">
-                      <p className="mb-0 fs-14">We recommend keeping ~21 TRX or <a href="?ebot"> ~50000 energy</a> to trade</p>
-                    </div>
-                    <div className="col-sm-6 text-sm-right text-start">
-                      <button className="btn  btn-success text-white mb-2" onClick={() => this.compra()}>
-                        BUY
-                        <svg className="ms-4 scale5" width="16" height="16" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M5.35182 13.4965L5.35182 13.4965L5.33512 6.58823C5.33508 6.5844 5.3351 6.58084 5.33514 6.57759M5.35182 13.4965L5.83514 6.58306L5.33514 6.58221C5.33517 6.56908 5.33572 6.55882 5.33597 6.5545L5.33606 6.55298C5.33585 6.55628 5.33533 6.56514 5.33516 6.57648C5.33515 6.57684 5.33514 6.57721 5.33514 6.57759M5.35182 13.4965C5.35375 14.2903 5.99878 14.9324 6.79278 14.9305C7.58669 14.9287 8.22874 14.2836 8.22686 13.4897L8.22686 13.4896L8.21853 10.0609M5.35182 13.4965L8.21853 10.0609M5.33514 6.57759C5.33752 5.789 5.97736 5.14667 6.76872 5.14454C6.77041 5.14452 6.77217 5.14451 6.77397 5.14451L6.77603 5.1445L6.79319 5.14456L13.687 5.16121L13.6858 5.66121L13.687 5.16121C14.4807 5.16314 15.123 5.80809 15.1211 6.6022C15.1192 7.3961 14.4741 8.03814 13.6802 8.03626L13.6802 8.03626L10.2515 8.02798L23.4341 21.2106C23.9955 21.772 23.9955 22.6821 23.4341 23.2435C22.8727 23.8049 21.9625 23.8049 21.4011 23.2435L8.21853 10.0609M5.33514 6.57759C5.33513 6.57959 5.33514 6.58159 5.33514 6.5836L8.21853 10.0609M6.77407 5.14454C6.77472 5.14454 6.77537 5.14454 6.77603 5.14454L6.77407 5.14454Z" fill="white" stroke="white"></path>
-                        </svg>
-                      </button>
-                      <button className="btn btn-danger ms-4 mb-2" onClick={() => this.venta()}>
-                        SELL
-                        <svg className="ms-4 scale3" width="16" height="16" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M16.9638 11.5104L16.9721 14.9391L3.78954 1.7565C3.22815 1.19511 2.31799 1.19511 1.75661 1.7565C1.19522 2.31789 1.19522 3.22805 1.75661 3.78943L14.9392 16.972L11.5105 16.9637L11.5105 16.9637C10.7166 16.9619 10.0715 17.6039 10.0696 18.3978C10.0677 19.1919 10.7099 19.8369 11.5036 19.8388L11.5049 19.3388L11.5036 19.8388L18.3976 19.8554L18.4146 19.8555L18.4159 19.8555C18.418 19.8555 18.42 19.8555 18.422 19.8555C19.2131 19.8533 19.8528 19.2114 19.8555 18.4231C19.8556 18.4196 19.8556 18.4158 19.8556 18.4117L19.8389 11.5035L19.8389 11.5035C19.8369 10.7097 19.1919 10.0676 18.3979 10.0695C17.604 10.0713 16.9619 10.7164 16.9638 11.5103L16.9638 11.5104Z" fill="white" stroke="white"></path>
-                        </svg>
-
-                      </button>
-
-                      <p className="mb-0 fs-12">To withdraw the TRX from the SR we have to carry out 2 processes: <br></br>
-                        <span className="text-white">3 days</span> to remove it from the E-Bot <br>
-                        </br><span className="text-white">14 days</span> to remove it from Tron Network<br>
-                        </br>for <span className="text-white">{this.state.dias} days</span> in total
-                      </p>
-                    </div>
-                  </div>
-                </form>
+              <div className="table-responsive">
+                <table className="table table-hover table-responsive-sm">
+                  <thead>
+                    <tr>
+                      <th>Days</th>
+                      <th>You Hold</th>
+                      <th>Status</th>
+                      <th>Income</th>
+                      <th>Growth rate</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <th>1</th>
+                      <td>{this.state.misBRST} BRST</td>
+                      <td><span className="badge badge-primary light">Efective</span>
+                      </td>
+                      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst) / 100)) ).toFixed(6)} TRX</td>
+                      <td className="color-primary">{(this.state.varBrst).toFixed(4)} %</td>
+                    </tr>
+                    <tr>
+                      <th>30</th>
+                      <td>{this.state.misBRST} BRST</td>
+                      <td><span className="badge badge-success">likely</span>
+                      </td>
+                      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst*30) / 100)) ).toFixed(6)} TRX</td>
+                      <td className="color-success">{(this.state.varBrst*30).toFixed(4)} %</td>
+                    </tr>
+                    <tr>
+                      <th>365</th>
+                      <td>{this.state.misBRST} BRST</td>
+                      <td><span className="badge badge-danger light">Estimated</span>
+                      </td>
+                      <td className="text-danger">{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst*365) / 100)) ).toFixed(6)} TRX</td>
+                      <td className="text-danger">{(this.state.varBrst*365).toFixed(4)} %</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -1011,6 +1013,6 @@ export default class Staking extends Component {
 
       </div>
 
-    );
+    </>);
   }
 }

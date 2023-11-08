@@ -166,7 +166,7 @@ export default class Inicio extends Component {
 
 				<div class="row">
 					<div class="col-lg-12">
-						<div class="profile card card-body px-3 pt-3 pb-0">
+						<div class="profile card card-body px-3 pt-3">
 							<div class="profile-head">
 								<div class="photo-content">
 									<a href="?ebot">
@@ -175,7 +175,7 @@ export default class Inicio extends Component {
 										</div>
 									</a>
 								</div>
-								<div class="profile-info">
+								<div class="profile-info d-none d-block">
 									<div class="profile-details d-flex flex-row-reverse">
 										<div class="text-center mt-12 mb-12 ">
 											<a href="?ebot" class="btn btn-primary mx-auto">Try it

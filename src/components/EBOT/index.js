@@ -96,7 +96,7 @@ export default class EnergyRental extends Component {
     //console.log(consulta2)
 */
 
-console.log(consulta)
+    console.log(consulta)
     this.setState({
       available_bandwidth: consulta["BANDWIDTH_-_Rental_duration_more_than_3_days"],
       available_energy: consulta["ENERGY_-_Rental_duration_more_than_3_days"],
@@ -113,21 +113,21 @@ console.log(consulta)
 
     time = time.split("d")
 
-    if(time.length >= 2){
+    if (time.length >= 2) {
 
-      if(parseInt(time[0]) < 1 || parseInt(time[0]) > 14){
+      if (parseInt(time[0]) < 1 || parseInt(time[0]) > 14) {
         this.setState({
           titulo: "Error Range",
           body: "Please enter a range of values between 1 and 14 days"
         })
 
         ok = false;
-  
+
         window.$("#mensaje-ebot").modal("show");
       }
-    }else{
+    } else {
 
-      if(parseInt(time[0]) !== 1){
+      if (parseInt(time[0]) !== 1) {
         this.setState({
           titulo: "Error Range",
           body: "It is only available for 1 hour operations",
@@ -135,7 +135,7 @@ console.log(consulta)
         })
 
         ok = false;
-  
+
         window.$("#mensaje-ebot").modal("show");
       }
 
@@ -144,7 +144,7 @@ console.log(consulta)
 
     time = time[0]
 
-    if(parseInt(time) > 0 && ok ){
+    if (parseInt(time) > 0 && ok) {
       var body = { "resource": "energy", "amount": amount, "duration": time }
 
       var consulta2 = await fetch(url, {
@@ -158,14 +158,14 @@ console.log(consulta)
       consulta2 = (await consulta2.json())
 
       var precio = consulta2.price * 1.1
-      precio = parseInt(precio*10**6)/10**6
+      precio = parseInt(precio * 10 ** 6) / 10 ** 6
 
       this.setState({
         precio: precio
       })
 
       return precio
-    }else{
+    } else {
       this.setState({
         precio: 0
       })
@@ -283,8 +283,138 @@ console.log(consulta)
 
   render() {
 
-    return (
-      <>
+    return (<>
+
+      <div class="row align-items-center">
+        <div class="col-xl-5 col-lg-5 m-b30">
+          <div class="info-box">
+            <figure class="figure">
+              <img src="images/home-banner/energyrental.png" class="figure-img img-fluid rounded" alt="resource rental energy" />
+              <figcaption class="figure-caption"></figcaption>
+            </figure>
+            <div class="info">
+              <h1>Brutus Resources rental</h1>
+              <p class="font-20">In Brutus Energy Bot, we've developed a DApp that provides you
+                with a faster, more convenient, and secure experience. This DApp represents an
+                innovative third way to access Brutus's resources on the Tron network. Our
+                application is designed to simplify the energy rental process, ensuring
+                efficient resource management at competitive prices.</p>
+            </div>
+
+            <div class="widget widget_about">
+              <div class="widget widget_getintuch">
+              </div>
+            </div>
+            <div class="social-box dz-social-icon style-3">
+            </div>
+          </div>
+        </div>
+
+        <div class="col-xl-7 col-lg-7">
+          <div class="contact-box">
+            <div class="card">
+              <div class="card-body">
+                <div class="mb-4">
+                  <div class="row">
+                    <div class="col-6">
+                      <h4>Resources Rental</h4>
+                    </div>
+                    <div class="col-6">
+                      <div class="d-flex justify-content-sm-end">
+                        <div class="btn-group" role="group">
+                          <button id="btnGroupDrop1" type="button"
+                            class="btn btn-primary dropdown-toggle"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Resource
+                          </button>
+                          <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                            <li><button class="dropdown-item">Energy</button></li>
+                            <li><button class="dropdown-item">Bandwidth</button></li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+
+                    <form class="dzForm" method="" action="">
+                      <div class="dzFormMsg"></div>
+                      <input type="hidden" class="form-control" name="dzToDo" value="Contact" />
+                      <p class="font-14">Energy: {(this.state.available_energy).toLocaleString('en-US')}</p>
+                      <div class="progress" style={{margin: "5px;"}}>
+                        <div class="progress-bar" role="progressbar" style={{ "width": (this.state.available_energy * 100 / this.state.total_energy_pool) + "%" }}
+                          aria-valuenow={(this.state.available_energy * 100 / this.state.total_energy_pool)} aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                      </div>
+                      <p class="font-14">Bandwidth: {(this.state.available_bandwidth).toLocaleString('en-US')}</p>
+                      <div class="progress" style={{margin: "5px;"}}>
+                        <div class="progress-bar" role="progressbar" style={{ "width": (this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool) + "%" }}
+                          aria-valuenow={(this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool)} aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                      </div>
+                      <p class="font-14">Resource wallet</p>
+                      <div class="col-xl-12 mb-3 mb-md-4">
+                        <input name="dzFirstName" required type="text"
+                          class="form-control" placeholder="Tron wallet" />
+                      </div>
+                      <p class="font-14">Resource amount</p>
+                      <div class="col-xl-12 mb-3 mb-md-4">
+                        <input name="dzLastName" type="text" class="form-control"
+                          placeholder="32000" />
+                        <div class="d-flex justify-content-xl-center">
+                          <button type="button" class="btn btn-primary btn-sm"
+                            style={{margin: "10px"}}>32k</button>
+                          <button type="button" class="btn btn-primary btn-sm"
+                             style={{margin: "10px"}}>100k</button>
+                          <button type="button" class="btn btn-primary btn-sm"
+                             style={{margin: "10px"}}>160k</button>
+                          <button type="button" class="btn btn-primary btn-sm"
+                             style={{margin: "10px"}}>1M</button>
+                          <button type="button" class="btn btn-primary btn-sm"
+                             style={{margin: "10px"}}>3M</button>
+                        </div>
+                        <p class="font-14">Duration</p>
+                        <div class="col-xl-12 mb-3 mb-md-4">
+                          <input name="dzPhoneNumber" required type="text"
+                            class="form-control" placeholder="1h" />
+                          <div class="d-flex justify-content-xl-center">
+                            <button type="button" class="btn btn-primary btn-sm"
+                              style={{margin: "10px"}}>1h</button>
+                            <button type="button" class="btn btn-primary btn-sm"
+                              style={{margin: "10px"}}>1d</button>
+                            <button type="button" class="btn btn-primary btn-sm"
+                              style={{margin: "10px"}}>3d</button>
+                            <button type="button" class="btn btn-primary btn-sm"
+                              style={{margin: "10px"}}>7d</button>
+                            <button type="button" class="btn btn-primary btn-sm"
+                              style={{margin: "10px"}}>14d</button>
+                          </div>
+                        </div>
+                        <p class="font-14">Payout</p>
+                        <div class="col-xl-12 mb-3 mb-md-4">
+                          <input name="dzPhoneNumber" required type="text"
+                            class="form-control" placeholder="Price" readOnly />
+                        </div>
+                      </div>
+                      <div class="d-flex justify-content-xl-center">
+                        <button name="submit" type="button" value="Submit"
+                          class="btn btn-primary"
+                          style={{margin: "10px", width:"600px", height:"45px"}} onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)}>Calculate</button>
+                      </div>
+                      <div class="d-flex justify-content-xl-center">
+                        <button name="submit" type="button" value="Submit"
+                          class="btn btn-secondary"
+                          style={{margin: "10px", width:"600px", height:"45px"}} onClick={() => this.compra()}>Buy Now
+                        </button>
+                      </div>
+                  
+                    </form>
+                  </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div >
 
         <div className="row mx-0 ">
           <div className="col-lg-12">
@@ -305,7 +435,7 @@ console.log(consulta)
                     <h3 className="text-white">{(this.state.available_energy).toLocaleString('en-US')} <i className="bi bi-lightning-charge"></i> Energy</h3>
                   </div>
                   <div className="progress">
-                    <div className="progress-bar bg-info" style={{ "width": (this.state.available_energy*100/this.state.total_energy_pool)+"%" }}></div>
+                    <div className="progress-bar bg-info" style={{ "width": (this.state.available_energy * 100 / this.state.total_energy_pool) + "%" }}></div>
                   </div>
                 </div>
                 <div className="col-md-6 col-sm-12">
@@ -313,7 +443,7 @@ console.log(consulta)
                     <h3 className="text-white">{(this.state.available_bandwidth).toLocaleString('en-US')} <i className="bi bi-wifi"></i> Bandwitdh</h3>
                   </div>
                   <div className="progress">
-                    <div className="progress-bar bg-warning" style={{ "width": (this.state.available_bandwidth*100/this.state.total_bandwidth_pool)+"%" }}></div>
+                    <div className="progress-bar bg-warning" style={{ "width": (this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool) + "%" }}></div>
                   </div>
                 </div>
               </div>
@@ -484,7 +614,6 @@ console.log(consulta)
           </div>
         </div>
 
-      </>
-    );
+    </>);
   }
 }
