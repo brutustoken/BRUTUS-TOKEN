@@ -171,7 +171,7 @@ export default class Inicio extends Component {
 								<div class="photo-content">
 									<a href="?ebot">
 										<div class="cover-photo rounded"><img style={{borderRadius: "1%"}}
-											src="images/Optimize TRX costs with Brutus!.png" width="100%" />
+											src="images/banner.jpg" width="100%" />
 										</div>
 									</a>
 								</div>
@@ -224,7 +224,7 @@ export default class Inicio extends Component {
 														<td>
 															<a class="market-title d-flex align-items-center"
 																href="?brut">
-																<img src="images/brut3030.png" />
+																<img src="images/brut.png" width="50px" />
 																	<h5 class="mb-0 ms-2">BRUT</h5>
 																	<span class="text-muted ms-2">Brutus Token</span>
 															</a>
@@ -240,7 +240,7 @@ export default class Inicio extends Component {
 														<td>
 															<a class="market-title d-flex align-items-center"
 																href="?brst">
-																<img src="images/brst3030.png" />
+																<img src="images/brst.png" width="50px" />
 																	<h5 class="mb-0 ms-2">BRST</h5>
 																	<span class="text-muted ms-2">Brutus Tron Staking</span>
 															</a>
@@ -255,7 +255,7 @@ export default class Inicio extends Component {
 														<td>
 															<a class="market-title d-flex align-items-center"
 																href="?brgy">
-																<img src="images/brgy3030.png" />
+																<img src="images/brgy3030.png" width="50px"/>
 																	<h5 class="mb-0 ms-2">BRGY</h5>
 																	<span class="text-muted ms-2">Brutus Gallery</span>
 															</a>
@@ -270,7 +270,7 @@ export default class Inicio extends Component {
 														<td>
 															<a class="market-title d-flex align-items-center"
 																href="?brlt">
-																<img src="images/brlt3030.png" />
+																<img src="images/brlt3030.png" width="50px"/>
 																	<h5 class="mb-0 ms-2">BRLT</h5>
 																	<span class="text-muted ms-2">Brutus Lottery</span>
 															</a>
