@@ -9,11 +9,11 @@ export default class EnergyRental extends Component {
 
     this.state = {
 
-      minCompra: 32000,
       deposito: "Loading...",
       wallet: "Loading...",
       precio: "",
       wallet_orden: "",
+      recurso: "energy",
       cantidad: 32000,
       periodo: 1,
       temporalidad: "h",
@@ -22,7 +22,14 @@ export default class EnergyRental extends Component {
       total_bandwidth_pool: 0,
       total_energy_pool: 0,
       titulo: "Titulo",
-      body: "Cuerpo del mensaje"
+      body: "Cuerpo del mensaje",
+      amounts:[
+        {amount: 3200,text: "32k"},
+        {amount: 100000,text: "100k"},
+        {amount: 160000,text: "160k"},
+        {amount: 1000000,text: "1M"},
+        {amount: 3000000,text: "3M"}
+      ]
 
     };
 
@@ -41,6 +48,10 @@ export default class EnergyRental extends Component {
 
   componentDidMount() {
     this.recursos()
+
+    setTimeout(()=>{
+      this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
+    },3*1000)
   }
 
   handleChangeWallet(event) {
@@ -54,7 +65,7 @@ export default class EnergyRental extends Component {
     let dato = event.target.value;
     let tmp = "d"
 
-    if (dato.split("h") > 1 || dato.split("H") > 1 || dato.split("hora") > 1 || dato.split("Hora") > 1) {
+    if (dato.split("h").length > 1 || dato.split("H").length > 1 || dato.split("hora").length > 1 || dato.split("Hora").length > 1) {
       tmp = "h"
     }
 
@@ -90,23 +101,6 @@ export default class EnergyRental extends Component {
     var consulta = await fetch(url)
     consulta = (await consulta.json())
 
-    /*
-    url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
-
-    var body = { "resource": "energy", "amount": 32000, "duration": "1h" }
-
-    var consulta2 = await fetch(url, {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-    consulta2 = (await consulta2.json())
-
-    //console.log(consulta2)
-*/
-
     console.log(consulta)
     this.setState({
       available_bandwidth: consulta["BANDWIDTH_-_Rental_duration_more_than_3_days"],
@@ -129,7 +123,7 @@ export default class EnergyRental extends Component {
       if (parseInt(time[0]) < 1 || parseInt(time[0]) > 14) {
         this.setState({
           titulo: "Error Range",
-          body: "Please enter a range of values between 1 and 14 days"
+          body: "Please enter a range of values between 1 hour and 14 days"
         })
 
         ok = false;
@@ -155,8 +149,27 @@ export default class EnergyRental extends Component {
 
     time = time[0]
 
-    if (parseInt(time) > 0 && ok) {
-      var body = { "resource": "energy", "amount": amount, "duration": time }
+    var paso = false
+
+    if(this.state.recurso === "bandwidth"){
+      if(parseInt(amount) >= 1000){
+        paso = true
+      }
+
+    }else{
+      if(parseInt(amount) >= 32000){
+        paso = true
+      }
+    }
+
+    console.log(paso)
+
+    var body = { "resource": this.state.recurso, "amount": amount, "duration": time }
+
+      console.log(body)
+
+    if (parseInt(time) > 0 && ok && paso) {
+      
 
       this.setState({
         precio: "Calculating..."
@@ -171,6 +184,7 @@ export default class EnergyRental extends Component {
       })
 
       consulta2 = (await consulta2.json())
+      console.log(consulta2)
 
       var precio = consulta2.price * 1
       precio = parseInt(precio * 10 ** 6) / 10 ** 6
@@ -298,6 +312,9 @@ export default class EnergyRental extends Component {
   }
 
   render() {
+    const amounts = this.state.amounts;
+    const amountButtons = amounts.map(amounts => <button id="ra1" type="button" className="btn btn-primary"
+    style={{ margin: "auto" }} onClick={() => {document.getElementById("amount").value = amounts.amount ;this.handleChangeEnergy({ target: { value: amounts.amount } })}}>{amounts.text}</button>)
 
     return (<>
 
@@ -331,7 +348,7 @@ export default class EnergyRental extends Component {
                 <div className="mb-4">
                   <div className="row">
                     <div className="col-6">
-                      <h4>Resources Rental</h4>
+                      <h4>Rental {this.state.recurso}</h4>
                     </div>
                     <div className="col-6">
                       <div className="d-flex justify-content-sm-end">
@@ -342,8 +359,20 @@ export default class EnergyRental extends Component {
                             Resource
                           </button>
                           <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                            <li><button className="dropdown-item">Energy</button></li>
-                            <li><button className="dropdown-item">Bandwidth</button></li>
+                            <li><button className="dropdown-item" onClick={()=>{this.setState({recurso: "energy"})}}>Energy</button></li>
+                            <li><button className="dropdown-item" onClick={()=>{
+                              this.setState({
+                                recurso: "bandwidth",
+                                amounts:[
+                                  {amount: 1000,text: "1k"},
+                                  {amount: 2000,text: "2k"},
+                                  {amount: 5000,text: "5k"},
+                                  {amount: 10000,text: "10k"},
+                                  {amount: 50000,text: "50k"}
+                                ]
+                              }); 
+                              }}>Bandwidth</button>
+                            </li>
                           </ul>
                         </div>
                       </div>
@@ -372,22 +401,13 @@ export default class EnergyRental extends Component {
                       </div>
                       <p className="font-14">Resource amount</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
-                        <input name="dzLastName" type="text" className="form-control" placeholder="32000" />
+                        <input id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder="32000" />
                         <div className="d-flex justify-content-xl-center">
-                          <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => this.handleChangeEnergy({ target: { value: "32000" } })}>32k</button>
-                          <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => this.handleChangeEnergy({ target: { value: "100000" } })}>100k</button>
-                          <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => this.handleChangeEnergy({ target: { value: "160000" } })}>160k</button>
-                          <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => this.handleChangeEnergy({ target: { value: "1000000" } })}>1M</button>
-                          <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => this.handleChangeEnergy({ target: { value: "3000000" } })}>3M</button>
+                          {amountButtons}
                         </div>
                         <p className="font-14">Duration</p>
                         <div className="col-xl-12 mb-3 mb-md-4">
-                          <input id="periodo" required type="text" className="form-control" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
+                          <input id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
                           <div className="d-flex justify-content-xl-center">
                             <button type="button" className="btn btn-primary"
                               style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1h"; this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
@@ -405,11 +425,6 @@ export default class EnergyRental extends Component {
                         <div className="col-xl-12 mb-3 mb-md-4">
                           <input name="dzPhoneNumber" placeholder={"Calculating..."} value={this.state.precio} type="text" className="form-control" readOnly />
                         </div>
-                      </div>
-                      <div className="d-flex justify-content-xl-center">
-                        <button name="submit" type="button" value="Submit"
-                          className="btn btn-primary"
-                          style={{ margin: "10px", width: "600px", height: "45px" }} onClick={() => this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)}>Calculate</button>
                       </div>
                       <div className="d-flex justify-content-xl-center">
                         <button name="submit" type="button" value="Submit"

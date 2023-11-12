@@ -1,7 +1,7 @@
 (function($) {
     "use strict"
 
-	var dzMorris = function(){
+	var dlabMorris = function(){
 		
 		var screenWidth = $(window).width();
 		
@@ -30,8 +30,8 @@
 				}],
 				resize: true,
 				redraw: true,
-				colors: ['#EB8153', 'rgb(255, 92, 0)', '#6418C3'],
-				//responsive:true,
+				colors: ['#9568ff', 'rgb(255, 92, 0)', '#ffaa2b'],
+				
 				
 			});
 		}
@@ -86,7 +86,7 @@
 				ykeys: ['item1'],
 				labels: ['Item 1'],
 				gridLineColor: 'transparent',
-				lineColors: ['rgb(255, 62, 62)'], //here
+				lineColors: ['rgb(149,104,255)'], //here
 				lineWidth: 1,
 				hideHover: 'auto',
 				pointSize: 0,
@@ -142,12 +142,12 @@
 				labels: ['Phone', 'Windows', 'Mac'],
 				pointSize: 3,
 				fillOpacity: 0,
-				pointStrokeColors: ['#FF3E3E', '#6418C3', '#EB8153'],
+				pointStrokeColors: ['#EE3C3C', '#ffaa2b', '#9568ff'],
 				behaveLikeLine: true,
 				gridLineColor: 'transparent',
 				lineWidth: 3,
 				hideHover: 'auto',
-				lineColors: ['rgb(255, 62, 62)', 'rgb(0, 171, 197)', '#EB8153'],
+				lineColors: ['rgb(149,104,255)', 'rgb(0, 171, 197)', '#9568ff'],
 				resize: true
 
 			});
@@ -198,11 +198,22 @@
 					xkey: 'y',
 					ykeys: ['a', 'b', 'c'],
 					labels: ['A', 'B', 'C'],
-					barColors: ['#EB8153', '#6418C3', '#ff9f00'],
+					barColors: ['#9568ff', '#ffaa2b', '#ff9f00'],
 					hideHover: 'auto',
 					gridLineColor: 'transparent',
 					resize: true,
 					barSizeRatio: 0.25,
+					yaxis: {
+						
+						  style: {
+							  colors: '#fff',  
+						  }
+					  },
+					  xaxis: {
+							style: {
+							  colors: '#fff',  
+						},
+					}	
 				});	
 			}
 		}
@@ -275,7 +286,7 @@
 				xkey: 'y',
 				ykeys: ['a', 'b'],
 				labels: ['A', 'B'],
-				barColors: ['#EB8153', "#F1F3F7"],
+				barColors: ['#9568ff', "#F1F3F7"],
 				hideHover: 'auto',
 				gridLineColor: 'transparent',
 				resize: true,
@@ -332,7 +343,7 @@
 
 
 				],
-				lineColors: ['#EB8153', 'rgb(16, 202, 147)', 'rgb(255, 92, 0)'],
+				lineColors: ['#9568ff', 'rgb(16, 202, 147)', 'rgb(255, 92, 0)'],
 				xkey: 'period',
 				ykeys: ['smartphone', 'windows', 'mac'],
 				labels: ['Phone', 'Windows', 'Mac'],
@@ -342,7 +353,8 @@
 				fillOpacity: 0.95,
 				behaveLikeLine: true,
 				gridLineColor: 'transparent',
-				hideHover: 'auto'
+				hideHover: 'auto',
+				
 
 			});
 		}
@@ -439,19 +451,19 @@
 		
 	}();
 
-	jQuery(document).on('ready' , function(){
-		dzMorris.init();
-		dzMorris.resize();
+	jQuery(document).ready(function(){
+		dlabMorris.init();
+		//dlabMorris.resize();
 	
 	});
 		
 	jQuery(window).on('load',function(){
-		dzMorris.init();
+		//dlabMorris.init();
 	});
 		
 	jQuery( window ).resize(function() {
-		dzMorris.resize();
-		dzMorris.init();
+		//dlabMorris.resize();
+		//dlabMorris.init();
 	});
    
 })(jQuery);

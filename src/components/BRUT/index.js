@@ -622,12 +622,12 @@ export default class Home extends Component {
                     <div class="card-body ">
                       <div class="text-center">
                         <div class="media d-block">
-                          <img src="images/brut.png" width="100%"/>
+                          <img src="images/brut.png" width="100%" alt="brutus token" />
                           <div class="media-content">
                             <h4 class="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">Automated Trading</h4>
                             <span class="font-w600 text-black">Brutus</span>
                             <span class="my-4 fs-16 font-w600 d-block">1 BRUT = {this.state.precioBRUT} USD</span>
-                            <p class="text-start">Brutus Token is a token based on the Tron network whose value is backed by an automated trading strategy. This strategy is based on backtesting and capital management, and is implemented in an automated manner using algorithms and strategies previously optimized to maximize profits and minimize losses. The value of the Brutus Token is set relative to the USDT (Tether), which means that the value of the token remains stable in US dollar terms.</p>
+                            <p class="text-start">The Brutus Token is a Tron-based token whose value is backed by an automated trading strategy that uses backtesting and capital management to maximize profits and minimize losses. The value of the Brutus Token is pegged to USDT, so its value remains stable in USD terms.</p>
                           </div>
                         </div>
                       </div>

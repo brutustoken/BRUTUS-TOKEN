@@ -8,7 +8,7 @@ import TronLinkGuide from "../TronLinkGuide";
 import Home from "../BRUT";
 import Staking from "../BRST";
 import Nft from "../BRGY";
-import LOTERIA from "../LOTERIA";
+//import LOTERIA from "../LOTERIA";
 import EBOT from "../EBOT";
 
 
@@ -56,8 +56,6 @@ class App extends Component {
     if ( typeof window.tronWeb !== 'undefined' && typeof window.tronLink !== 'undefined' ) {
 
       tronWeb['installed'] = true;
-
-      
 
       if(window.tronWeb.ready || window.tronLink.ready){
 
@@ -195,11 +193,12 @@ class App extends Component {
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
 
-      
+      /*
       case "brlt":
       case "suerte":
       case "loteria":
         return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        */
 
       case "ebot":
       case "EBOT":

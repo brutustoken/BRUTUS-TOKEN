@@ -89,6 +89,7 @@ export default class Staking extends Component {
       last7day: 0,
       earn7day: 0,
       dataBRST: [],
+      contractEnergy: 0,
 
 
     };
@@ -300,7 +301,24 @@ export default class Staking extends Component {
 
     var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
 
+    var origin = await window.tronWeb.trx.getContract(this.props.contrato.BRST_TRX.address)
+
+    var cuenta = await window.tronWeb.trx.getAccountResources(origin.origin_address)
+
+    console.log(cuenta)
+
+    var contractEnergy = cuenta.EnergyLimit-cuenta.EnergyUsed
+
+    var useTrx = parseInt(contractEnergy/65000)
+    if(useTrx >= 1){
+      useTrx = 1
+    }else{
+      useTrx = 21
+    }
+
     this.setState({
+      useTrx: useTrx,
+      contractEnergy: contractEnergy,
       balanceUSDT: balance,
       misBRST: misBRST,
       dataBRST: consulta,
@@ -830,7 +848,7 @@ export default class Staking extends Component {
                     <div className="card-body ">
                       <div className="text-center">
                         <div className="media d-block">
-                          <img src="images/brst.png" width="100%" />
+                          <img src="images/brst.png" width="100%" alt="brutus tron staking" />
                           <div className="media-content">
                             <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">Automated Staking</h4>
                             <span className="font-w600 text-black">Brutus</span>
@@ -850,7 +868,7 @@ export default class Staking extends Component {
                     <div className="card-header pb-0 border-0 flex-wrap">
                       <div>
                         <h4 className="heading mb-0">Quick Trade</h4>
-                        <p className="mb-0 fs-14">without fees</p>
+                        <p className="mb-0 fs-14">Contract energy: {(this.state.contractEnergy).toLocaleString('en-US')} for ~ {parseInt(this.state.contractEnergy/65000)} free transactions</p>
                       </div>
                     </div>
                     <div className="card-body pb-0">
@@ -888,7 +906,7 @@ export default class Staking extends Component {
                       </div>
                       <div className="d-flex mt-3 align-items-center">
                         <div className="form-check custom-checkbox me-3">
-                          <label className="form-check-label fs-14 font-w400" for="customCheckBox1">We recommend keeping ~ 21 TRX for transactions.</label>
+                          <label className="form-check-label fs-14 font-w400" for="customCheckBox1">We recommend keeping ~ {this.state.useTrx} TRX for transactions.</label>
                         </div>
                         <p className="mb-0"></p>
                       </div>
@@ -963,7 +981,7 @@ export default class Staking extends Component {
                     <tr>
                       <th>1</th>
                       <td>{this.state.misBRST} BRST</td>
-                      <td><span className="badge badge-primary light">Efective</span>
+                      <td><span className="badge badge-primary light">Next</span>
                       </td>
                       <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst) / 100)) ).toFixed(6)} TRX</td>
                       <td className="color-primary">{(this.state.varBrst).toFixed(4)} %</td>

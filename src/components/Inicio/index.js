@@ -164,21 +164,21 @@ export default class Inicio extends Component {
 		return (
 			<>
 
-				<div class="row">
-					<div class="col-lg-12">
-						<div class="profile card card-body px-3 pt-3">
-							<div class="profile-head">
-								<div class="photo-content">
+				<div className="row">
+					<div className="col-lg-12">
+						<div className="profile card card-body px-3 pt-3">
+							<div className="profile-head">
+								<div className="photo-content">
 									<a href="?ebot">
-										<div class="cover-photo rounded"><img style={{borderRadius: "1%"}}
-											src="images/banner.jpg" width="100%" />
+										<div className="rounded"><img style={{borderRadius: "1%"}}
+											src="images/banner.jpg" alt="tron energy rental" width="100%" />
 										</div>
 									</a>
 								</div>
-								<div class="profile-info d-none d-block">
-									<div class="profile-details d-flex flex-row-reverse">
-										<div class="text-center mt-12 mb-12 ">
-											<a href="?ebot" class="btn btn-primary mx-auto">Try it
+								<div className="profile-info d-none d-block">
+									<div className="profile-details d-flex flex-row-reverse">
+										<div className="text-center mt-12 mb-12 ">
+											<a href="?ebot" className="btn btn-primary mx-auto">Try it
 												now!</a>
 										</div>
 									</div>
@@ -189,44 +189,44 @@ export default class Inicio extends Component {
 				</div>
 
 
-				<div class="row">
-					<div class="col-xl-12">
-						<div class="card">
-							<div class="card-header border-0">
-								<ul class="order nav nav-tabs" id="pills-tab" role="tablist">
-									<li class="nav-item my-1" role="presentation">
-										<button class="nav-link active" id="pills-crypto-tab" data-bs-toggle="pill"
+				<div className="row">
+					<div className="col-xl-12">
+						<div className="card">
+							<div className="card-header border-0">
+								<ul className="order nav nav-tabs" id="pills-tab" role="tablist">
+									<li className="nav-item my-1" role="presentation">
+										<button className="nav-link active" id="pills-crypto-tab" data-bs-toggle="pill"
 											data-bs-target="#pills-crypto" type="button" role="tab"
 											aria-controls="pills-crypto" aria-selected="true">My Position</button>
 									</li>
 								</ul>
 							</div>
-							<div class="card-body pt-0">
-								<div class="tab-content" id="pills-tabContent">
-									<div class="tab-pane fade show active" id="pills-crypto" role="tabpanel"
+							<div className="card-body pt-0">
+								<div className="tab-content" id="pills-tabContent">
+									<div className="tab-pane fade show active" id="pills-crypto" role="tabpanel"
 										aria-labelledby="pills-crypto-tab">
-										<div class="table-responsive dataTablemarket">
-											<table id="example" class="table shadow-hover display"
+										<div className="table-responsive dataTablemarket">
+											<table id="example" className="table shadow-hover display"
 												style={{minWidth:"845px"}}>
 												<thead>
 													<tr>
 														<th>Name</th>
-														<th class="text-center">Token Balance</th>
-														<th class="text-center">Price</th>
-														<th class="text-center">24h Change</th>
-														<th class="text-center">Total Value</th>
-														<th class="text-center">USD Value</th>
+														<th className="text-center">Token Balance</th>
+														<th className="text-center">Price</th>
+														<th className="text-center">24h Change</th>
+														<th className="text-center">Total Value</th>
+														<th className="text-center">USD Value</th>
 
 													</tr>
 												</thead>
 												<tbody>
 													<tr>
 														<td>
-															<a class="market-title d-flex align-items-center"
+															<a className="market-title d-flex align-items-center"
 																href="?brut">
-																<img src="images/brut.png" width="50px" />
-																	<h5 class="mb-0 ms-2">BRUT</h5>
-																	<span class="text-muted ms-2">Brutus Token</span>
+																<img src="images/brut.png" width="50px" alt="brutus token" />
+																	<h5 className="mb-0 ms-2">BRUT</h5>
+																	<span className="text-muted ms-2">Brutus Token</span>
 															</a>
 														</td>
 														<td>{this.state.misBRUT}</td>
@@ -238,11 +238,11 @@ export default class Inicio extends Component {
 													</tr>
 													<tr>
 														<td>
-															<a class="market-title d-flex align-items-center"
+															<a className="market-title d-flex align-items-center"
 																href="?brst">
-																<img src="images/brst.png" width="50px" />
-																	<h5 class="mb-0 ms-2">BRST</h5>
-																	<span class="text-muted ms-2">Brutus Tron Staking</span>
+																<img src="images/brst.png" width="50px" alt="brutus tron staking" />
+																	<h5 className="mb-0 ms-2">BRST</h5>
+																	<span className="text-muted ms-2">Brutus Tron Staking</span>
 															</a>
 														</td>
 														<td>{this.state.misBRST}</td>
@@ -253,11 +253,11 @@ export default class Inicio extends Component {
 													</tr>
 													<tr>
 														<td>
-															<a class="market-title d-flex align-items-center"
+															<a className="market-title d-flex align-items-center"
 																href="?brgy">
-																<img src="images/brgy3030.png" width="50px"/>
-																	<h5 class="mb-0 ms-2">BRGY</h5>
-																	<span class="text-muted ms-2">Brutus Gallery</span>
+																<img src="images/brgy.png" width="50px" alt="brutus gallery"/>
+																	<h5 className="mb-0 ms-2">BRGY</h5>
+																	<span className="text-muted ms-2">Brutus Gallery</span>
 															</a>
 														</td>
 														<td>{this.state.misBRGY}</td>
@@ -268,15 +268,15 @@ export default class Inicio extends Component {
 													</tr>
 													<tr>
 														<td>
-															<a class="market-title d-flex align-items-center"
+															<a className="market-title d-flex align-items-center"
 																href="?brlt">
-																<img src="images/brlt3030.png" width="50px"/>
-																	<h5 class="mb-0 ms-2">BRLT</h5>
-																	<span class="text-muted ms-2">Brutus Lottery</span>
+																<img src="images/brlt.png" width="50px" alt="brutus lottery"/>
+																	<h5 className="mb-0 ms-2">BRLT</h5>
+																	<span className="text-muted ms-2">Brutus Lottery</span>
 															</a>
 														</td>
 														<td>{this.state.misBRLT}</td>
-														<td>100 TRX</td>
+														<td>N/A</td>
 														<td>N/A</td>
 														<td>{this.state.misBRLT * 100}</td>
 														<td>N/A</td>
