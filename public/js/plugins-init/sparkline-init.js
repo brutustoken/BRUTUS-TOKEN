@@ -1,7 +1,7 @@
 (function($) {
     "use strict" 
    
- var dzSparkLine = function(){
+ var dlabSparkLine = function(){
     
 	var screenWidth = $(window).width();
 	
@@ -36,7 +36,7 @@
 				barWidth: "4",
 				resize: !0,
 				barSpacing: "5",
-				barColor: "#EB8153"
+				barColor: "#9568ff"
 			});
 		}
 	}
@@ -48,12 +48,12 @@
 				//width: "100%",
 				width: getSparkLineGraphBlockSize('#sparkline8'),
 				height: "50",
-				lineColor: "#EB8153",
-				fillColor: "rgba(235, 129, 83, .5)",
-				minSpotColor: "#EB8153",
-				maxSpotColor: "#EB8153",
-				highlightLineColor: "#EB8153",
-				highlightSpotColor: "#EB8153",
+				lineColor: "#9568ff",
+				fillColor: "rgba(149,104,255,1)",
+				minSpotColor: "#9568ff",
+				maxSpotColor: "#9568ff",
+				highlightLineColor: "#9568ff",
+				highlightSpotColor: "#9568ff",
 				
 			});
 		}
@@ -84,7 +84,7 @@
 				height: "200",
 				barWidth: 6,
 				barSpacing: 7,
-				barColor: "#6418C3"
+				barColor: "#ffaa2b"
 			});
 		}	
 	}
@@ -114,7 +114,7 @@
 					height: "200",
 					barWidth: 10,
 					barSpacing: 7, 
-					stackedBarColor: ['#EB8153', '#6418C3', '#ff5c00']
+					stackedBarColor: ['#9568ff', '#ffaa2b', '#ff5c00']
 				});
 		}
 	}
@@ -127,7 +127,7 @@
 				height: "200",
 				barWidth: 10,
 				barSpacing: 7, 
-				colorMap: ['#EB8153', '#6418C3', '#ff5c00'], 
+				colorMap: ['#9568ff', '#ffaa2b', '#ff5c00'], 
 				negBarColor: '#ff5c00'
 			});
 		}
@@ -142,7 +142,7 @@
 				barWidth: "10",
 				resize: true,
 				// barSpacing: "7",
-				barColor: "#EB8153", 
+				barColor: "#9568ff", 
 				width: '100%',
 				
 			});
@@ -155,8 +155,8 @@
 				type: 'line',
 				width: '100%',
 				height: '200', 
-				barColor: '#6418C3', 
-				colorMap: ['#6418C3', '#ff5c00']
+				barColor: '#ffaa2b', 
+				colorMap: ['#ffaa2b', '#ff5c00']
 			});
 		}
 		if(jQuery('#sparkline-composite-chart').length > 0 ){
@@ -180,7 +180,7 @@
 				type: "pie",
 				height: "100px",
 				resize: !0,
-				sliceColors: ["rgba(192, 10, 39, .5)", "rgba(0, 0, 128, .5)", "rgba(235, 129, 83, .5)"]
+				sliceColors: ["rgba(192, 10, 39, .5)", "rgba(0, 0, 128, .5)", "rgba(149, 104, 255,1)"]
 			});
 		}	
 	}	
@@ -266,16 +266,18 @@
 	
 	}();
 
-	
+	jQuery(document).ready(function(){
+	});
+		
 	jQuery(window).on('load',function(){
 		setTimeout(function(){
-			dzSparkLine.resize();	
+			dlabSparkLine.resize();	
 		}, 1000);
 	});
 
 	jQuery(window).on('resize',function(){
 		setTimeout(function(){
-			dzSparkLine.resize();	
+			dlabSparkLine.resize();	
 		}, 1000);
 	});     
 

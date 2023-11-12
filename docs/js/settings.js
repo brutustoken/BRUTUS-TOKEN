@@ -4,7 +4,7 @@ var html = $('html');
 
 
 
-function dezSettings({typography, version, layout, navheaderBg, headerBg, sidebarStyle, sidebarBg, sidebarPosition, headerPosition, containerLayout, direction, primary}) {
+function dzSettings({typography, version, layout, navheaderBg, headerBg, sidebarStyle, sidebarBg, sidebarPosition, headerPosition, containerLayout, direction, primary}) {
     this.typography = typography || "roboto";
     this.version = version || "light";
     this.layout = layout || "vertical";
@@ -36,7 +36,7 @@ function dezSettings({typography, version, layout, navheaderBg, headerBg, sideba
 
 
 
-dezSettings.prototype.manageVersion = function() {
+dzSettings.prototype.manageVersion = function() {
     switch(this.version) {
         case "light": 
             body.attr("data-theme-version", "light");
@@ -52,7 +52,7 @@ dezSettings.prototype.manageVersion = function() {
     }
 }
 
-dezSettings.prototype.manageTypography = function() {
+dzSettings.prototype.manageTypography = function() {
     switch(this.version) {
         case "poppins": 
             body.attr("data-typography", "poppins");
@@ -71,7 +71,7 @@ dezSettings.prototype.manageTypography = function() {
     }
 }
 
-dezSettings.prototype.manageLayout = function() {
+dzSettings.prototype.manageLayout = function() {
     switch(this.layout) {
         case "horizontal": 
             this.sidebarStyle === "overlay" ? body.attr("data-sidebar-style", "full") : body.attr("data-sidebar-style", `${this.sidebarStyle}`);
@@ -85,7 +85,7 @@ dezSettings.prototype.manageLayout = function() {
     }
 }
 
-dezSettings.prototype.manageNavHeaderBg = function() {
+dzSettings.prototype.manageNavHeaderBg = function() {
     switch(this.navheaderBg) {
         case "color_1": 
             body.attr("data-nav-headerbg", "color_1");
@@ -131,7 +131,7 @@ dezSettings.prototype.manageNavHeaderBg = function() {
     }
 }
 
-dezSettings.prototype.manageHeaderBg = function() {
+dzSettings.prototype.manageHeaderBg = function() {
     switch(this.headerBg) {
         case "color_1": 
             body.attr("data-headerbg", "color_1");
@@ -182,7 +182,7 @@ dezSettings.prototype.manageHeaderBg = function() {
 
 
 
-dezSettings.prototype.manageSidebarStyle = function() {
+dzSettings.prototype.manageSidebarStyle = function() {
 
     switch(this.sidebarStyle) {
         case "full":
@@ -200,7 +200,7 @@ dezSettings.prototype.manageSidebarStyle = function() {
         case "icon-hover":
             body.attr("data-sidebar-style", "icon-hover");
     
-            $('.deznav').on('hover',function() {
+            $('.deznav').hover(function() {
                 $('#main-wrapper').addClass('iconhover-toggle');
             }, function() {
                 $('#main-wrapper').removeClass('iconhover-toggle');
@@ -214,7 +214,7 @@ dezSettings.prototype.manageSidebarStyle = function() {
     }
 }
 
-dezSettings.prototype.manageSidebarBg = function() {
+dzSettings.prototype.manageSidebarBg = function() {
     switch(this.sidebarBg) {
         case "color_1": 
             body.attr("data-sibebarbg", "color_1");
@@ -260,7 +260,7 @@ dezSettings.prototype.manageSidebarBg = function() {
     }
 }
 
-dezSettings.prototype.manageSidebarPosition = function() {
+dzSettings.prototype.manageSidebarPosition = function() {
     switch(this.sidebarPosition) {
         case "fixed": 
             this.sidebarStyle === "overlay" && this.layout === "vertical" || this.sidebarStyle === "modern" ? body.attr("data-sidebar-position", "static") : body.attr("data-sidebar-position", "fixed");
@@ -273,7 +273,7 @@ dezSettings.prototype.manageSidebarPosition = function() {
     }
 }
 
-dezSettings.prototype.manageHeaderPosition = function() {
+dzSettings.prototype.manageHeaderPosition = function() {
     switch(this.headerPosition) {
         case "fixed": 
             body.attr("data-header-position", "fixed");
@@ -286,7 +286,7 @@ dezSettings.prototype.manageHeaderPosition = function() {
     }
 }
 
-dezSettings.prototype.manageContainerLayout = function() {
+dzSettings.prototype.manageContainerLayout = function() {
     switch(this.containerLayout) {
         case "boxed":
             if(this.layout === "vertical" && this.sidebarStyle === "full") {
@@ -305,7 +305,7 @@ dezSettings.prototype.manageContainerLayout = function() {
     }
 }
 
-dezSettings.prototype.manageRtlLayout = function() {
+dzSettings.prototype.manageRtlLayout = function() {
     switch(this.direction) {
         case "rtl":
             html.attr("dir", "rtl");
@@ -323,7 +323,7 @@ dezSettings.prototype.manageRtlLayout = function() {
     }
 }
 
-dezSettings.prototype.manageResponsiveSidebar = function() {
+dzSettings.prototype.manageResponsiveSidebar = function() {
     const innerWidth = $(window).innerWidth();
     if(innerWidth < 1200) {
         body.attr("data-layout", "vertical");
@@ -340,7 +340,7 @@ dezSettings.prototype.manageResponsiveSidebar = function() {
 }
 
 
-dezSettings.prototype.managePrimaryColor = function() {
+dzSettings.prototype.managePrimaryColor = function() {
 	switch(this.primary) {
         case "color_1": 
             body.attr("data-primary", "color_1");
