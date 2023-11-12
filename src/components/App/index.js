@@ -4,6 +4,7 @@ import cons from "../../cons.js";
 import Inicio from "../Inicio";
 
 import TronLinkGuide from "../TronLinkGuide";
+import Construccion from "../construccion.js";
 
 import Home from "../BRUT";
 import Staking from "../BRST";
@@ -177,6 +178,8 @@ class App extends Component {
     if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
     if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
 
+    console.log(url)
+
     switch (url) {
       case "usd":
       case "usdt":
@@ -210,9 +213,11 @@ class App extends Component {
 
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
+      case window.location.href:
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     
       default:
-        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
+        return <Construccion/>
     }
 
   }
