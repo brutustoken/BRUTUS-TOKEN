@@ -178,8 +178,6 @@ class App extends Component {
     if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
     if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
 
-    console.log(url)
-
     switch (url) {
       case "usd":
       case "usdt":
@@ -224,5 +222,3 @@ class App extends Component {
   
 }
 export default App;
-
-// {tWeb()}

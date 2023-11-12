@@ -101,16 +101,29 @@ export default class EnergyRental extends Component {
     var consulta = await fetch(url)
     consulta = (await consulta.json())
 
-    console.log(consulta)
+    var band = 0
+    var energi = 0
+
+    if(this.state.periodo > 3 && this.state.temporalidad === "d"){
+      band = consulta["BANDWIDTH_-_Rental_duration_more_than_3_days"]
+      energi = consulta["ENERGY_-_Rental_duration_more_than_3_days"]
+    }else{
+      band = consulta["BANDWIDTH_-_Rental_duration_less_or_equal_to_3_days"]
+      energi = consulta["ENERGY_-_Rental_duration_less_or_equal_to_3_days"]
+    }
+
+
     this.setState({
-      available_bandwidth: consulta["BANDWIDTH_-_Rental_duration_more_than_3_days"],
-      available_energy: consulta["ENERGY_-_Rental_duration_more_than_3_days"],
+      available_bandwidth: band,
+      available_energy: energi,
       total_bandwidth_pool: consulta.total_bandwidth_pool,
       total_energy_pool: consulta.total_energy_pool
     });
   }
 
   async calcularRecurso(amount, time) {
+
+    this.recursos();
 
     var ok = true;
 
@@ -162,15 +175,10 @@ export default class EnergyRental extends Component {
       }
     }
 
-    console.log(paso)
-
-    var body = { "resource": this.state.recurso, "amount": amount, "duration": time }
-
-      console.log(body)
 
     if (parseInt(time) > 0 && ok && paso) {
+      var body = { "resource": this.state.recurso, "amount": amount, "duration": time }
       
-
       this.setState({
         precio: "Calculating..."
       })
@@ -313,7 +321,7 @@ export default class EnergyRental extends Component {
 
   render() {
     const amounts = this.state.amounts;
-    const amountButtons = amounts.map(amounts => <button id="ra1" type="button" className="btn btn-primary"
+    const amountButtons = amounts.map(amounts => <button key={"Amb-"+amounts.text} id="ra1" type="button" className="btn btn-primary"
     style={{ margin: "auto" }} onClick={() => {document.getElementById("amount").value = amounts.amount ;this.handleChangeEnergy({ target: { value: amounts.amount } })}}>{amounts.text}</button>)
 
     return (<>
