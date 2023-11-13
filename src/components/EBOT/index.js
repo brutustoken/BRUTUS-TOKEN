@@ -405,7 +405,7 @@ export default class EnergyRental extends Component {
                       <p className="font-14">Resource wallet</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
                         <input name="dzFirstName" required type="text"
-                          className="form-control" placeholder="Tron wallet" defaultValue={this.props.accountAddress} />
+                          className="form-control" placeholder="Tron wallet" onChange={this.handleChangeWallet} defaultValue={this.props.accountAddress} />
                       </div>
                       <p className="font-14">Resource amount</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
