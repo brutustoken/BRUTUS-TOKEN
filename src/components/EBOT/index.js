@@ -254,6 +254,7 @@ export default class EnergyRental extends Component {
 
         hash = await window.tronWeb.trx.getTransaction(hash.txid);
         console.log(hash)
+
         if (hash.ret[0].contractRet === "SUCCESS") {
 
           var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
@@ -276,7 +277,7 @@ export default class EnergyRental extends Component {
           })
           consulta2 = (await consulta2.json())
 
-          if (consulta2) {
+          if (consulta2.response === 1) {
 
             this.setState({
               titulo: "Completed successfully",
