@@ -23,12 +23,12 @@ export default class EnergyRental extends Component {
       total_energy_pool: 0,
       titulo: "Titulo",
       body: "Cuerpo del mensaje",
-      amounts:[
-        {amount: 3200,text: "32k"},
-        {amount: 100000,text: "100k"},
-        {amount: 160000,text: "160k"},
-        {amount: 1000000,text: "1M"},
-        {amount: 3000000,text: "3M"}
+      amounts: [
+        { amount: 3200, text: "32k" },
+        { amount: 100000, text: "100k" },
+        { amount: 160000, text: "160k" },
+        { amount: 1000000, text: "1M" },
+        { amount: 3000000, text: "3M" }
       ]
 
     };
@@ -42,6 +42,7 @@ export default class EnergyRental extends Component {
     this.handleChangeWallet = this.handleChangeWallet.bind(this);
     this.calcularRecurso = this.calcularRecurso.bind(this);
 
+    this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
 
   }
@@ -49,9 +50,9 @@ export default class EnergyRental extends Component {
   componentDidMount() {
     this.recursos()
 
-    setTimeout(()=>{
+    setTimeout(() => {
       this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
-    },3*1000)
+    }, 3 * 1000)
   }
 
   handleChangeWallet(event) {
@@ -104,10 +105,10 @@ export default class EnergyRental extends Component {
     var band = 0
     var energi = 0
 
-    if(this.state.periodo > 3 && this.state.temporalidad === "d"){
+    if (this.state.periodo > 3 && this.state.temporalidad === "d") {
       band = consulta["BANDWIDTH_-_Rental_duration_more_than_3_days"]
       energi = consulta["ENERGY_-_Rental_duration_more_than_3_days"]
-    }else{
+    } else {
       band = consulta["BANDWIDTH_-_Rental_duration_less_or_equal_to_3_days"]
       energi = consulta["ENERGY_-_Rental_duration_less_or_equal_to_3_days"]
     }
@@ -164,13 +165,13 @@ export default class EnergyRental extends Component {
 
     var paso = false
 
-    if(this.state.recurso === "bandwidth"){
-      if(parseInt(amount) >= 1000){
+    if (this.state.recurso === "bandwidth") {
+      if (parseInt(amount) >= 1000) {
         paso = true
       }
 
-    }else{
-      if(parseInt(amount) >= 32000){
+    } else {
+      if (parseInt(amount) >= 32000) {
         paso = true
       }
     }
@@ -178,7 +179,7 @@ export default class EnergyRental extends Component {
 
     if (parseInt(time) > 0 && ok && paso) {
       var body = { "resource": this.state.recurso, "amount": amount, "duration": time }
-      
+
       this.setState({
         precio: "Calculating..."
       })
@@ -211,6 +212,31 @@ export default class EnergyRental extends Component {
     }
   }
 
+  async preCompra() {
+    await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
+
+    if (this.state.wallet_orden === "" || !window.tronWeb.isAddress(this.state.wallet_orden)) {
+      this.setState({
+        wallet_orden: this.props.accountAddress
+      })
+    }
+
+    this.setState({
+      titulo: "Confirm order information",
+      body: (<p>
+        {"Buy: " + this.state.cantidad + " Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden}
+        <br /><br />
+        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Discard</button>
+        {" "}
+        <button type="button" className="btn btn-success" onClick={() => { this.compra() }}>Confirm</button>
+      </p>)
+    })
+
+    window.$("#mensaje-ebot").modal("show");
+
+
+  }
+
   async compra() {
     await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
@@ -219,111 +245,108 @@ export default class EnergyRental extends Component {
         wallet_orden: this.props.accountAddress
       })
     }
-    var si = window.confirm("really buy " + this.state.cantidad + " Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden + ", please sing the next transacction")
 
-    if (si) {
+    this.setState({
+      titulo: "Confirm transaction",
+      body: "Please confirm the transaction from your wallet"
+    })
 
-      this.setState({
-        titulo: "Confirm transaction",
-        body: "Please confirm the transaction from your wallet"
-      })
+    window.$("#mensaje-ebot").modal("show");
 
-      window.$("#mensaje-ebot").modal("show");
+    var hash = await window.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, window.tronWeb.toSun(this.state.precio));
 
-      var hash = await window.tronWeb.trx.sendTransaction("TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26", window.tronWeb.toSun(this.state.precio));
+    this.setState({
+      titulo: "Waiting for the blockchain",
+      body: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute."
+    })
 
-      this.setState({
-        titulo: "Waiting for the blockchain",
-        body: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute."
-      })
+    window.$("#mensaje-ebot").modal("show");
 
-      window.$("#mensaje-ebot").modal("show");
+    await delay(3);
 
-      await delay(3);
+    var envio = hash.transaction.raw_data.contract[0].parameter.value
 
-      var envio = hash.transaction.raw_data.contract[0].parameter.value
+    this.setState({
+      titulo: "we are verifying",
+      body: "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
+    })
 
-      this.setState({
-        titulo: "we are verifying",
-        body: "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
-      })
+    window.$("#mensaje-ebot").modal("show");
 
-      window.$("#mensaje-ebot").modal("show");
+    if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
 
-      if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === "TMY1d5zzuBfTBzzVFVNEt5EnPuLMripk26") {
+      hash = await window.tronWeb.trx.getTransaction(hash.txid);
+      console.log(hash)
 
-        hash = await window.tronWeb.trx.getTransaction(hash.txid);
-        console.log(hash)
+      if (hash.ret[0].contractRet === "SUCCESS") {
 
-        if (hash.ret[0].contractRet === "SUCCESS") {
+        var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
 
-          var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
+        var body = {
+          "id_api": process.env.REACT_APP_USER_ID,
+          "wallet": this.state.wallet_orden,
+          "amount": this.state.cantidad,
+          "time": this.state.periodo + this.state.temporalidad,
+          "user_id": "1999"
+        }
 
-          var body = {
-            "id_api": process.env.REACT_APP_USER_ID,
-            "wallet": this.state.wallet_orden,
-            "amount": this.state.cantidad,
-            "time": this.state.periodo + this.state.temporalidad,
-            "user_id": "1999"
-          }
+        var consulta2 = await fetch(url, {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+        consulta2 = (await consulta2.json())
 
-          var consulta2 = await fetch(url, {
-            method: "POST",
-            headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-          })
-          consulta2 = (await consulta2.json())
+        if (consulta2.response === 1) {
 
-          if (consulta2.response === 1) {
-
-            this.setState({
-              titulo: "Completed successfully",
-              body: "Energy rental completed successfully. Thank you!"
-            })
-
-            window.$("#mensaje-ebot").modal("show");
-
-          } else {
-
-            this.setState({
-              titulo: "Contact support",
-              body: "Please contact support for: Error AP-0032 # " + hash.txid
-            })
-
-            window.$("#mensaje-ebot").modal("show");
-
-          }
-
-
-
-        } else {
           this.setState({
-            titulo: "Contact support",
-            body: "Please contact support for: Error SUC-808831"
+            titulo: "Completed successfully",
+            body: "Energy rental completed successfully. Thank you!"
           })
 
           window.$("#mensaje-ebot").modal("show");
+
+        } else {
+
+          this.setState({
+            titulo: "Contact support",
+            body: "Please contact support for: Error AP-0032 # " + hash.txid
+          })
+
+          window.$("#mensaje-ebot").modal("show");
+
         }
+
 
 
       } else {
         this.setState({
           titulo: "Contact support",
-          body: "Please contact support for: Error NN-0001"
+          body: "Please contact support for: Error SUC-808831"
         })
 
         window.$("#mensaje-ebot").modal("show");
       }
+
+
+    } else {
+      this.setState({
+        titulo: "Contact support",
+        body: "Please contact support for: Error NN-0001"
+      })
+
+      window.$("#mensaje-ebot").modal("show");
     }
+
   }
 
   render() {
     const amounts = this.state.amounts;
-    const amountButtons = amounts.map(amounts => <button key={"Amb-"+amounts.text} id="ra1" type="button" className="btn btn-primary"
-    style={{ margin: "auto" }} onClick={() => {document.getElementById("amount").value = amounts.amount ;this.handleChangeEnergy({ target: { value: amounts.amount } })}}>{amounts.text}</button>)
+    const amountButtons = amounts.map(amounts => <button key={"Amb-" + amounts.text} id="ra1" type="button" className="btn btn-primary"
+      style={{ margin: "auto" }} onClick={() => { document.getElementById("amount").value = amounts.amount; this.handleChangeEnergy({ target: { value: amounts.amount } }) }}>{amounts.text}</button>)
 
     return (<>
 
@@ -368,19 +391,19 @@ export default class EnergyRental extends Component {
                             Resource
                           </button>
                           <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                            <li><button className="dropdown-item" onClick={()=>{this.setState({recurso: "energy"})}}>Energy</button></li>
-                            <li><button className="dropdown-item" onClick={()=>{
+                            <li><button className="dropdown-item" onClick={() => { this.setState({ recurso: "energy" }) }}>Energy</button></li>
+                            <li><button className="dropdown-item" onClick={() => {
                               this.setState({
                                 recurso: "bandwidth",
-                                amounts:[
-                                  {amount: 1000,text: "1k"},
-                                  {amount: 2000,text: "2k"},
-                                  {amount: 5000,text: "5k"},
-                                  {amount: 10000,text: "10k"},
-                                  {amount: 50000,text: "50k"}
+                                amounts: [
+                                  { amount: 1000, text: "1k" },
+                                  { amount: 2000, text: "2k" },
+                                  { amount: 5000, text: "5k" },
+                                  { amount: 10000, text: "10k" },
+                                  { amount: 50000, text: "50k" }
                                 ]
-                              }); 
-                              }}>Bandwidth</button>
+                              });
+                            }}>Bandwidth</button>
                             </li>
                           </ul>
                         </div>
@@ -406,7 +429,7 @@ export default class EnergyRental extends Component {
                       <p className="font-14">Resource wallet</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
                         <input name="dzFirstName" required type="text"
-                          className="form-control" placeholder="Tron wallet" onChange={this.handleChangeWallet} defaultValue={this.props.accountAddress} />
+                          className="form-control" placeholder="Tron wallet" onChange={this.handleChangeWallet} />
                       </div>
                       <p className="font-14">Resource amount</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
@@ -438,7 +461,7 @@ export default class EnergyRental extends Component {
                       <div className="d-flex justify-content-xl-center">
                         <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ margin: "10px", width: "600px", height: "45px" }} onClick={() => this.compra()}>Buy Now
+                          style={{ margin: "10px", width: "600px", height: "45px" }} onClick={() => this.preCompra()}>Buy Now
                         </button>
                       </div>
 
