@@ -12,38 +12,38 @@ const options = [
     value: "hour",
   },
   {
-    label: "Daily",
+    label: "Days",
     value: "day",
   },
   {
-    label: "Weekly",
+    label: "Weeks",
     value: "week",
   },
   {
-    label: "Monthly",
+    label: "Months",
     value: "month",
   },
 ];
 
 const options2 = [
   {
-    label: "Last 7 days",
+    label: "Last 7 ",
     value: "7",
   },
   {
-    label: "Last 30 days",
+    label: "Last 30 ",
     value: "30",
   },
   {
-    label: "Last 90 days",
+    label: "Last 90 ",
     value: "90",
   },
   {
-    label: "Last 180 days",
+    label: "Last 180 ",
     value: "180",
   },
   {
-    label: "All data",
+    label: "All ",
     value: "0",
   },
 ];
@@ -440,7 +440,7 @@ export default class Home extends Component {
     }
 
     async function generateDatas(count) {
-      let consulta = (await (await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brut?dias=" + count)).json()).Data
+      let consulta = (await (await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brut?temporalidad=" + temporalidad + "&limite=" + count)).json()).Data
       let data = []
 
       console.log(consulta)
@@ -602,14 +602,15 @@ export default class Home extends Component {
                         </div>
                       </div>
                       <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
-                      <select className="btn-secondary style-1 default-select" value={this.state.temporalidad} onChange={this.handleChange}>
-                        {options.map((option) => (
+                      
+                      <select className="btn-secondary style-1 default-select" value={this.state.cantidadDatos} onChange={this.handleChange2}>
+                        {options2.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                       {" | "}
-                      <select className="btn-secondary style-1 default-select" value={this.state.cantidadDatos} onChange={this.handleChange2}>
-                        {options2.map((option) => (
+                      <select className="btn-secondary style-1 default-select" value={this.state.temporalidad} onChange={this.handleChange}>
+                        {options.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
                       </select>

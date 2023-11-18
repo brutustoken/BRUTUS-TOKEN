@@ -282,11 +282,17 @@ export default class EnergyRental extends Component {
 
         var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
 
+        var time = this.state.periodo 
+
+        if(this.state.temporalidad === "h"){
+          time = this.state.periodo + this.state.temporalidad
+        }
+
         var body = {
           "id_api": process.env.REACT_APP_USER_ID,
           "wallet": this.state.wallet_orden,
           "amount": this.state.cantidad,
-          "time": this.state.periodo + this.state.temporalidad,
+          "time": time,
           "user_id": "1999"
         }
 
