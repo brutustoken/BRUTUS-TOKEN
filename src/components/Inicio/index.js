@@ -246,7 +246,7 @@ export default class Inicio extends Component {
 															</a>
 														</td>
 														<td>{this.state.misBRST}</td>
-														<td>{(this.state.precioBrst).toFixed(6)}</td>
+														<td>{(this.state.precioBrst).toFixed(6)} TRX</td>
 														<td>{this.subeobaja(this.state.varBrst)}<span className={"text-" + this.textoE(this.state.varBrst)}>{(this.state.varBrst).toFixed(3)}%</span></td>
 														<td>{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</td>
 														<td>{(this.state.misBRST * this.state.precioBrstUSD).toFixed(2)} USD</td>
@@ -262,9 +262,9 @@ export default class Inicio extends Component {
 														</td>
 														<td>{this.state.misBRGY}</td>
 														<td>NFT</td>
-														<td>N/A</td>
-														<td>N/A</td>
-														<td>N/A</td>
+														<td>-0-</td>
+														<td>-0-</td>
+														<td>-0-</td>
 													</tr>
 													<tr>
 														<td>
@@ -276,10 +276,10 @@ export default class Inicio extends Component {
 															</a>
 														</td>
 														<td>{this.state.misBRLT}</td>
-														<td>N/A</td>
-														<td>N/A</td>
+														<td>100 TRX</td>
+														<td>0</td>
 														<td>{this.state.misBRLT * 100}</td>
-														<td>N/A</td>
+														<td>0</td>
 													</tr>
 												</tbody>
 											</table>
