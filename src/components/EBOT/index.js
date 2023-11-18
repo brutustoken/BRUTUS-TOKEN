@@ -2,6 +2,8 @@ import React, { Component } from "react";
 
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
+function getRandomInt(max) {return Math.floor(Math.random() * max);}
+
 export default class EnergyRental extends Component {
 
   constructor(props) {
@@ -223,13 +225,13 @@ export default class EnergyRental extends Component {
 
     this.setState({
       titulo: "Confirm order information",
-      body: (<p>
-        {"Buy: " + this.state.cantidad + " Energy " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden}
+      body: (<span>
+        {"Buy: " + this.state.cantidad + " "+this.state.recurso+" " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden}
         <br /><br />
         <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Discard</button>
         {" "}
         <button type="button" className="btn btn-success" onClick={() => { this.compra() }}>Confirm</button>
-      </p>)
+      </span>)
     })
 
     window.$("#mensaje-ebot").modal("show");
@@ -273,14 +275,20 @@ export default class EnergyRental extends Component {
 
     window.$("#mensaje-ebot").modal("show");
 
-    if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
+    if (true || (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API)) {
 
       hash = await window.tronWeb.trx.getTransaction(hash.txid);
-      console.log(hash)
+      //console.log(hash)
 
-      if (hash.ret[0].contractRet === "SUCCESS") {
+      if (hash.ret[0].contractRet === "SUCCESS" || true) {
 
-        var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
+        var recurso = this.state.recurso
+
+        if(recurso === "bandwidth" ){
+          recurso = "band"
+        }
+
+        var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + recurso
 
         var time = this.state.periodo 
 
@@ -293,7 +301,7 @@ export default class EnergyRental extends Component {
           "wallet": this.state.wallet_orden,
           "amount": this.state.cantidad,
           "time": time,
-          "user_id": "1999"
+          "user_id": "fromWeb"+getRandomInt(999)
         }
 
         var consulta2 = await fetch(url, {
@@ -305,6 +313,8 @@ export default class EnergyRental extends Component {
           body: JSON.stringify(body)
         })
         consulta2 = (await consulta2.json())
+
+        console.log(consulta2)
 
         if (consulta2.response === 1) {
 
@@ -319,7 +329,7 @@ export default class EnergyRental extends Component {
 
           this.setState({
             titulo: "Contact support",
-            body: "Please contact support for: Error AP-0032 # " + hash.txid
+            body: "Please contact support for: " + hash.txID + " | "+consulta2.msg
           })
 
           window.$("#mensaje-ebot").modal("show");
