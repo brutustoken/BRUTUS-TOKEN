@@ -202,7 +202,7 @@ class App extends Component {
         */
 
 
-      /*
+      
       case "ebot":
       case "EBOT":
       case "bot":
@@ -212,7 +212,7 @@ class App extends Component {
       case "bandwidth":
 
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
-      */
+      
 
       case window.location.href:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
