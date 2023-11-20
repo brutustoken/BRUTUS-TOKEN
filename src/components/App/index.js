@@ -9,7 +9,7 @@ import Construccion from "../construccion.js";
 import Home from "../BRUT";
 import Staking from "../BRST";
 import Nft from "../BRGY";
-//import LOTERIA from "../LOTERIA";
+import LOTERIA from "../LOTERIA";
 import EBOT from "../EBOT";
 
 
@@ -82,7 +82,7 @@ class App extends Component {
 
         if(this.state.contrato.BRST == null){
 
-          window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'})
+          window.tronWeb.setHeader(cons.TAK)
 
           contrato = {};
 
@@ -194,15 +194,11 @@ class App extends Component {
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
 
-      /*
       case "brlt":
       case "suerte":
       case "loteria":
         return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
-        */
 
-
-      
       case "ebot":
       case "EBOT":
       case "bot":
@@ -210,10 +206,8 @@ class App extends Component {
       case "anchodebanda":
       case "energy":
       case "bandwidth":
-
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
       
-
       case window.location.href:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     

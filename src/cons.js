@@ -1,7 +1,7 @@
 var proxy = "https://cors.brutusservices.com/";
 
 const conProxy = true;
-const testnet = false;
+const testnet = true;
 
 if(!conProxy)proxy = "";
 
@@ -22,6 +22,8 @@ var APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery bo
 var BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY 
 var BRLT = "";//token NFT LOTERIA
 
+var TAK = {"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'}
+
 if(testnet){
 
     SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
@@ -35,7 +37,8 @@ if(testnet){
     APENFT = "TMaG566bcktJkjxQpQxshewfTqATzxmtPX";//token de venta de mixtery box
     BRGY = "TMEmo4xexAEu3zSmSrzPJoA1FE6AEfgVyW";//token NFT  BRGY 
     BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
+    TAK = {}
 
 }
 
-export default {proxy, PRU,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut};
+export default {proxy, PRU,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut,TAK};
