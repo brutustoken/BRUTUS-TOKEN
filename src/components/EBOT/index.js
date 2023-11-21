@@ -26,7 +26,7 @@ export default class EnergyRental extends Component {
       titulo: "Titulo",
       body: "Cuerpo del mensaje",
       amounts: [
-        { amount: 3200, text: "32k" },
+        { amount: 32000, text: "32k" },
         { amount: 100000, text: "100k" },
         { amount: 160000, text: "160k" },
         { amount: 1000000, text: "1M" },
@@ -453,26 +453,26 @@ export default class EnergyRental extends Component {
                         <div className="d-flex justify-content-xl-center">
                           {amountButtons}
                         </div>
-                        <p className="font-14">Duration</p>
-                        <div className="col-xl-12 mb-3 mb-md-4">
-                          <input id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
-                          <div className="d-flex justify-content-xl-center">
-                            <button type="button" className="btn btn-primary"
-                              style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1h"; this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
-                            <button type="button" className="btn btn-primary"
-                              style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1d"; this.handleChangePeriodo({ target: { value: "1d" } }) }}>1d</button>
-                            <button type="button" className="btn btn-primary"
-                              style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "3d"; this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
-                            <button type="button" className="btn btn-primary"
-                              style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "7d"; this.handleChangePeriodo({ target: { value: "7d" } }) }}>7d</button>
-                            <button type="button" className="btn btn-primary"
-                              style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "14d"; this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
-                          </div>
+                      </div>
+                      <p className="font-14">Duration</p>
+                      <div className="col-xl-12 mb-3 mb-md-4">
+                        <input id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
+                        <div className="d-flex justify-content-xl-center">
+                          <button type="button" className="btn btn-primary"
+                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1h"; this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
+                          <button type="button" className="btn btn-primary"
+                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1d"; this.handleChangePeriodo({ target: { value: "1d" } }) }}>1d</button>
+                          <button type="button" className="btn btn-primary"
+                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "3d"; this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
+                          <button type="button" className="btn btn-primary"
+                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "7d"; this.handleChangePeriodo({ target: { value: "7d" } }) }}>7d</button>
+                          <button type="button" className="btn btn-primary"
+                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "14d"; this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
                         </div>
-                        <p className="font-14">Payout</p>
-                        <div className="col-xl-12 mb-3 mb-md-4">
-                          <input name="dzPhoneNumber" placeholder={"Calculating..."} value={this.state.precio} type="text" className="form-control" readOnly />
-                        </div>
+                      </div>
+                      <p className="font-14">Price</p>
+                      <div className="col-xl-12 mb-3 mb-md-4">
+                        <input name="dzPhoneNumber" placeholder={"Calculating..."} value={this.state.precio} type="text" className="form-control" readOnly />
                       </div>
                       <div className="d-flex justify-content-xl-center">
                         <button name="submit" type="button" value="Submit"

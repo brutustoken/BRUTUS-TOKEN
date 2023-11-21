@@ -1,7 +1,7 @@
 var proxy = "https://cors.brutusservices.com/";
 
 const conProxy = true;
-const testnet = true;
+const testnet = false;
 
 if(!conProxy)proxy = "";
 
