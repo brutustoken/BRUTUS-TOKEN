@@ -139,6 +139,8 @@ export default class Inicio extends Component {
 
 	async estado() {
 
+		//console.log(window.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
+
 		this.props.contrato.BRGY.totalSupply().call()
 			.then((result) => { this.setState({ BRGY: result.toNumber() }) })
 			.catch(console.error)

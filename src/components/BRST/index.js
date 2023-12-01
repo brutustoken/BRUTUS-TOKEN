@@ -3,6 +3,10 @@ import React, { Component } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
+import data from "../../abi/sunswapV2.json"
+
+
+function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
 const options = [
   {
@@ -90,6 +94,12 @@ export default class Staking extends Component {
       earn7day: 0,
       dataBRST: [],
       contractEnergy: 0,
+      titulo: "",
+      body: "",
+      promE7to1day: 0,
+      resultCalc: 0,
+      diasCalc: 1,
+      brutCalc: 1000
 
 
     };
@@ -110,10 +120,16 @@ export default class Staking extends Component {
     this.handleChangeBRUT = this.handleChangeBRUT.bind(this);
     this.handleChangeUSDT = this.handleChangeUSDT.bind(this);
 
+    this.handleChangeDias = this.handleChangeDias.bind(this);
+    this.handleChangeCalc = this.handleChangeCalc.bind(this);
+
     this.llenarBRST = this.llenarBRST.bind(this);
     this.llenarUSDT = this.llenarUSDT.bind(this);
 
     this.consultarPrecio = this.consultarPrecio.bind(this);
+
+    this.sunSwap = this.sunSwap.bind(this);
+
 
   }
 
@@ -254,6 +270,28 @@ export default class Staking extends Component {
     });
   }
 
+  handleChangeDias(event) {
+    let dato = event.target.value;
+
+    let oper = ((this.state.brutCalc * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
+    oper = oper * parseInt(dato)
+    this.setState({
+      diasCalc: parseInt(dato),
+      resultCalc: oper
+    });
+  }
+
+  handleChangeCalc(event) {
+    let dato = event.target.value;
+    let oper = ((dato * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
+    oper = oper * parseInt(this.state.diasCalc)
+
+    this.setState({
+      brutCalc: dato,
+      resultCalc: oper
+    });
+  }
+
   llenarBRST() {
     document.getElementById('amountBRUT').value = this.state.balanceBRUT;
     let oper = this.state.balanceBRUT * this.state.precioBRST;
@@ -289,6 +327,15 @@ export default class Staking extends Component {
   };
 
   async estado() {
+   /*
+    let inputs = [
+      //{type: 'address', value: window.tronWeb.address.toHex(this.props.accountAddress)}
+    ]
+
+    let funcion = "TIEMPO()"
+    const eenergy = await window.tronWeb.transactionBuilder.estimateEnergy(window.tronWeb.address.toHex("TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6"), funcion,{}, inputs, window.tronWeb.address.toHex(this.props.accountAddress));
+
+    console.log(eenergy)*/
 
     var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
       .then((result) => { return result.toNumber() / 1e6 })
@@ -305,16 +352,18 @@ export default class Staking extends Component {
 
     var cuenta = await window.tronWeb.trx.getAccountResources(origin.origin_address)
 
-    console.log(cuenta)
+    var contractEnergy = cuenta.EnergyLimit - cuenta.EnergyUsed
 
-    var contractEnergy = cuenta.EnergyLimit-cuenta.EnergyUsed
-
-    var useTrx = parseInt(contractEnergy/65000)
-    if(useTrx >= 1){
+    var useTrx = parseInt(contractEnergy / 65000)
+    if (useTrx >= 1) {
       useTrx = 1
-    }else{
+    } else {
       useTrx = 21
     }
+
+    var promE7to1day = (((consulta[0].value - consulta[6].value) / ((consulta[0].value + consulta[6].value) / 2)) * 100) / 7
+
+    
 
     this.setState({
       useTrx: useTrx,
@@ -324,7 +373,8 @@ export default class Staking extends Component {
       dataBRST: consulta,
       win7day: ((consulta[0].value - consulta[6].value) / ((consulta[0].value + consulta[6].value) / 2)) * 100,
       earn7day: ((consulta[0].value - consulta[1].value) / ((consulta[0].value + consulta[1].value) / 2)) * 100 * 7,
-      last7day: (misBRST * consulta[0].value) - (misBRST * consulta[6].value)
+      last7day: (misBRST * consulta[0].value) - (misBRST * consulta[6].value),
+      promE7to1day: promE7to1day
     })
 
     var MIN_DEPOSIT = await this.props.contrato.BRST_TRX.MIN_DEPOSIT().call();
@@ -387,9 +437,19 @@ export default class Staking extends Component {
             await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
             this.consultarPrecio();
             this.estado();
-            window.alert("Order completed!")
+            this.setState({
+              titulo: "Status",
+              body: "Order completed!"
+            })
+
+            window.$("#mensaje-brst").modal("show");
           } else {
-            window.alert("Insufficient balance to fulfill this order")
+            this.setState({
+              titulo: "Error",
+              body: "Insufficient balance to fulfill this order"
+            })
+
+            window.$("#mensaje-brst").modal("show");
           }
 
         }}>
@@ -480,6 +540,11 @@ export default class Staking extends Component {
       dias: diasDeEspera
     });
 
+    if(parseInt(this.state.resultCalc) === 0){
+      document.getElementById("hold").value = misBRST
+      this.handleChangeCalc({target:{value:misBRST}})
+    }
+
   }
 
   async compra() {
@@ -495,27 +560,60 @@ export default class Staking extends Component {
     if (balance >= amount) {
       if (amount >= minCompra) {
 
-        await this.props.contrato.BRST_TRX.staking().send({ callValue: amount });
+        await this.props.contrato.BRST_TRX.staking().send({ callValue: amount })
+        .then(()=>{
+          this.setState({
+            titulo: "Done!",
+            body: "Your TRX automatic staking has started"
+          })
+  
+          window.$("#mensaje-brst").modal("show");
+        })
+        .catch(()=>{
+
+          this.setState({
+            titulo: "non-effective transaction",
+            body: "The transaction has failed, you have connection problems or you have taken too long to sign, this has made the transaction unsuccessful, try again"
+          })
+  
+          window.$("#mensaje-brst").modal("show");
+
+        })
+        
         document.getElementById("amountUSDT").value = "";
-        window.alert("Your staking of  is ¡Done!");
+
 
       } else {
         document.getElementById("amountUSDT").value = minCompra;
-        window.alert("Please enter an amount greater than " + minCompra + " TRX");
-        this.llenarUSDT();
+        this.setState({
+          titulo: "Error",
+          body: "Please enter an amount greater than " + minCompra + " TRX"
+        })
+
+        window.$("#mensaje-brst").modal("show");
+
 
       }
 
     } else {
 
       document.getElementById("amountUSDT").value = "";
-      window.alert("You do not have enough funds in your account you place at least " + minCompra + " TRX");
-      this.llenarUSDT();
+      this.setState({
+        titulo: "Error",
+        body: "You do not have enough funds in your account you place at least " + minCompra + " TRX"
+      })
+
+      window.$("#mensaje-brst").modal("show");
+
 
 
     }
 
+
+    this.llenarUSDT();
+    await delay(5);
     this.estado();
+
 
   };
 
@@ -547,13 +645,27 @@ export default class Staking extends Component {
         var pass = window.confirm("Your request will generate a sell order for your BRSTs waiting for it to be completed by the community");
         if (pass) {
           await this.props.contrato.BRST_TRX.solicitudRetiro(amount).send();
-          window.alert("Your withdrawal request  is ¡Done!");
+          this.setState({
+            titulo: "Info",
+            body: <>Your TRX withdrawal has begun, you have 6 hours to cancel the order, 3 days for anyone to buy your order and finally if none of these scenarios occur we will begin the process of withdrawing TRX from the SR which takes 14 days, in total you could wait up to 17 days for your TRX to be available for withdrawal
+            <br /><br/>
+            <button type="button" className="btn btn-success" onClick={()=>{window.$("#mensaje-brst").modal("hide")}}>Accept</button>
+            </>
+          })
+
+          window.$("#mensaje-brst").modal("show");
         }
 
         //window.alert("Estamos actualizando a la version 3 del contrato de liquidez por favor contacta atravez de telegram para intercambiar tus BRST por TRX, estamos mejorando nustro sistema ;)");
 
       } else {
-        window.alert(`Enter a value greater than ${minventa} BRST`);
+        this.setState({
+          titulo: "Info",
+          body: `Enter a value greater than ${minventa} BRST`
+        })
+
+        window.$("#mensaje-brst").modal("show");
+
         document.getElementById("amountBRUT").value = minventa;
       }
 
@@ -568,10 +680,20 @@ export default class Staking extends Component {
       if (amount > aprovado) {
         if (aprovado <= 0) {
           document.getElementById("amountBRUT").value = minventa;
-          window.alert("You do not have enough aproved funds in your account you place at least " + minventa + " BRST");
+          this.setState({
+            titulo: "Info",
+            body: "You do not have enough aproved funds in your account you place at least " + minventa + " BRST"
+          })
+
+          window.$("#mensaje-brst").modal("show");
         } else {
           document.getElementById("amountBRUT").value = minventa;
-          window.alert("You must leave 50 TRX free in your account to make the transaction");
+          this.setState({
+            titulo: "Info",
+            body: "You must leave 21 TRX free in your account to make the transaction"
+          })
+
+          window.$("#mensaje-brst").modal("show");
         }
 
 
@@ -579,14 +701,24 @@ export default class Staking extends Component {
       } else {
 
         document.getElementById("amountBRUT").value = minventa;
-        window.alert("You must leave 50 TRX free in your account to make the transaction");
+        this.setState({
+          titulo: "Info",
+          body: "You must leave 21 TRX free in your account to make the transaction"
+        })
+
+        window.$("#mensaje-brst").modal("show");
 
       }
 
     }
 
-    this.estado();
+
     this.llenarBRST();
+
+    await delay(5);
+
+    this.estado();
+
 
   };
 
@@ -595,7 +727,12 @@ export default class Staking extends Component {
     if (Date.now() >= this.state.tiempo && this.state.tiempo - this.state.espera !== 0) {
       await this.props.contrato.BRST_TRX.retirar().send();
     } else {
-      window.alert("It's not time to retire yet");
+      this.setState({
+        titulo: "Info",
+        body: "It's not time to retire yet"
+      })
+
+      window.$("#mensaje-brst").modal("show");
     }
 
     this.estado();
@@ -778,6 +915,39 @@ export default class Staking extends Component {
     this.root = root;
   }
 
+  async sunSwap(){
+    let token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
+    let swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
+    let contrato = await window.tronWeb.contract(data.entrys , swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
+
+    let contract_token = await window.tronWeb.contract().at(token)
+    let aprove = await contract_token.allowance(this.props.accountAddress,"TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax").call()
+    
+
+    if(aprove._hex)aprove = parseInt(aprove._hex)
+
+    console.log(aprove)
+    if(aprove <= 0){
+      await contract_token.approve("TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax","115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
+    }
+
+    console.log(aprove)
+
+    var cantidadTrx = 101000000
+
+    cantidadTrx = parseInt(cantidadTrx)
+
+    var splitage = 0.0005
+
+    splitage = cantidadTrx-(cantidadTrx*splitage)
+
+    splitage = parseInt(splitage)
+
+    let intercam = await contrato["4a25d94a"](cantidadTrx,splitage,["0xaf3f2254a9c6a3c143c10cbe15eb9eb75c553f45","0x891cdb91d149f23B1a45D9c5Ca78a88d0cB44C18"],this.props.accountAddress,(parseInt(Date.now()/1000))+300).send()
+
+    console.log(intercam)
+  }
+
   render() {
 
     var { minCompra, minventa } = this.state;
@@ -800,9 +970,9 @@ export default class Staking extends Component {
                         <span className="fs-16">Brutus Tron Staking </span>
                       </div>
                       <div className="dropdown bootstrap-select">
-                        <select className="image-select default-select dashboard-select" aria-label="Default" tabindex="0">
-                          <option selected="">TRX (Tron)</option>
-                          <option selected="">USD (Dollar)</option>
+                        <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0">
+                          <option >TRX (Tron)</option>
+                          <option >USD (Dollar)</option>
                         </select>
                       </div>
                     </div>
@@ -828,8 +998,8 @@ export default class Staking extends Component {
                         </div>
                       </div>
                       <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
-                      
-                      
+
+
                       <select className="btn-secondary style-1 default-select" value={this.state.cantidadDatos} onChange={this.handleChange2}>
                         {options2.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
@@ -870,7 +1040,7 @@ export default class Staking extends Component {
                     <div className="card-header pb-0 border-0 flex-wrap">
                       <div>
                         <h4 className="heading mb-0">Quick Trade</h4>
-                        <p className="mb-0 fs-14">Contract energy: {(this.state.contractEnergy).toLocaleString('en-US')} for ~ {parseInt(this.state.contractEnergy/65000)} free transactions</p>
+                        <p className="mb-0 fs-14">Contract energy: {(this.state.contractEnergy).toLocaleString('en-US')} for ~ {parseInt(this.state.contractEnergy / 65000)} free transactions</p>
                       </div>
                     </div>
                     <div className="card-body pb-0">
@@ -908,7 +1078,7 @@ export default class Staking extends Component {
                       </div>
                       <div className="d-flex mt-3 align-items-center">
                         <div className="form-check custom-checkbox me-3">
-                          <label className="form-check-label fs-14 font-w400" for="customCheckBox1">We recommend keeping ~ {this.state.useTrx} TRX for transactions.</label>
+                          <label className="form-check-label fs-14 font-w400" htmlFor="customCheckBox1">We recommend keeping ~ {this.state.useTrx} TRX for transactions.</label>
                         </div>
                         <p className="mb-0"></p>
                       </div>
@@ -975,37 +1145,38 @@ export default class Staking extends Component {
                       <th>Days</th>
                       <th>You Hold</th>
                       <th>Status</th>
-                      <th>Income</th>
+                      <th>Estimated income</th>
                       <th>Growth rate</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <th>1</th>
-                      <td>{this.state.misBRST} BRST</td>
-                      <td><span className="badge badge-primary light">Next</span>
+                      <th><input type="number" id="days" defaultValue={1} onChange={this.handleChangeDias}/></th>
+                      <td><input type="number" id="hold" defaultValue={0} onChange={this.handleChangeCalc}/> BRST</td>
+                      <td><span className="badge badge-primary light">calculated</span>
                       </td>
-                      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst) / 100)) ).toFixed(6)} TRX</td>
-                      <td className="color-primary">{(this.state.varBrst).toFixed(4)} %</td>
+                      <td>{(this.state.resultCalc).toFixed(6)} TRX</td>
+                      <td className="color-primary">{(this.state.promE7to1day).toFixed(4)} % Daily</td>
                     </tr>
                     <tr>
                       <th>30</th>
                       <td>{this.state.misBRST} BRST</td>
                       <td><span className="badge badge-success">likely</span>
                       </td>
-                      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst*30) / 100)) ).toFixed(6)} TRX</td>
-                      <td className="color-success">{(this.state.varBrst*30).toFixed(4)} %</td>
+                      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * 30) / 100))).toFixed(6)} TRX</td>
+                      <td className="color-success">{(this.state.varBrst * 30).toFixed(4)} % Monthly</td>
                     </tr>
                     <tr>
                       <th>365</th>
                       <td>{this.state.misBRST} BRST</td>
                       <td><span className="badge badge-danger light">Estimated</span>
                       </td>
-                      <td className="text-danger">{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst*365) / 100)) ).toFixed(6)} TRX</td>
-                      <td className="text-danger">{(this.state.varBrst*365).toFixed(4)} %</td>
+                      <td className="text-danger">{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * 365) / 100))).toFixed(6)} TRX</td>
+                      <td className="text-danger">{(this.state.varBrst * 365).toFixed(4)} % Yearly</td>
                     </tr>
                   </tbody>
                 </table>
+                <p>This calculator uses the average of the last 7 days of earnings to generate an estimate that is closest to reality, since earnings can fluctuate from one day to the next and are not fixed but variable.</p>
               </div>
             </div>
           </div>
@@ -1031,6 +1202,32 @@ export default class Staking extends Component {
           </div>
         </div>
 
+
+
+
+
+          <button onClick={()=>{this.sunSwap()}}>cambiar BRST por cantidad fija de TRX</button>
+
+
+
+
+
+
+      </div>
+
+      <div className="modal fade" id="mensaje-brst">
+        <div className="modal-dialog" role="document">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">{this.state.titulo}</h5>
+              <button type="button" className="btn-close" data-bs-dismiss="modal">
+              </button>
+            </div>
+            <div className="modal-body">
+              <p>{this.state.body}</p>
+            </div>
+          </div>
+        </div>
       </div>
 
     </>);

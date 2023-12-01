@@ -31,7 +31,7 @@ export default class EnergyRental extends Component {
         { amount: 160000, text: "160k" },
         { amount: 1000000, text: "1M" },
         { amount: 3000000, text: "3M" }
-      ]
+      ],
 
     };
 
@@ -55,6 +55,7 @@ export default class EnergyRental extends Component {
     setTimeout(() => {
       this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
     }, 3 * 1000)
+
   }
 
   handleChangeWallet(event) {
@@ -224,11 +225,13 @@ export default class EnergyRental extends Component {
     }
 
     this.setState({
-      titulo: "Confirm order information",
+      titulo: <>Confirm order information</>,
       body: (<span>
-        {"Buy: " + this.state.cantidad + " "+this.state.recurso+" " + this.state.periodo + this.state.temporalidad + " for " + this.state.precio + " TRX to " + this.state.wallet_orden}
+        <b>Buy: </b> {this.state.cantidad + " "+this.state.recurso+" " + this.state.periodo + this.state.temporalidad}<br></br>
+        <b>For: </b> {this.state.precio + " TRX"}<br></br> 
+        <b>To: </b> {this.state.wallet_orden}<br></br> 
         <br /><br />
-        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Discard</button>
+        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel</button>
         {" "}
         <button type="button" className="btn btn-success" onClick={() => { this.compra() }}>Confirm</button>
       </span>)
@@ -240,6 +243,8 @@ export default class EnergyRental extends Component {
   }
 
   async compra() {
+
+    const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
     await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
     if (this.state.wallet_orden === "" || !window.tronWeb.isAddress(this.state.wallet_orden)) {
@@ -249,17 +254,34 @@ export default class EnergyRental extends Component {
     }
 
     this.setState({
-      titulo: "Confirm transaction",
-      body: "Please confirm the transaction from your wallet"
+      titulo: <>Confirm transaction {imgLoading}</>,
+      body: <>Please confirm the transaction from your wallet </>
     })
 
     window.$("#mensaje-ebot").modal("show");
 
-    var hash = await window.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, window.tronWeb.toSun(this.state.precio));
+    var hash = await window.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, window.tronWeb.toSun(this.state.precio))
+    .catch((e)=>{
+      console.log(e)
+      return ["e",e];
+    })
+
+    if(hash[0] === "e"){
+      this.setState({
+        titulo: "Transaction failed",
+        body: <>{hash[1]}
+        <br /><br />
+        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Close</button>
+        </>
+      })
+  
+      window.$("#mensaje-ebot").modal("show");
+      return;
+    }
 
     this.setState({
-      titulo: "Waiting for the blockchain",
-      body: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute."
+      titulo: <>Waiting for the blockchain {imgLoading}</>,
+      body: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute"
     })
 
     window.$("#mensaje-ebot").modal("show");
@@ -269,20 +291,28 @@ export default class EnergyRental extends Component {
     var envio = hash.transaction.raw_data.contract[0].parameter.value
 
     this.setState({
-      titulo: "we are verifying",
+      titulo: <>we are verifying {imgLoading}</>,
       body: "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
     })
 
     window.$("#mensaje-ebot").modal("show");
 
-    if (true || (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API)) {
+    if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
 
       hash = await window.tronWeb.trx.getTransaction(hash.txid);
-      //console.log(hash)
-
-      if (hash.ret[0].contractRet === "SUCCESS" || true) {
+      
+      if (hash.ret[0].contractRet === "SUCCESS" ) {
 
         var recurso = this.state.recurso
+
+        this.setState({
+          titulo: <>we are allocating your {recurso} {imgLoading}</>,
+          body: "Please do not close or leave the page as this will cause an error in the "+recurso+" allocation."
+        })
+    
+        window.$("#mensaje-ebot").modal("show");
+
+        
 
         if(recurso === "bandwidth" ){
           recurso = "band"
@@ -320,7 +350,7 @@ export default class EnergyRental extends Component {
 
           this.setState({
             titulo: "Completed successfully",
-            body: "Energy rental completed successfully. Thank you!"
+            body: <><p>Energy rental completed successfully. </p><button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
           })
 
           window.$("#mensaje-ebot").modal("show");
@@ -372,7 +402,7 @@ export default class EnergyRental extends Component {
             <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
 
             <div className="info">
-              <h1>Brutus Resources rental</h1>
+              <h1>Brutus Resources rental </h1>
               <p className="font-20">In Brutus Energy Bot, we've developed a DApp that provides you
                 with a faster, more convenient, and secure experience. This DApp represents an
                 innovative third way to access Brutus's resources on the Tron network. Our

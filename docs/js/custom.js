@@ -445,11 +445,11 @@ var CryptoZone = function(){
 	function loadNow(opacity) {
 		if (opacity <= 0) {
 			displayContent();
-		} else {
+		} else {/*
 			loader.style.opacity = opacity;
 			window.setTimeout(function() {
 				loadNow(opacity - 0.05);
-			}, 50);
+			}, 50);*/
 		}
 	}
 

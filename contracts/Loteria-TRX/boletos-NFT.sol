@@ -1,4 +1,4 @@
-pragma solidity >=0.5.15;
+pragma solidity >=0.8.17;
 
 // SPDX-License-Identifier: Apache-2.0 
 
@@ -221,7 +221,9 @@ contract  TRC721 is Context, TRC165, MinterRole  {
     string private _symbol = "BRLT";
 
     // Base URI
-    string private _baseURI = "https://nft.brutus.finance/";
+    string private _baseURI = "https://nft-metadata.brutusservices.com/";
+
+    string private lottery_URI = "v1/lottery?ticket=";
 
 
     bytes4 private constant _INTERFACE_ID_TRC721 = 0x80ac58cd;
@@ -259,6 +261,14 @@ contract  TRC721 is Context, TRC165, MinterRole  {
 
         _tokenApprovals[tokenId] = to;
         emit Approval(owner, to, tokenId);
+    }
+
+    function unApprovalForAll(uint256 tokenId) public {
+        address owner = ownerOf(tokenId);
+        require(_msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            "TRC721: unapprove caller is not owner"
+        );
+        _clearApproval(tokenId);
     }
 
     function getApproved(uint256 tokenId) public view returns (address) {
@@ -418,6 +428,10 @@ contract  TRC721 is Context, TRC165, MinterRole  {
         _baseURI = base_URI;
     }
 
+    function _setLottery_URI(string memory _URI) internal {
+        lottery_URI = _URI;
+    }
+
     function baseURI() external view returns (string memory) {
         return _baseURI;
     }
@@ -445,8 +459,13 @@ contract  TRC721 is Context, TRC165, MinterRole  {
         _removeTokenFromAllTokensEnumeration(tokenId);
     }
 
-     function updateBaseURI(string memory base_URI) public onlyMinter returns(bool){
+    function updateBaseURI(string memory base_URI) public onlyMinter returns(bool){
         _setBaseURI(base_URI);
+        return true;
+    }
+
+    function updateLotteryURI(string memory _Lottery_URI) public onlyMinter returns(bool){
+        _setLottery_URI(_Lottery_URI);
         return true;
     }
 
@@ -456,9 +475,31 @@ contract  TRC721 is Context, TRC165, MinterRole  {
         return true;
     }
 
+    function uint2str(uint _i) internal pure returns (string memory _uintAsString) {
+        if (_i == 0) {
+            return "0";
+        }
+        uint j = _i;
+        uint len;
+        while (j != 0) {
+            len++;
+            j /= 10;
+        }
+        bytes memory bstr = new bytes(len);
+        uint k = len;
+        while (_i != 0) {
+            k = k-1;
+            uint8 temp = (48 + uint8(_i - _i / 10 * 10));
+            bytes1 b1 = bytes1(temp);
+            bstr[k] = b1;
+            _i /= 10;
+        }
+        return string(bstr);
+    }
+
     function mintLoteryToken(address to) public onlyMinter returns (bool) {
-        string memory token_URI = "loteria/index.json";
         uint256 tokenId = totalSupply();
+        string memory token_URI = string(abi.encodePacked(lottery_URI,uint2str(tokenId)));
         _mint(to, tokenId);
         _setTokenURI(tokenId, token_URI);
         return true;
