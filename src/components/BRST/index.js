@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
-import data from "../../abi/sunswapV2.json"
+
 
 
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
@@ -89,17 +89,17 @@ export default class Staking extends Component {
       misBRST: 0,
       misBRGY: 0,
       misBRLT: 0,
-      win7day: 0,
-      last7day: 0,
-      earn7day: 0,
       dataBRST: [],
       contractEnergy: 0,
       titulo: "",
       body: "",
+      tiempoPromediado: 3,
       promE7to1day: 0,
       resultCalc: 0,
       diasCalc: 1,
-      brutCalc: 1000
+      brutCalc: 1000,
+      balanceBRUT: 0,
+      balanceUSDT: 0
 
 
     };
@@ -127,9 +127,6 @@ export default class Staking extends Component {
     this.llenarUSDT = this.llenarUSDT.bind(this);
 
     this.consultarPrecio = this.consultarPrecio.bind(this);
-
-    this.sunSwap = this.sunSwap.bind(this);
-
 
   }
 
@@ -223,7 +220,7 @@ export default class Staking extends Component {
   consultaPrecio() {
 
     fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
-      .then(response => { return response.json(); })
+      .then(r => { return r.json(); })
       .then(data => {
 
         this.setState({
@@ -231,10 +228,8 @@ export default class Staking extends Component {
           varBrst: data.Data.v24h
         })
 
-      }).catch(err => {
-        console.log(err);
-
-      });
+      })
+      .catch(err => {console.log(err);});
 
   }
 
@@ -338,15 +333,14 @@ export default class Staking extends Component {
     console.log(eenergy)*/
 
     var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-      .then((result) => { return result.toNumber() / 1e6 })
-      .catch(console.error)
+    .then((result) => { return result.toNumber() / 1e6 })
+    .catch((e)=>{console.error(e);return 0})
 
-    let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=7")
-    consulta = (await consulta.json()).Data
-
+  
     var accountAddress = this.props.accountAddress;
 
-    var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
+    //var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
+    var balance = await window.tronWeb.trx.getUnconfirmedBalance()/10**6;
 
     var origin = await window.tronWeb.trx.getContract(this.props.contrato.BRST_TRX.address)
 
@@ -361,9 +355,14 @@ export default class Staking extends Component {
       useTrx = 21
     }
 
-    var promE7to1day = (((consulta[0].value - consulta[6].value) / ((consulta[0].value + consulta[6].value) / 2)) * 100) / 7
+    let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
+    consulta = (await consulta.json()).Data
 
-    
+    //console.log(consulta)
+
+    var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value) ) * 100) / this.state.tiempoPromediado
+
+    console.log(promE7to1day)
 
     this.setState({
       useTrx: useTrx,
@@ -371,9 +370,6 @@ export default class Staking extends Component {
       balanceUSDT: balance,
       misBRST: misBRST,
       dataBRST: consulta,
-      win7day: ((consulta[0].value - consulta[6].value) / ((consulta[0].value + consulta[6].value) / 2)) * 100,
-      earn7day: ((consulta[0].value - consulta[1].value) / ((consulta[0].value + consulta[1].value) / 2)) * 100 * 7,
-      last7day: (misBRST * consulta[0].value) - (misBRST * consulta[6].value),
       promE7to1day: promE7to1day
     })
 
@@ -915,38 +911,7 @@ export default class Staking extends Component {
     this.root = root;
   }
 
-  async sunSwap(){
-    let token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
-    let swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
-    let contrato = await window.tronWeb.contract(data.entrys , swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
 
-    let contract_token = await window.tronWeb.contract().at(token)
-    let aprove = await contract_token.allowance(this.props.accountAddress,"TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax").call()
-    
-
-    if(aprove._hex)aprove = parseInt(aprove._hex)
-
-    console.log(aprove)
-    if(aprove <= 0){
-      await contract_token.approve("TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax","115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
-    }
-
-    console.log(aprove)
-
-    var cantidadTrx = 101000000
-
-    cantidadTrx = parseInt(cantidadTrx)
-
-    var splitage = 0.0005
-
-    splitage = cantidadTrx-(cantidadTrx*splitage)
-
-    splitage = parseInt(splitage)
-
-    let intercam = await contrato["4a25d94a"](cantidadTrx,splitage,["0xaf3f2254a9c6a3c143c10cbe15eb9eb75c553f45","0x891cdb91d149f23B1a45D9c5Ca78a88d0cB44C18"],this.props.accountAddress,(parseInt(Date.now()/1000))+300).send()
-
-    console.log(intercam)
-  }
 
   render() {
 
@@ -1059,19 +1024,21 @@ export default class Staking extends Component {
                     </div>
                     <div className="card-footer border-0">
                       <div className="row">
-                        <div className="col-6">
-                          <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.compra()}>
-                            BUY
-                            <svg className="ms-4 scale5" width="16" height="16" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
-                              <path d="M5.35182 13.4965L5.35182 13.4965L5.33512 6.58823C5.33508 6.5844 5.3351 6.58084 5.33514 6.57759M5.35182 13.4965L5.83514 6.58306L5.33514 6.58221C5.33517 6.56908 5.33572 6.55882 5.33597 6.5545L5.33606 6.55298C5.33585 6.55628 5.33533 6.56514 5.33516 6.57648C5.33515 6.57684 5.33514 6.57721 5.33514 6.57759M5.35182 13.4965C5.35375 14.2903 5.99878 14.9324 6.79278 14.9305C7.58669 14.9287 8.22874 14.2836 8.22686 13.4897L8.22686 13.4896L8.21853 10.0609M5.35182 13.4965L8.21853 10.0609M5.33514 6.57759C5.33752 5.789 5.97736 5.14667 6.76872 5.14454C6.77041 5.14452 6.77217 5.14451 6.77397 5.14451L6.77603 5.1445L6.79319 5.14456L13.687 5.16121L13.6858 5.66121L13.687 5.16121C14.4807 5.16314 15.123 5.80809 15.1211 6.6022C15.1192 7.3961 14.4741 8.03814 13.6802 8.03626L13.6802 8.03626L10.2515 8.02798L23.4341 21.2106C23.9955 21.772 23.9955 22.6821 23.4341 23.2435C22.8727 23.8049 21.9625 23.8049 21.4011 23.2435L8.21853 10.0609M5.33514 6.57759C5.33513 6.57959 5.33514 6.58159 5.33514 6.5836L8.21853 10.0609M6.77407 5.14454C6.77472 5.14454 6.77537 5.14454 6.77603 5.14454L6.77407 5.14454Z" fill="white" stroke="white"></path>
-                            </svg>
-                          </button>
-                        </div>
+                        
                         <div className="col-6">
                           <button className="btn d-flex  btn-danger justify-content-between w-100" onClick={() => this.venta()}>
                             SELL
                             <svg className="ms-4 scale3" width="16" height="16" viewBox="0 0 21 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                               <path d="M16.9638 11.5104L16.9721 14.9391L3.78954 1.7565C3.22815 1.19511 2.31799 1.19511 1.75661 1.7565C1.19522 2.31789 1.19522 3.22805 1.75661 3.78943L14.9392 16.972L11.5105 16.9637L11.5105 16.9637C10.7166 16.9619 10.0715 17.6039 10.0696 18.3978C10.0677 19.1919 10.7099 19.8369 11.5036 19.8388L11.5049 19.3388L11.5036 19.8388L18.3976 19.8554L18.4146 19.8555L18.4159 19.8555C18.418 19.8555 18.42 19.8555 18.422 19.8555C19.2131 19.8533 19.8528 19.2114 19.8555 18.4231C19.8556 18.4196 19.8556 18.4158 19.8556 18.4117L19.8389 11.5035L19.8389 11.5035C19.8369 10.7097 19.1919 10.0676 18.3979 10.0695C17.604 10.0713 16.9619 10.7164 16.9638 11.5103L16.9638 11.5104Z" fill="white" stroke="white"></path>
+                            </svg>
+                          </button>
+                        </div>
+
+                        <div className="col-6">
+                          <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.compra()}>
+                            BUY
+                            <svg className="ms-4 scale5" width="16" height="16" viewBox="0 0 29 29" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <path d="M5.35182 13.4965L5.35182 13.4965L5.33512 6.58823C5.33508 6.5844 5.3351 6.58084 5.33514 6.57759M5.35182 13.4965L5.83514 6.58306L5.33514 6.58221C5.33517 6.56908 5.33572 6.55882 5.33597 6.5545L5.33606 6.55298C5.33585 6.55628 5.33533 6.56514 5.33516 6.57648C5.33515 6.57684 5.33514 6.57721 5.33514 6.57759M5.35182 13.4965C5.35375 14.2903 5.99878 14.9324 6.79278 14.9305C7.58669 14.9287 8.22874 14.2836 8.22686 13.4897L8.22686 13.4896L8.21853 10.0609M5.35182 13.4965L8.21853 10.0609M5.33514 6.57759C5.33752 5.789 5.97736 5.14667 6.76872 5.14454C6.77041 5.14452 6.77217 5.14451 6.77397 5.14451L6.77603 5.1445L6.79319 5.14456L13.687 5.16121L13.6858 5.66121L13.687 5.16121C14.4807 5.16314 15.123 5.80809 15.1211 6.6022C15.1192 7.3961 14.4741 8.03814 13.6802 8.03626L13.6802 8.03626L10.2515 8.02798L23.4341 21.2106C23.9955 21.772 23.9955 22.6821 23.4341 23.2435C22.8727 23.8049 21.9625 23.8049 21.4011 23.2435L8.21853 10.0609M5.33514 6.57759C5.33513 6.57959 5.33514 6.58159 5.33514 6.5836L8.21853 10.0609M6.77407 5.14454C6.77472 5.14454 6.77537 5.14454 6.77603 5.14454L6.77407 5.14454Z" fill="white" stroke="white"></path>
                             </svg>
                           </button>
                         </div>
@@ -1135,7 +1102,7 @@ export default class Staking extends Component {
         <div className="col-lg-12">
           <div className="card">
             <div className="card-header">
-              <h4 className="card-title">My Staking: {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX = {this.state.misBRST} BRST</h4>
+              <h4 className="card-title" style={{cursor:"pointer"}} onClick={()=>{document.getElementById("hold").value = this.state.balanceBRUT;this.handleChangeCalc({target:{value:this.state.balanceBRUT}})}}>My Staking: {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX = {this.state.misBRST} BRST</h4>
             </div>
             <div className="card-body">
               <div className="table-responsive">
@@ -1156,7 +1123,7 @@ export default class Staking extends Component {
                       <td><span className="badge badge-primary light">calculated</span>
                       </td>
                       <td>{(this.state.resultCalc).toFixed(6)} TRX</td>
-                      <td className="color-primary">{(this.state.promE7to1day).toFixed(4)} % Daily</td>
+                      <td className="color-primary">{(this.state.promE7to1day).toFixed(4)} % Daily </td>
                     </tr>
                     <tr>
                       <th>30</th>
@@ -1176,7 +1143,7 @@ export default class Staking extends Component {
                     </tr>
                   </tbody>
                 </table>
-                <p>This calculator uses the average of the last 7 days of earnings to generate an estimate that is closest to reality, since earnings can fluctuate from one day to the next and are not fixed but variable.</p>
+                <p>This calculator uses the average of the last {this.state.tiempoPromediado} days of earnings to generate an estimate that is closest to reality, since earnings can fluctuate from one day to the next and are not fixed but variable.</p>
               </div>
             </div>
           </div>
@@ -1201,17 +1168,6 @@ export default class Staking extends Component {
             </div>
           </div>
         </div>
-
-
-
-
-
-          <button onClick={()=>{this.sunSwap()}}>cambiar BRST por cantidad fija de TRX</button>
-
-
-
-
-
 
       </div>
 

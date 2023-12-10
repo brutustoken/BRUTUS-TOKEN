@@ -1,7 +1,7 @@
 var proxy = "https://cors.brutusservices.com/";
 
 const conProxy = true;
-const testnet = false;
+const testnet = false; // revisar si está tesnet activada
 
 if(!conProxy)proxy = "";
 

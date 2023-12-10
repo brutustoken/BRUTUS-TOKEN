@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import data from "../../abi/sunswapV2.json"
 
 export default class nfts extends Component {
 
@@ -21,6 +22,9 @@ export default class nfts extends Component {
     this.estado = this.estado.bind(this);
     this.consultarPrecio = this.consultarPrecio.bind(this);
     this.compra = this.compra.bind(this);
+
+    
+    this.sunSwap = this.sunSwap.bind(this);
 
   }
 
@@ -70,6 +74,36 @@ export default class nfts extends Component {
 
   }
 
+  async sunSwap(){
+    let token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
+    let swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
+    let contrato = await window.tronWeb.contract(data.entrys , swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
+
+    let contract_token = await window.tronWeb.contract().at(token)
+    let aprove = await contract_token.allowance(this.props.accountAddress,"TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax").call()
+    
+
+    if(aprove._hex)aprove = parseInt(aprove._hex)
+
+    if(aprove <= 0){
+      await contract_token.approve("TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax","115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
+    }
+
+    var cantidadTrx = 101000000
+
+    cantidadTrx = parseInt(cantidadTrx)
+
+    var splitage = 0.0005
+
+    splitage = cantidadTrx-(cantidadTrx*splitage)
+
+    splitage = parseInt(splitage)
+
+    let intercam = await contrato["4a25d94a"](cantidadTrx,splitage,["0xaf3f2254a9c6a3c143c10cbe15eb9eb75c553f45","0x891cdb91d149f23B1a45D9c5Ca78a88d0cB44C18"],this.props.accountAddress,(parseInt(Date.now()/1000))+300).send()
+
+    console.log(intercam)
+  }
+
   render() {
 
     return (
@@ -87,16 +121,7 @@ export default class nfts extends Component {
                       </div>
 
                     </div>
-                    <div className="tab-slide-content new-arrival-product mb-4 mb-xl-0">
-
-                      <ul className="nav slide-item-list mt-3" role="tablist">
-                        <li role="presentation" className="show">
-                          <a href="#first" role="tab" data-bs-toggle="tab">
-                            <img className="img-fluid" src="images/tab/1.jpg" alt="" width="50" />
-                          </a>
-                        </li>
-                      </ul>
-                    </div>
+                    
                   </div>
                   <div className="col-xl-9 col-lg-6  col-md-6 col-xxl-7 col-sm-12">
                     <div className="product-detail-content">
@@ -123,7 +148,7 @@ export default class nfts extends Component {
                           </div>
                         </div>
 
-                        <p>
+                      
                           <h4 className="my-1">My Tickets: {this.state.mc} BRLT</h4>
                           <h4 className="my-1">My probability: {(this.state.mc / this.state.totalNFT * 100).toFixed(2)}%</h4>
 
@@ -150,7 +175,7 @@ export default class nfts extends Component {
                             }}>Claim</button>
 
                           </div>
-                        </p>
+                        
 
                       </div>
                     </div>
@@ -194,6 +219,11 @@ export default class nfts extends Component {
             </div>
           </div>
         </div>
+
+
+        <button onClick={()=>{this.sunSwap()}}>cambiar BRST por cantidad fija de TRX</button>
+
+
       </>
     );
   }
