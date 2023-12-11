@@ -194,11 +194,6 @@ class App extends Component {
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
 
-      case "brlt":
-      case "suerte":
-      case "loteria":
-        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
-
       case "ebot":
       case "EBOT":
       case "bot":
@@ -208,11 +203,20 @@ class App extends Component {
       case "bandwidth":
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
       
+      case "pro":
+        return <Construccion/>
+
+      case "brlt":
+      case "suerte":
+      case "loteria":
+        return <Construccion/>
+        //return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+
       case window.location.href:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     
       default:
-        return <Construccion/>
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     }
 
   }
