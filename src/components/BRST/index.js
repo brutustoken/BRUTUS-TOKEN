@@ -493,10 +493,11 @@ export default class Staking extends Component {
 
       globDepositos[deposits.length - 1 - index] = (
 
-        <div className="row mt-4 align-items-center" key={"glob" + parseInt(deposits[index]._hex)}>
-          <div className="col-sm-3 mb-3">
+        <div className="row mt-4 align-items-center" id={"sale-"+parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
+          <div className="col-sm-6 mb-3">
             <p className="mb-0 fs-14">Sale N° {parseInt(deposits[index]._hex)} | <span style={{ color: "white" }}>{diasrestantes} Days left</span> </p>
             <h4 className="fs-20 text-black">{parseInt(pen[3]._hex) / 10 ** 6} BRST X {parseInt(pen[2]._hex) / 10 ** 6} TRX</h4>
+            <p className="mb-0 fs-14">Price by unit: {(parseInt(pen[2]._hex)/10**6)/(parseInt(pen[3]._hex)/10**6)} TRX</p>
           </div>
           <div className="col-sm-6 mb-1">
 

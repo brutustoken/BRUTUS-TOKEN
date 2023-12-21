@@ -34,6 +34,7 @@ class App extends Component {
         BRGY: null,
         BRST: null,
         BRST_TRX: null,
+        BRST_TRX_V4:null
         
       }
     };
@@ -99,6 +100,23 @@ class App extends Component {
           if(cons.SC2 !== ""){
             contrato.BRST_TRX = await window.tronWeb.contract().at(cons.SC2);
           }
+
+          if(cons.ProxySC2 !== ""){
+            contrato.BRST_TRX_V4 = await window.tronWeb.contract().at(cons.ProxySC2);
+
+            let w = await contrato.BRST_TRX_V4.implementation().call()
+            let implem = await window.tronWeb.contract().at(w)
+
+            contrato.BRST_TRX_V4 = null;
+            contrato.BRST_TRX_V4 = await window.tronWeb.contract(implem.abi,cons.ProxySC2)
+
+            //console.log(await contrato.BRST_TRX_V4.setDias(17).send())
+            
+           
+            console.log(await contrato.BRST_TRX_V4.TIEMPO().call())
+
+          }
+
           if(cons.BRST !== ""){
             contrato.BRST = await window.tronWeb.contract().at(cons.BRST);
           }
@@ -209,8 +227,8 @@ class App extends Component {
       case "brlt":
       case "suerte":
       case "loteria":
-        return <Construccion/>
-        //return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        //return <Construccion/>
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
       case window.location.href:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>

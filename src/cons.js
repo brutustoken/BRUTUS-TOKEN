@@ -1,7 +1,7 @@
 var proxy = "https://cors.brutusservices.com/";
 
 const conProxy = true;
-const testnet = false; // revisar si está tesnet activada
+const testnet = true; // revisar si está tesnet activada
 
 if(!conProxy)proxy = "";
 
@@ -12,6 +12,7 @@ const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 
 var SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
 var SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking  BRST/TRX
+var ProxySC2 = "";// versionable POOL Staking  BRST/TRX
 var SC3 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk";//contrato Mixtery box
 var SC4 = "";//contrato sorteo de loteria 15 dias
 
@@ -28,8 +29,9 @@ if(testnet){
 
     SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
     SC2 = "TSZ679Wh1L8sG7VYcjfAEMLmWu7vV1aoTM"; //Pool BRST_TRX
+    ProxySC2 = "TBu1Smbdw8q4tWbRd7kLCd2t47KP2CWiRG"; // Pool_BRST_TRX versionable
     SC3 = "";//pool APENFT_NFT
-    SC4 = "TYavMYEiJ16NZvCtdWLpBNd6BDpEf7i9Yj";//"TXfS9jWE1PaYdSSQqDTwsUatGXnWaDnSDD"; // Loteria Contract NFT_BRST_TRX
+    SC4 = "TMBiZzwm724GGzpxYzwzdwzaXxaWuhuCiC";// Loteria Contract NFT_BRST_TRX
 
     USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";//token USDT
     BRUT = "TTBZHmxP5H2FW8zaJgCR2x2WeB82rJo3xb";//token trc20 BRUT
@@ -41,4 +43,4 @@ if(testnet){
 
 }
 
-export default {proxy, PRU,  SC, SC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut,TAK};
+export default {proxy, PRU,  SC, SC2, ProxySC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut,TAK};

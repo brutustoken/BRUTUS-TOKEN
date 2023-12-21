@@ -107,89 +107,73 @@ contract Lottery is RandomNumber, Ownable{
     using SafeMath for uint256;
 
     uint256 public precio = 100 * 1e6;
-    uint256 public umbral = 1 * 1e6;
 
     uint256 public trxPooled;
 
     uint256 public paso;
     uint256 public lastWiner;
 
-    uint256 public administradores = 1;
-    uint256 public colaborador = 1; // en porcentaje y en cantidad
+    uint256 public beneficio = 20;
+    uint256 public precicion = 100;
+    address public walletTeam = 0x51A2ae8110057556c9Fa4Dc18964ACA5f6D47945;
+    uint256 public toTeam;
 
     uint256 public proximaRonda = 0;
     uint256 public periodo = 30;//15*86400;
 
-    address public tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;//BRST testnet
-
-    address public tokenTRC721 = 0x922De0b0fd795Bb6Cd34B8a38EA0ba6954e93aF6; // nft loteria testnet
-    address public contractPool = 0xb5Ea6649ddb66cC296A7ee0e07d5B526dbaf01F8; // BRST_TRX testnet
+    address public tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;//0x389ccc30de1d311738Dffd3F60D4fD6188970F45;//BRST 
+    address public tokenTRC721 = 0x922De0b0fd795Bb6Cd34B8a38EA0ba6954e93aF6;//0x0D8AdCA61a885Df7fCB8cC5f26225DdBb4Ca70FA; // nft loteria
+    address public contractPool = 0xb5Ea6649ddb66cC296A7ee0e07d5B526dbaf01F8;//0x83F62b5EA709673649c4D2a8a9d2e47F50ef694F; // BRST_TRX pool
 
     ITRC20 BRST_Contract = ITRC20(tokenBRST);
-
     ITRC721 TRC721_Contract = ITRC721(tokenTRC721);
-
     IPOOL POOL_Contract = IPOOL(contractPool);
 
     mapping(uint256 => uint256) vaul;
 
-    function aumentarPool() public payable {
+    function buyLoteria(address _user, uint256 _cantidad) public payable {
+
+        if(proximaRonda == 0)proximaRonda = block.timestamp+periodo;
+        
+        uint256 valor = _cantidad*precio;
+
+        require(msg.value == valor);
         POOL_Contract.staking{value:msg.value}();
         trxPooled = trxPooled.add(msg.value);
             
-    }
-
-    function buyLoteria(address _user, uint256 _cantidad) public payable {
-
-        if(proximaRonda == 0){
-            proximaRonda = block.timestamp+periodo;
-        }
-
-        uint256 valor = _cantidad*precio;
-
-        //confirmar cantidad de 100 TRX 
-        if( msg.value == valor ){
-            require(msg.value == valor);
-            POOL_Contract.staking{value:msg.value}();
-            trxPooled = trxPooled.add(msg.value);
-            
-        }
-
-        //seleccionar NFT disponible o imprimir los NFT comprados
         for (uint256 index = 0; index < _cantidad; index++) {
-            if(TRC721_Contract.balanceOf(address(this))>0){
-                TRC721_Contract.transferFrom(address(this), _user, TRC721_Contract.tokenOfOwnerByIndex(address(this), 0) );
-            }else{
-                TRC721_Contract.mintLoteryToken(_user);
-            }
+            TRC721_Contract.mintLoteryToken(_user);
         }
-        
         
         doneRandom();
 
     }
 
-    function sellLoteria(bool _brst, uint256 _tokenId) public {
-
-        address propietario =  TRC721_Contract.ownerOf(_tokenId);
-
-        TRC721_Contract.transferFrom(propietario, address(this), TRC721_Contract.tokenOfOwnerByIndex(propietario, 0) );
-        
-        if(_brst){
-            BRST_Contract.transfer(msg.sender, toBRST(precio) );
-
-        }else{
-            payable(msg.sender).transfer(precio);
-            trxPooled = trxPooled.sub(precio);
-
+    function _premio() internal view returns(uint256){
+        uint256 prix;
+        uint256 brstPooled = BRST_Contract.balanceOf(address(this)).mul(POOL_Contract.RATE()).div(1e6);
+        if(brstPooled > trxPooled){
+           prix = (brstPooled).sub(trxPooled);
         }
-
+        return prix;
 
     }
 
     function premio() public view returns(uint256){
-        // consulta cuanto TRX ha ganado hasta el momento 
-        return (BRST_Contract.balanceOf(address(this)).mul(POOL_Contract.RATE()).div(1e6)).sub(trxPooled);
+        uint256 prix;
+        if(_premio() > 0){
+           prix = _premio().mul(precicion-beneficio).div(precicion);
+        }
+        return prix;
+
+    }
+
+    function premioTeam() public view returns(uint256){
+        uint256 prix;
+        if(_premio() > 0){
+           prix = _premio().mul(beneficio).div(precicion);
+        }
+        return prix;
 
     }
 
@@ -203,15 +187,24 @@ contract Lottery is RandomNumber, Ownable{
         return vaul[_nft];
     }
 
+    function allValueNFTs(address _user)public view returns(uint256 tron){
+
+        uint array = BRST_Contract.balanceOf(_user);
+        for (uint256 index = 0; index < array; index++) {
+            tron = 1;
+        }
+    }
+
     function reclamarValueNFT(uint256 _nft) public {
         uint256 pago = vaul[_nft];
-        require(pago > 0 && address(this).balance >= pago); 
+        require(pago+toTeam > 0 && address(this).balance >= pago+toTeam); 
         payable(TRC721_Contract.ownerOf(_nft)).transfer(pago);
-        trxPooled = trxPooled.sub(pago);
+        payable(walletTeam).transfer(toTeam);
+        delete toTeam;
 
     }
 
-    function sorteo(bool _brst) public returns(uint myNumber){
+    function sorteo() public returns(uint myNumber){
         uint256 ganado = premio(); //trx
 
         if(BRST_Contract.allowance(address(this), contractPool) <= 1000 * 1e6){
@@ -226,26 +219,21 @@ contract Lottery is RandomNumber, Ownable{
             proximaRonda = proximaRonda+periodo;
         }
 
+        // el ultimo corte nft vendidos a la fecha seran los que participen
         if(paso > 0){
             myNumber = randMod(paso, uint256(keccak256(abi.encode(block.timestamp,lastWiner, blockhash(block.number)))));
 
-            //selecciona si es pago en TRX con reclamo o BRST entrega inmediata
-            if(_brst){
-
-                BRST_Contract.transfer(TRC721_Contract.ownerOf(myNumber), ganado);
-
-            }else{
-
-                // debe estar por encima de 1 trx o lo equivalente en BRST || opcional
-                if(ganado >= umbral){
-                    POOL_Contract.solicitudRetiro((ganado.mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
-                }
-
-                trxPooled = trxPooled.add(ganado);
-                vaul[myNumber] += ganado;
-
-                if(address(this).balance >= vaul[myNumber]){
-                    reclamarValueNFT(myNumber);
+            if(ganado>0){
+                toTeam += premioTeam();
+                if(_premio() > address(this).balance){
+                    POOL_Contract.solicitudRetiro((_premio().mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
+                    vaul[myNumber] += ganado;
+                    
+                
+                }else{
+                    payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
+                    payable(walletTeam).transfer(toTeam);
+                    delete toTeam;
                 }
             }
 
@@ -298,6 +286,15 @@ contract Lottery is RandomNumber, Ownable{
     //retirar TRC721
     function retiroTRC20(uint256 _tokenId) public onlyOwner {
         ITRC721(TRC721_Contract).transferFrom(address(this), msg.sender, _tokenId);
+    }
+
+    function changeWalletTeam(address _wallet) public onlyOwner {
+        walletTeam = _wallet;
+    }
+
+    function changeBeneficioTeam(uint256 _beneficio, uint256 _precicion) public onlyOwner {
+        beneficio = _beneficio;
+        precicion = _precicion;
     }
 
     fallback() external payable{}

@@ -15,7 +15,10 @@ export default class nfts extends Component {
       mb: 0,
       totalNFT: 1,
       premio: "Loading...",
-      LastWiner: "Loading..."
+      LastWiner: "Loading...",
+      proximoSorteo: "Loading...",
+      modalTitulo: "",
+      modalBody: ""
 
     };
 
@@ -25,6 +28,7 @@ export default class nfts extends Component {
 
     
     this.sunSwap = this.sunSwap.bind(this);
+    this.sorteo = this.sorteo.bind(this);
 
   }
 
@@ -33,13 +37,62 @@ export default class nfts extends Component {
     setTimeout(async () => {
       await this.estado();
     }, 3 * 1000);
+
+    setInterval(async () => {
+      this.estado();
+    }, 20 * 1000);
   };
 
-  async compra(isBRST) {
+  async compra() {
 
-    await this.props.contrato.loteria.buyLoteria(isBRST, this.props.accountAddress, 1).send({ callValue: 100000000 });
+    this.props.contrato.loteria.buyLoteria(this.props.accountAddress, 1).send({ callValue: 100000000 })
+    .then(()=>{
+      this.setState({
+        modalTitulo: "Purchased lottery ticket",
+        modalBody: "Thank you for collaborating with the activation of the giveaway"
+      })
+      window.$("#alerta").modal("show");
+      this.estado();
 
-    alert("Boleto comprado!");
+    })
+    .catch(()=>{
+      this.setState({
+        modalTitulo: "Failed transaction",
+        modalBody: "Please try again later remember to check that you have enough resources"
+      })
+      window.$("#alerta").modal("show");
+    })
+
+
+    this.estado();
+  }
+
+  async sorteo() {
+
+    if(Date.now() >= (this.state.prosort*1000)){
+      this.props.contrato.loteria.sorteo().send()
+      .then(()=>{
+        this.estado()
+        this.setState({
+          modalTitulo: "good luck",
+          modalBody: "Thank you for collaborating with the activation of the giveaway"
+        })
+        window.$("#alerta").modal("show");
+      })
+      .catch(()=>{
+        this.setState({
+          modalTitulo: "Bad luck",
+          modalBody: "something has not gone well, thank you for trying to collaborate, it will be on a next occasion"
+        })
+        window.$("#alerta").modal("show");
+      })
+    }else{
+      this.setState({
+        modalTitulo: "Please wait",
+        modalBody: "It is not yet time to carry out the draw, wait for the announced date to collaborate with the draw"
+      })
+      window.$("#alerta").modal("show");
+    }
 
     this.estado();
   }
@@ -64,12 +117,17 @@ export default class nfts extends Component {
     var premio = parseInt((await this.props.contrato.loteria.premio().call())._hex) / 10 ** 6
     var LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
 
+    var proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
+    var prosort = proximoSorteo;
+    proximoSorteo = new Date(proximoSorteo*1000)
 
     this.setState({
       mc: cantidad,
       totalNFT: totalNFT,
       premio: premio,
-      LastWiner: LastWiner
+      LastWiner: LastWiner,
+      proximoSorteo: proximoSorteo.toString(),
+      prosort: prosort
     });
 
   }
@@ -129,9 +187,9 @@ export default class nfts extends Component {
                         <h2>Brutus Lottery (BRLT)</h2>
 
                         <div className="d-table mb-2">
-                          <p className="price float-start d-block">Award: {this.state.premio} TRX</p>
+                          <p className="price float-start d-block">Award: {this.state.premio} TRX </p>
                         </div>
-                        <p>Next draw: <span className="item"> in 15 days </span> <br />
+                        <p>Next draw: <span className="item">{this.state.proximoSorteo} </span> <button onClick={()=>this.sorteo()} className="btn btn-success">Make a raffle</button><br />
                           Last winner: <span className="item"> NFT # {this.state.LastWiner} </span>
                         </p>
                         <p>Features:&nbsp;&nbsp;
@@ -143,8 +201,15 @@ export default class nfts extends Component {
                         <div className="d-flex align-items-end flex-wrap mt-4">
 
                           <div className="shopping-cart  mb-2 me-3">
-                            <button className="btn btn-secondary" onClick={() => this.compra(false)}><i
-                              className="fa fa-shopping-basket me-2"></i>Buy Ticket 100 TRX</button>
+                            <button className="btn btn-secondary me-1" onClick={() => this.compra()}><i
+                              className="fa fa-shopping-basket me-2"></i>Buy Ticket 100 TRX
+                            </button>
+                            <button className="btn btn-secondary me-1" onClick={() => this.compra()}><i
+                              className="fa fa-shopping-basket me-2"></i>Buy Ticket with USDT
+                            </button>
+                            <button className="btn btn-secondary " onClick={() => this.compra()}><i
+                              className="fa fa-shopping-basket me-2"></i>Buy Ticket with DCT
+                            </button>
                           </div>
                         </div>
 
@@ -204,17 +269,16 @@ export default class nfts extends Component {
 
         </div>
 
-        <div className="modal fade" id="regalo">
+        <div className="modal fade" id="alerta">
           <div className="modal-dialog" role="document">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">Surprise!</h5>
+                <h5 className="modal-title">{this.state.modalTitulo}</h5>
                 <button type="button" className="btn-close" data-bs-dismiss="modal">
                 </button>
               </div>
               <div className="modal-body">
-                <p> You collaborate helping us to make the lottery work and we will give you a small reward, we recommend that you have ENERGY and BANDWIDTH so that you do not consume TRX and it is really beneficial.</p>
-                <button className="btn btn-secondary" onClick={async () => { let win = await this.props.contrato.loteria.sorteo(false).send(); console.log(win); alert("Thanks for your help! (#" + win + ")"); this.estado() }} data-bs-dismiss="modal">Ayudar</button>
+               {this.state.modalBody}
               </div>
             </div>
           </div>

@@ -1,14 +1,14 @@
 {
-  "name": "brutustoken",
-  "version": "1.30.1",
-  "description": "Es la aplicacion para hacer Crowd Funding en la Blockchain tron",
+  "name": "brutusfinanceweb",
+  "version": "1.40.0",
+  "description": "Es la aplicacion para hacer crecer tus finanzas de forma automatica",
   "scripts": {
     "start": "node --openssl-legacy-provider scripts/start.js",
     "build": "node --openssl-legacy-provider scripts/build.js && npx rimraf docs && npx move-cli build docs"
   },
-  "author": "brutustoken",
+  "author": "brutus.finance",
   "license": "Apache 2.0",
-  "homepage": "https://brutustoken.com/",
+  "homepage": "https://brutus.finance/",
   "dependencies": {
     "@amcharts/amcharts5": "^5.3.8",
     "@amcharts/amcharts5-fonts": "^5.0.1",
