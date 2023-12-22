@@ -34,7 +34,7 @@ class App extends Component {
         BRGY: null,
         BRST: null,
         BRST_TRX: null,
-        BRST_TRX_V4:null
+        BRST_TRX_OLD:null
         
       }
     };
@@ -81,7 +81,7 @@ class App extends Component {
 
         //window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
-        if(this.state.contrato.BRST == null){
+        if(this.state.contrato.USDT == null){
 
           window.tronWeb.setHeader(cons.TAK)
 
@@ -98,22 +98,22 @@ class App extends Component {
           }
           
           if(cons.SC2 !== ""){
-            contrato.BRST_TRX = await window.tronWeb.contract().at(cons.SC2);
+            contrato.BRST_TRX_OLD = await window.tronWeb.contract().at(cons.SC2);
           }
 
           if(cons.ProxySC2 !== ""){
-            contrato.BRST_TRX_V4 = await window.tronWeb.contract().at(cons.ProxySC2);
+            contrato.BRST_TRX = await window.tronWeb.contract().at(cons.ProxySC2);
 
-            let w = await contrato.BRST_TRX_V4.implementation().call()
+            let w = await contrato.BRST_TRX.implementation().call()
             let implem = await window.tronWeb.contract().at(w)
 
-            contrato.BRST_TRX_V4 = null;
-            contrato.BRST_TRX_V4 = await window.tronWeb.contract(implem.abi,cons.ProxySC2)
+            contrato.BRST_TRX = null;
+            contrato.BRST_TRX = await window.tronWeb.contract(implem.abi,cons.ProxySC2)
 
-            //console.log(await contrato.BRST_TRX_V4.setDias(17).send())
+            //console.log(await contrato.BRST_TRX.ChangeToken("TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq").send())
             
            
-            console.log(await contrato.BRST_TRX_V4.TIEMPO().call())
+            console.log(await contrato.BRST_TRX.RATE().call())
 
           }
 

@@ -6,9 +6,17 @@ library StorageSlot {
         address value;
     }
 
-    function getAddressSlot(
-        bytes32 slot
-    ) internal pure returns (AddressSlot storage r) {
+    struct Uint256Slot {
+        uint256 value;
+    }
+
+    function getAddressSlot(bytes32 slot) internal pure returns (AddressSlot storage r) {
+        assembly {
+            r.slot := slot
+        }
+    }
+
+    function getUint256Slot(bytes32 slot) internal pure returns (Uint256Slot storage r) {
         assembly {
             r.slot := slot
         }
@@ -26,6 +34,9 @@ contract Proxy {
     // 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
     bytes32 private constant ADMIN_SLOT =
         bytes32(uint(keccak256("eip1967.proxy.admin")) - 1);
+
+    bytes32 private constant VERSION_IMPLEMENTATION_SLOT =
+        bytes32(uint(keccak256("eip1967.proxy.version")) - 1);
 
     constructor() {
         _setAdmin(msg.sender);
@@ -57,6 +68,14 @@ contract Proxy {
         StorageSlot.getAddressSlot(IMPLEMENTATION_SLOT).value = _implementation;
     }
 
+    function _getImplementationVersion() private view returns (uint256) {
+        return StorageSlot.getUint256Slot(VERSION_IMPLEMENTATION_SLOT).value;
+    }
+
+    function _updateImplementationVersion() private {
+        StorageSlot.getUint256Slot(VERSION_IMPLEMENTATION_SLOT).value = _getImplementationVersion()+1;
+    }
+
     // Admin interface //
     function changeAdmin(address _admin) external ifAdmin {
         _setAdmin(_admin);
@@ -64,7 +83,11 @@ contract Proxy {
 
     // 0x3659cfe6
     function upgradeTo(address _implementation) external ifAdmin {
-        _setImplementation(_implementation);
+        if(_getImplementation()!=_implementation){
+            _setImplementation(_implementation);
+            _updateImplementationVersion();
+        }
+        
     }
 
     // 0xf851a440
@@ -75,6 +98,10 @@ contract Proxy {
     // 0x5c60da1b
     function implementation() external view returns (address) {
         return _getImplementation();
+    }
+
+    function version() external view returns (uint256) {
+        return _getImplementationVersion();
     }
 
     // User interface //

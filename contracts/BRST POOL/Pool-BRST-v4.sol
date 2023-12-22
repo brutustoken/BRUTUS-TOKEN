@@ -59,12 +59,14 @@ interface TRC20_Interface {
 
 library Array {
 
-  function addArray(uint256[] memory oldArray)public pure returns ( uint256[] memory) {
+  function addArray(uint256[] memory oldArray, uint256 data)internal pure returns ( uint256[] memory) {
     uint256[] memory newArray = new uint256[](oldArray.length+1);
 
     for(uint256 i = 0; i < oldArray.length; i++){
       newArray[i] = oldArray[i];
     }
+
+    newArray[oldArray.length]=data;
     
     return newArray;
   }
@@ -79,13 +81,11 @@ contract PoolBRSTv4{
 
   TRC20_Interface OTRO_Contract;
 
-  struct Usuario {
-    uint256[] id;
-    bool[] completado; 
-    uint256[] tiempo;
-    uint256[] trxx;
-    uint256[] brst;
-    address[] partner;
+  struct Peticion {
+    address wallet;
+    uint256 tiempo;
+    uint256 precio;
+    uint256 brst;
 
   }
 
@@ -94,19 +94,23 @@ contract PoolBRSTv4{
   uint256 public MIN_DEPOSIT;
   uint256 public TRON_SOLICITADO;
 
+  uint256 public TRON_RR; 
+  uint256 public descuentoRapido;
+  uint256 public precision;
+
   uint256 public TRON_WALLET_BALANCE;
   address payable public Wallet_SR;
 
-  uint256 public dias_de_pago;
-  uint256 public unidades_tiempo;
+  uint256 public TIEMPO;
 
-  mapping (address => Usuario) private usuarios;
-  mapping (uint256 => address ) public solicitudesEnProgreso;
-  mapping (uint256 => uint256 ) public solicitudInterna;
+  mapping (uint256 => Peticion) public peticiones;
+  mapping (address => uint256[]) public misSolicitudes;
+
+  mapping (address => bool) public whiteList;
 
   uint256 public index;
 
-  bool public iniciado;
+  bool public iniciado = true;
 
   constructor(){}
 
@@ -114,11 +118,13 @@ contract PoolBRSTv4{
     require(!iniciado);
     owner = msg.sender;
     MIN_DEPOSIT = 1 * 10**6;
-    dias_de_pago = 17;
-    unidades_tiempo = 86400;
+    TIEMPO = 17 * 86400;
     iniciado = true;
     BRTS_Contract = TRC20_Interface(0x389ccc30de1d311738Dffd3F60D4fD6188970F45);
     OTRO_Contract = TRC20_Interface(0x389ccc30de1d311738Dffd3F60D4fD6188970F45);
+    descuentoRapido = 5;
+    precision = 100;
+    TRON_RR = 2000 * 10**6;
   }
 
   function onlyOwner() internal view{
@@ -142,56 +148,26 @@ contract PoolBRSTv4{
     return (TRON_BALANCE().mul(10**BRTS_Contract.decimals())).div( BRTS_Contract.totalSupply() );
   }
 
-  function TIEMPO() public view returns (uint256){
-    return dias_de_pago.mul(unidades_tiempo);
-  }
-
   function largoSolicitudes(address _user) public view returns(uint256){
-    Usuario storage usuario = usuarios[_user];
-    return usuario.trxx.length ;
+    return misSolicitudes[_user].length ;
   }
 
-  function todasSolicitudes(address _user) public view returns(uint256[] memory id, uint256[] memory tiempo, uint256[] memory trxx, uint256[] memory brst, bool[] memory completado, address[] memory partner){
-    Usuario storage usuario = usuarios[_user];
-    return (usuario.id, usuario.tiempo, usuario.trxx, usuario.brst, usuario.completado, usuario.partner);
+  function todasSolicitudes(address _user) public view returns(uint256[] memory){
+    return misSolicitudes[_user];
   }
 
-  function solicitudesPendientesGlobales() public view returns(uint256[] memory ){
-    uint256[] memory pGlobales;
-    uint256 a;
-    address _user;
-    Usuario storage usuario;
-    
-    for (uint256 i = 0 ; i < index; i++) {
+  function solicitudesPendientesGlobales() public view returns(uint256[] memory pGlobales){
 
-      _user = solicitudesEnProgreso[i];
-
-      usuario = usuarios[_user];
-
-      if(!usuario.completado[solicitudInterna[i]]){
-        pGlobales = pGlobales.addArray();
-        pGlobales[a] = i;
-        a++;
-      }
+    for (uint256 i = 0; i < index; i++) {
+      pGlobales = pGlobales.addArray(i);
       
     }
     
-    return (pGlobales);
-
   }
 
-  function verSolicitudPendiente(uint256 _id) public view returns(bool, uint, uint, uint, address){
+  function verSolicitudPendiente(uint256 _id) public view returns(Peticion memory pt2){
 
-    address _user = solicitudesEnProgreso[_id];
-    Usuario storage usuario = usuarios[_user];
-
-    return (
-      usuario.completado[solicitudInterna[_id]],
-      usuario.tiempo[solicitudInterna[_id]],
-      usuario.trxx[solicitudInterna[_id]],
-      usuario.brst[solicitudInterna[_id]],
-      usuario.partner[solicitudInterna[_id]]
-    );
+    pt2 = peticiones[_id];
 
   }
 
@@ -212,65 +188,57 @@ contract PoolBRSTv4{
 
   }
 
-  function instaRetiro(uint256 _value) public returns (uint256){//////// retiro instantaneo
+  function solicitudRetiro(uint256 _value) public {
 
-    if( BRTS_Contract.allowance(msg.sender, address(this)) < _value || BRTS_Contract.balanceOf(msg.sender) < _value)revert();
-
-    uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
-    
-    if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
-
-    Usuario storage usuario = usuarios[msg.sender];
-
-    usuario.id.push(index);
-    usuario.completado.push(false);
-    usuario.tiempo.push(block.timestamp);
-    usuario.trxx.push(pago);
-    usuario.brst.push(_value);
-    usuario.partner.push(address(0));
-
-    TRON_SOLICITADO += pago;
-
-    solicitudesEnProgreso[index] = msg.sender;
-    solicitudInterna[index] = usuario.id.length-1;
-    index++;
-
-    return pago;
+    if(!instaRetiro(_value)){
+      esperaRetiro(_value);
+    }
 
   }
 
-  function solicitudRetiro(uint256 _value) public returns (uint256){
-
-    if( BRTS_Contract.allowance(msg.sender, address(this)) < _value || BRTS_Contract.balanceOf(msg.sender) < _value)revert();
+  function instaRetiro(uint256 _value) public returns(bool){
 
     uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
+    if(!whiteList[msg.sender]){
+      pago = pago.mul(precision-descuentoRapido).div(100);
+    }
     
-    if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+    if(TRON_PAY_BALANCE() >= pago && TRON_RR >= pago){
+      if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+      payable(msg.sender).transfer(pago);
+      return true;
+    }else{
+      return false;
+    }
 
-    Usuario storage usuario = usuarios[msg.sender];
-
-    usuario.id.push(index);
-    usuario.completado.push(false);
-    usuario.tiempo.push(block.timestamp);
-    usuario.trxx.push(pago);
-    usuario.brst.push(_value);
-    usuario.partner.push(address(0));
-
-    TRON_SOLICITADO += pago;
-
-    solicitudesEnProgreso[index] = msg.sender;
-    solicitudInterna[index] = usuario.id.length-1;
-    index++;
-
-    return pago;
 
   }
 
-  function completarSolicitud(uint256 _index) public payable returns (bool){
+  function esperaRetiro(uint256 _value) public {
+    
+    if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+
+    peticiones[index] = Peticion({
+      wallet:msg.sender,
+     tiempo:block.timestamp,
+     precio:RATE(),
+     brst:_value
+
+    });
+
+    uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
+
+    TRON_SOLICITADO += pago;
+
+    misSolicitudes[msg.sender].push(index);
+    index++;
+
+  }
+
+  /*function completarSolicitud(uint256 _index) public payable returns (bool){
 
     address payable _user = payable(solicitudesEnProgreso[_index]);
     uint256 _id = solicitudInterna[_index];
-    Usuario storage usuario = usuarios[_user];
 
     if(usuario.completado[_id])revert();
 
@@ -289,24 +257,41 @@ contract PoolBRSTv4{
 
     return true;
 
+  }*/
+
+  function retirar(uint256 _id) public returns(bool) {
+
+    if(!whiteList[peticiones[_id].wallet]){
+      if( _id >= index || block.timestamp < peticiones[_id].tiempo.add(TIEMPO) )revert();
+    }
+
+    uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio);
+
+    if(TRON_PAY_BALANCE() >= pago){
+      payable(peticiones[_id].wallet).transfer(pago);
+      BRTS_Contract.redeem(peticiones[_id].brst);
+      
+      misSolicitudes[peticiones[_id].wallet][_id] = misSolicitudes[peticiones[_id].wallet][misSolicitudes[peticiones[_id].wallet].length - 1];
+      misSolicitudes[peticiones[_id].wallet].pop();
+
+      TRON_WALLET_BALANCE -= pago;
+      TRON_SOLICITADO -= pago;
+      return true;
+    }else{
+      return false;
+    }
+
   }
 
-  function retirar(uint256 _id) public {
 
-    Usuario storage usuario = usuarios[msg.sender];
+  function addWL(address _w) public  {
+    onlyOwner();
+    whiteList[_w]=true;
+  }
 
-    if( _id >= largoSolicitudes(msg.sender) || block.timestamp < usuario.tiempo[_id].add(TIEMPO()) || usuario.completado[_id] )revert();
-
-    uint256 pago = usuario.trxx[_id];
-
-    if(TRON_PAY_BALANCE() < pago)revert();
-    payable(msg.sender).transfer(pago);
-    BRTS_Contract.redeem(usuario.brst[_id]);
-    usuario.completado[_id] = true;
-
-    TRON_WALLET_BALANCE -= pago;
-    TRON_SOLICITADO -= pago;
-
+  function delWL(address _w) public  {
+    onlyOwner();
+    whiteList[_w]=false;
   }
 
   function setWalletSR(address payable _w) public  {
@@ -314,14 +299,15 @@ contract PoolBRSTv4{
     Wallet_SR = _w;
   }
 
-  function setDias(uint256 _dias) public  {
+  function setTiempo(uint256 _dias) public  {
     onlyOwner();
-    dias_de_pago = _dias;
+    TIEMPO = _dias;
   }
 
-  function setUnidadesTiempo(uint256 _unidades) public {
+  function setSalidaRapida(uint256 _descuento, uint256 _precision) public {
     onlyOwner();
-    unidades_tiempo = _unidades;
+    descuentoRapido = _descuento;
+    precision = _precision;
   }
 
   function ChangeToken(address _tokenTRC20) public {
