@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import data from "../../abi/sunswapV2.json"
+import abi_SUNSAWPv2 from "../abi/sunswapV2.json";
 
 export default class nfts extends Component {
 
@@ -135,7 +135,7 @@ export default class nfts extends Component {
   async sunSwap(){
     let token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
     let swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
-    let contrato = await window.tronWeb.contract(data.entrys , swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
+    let contrato = await window.tronWeb.contract(abi_SUNSAWPv2 , swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
 
     let contract_token = await window.tronWeb.contract().at(token)
     let aprove = await contract_token.allowance(this.props.accountAddress,"TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax").call()

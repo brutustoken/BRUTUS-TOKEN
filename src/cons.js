@@ -21,14 +21,14 @@ var BRUT = "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU";//token trc20 BRUT
 var BRST = "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3";//token trc20 BRST
 var APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery box
 var BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY 
-var BRLT = "";//token NFT LOTERIA
+var BRLT = "TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU";//token NFT LOTERIA
 
 var TAK = {"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'}
 
 if(testnet){
 
     SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
-    SC2 = "TSZ679Wh1L8sG7VYcjfAEMLmWu7vV1aoTM"; //Pool BRST_TRX
+    SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
     ProxySC2 = "TBu1Smbdw8q4tWbRd7kLCd2t47KP2CWiRG"; // Pool_BRST_TRX versionable
     SC3 = "";//pool APENFT_NFT
     SC4 = "TMBiZzwm724GGzpxYzwzdwzaXxaWuhuCiC";// Loteria Contract NFT_BRST_TRX

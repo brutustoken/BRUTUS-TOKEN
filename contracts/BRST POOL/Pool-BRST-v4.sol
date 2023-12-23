@@ -43,20 +43,6 @@ library SafeMath {
   }
 }
 
-interface TRC20_Interface {
-
-  function allowance(address _owner, address _spender) external view returns (uint remaining);
-  function transferFrom(address _from, address _to, uint _value) external returns (bool);
-  function transfer(address direccion, uint cantidad) external returns (bool);
-  function balanceOf(address who) external view returns (uint256);
-  function decimals() external view returns (uint256);
-  function totalSupply() external view returns (uint256);
-  function issue(uint amount) external;
-  function redeem(uint amount) external;
-  function transferOwnership(address newOwner) external;
-
-}
-
 library Array {
 
   function addArray(uint256[] memory oldArray, uint256 data)internal pure returns ( uint256[] memory) {
@@ -71,6 +57,28 @@ library Array {
     return newArray;
   }
 
+}
+
+interface TRC20_Interface {
+
+  function allowance(address _owner, address _spender) external view returns (uint remaining);
+  function transferFrom(address _from, address _to, uint _value) external returns (bool);
+  function transfer(address direccion, uint cantidad) external returns (bool);
+  function balanceOf(address who) external view returns (uint256);
+  function decimals() external view returns (uint256);
+  function totalSupply() external view returns (uint256);
+  function issue(uint amount) external;
+  function redeem(uint amount) external;
+  function transferOwnership(address newOwner) external;
+  function addBlackList (address _evilUser) external;
+  function removeBlackList (address _clearedUser) external;
+  function destroyBlackFunds (address _blackListedUser) external;
+
+}
+
+interface Proxy_Interface{
+  function admin() external view returns(address);
+  function changeAdmin(address _admin) external;
 }
 
 contract PoolBRSTv4{
@@ -89,8 +97,6 @@ contract PoolBRSTv4{
 
   }
 
-  address public owner;
-
   uint256 public MIN_DEPOSIT;
   uint256 public TRON_SOLICITADO;
 
@@ -98,7 +104,7 @@ contract PoolBRSTv4{
   uint256 public descuentoRapido;
   uint256 public precision;
 
-  uint256 public TRON_WALLET_BALANCE;
+  uint256 private TRON_WALLET_BALANCE;
   address payable public Wallet_SR;
 
   uint256 public TIEMPO;
@@ -107,6 +113,8 @@ contract PoolBRSTv4{
   mapping (address => uint256[]) public misSolicitudes;
 
   mapping (address => bool) public whiteList;
+  mapping (address => uint256) public disponible;
+  uint256 public totalDisponible;
 
   uint256 public index;
 
@@ -115,8 +123,8 @@ contract PoolBRSTv4{
   constructor(){}
 
   function inicializar() public{
+    onlyOwner();
     require(!iniciado);
-    owner = msg.sender;
     MIN_DEPOSIT = 1 * 10**6;
     TIEMPO = 17 * 86400;
     iniciado = true;
@@ -128,11 +136,7 @@ contract PoolBRSTv4{
   }
 
   function onlyOwner() internal view{
-    require(msg.sender == owner);
-  }
-
-  function TRON_TOTAL_BALANCE() public view returns (uint256){
-    return TRON_PAY_BALANCE().add(TRON_WALLET_BALANCE);
+    require(msg.sender == owner());
   }
 
   function TRON_BALANCE() public view returns (uint256){
@@ -140,7 +144,12 @@ contract PoolBRSTv4{
   }
 
   function TRON_PAY_BALANCE() public view returns (uint256){
-    return address(this).balance;
+
+    if(address(this).balance > totalDisponible){
+      return address(this).balance.sub(totalDisponible);
+    }else{
+      return 0;
+    }
   }
 
   function RATE() public view returns (uint256){
@@ -179,7 +188,7 @@ contract PoolBRSTv4{
     payable(Wallet_SR).transfer(_value);
 
     _value = (_value.mul( 10 ** BRTS_Contract.decimals() )).div(RATE());
-    TRON_WALLET_BALANCE += msg.value;
+    TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.add(msg.value);
 
     BRTS_Contract.issue(_value);
     BRTS_Contract.transfer(msg.sender,_value);
@@ -188,10 +197,13 @@ contract PoolBRSTv4{
 
   }
 
-  function solicitudRetiro(uint256 _value) public {
+  function solicitudRetiro(uint256 _value) public returns(bool) {
 
     if(!instaRetiro(_value)){
       esperaRetiro(_value);
+      return false;
+    }else{
+      return true;
     }
 
   }
@@ -199,12 +211,16 @@ contract PoolBRSTv4{
   function instaRetiro(uint256 _value) public returns(bool){
 
     uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
+    uint256 reserva = TRON_PAY_BALANCE();
     if(!whiteList[msg.sender]){
       pago = pago.mul(precision-descuentoRapido).div(100);
+    }else{
+      reserva = disponible[msg.sender];
     }
     
-    if(TRON_PAY_BALANCE() >= pago && TRON_RR >= pago){
+    if(reserva >= pago && TRON_RR >= pago){
       if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+      BRTS_Contract.redeem(_value);
       payable(msg.sender).transfer(pago);
       return true;
     }else{
@@ -228,36 +244,12 @@ contract PoolBRSTv4{
 
     uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
 
-    TRON_SOLICITADO += pago;
+    TRON_SOLICITADO = TRON_SOLICITADO.add(pago);
 
     misSolicitudes[msg.sender].push(index);
     index++;
 
   }
-
-  /*function completarSolicitud(uint256 _index) public payable returns (bool){
-
-    address payable _user = payable(solicitudesEnProgreso[_index]);
-    uint256 _id = solicitudInterna[_index];
-
-    if(usuario.completado[_id])revert();
-
-    if(msg.sender != _user){
-      if(msg.value != usuario.trxx[_id])revert();
-      _user.transfer(usuario.trxx[_id]);
-    }else{
-      _user.transfer(msg.value);
-    }
-
-    BRTS_Contract.transfer(msg.sender, usuario.brst[_id]);
-    usuario.partner[_id] = msg.sender;
-    usuario.completado[_id] = true;
-
-    TRON_SOLICITADO -= usuario.trxx[_id];
-
-    return true;
-
-  }*/
 
   function retirar(uint256 _id) public returns(bool) {
 
@@ -274,8 +266,8 @@ contract PoolBRSTv4{
       misSolicitudes[peticiones[_id].wallet][_id] = misSolicitudes[peticiones[_id].wallet][misSolicitudes[peticiones[_id].wallet].length - 1];
       misSolicitudes[peticiones[_id].wallet].pop();
 
-      TRON_WALLET_BALANCE -= pago;
-      TRON_SOLICITADO -= pago;
+      TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.sub(pago);
+      TRON_SOLICITADO = TRON_WALLET_BALANCE.sub(pago);
       return true;
     }else{
       return false;
@@ -283,15 +275,14 @@ contract PoolBRSTv4{
 
   }
 
-
-  function addWL(address _w) public  {
+  function asignarPerdida(uint256 _value) public {
     onlyOwner();
-    whiteList[_w]=true;
+    TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.sub(_value);
   }
 
-  function delWL(address _w) public  {
+  function gananciaDirecta(uint256 _value) public {
     onlyOwner();
-    whiteList[_w]=false;
+    TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.add(_value);
   }
 
   function setWalletSR(address payable _w) public  {
@@ -320,72 +311,83 @@ contract PoolBRSTv4{
     OTRO_Contract = TRC20_Interface(_tokenTRC20);
   }
 
-  function newOwnerBRTS(address _newowner) public {
+  function newOwnerBRTS(address _newOwner) public {
     onlyOwner();
-    BRTS_Contract.transferOwnership(_newowner);
+    BRTS_Contract.transferOwnership(_newOwner);
+  }
+  function owner() public view returns(address){
+    Proxy_Interface Proxy_Contract = Proxy_Interface(address(this));
+    return Proxy_Contract.admin();
   }
 
-  function asignarPerdida(uint256 _value) public {
+  function transferOwnership(address _newAdmin)public {
     onlyOwner();
-    TRON_WALLET_BALANCE -= _value;
-  }
-
-  function gananciaDirecta(uint256 _value) public {
-    onlyOwner();
-    TRON_WALLET_BALANCE += _value;
+    Proxy_Interface Proxy_Contract = Proxy_Interface(address(this));
+    Proxy_Contract.changeAdmin(_newAdmin);
   }
 
   function crearBRTS(uint256 _value) public returns(bool){
     onlyOwner();
     BRTS_Contract.issue(_value);
-    BRTS_Contract.transfer(owner, _value);
+    BRTS_Contract.transfer(msg.sender, _value);
     return true;
   }
 
   function quemarBRTS(uint256 _value) public returns(bool, uint256){
     onlyOwner();
-    if( BRTS_Contract.allowance(msg.sender, address(this)) < _value || 
-    BRTS_Contract.balanceOf(msg.sender) < _value ||
-    !BRTS_Contract.transferFrom(msg.sender, address(this), _value))revert();
-      
+    if(!BRTS_Contract.transferFrom(msg.sender, address(this), _value))revert();
     BRTS_Contract.redeem(_value);
 
     return (true,_value);
       
   }
 
-  function redimBRTS01() public  returns (uint256){
+  function asignarDisponible(address _wl_user ,uint256 _value) public{
     onlyOwner();
-    uint256 valor = BRTS_Contract.balanceOf(address(this));
-    BRTS_Contract.transfer(owner, valor);
-    return valor;
+    require(whiteList[_wl_user]);
+    disponible[_wl_user] = disponible[_wl_user].add(_value);
+    totalDisponible = totalDisponible.add(_value);
   }
 
-  function redimBRTS02(uint256 _value) public returns (uint256) {
+  function retirarDisponible(address _wl_user ,uint256 _value) public{
+    onlyOwner();
+    require(whiteList[_wl_user]);
+    disponible[_wl_user] = disponible[_wl_user].sub(_value);
+    totalDisponible = totalDisponible.sub(_value);
+  }
+
+  function setWhiteList(address _w, bool _sn) public  {
+    onlyOwner();
+    whiteList[_w]=_sn;
+  }
+
+  function setListaNegra(address _evilUser, bool _si_no) public {
+    onlyOwner();
+    if(_si_no){
+      BRTS_Contract.addBlackList(_evilUser);
+    }else{
+      BRTS_Contract.removeBlackList(_evilUser);
+    }
+  }
+
+  function redimBRTS(uint256 _value) public returns (uint256) {
     onlyOwner();
     if ( BRTS_Contract.balanceOf(address(this)) < _value)revert();
-    BRTS_Contract.transfer(owner, _value);
+    BRTS_Contract.transfer(owner(), _value);
     return _value;
   }
 
-  function redimOTRO01() public returns (uint256){
+  function redimOTRO() public returns (uint256){
     onlyOwner();
     uint256 valor = OTRO_Contract.balanceOf(address(this));
-    OTRO_Contract.transfer(owner, valor);
+    OTRO_Contract.transfer(owner(), valor);
     return valor;
-  }
-
-  function redimTRX() public returns (uint256){
-    onlyOwner();
-    if ( address(this).balance == 0)revert();
-    payable(owner).transfer( address(this).balance );
-    return address(this).balance;
   }
 
   function redimTRX(uint256 _value) public returns (uint256){
     onlyOwner();
     if ( address(this).balance < _value)revert();
-    payable(owner).transfer( _value);
+    payable(owner()).transfer( _value);
     return _value;
   }
 
