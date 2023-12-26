@@ -110,6 +110,7 @@ contract PoolBRSTv4{
   uint256 public TIEMPO;
 
   mapping (uint256 => Peticion) public peticiones;
+  mapping (uint256 => bool) public completada;
   mapping (address => uint256[]) public misSolicitudes;
 
   mapping (address => bool) public whiteList;
@@ -168,7 +169,9 @@ contract PoolBRSTv4{
   function solicitudesPendientesGlobales() public view returns(uint256[] memory pGlobales){
 
     for (uint256 i = 0; i < index; i++) {
-      pGlobales = pGlobales.addArray(i);
+      if(!completada[i]){
+        pGlobales = pGlobales.addArray(i);
+      }
       
     }
     
@@ -242,35 +245,39 @@ contract PoolBRSTv4{
 
     });
 
-    uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
-
-    TRON_SOLICITADO = TRON_SOLICITADO.add(pago);
+    TRON_SOLICITADO = TRON_SOLICITADO.add(_value.mul(RATE()).div(10 ** BRTS_Contract.decimals()));
 
     misSolicitudes[msg.sender].push(index);
     index++;
 
   }
 
-  function retirar(uint256 _id) public returns(bool) {
+  function retirar(uint256 _id) public returns(bool exitoso) {
 
     if(!whiteList[peticiones[_id].wallet]){
       if( _id >= index || block.timestamp < peticiones[_id].tiempo.add(TIEMPO) )revert();
     }
 
-    uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio);
+    uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(10 ** BRTS_Contract.decimals());
 
     if(TRON_PAY_BALANCE() >= pago){
-      payable(peticiones[_id].wallet).transfer(pago);
-      BRTS_Contract.redeem(peticiones[_id].brst);
-      
-      misSolicitudes[peticiones[_id].wallet][_id] = misSolicitudes[peticiones[_id].wallet][misSolicitudes[peticiones[_id].wallet].length - 1];
-      misSolicitudes[peticiones[_id].wallet].pop();
+      uint256[] memory arr = todasSolicitudes(peticiones[_id].wallet);
 
-      TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.sub(pago);
-      TRON_SOLICITADO = TRON_WALLET_BALANCE.sub(pago);
-      return true;
-    }else{
-      return false;
+      for (uint256 i = 0; i < arr.length; i++) {
+        if (arr[i] == _id) {
+          misSolicitudes[peticiones[_id].wallet][i] = misSolicitudes[peticiones[_id].wallet][misSolicitudes[peticiones[_id].wallet].length - 1];
+          misSolicitudes[peticiones[_id].wallet].pop();
+
+          payable(peticiones[_id].wallet).transfer(pago);
+          BRTS_Contract.redeem(peticiones[_id].brst);
+
+          TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.sub(pago);
+          TRON_SOLICITADO = TRON_WALLET_BALANCE.sub(pago);
+          completada[_id] = true;
+          exitoso = true;
+        }
+      }
+
     }
 
   }

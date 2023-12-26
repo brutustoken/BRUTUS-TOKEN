@@ -99,7 +99,7 @@ export default class Staking extends Component {
       diasCalc: 1,
       brutCalc: 1000,
       balanceBRUT: 0,
-      balanceUSDT: 0
+      balanceTRX: 0
 
 
     };
@@ -112,6 +112,7 @@ export default class Staking extends Component {
 
     this.compra = this.compra.bind(this);
     this.venta = this.venta.bind(this);
+    this.sell = this.sell.bind(this);
     this.estado = this.estado.bind(this);
 
     this.handleChange = this.handleChange.bind(this);
@@ -299,11 +300,11 @@ export default class Staking extends Component {
   }
 
   llenarUSDT() {
-    document.getElementById('amountUSDT').value = this.state.balanceUSDT;
-    let oper = this.state.balanceUSDT / this.state.precioBRST
+    document.getElementById('amountUSDT').value = this.state.balanceTRX;
+    let oper = this.state.balanceTRX / this.state.precioBRST
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
-      valueUSDT: this.state.balanceUSDT,
+      valueUSDT: this.state.balanceTRX,
       valueBRUT: oper,
     });
   }
@@ -336,7 +337,6 @@ export default class Staking extends Component {
     .then((result) => { return result.toNumber() / 1e6 })
     .catch((e)=>{console.error(e);return 0})
 
-  
     var accountAddress = this.props.accountAddress;
 
     //var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
@@ -363,7 +363,7 @@ export default class Staking extends Component {
     this.setState({
       useTrx: useTrx,
       contractEnergy: contractEnergy,
-      balanceUSDT: balance,
+      balanceTRX: balance,
       misBRST: misBRST,
       dataBRST: consulta,
       promE7to1day: promE7to1day
@@ -397,24 +397,29 @@ export default class Staking extends Component {
       
     }
 
+    console.log(myids)
+
+    console.log("INDEX: "+await this.props.contrato.BRST_TRX_Proxy.index().call())
+
     var deposits = await this.props.contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
+    console.log(deposits)
+
     deposits = deposits[0];
     console.log(deposits)
     var globDepositos = [];
 
+    var tiempo = parseInt((await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
 
-    var tiempo = (await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call()).toNumber() * 1000;
     var diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
-
     
     for (let index = 0; index < deposits.length; index++) {
 
       let pen = await this.props.contrato.BRST_TRX_Proxy.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
       pen = pen[0];
-      console.log(pen)
-      let inicio = pen.tiempo.toNumber() * 1000
-
-      let pv = new Date(inicio)
+      //console.log(pen)
+      let inicio = parseInt(pen.tiempo._hex)* 1000
+      
+      let pv = new Date(inicio+tiempo)
 
       let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
 
@@ -425,7 +430,7 @@ export default class Staking extends Component {
       if (this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))) {
 
         boton2 = <button className="btn  btn-success text-white mb-2" onClick={async () => {
-          if (this.state.balanceUSDT * 1 >= cantidadTrx.toNumber()) {
+          if (this.state.balanceTRX * 1 >= cantidadTrx.toNumber()) {
             await this.props.contrato.BRST_TRX_Proxy.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: cantidadTrx.toString(10) });
             this.consultarPrecio();
             this.estado();
@@ -450,19 +455,7 @@ export default class Staking extends Component {
 
       }
 
-      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes >= 16.75) {
-        boton = (<>
-          <button className="btn btn-danger ms-4 mb-2" title="You only have 24 hours to cancel your order after this time you will not be able to cancel it" onClick={async () => {
-            await this.props.contrato.BRST_TRX_Proxy.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: 0 });
-            this.estado()
-          }}>
-            Cancel {" "} <i className="bi bi-x-lg"></i>
-          </button>
-          <p className="mb-0 fs-14">You only have 6 hours to cancel your order after this time you will not be able to cancel it</p>
-        </>)
-      }
-
-      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 16.75 && diasrestantes > 0) {
+      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 17 && diasrestantes > 0) {
         boton = (
           <button className="btn btn-warning ms-4 mb-2 disabled" aria-disabled="true" >
             Claim {" "} <i className="bi bi-exclamation-circle"></i>
@@ -470,12 +463,12 @@ export default class Staking extends Component {
         )
       }
 
-      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) {
+      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0  || true) {
 
-        console.log(myids.indexOf(parseInt(deposits[index]._hex)))
+        //console.log(myids.indexOf(parseInt(deposits[index]._hex)))
         boton = (
           <button className="btn btn-primary ms-4 mb-2" aria-disabled="true" onClick={async () => {
-            await this.props.contrato.BRST_TRX_Proxy.retirar(myids.indexOf(parseInt(deposits[index]._hex))).send();
+            await this.props.contrato.BRST_TRX_Proxy.retirar(parseInt(deposits[index]._hex)).send();
             this.estado()
           }}>
             Claim {" "} <i className="bi bi-award"></i>
@@ -487,43 +480,44 @@ export default class Staking extends Component {
         diasrestantes = 0
       }
 
-      globDepositos[deposits.length - 1 - index] = (
+      if(myids.includes(parseInt(deposits[index]._hex)) || this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))){
+        globDepositos[index] = (
 
-        <div className="row mt-4 align-items-center" id={"sale-"+parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
-          <div className="col-sm-6 mb-3">
-            <p className="mb-0 fs-14">Sale N° {parseInt(deposits[index]._hex)} | <span style={{ color: "white" }}>{diasrestantes} Days left</span> </p>
-            <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {(parseInt(pen.brst._hex) / 10 ** 6) * (parseInt(pen.precio._hex)/10**6)} TRX</h4>
-            <p className="mb-0 fs-14">Price by unit: {(parseInt(pen.precio._hex)/10**6)} TRX</p>
+          <div className="row mt-4 align-items-center" id={"sale-"+parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
+            <div className="col-sm-6 mb-3">
+              <p className="mb-0 fs-14">Sale N° {parseInt(deposits[index]._hex)} | {diasrestantes} Days left</p>
+              <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {(parseInt(pen.brst._hex) / 10 ** 6) * (parseInt(pen.precio._hex)/10**6)} TRX</h4>
+              <p className="mb-0 fs-14">Price by unit: {(parseInt(pen.precio._hex)/10**6)} TRX</p>
+            </div>
+            <div className="col-sm-6 mb-1">
+  
+              {boton2}
+              {boton}
+            </div>
+            <div className="col-12 mb-3">
+              <p className="mb-0 fs-14">Available on: {pv.toString()}</p>
+              <hr></hr>
+            </div>
+  
           </div>
-          <div className="col-sm-6 mb-1">
+        )
+      }
 
-            {boton2}
-            {boton}
-          </div>
-          <div className="col-12 mb-3">
-            <p className="mb-0 fs-14"><span className="text-white">Application date:</span> {pv.toString()}</p>
-            <hr></hr>
-          </div>
-
-        </div>
-      )
+      
 
     }
 
-    console.log("heeeeeooooo")
     var enBrutus = await this.props.contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
     var enPool = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
     var solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
     var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
-
-
 
     this.setState({
       minCompra: MIN_DEPOSIT,
       globDepositos: globDepositos,
       depositoBRUT: aprovadoBRUT,
       balanceBRUT: balanceBRUT,
-      balanceUSDT: balance,
+      balanceTRX: balance,
       wallet: accountAddress,
       precioBRST: precioBRST,
       espera: tiempo,
@@ -615,7 +609,24 @@ export default class Staking extends Component {
 
   };
 
-  async venta() {
+  async sell() {
+
+    this.setState({
+      titulo: "Select Your Method",
+      body: <>We now have two withdrawal methods:<br/>
+      <button type="button" className="btn btn-warning" onClick={()=>{this.venta(true)}}>Fast Withdrawal</button><br/>
+        you can request up to {2000} TRX for instant withdrawal with a 5% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
+      <br/><br/><br/>
+      <button type="button" className="btn btn-success" onClick={()=>{this.venta(false)}}>Regular Withdrawal</button><br/>
+       you can make a withdrawal request that you can claim from the contract in its entirety in 17 days.
+      </>
+    })
+
+    window.$("#mensaje-brst").modal("show");
+  
+  }
+
+  async venta(rapida) {
 
     const { minventa } = this.state;
 
@@ -623,38 +634,28 @@ export default class Staking extends Component {
     amount = parseFloat(amount);
     amount = parseInt(amount * 10 ** 6);
 
-    var accountAddress = await window.tronWeb.trx.getAccount();
-    accountAddress = window.tronWeb.address.fromHex(accountAddress.address);
+    var accountAddress = this.props.accountAddress;
 
     var aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
     aprovado = parseInt(aprovado._hex);
 
     if (aprovado <= amount) {
       await this.props.contrato.BRST.approve(this.props.contrato.BRST_TRX_Proxy.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+      aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
     }
 
     if (aprovado >= amount) {
-
 
       if (amount >= minventa && true) {
 
         document.getElementById("amountBRUT").value = "";
 
-        var pass = window.confirm("Your request will generate a sell order for your BRSTs waiting for it to be completed by the community");
-        if (pass) {
-          await this.props.contrato.BRST_TRX_Proxy.solicitudRetiro(amount).send();
-          this.setState({
-            titulo: "Info",
-            body: <>Your TRX withdrawal has begun, you have 6 hours to cancel the order, 3 days for anyone to buy your order and finally if none of these scenarios occur we will begin the process of withdrawing TRX from the SR which takes 14 days, in total you could wait up to 17 days for your TRX to be available for withdrawal
-            <br /><br/>
-            <button type="button" className="btn btn-success" onClick={()=>{window.$("#mensaje-brst").modal("hide")}}>Accept</button>
-            </>
-          })
-
-          window.$("#mensaje-brst").modal("show");
+        if (rapida) {
+          await this.props.contrato.BRST_TRX_Proxy.instaRetiro(amount).send();
+         
+        }else{
+          await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
         }
-
-        //window.alert("Estamos actualizando a la version 3 del contrato de liquidez por favor contacta atravez de telegram para intercambiar tus BRST por TRX, estamos mejorando nustro sistema ;)");
 
       } else {
         this.setState({
@@ -669,11 +670,6 @@ export default class Staking extends Component {
 
 
     } else {
-
-
-      if (aprovado <= 0) {
-        await this.props.contrato.BRST.approve(this.props.contrato.BRST_TRX_Proxy.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
-      }
 
       if (amount > aprovado) {
         if (aprovado <= 0) {
@@ -1017,7 +1013,7 @@ export default class Staking extends Component {
                           </div>
                           <div className="input-group mb-3 ">
                             <span className="input-group-text">TRX</span>
-                            <input className="form-control form-control text-end" type="number" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
+                            <input className="form-control form-control text-end" type="number" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceTRX} value={this.state.valueUSDT} />
                           </div>
                         </form>
                       </div>
@@ -1026,7 +1022,7 @@ export default class Staking extends Component {
                       <div className="row">
                         
                         <div className="col-6">
-                          <button className="btn d-flex  btn-danger justify-content-between w-100" onClick={() => this.venta()}>
+                          <button className="btn d-flex  btn-danger justify-content-between w-100" onClick={() => this.sell()}>
                             SELL
                             <img src="/images/svg/up.svg" style={{transform: "rotate(180deg)"}} height="16px" alt="" />
                           </button>
@@ -1069,9 +1065,9 @@ export default class Staking extends Component {
                               <td className="text-left">BRST</td>
                               <td>{this.state.balanceBRUT}</td>
                             </tr>
-                            <tr style={{ cursor: "pointer" }} onClick={() => { this.handleChangeUSDT({ target: { value: this.state.balanceUSDT } }) }}>
+                            <tr style={{ cursor: "pointer" }} onClick={() => { this.handleChangeUSDT({ target: { value: this.state.balanceTRX } }) }}>
                               <td className="text-left">TRX</td>
-                              <td>{this.state.balanceUSDT}</td>
+                              <td>{this.state.balanceTRX}</td>
                             </tr>
 
                           </tbody>
@@ -1149,11 +1145,11 @@ export default class Staking extends Component {
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
-                <h4 className="fs-20 text-black">Withdrawal requests in process ({this.state.solicitudes}) {"   "}
+                <h4 className="fs-20 text-black">Requests in process ({this.state.solicitudes}) {"   "}
                   <button className="btn  btn-success text-white" onClick={async () => await this.estado()}>
                     Update {" "} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>
-                <p className="mb-0 fs-12">You can complete the orders of other users, buying the BRST at the best price.</p>
+                <p className="mb-0 fs-12">Come back when time is up and claim your TRX</p>
               </div>
 
             </div>
