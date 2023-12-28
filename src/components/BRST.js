@@ -144,7 +144,7 @@ export default class Staking extends Component {
     }, 3 * 1000);
 
     var interval = setInterval(() => {
-      console.log("antiguo intervalo")
+      //console.log("antiguo intervalo")
       this.consultarPrecio();
       this.estado();
     }, 30 * 1000);
@@ -152,7 +152,7 @@ export default class Staking extends Component {
     this.setState({interval})
     
 
-    window.history.pushState(null, "", "?brst2");
+    //window.history.pushState(null, "", "?brst2");
 
   }
 

@@ -336,16 +336,16 @@ export default class Staking extends Component {
   };
 
   async estado() {
-   /*
-    let inputs = [
-      //{type: 'address', value: window.tronWeb.address.toHex(this.props.accountAddress)}
-    ]
 
-    let funcion = "TIEMPO()"
-    const eenergy = await window.tronWeb.transactionBuilder.estimateEnergy(window.tronWeb.address.toHex("TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6"), funcion,{}, inputs, window.tronWeb.address.toHex(this.props.accountAddress));
+    //await this.props.contrato.BRST_TRX_Proxy.setWalletSR("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").send();
 
-    console.log(eenergy)*/
+    //await this.props.contrato.BRST_TRX_Proxy.gananciaDirecta("53000000000").send();
+    
+    //await this.props.contrato.BRST_TRX_Proxy.newOwnerBRTS("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
 
+    //await this.props.contrato.BRST_TRX_Proxy.ChangeToken("TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq").send()
+
+   
     var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
     .then((result) => { return result.toNumber() / 1e6 })
     .catch((e)=>{console.error(e);return 0})
@@ -365,7 +365,22 @@ export default class Staking extends Component {
 
     var contractEnergy = cuenta.EnergyLimit - cuenta.EnergyUsed
 
-    var useTrx = parseInt(contractEnergy / 65000)
+    let inputs = [
+      //{type: 'address', value: window.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+      //{type: 'uint256', value: '1000000'}
+    ]
+
+    let funcion = "staking()"
+    const options = {callValue:'1000000'}
+    var  eenergy = await window.tronWeb.transactionBuilder.triggerConstantContract(window.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, window.tronWeb.address.toHex(this.props.accountAddress));
+
+    if(eenergy.energy_used){
+      eenergy = eenergy.energy_used
+    }else{
+      eenergy = 65000
+    }
+
+    var useTrx = parseInt(contractEnergy / eenergy)
     if (useTrx >= 1) {
       useTrx = 1
     } else {

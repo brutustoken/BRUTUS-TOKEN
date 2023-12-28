@@ -29,9 +29,9 @@ if(testnet){
 
     SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
     SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
-    ProxySC2 = "TBu1Smbdw8q4tWbRd7kLCd2t47KP2CWiRG"; // Pool_BRST_TRX versionable
+    ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX versionable 
     SC3 = "";//pool APENFT_NFT
-    SC4 = "TMBiZzwm724GGzpxYzwzdwzaXxaWuhuCiC";// Loteria Contract NFT_BRST_TRX
+    SC4 = "TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR";// Loteria Contract NFT_BRST_TRX PROXY
 
     USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";//token USDT
     BRUT = "TTBZHmxP5H2FW8zaJgCR2x2WeB82rJo3xb";//token trc20 BRUT

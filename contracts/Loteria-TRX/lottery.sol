@@ -77,10 +77,11 @@ interface ITRC721 {
 }
 
 interface IPOOL {
-    function staking() external payable returns (uint);
-    function solicitudRetiro(uint256 _value) external returns (bool);
-    function retirar(uint256 _id) external ;
-    function RATE() external view returns (uint);
+    function staking() external payable returns(uint256);
+    function solicitudRetiro(uint256 _value) external returns(bool,uint256);
+    function retirar(uint256 _id) external returns(bool);
+    function RATE() external view returns (uint256);
+    function completada(uint256 _id) external view returns(bool);
 }
 
 interface Proxy_Interface{
@@ -112,11 +113,13 @@ contract Lottery {
     address public tokenTRC721;
     address public contractPool;
 
-    ITRC20 BRST_Contract = ITRC20(tokenBRST);
-    ITRC721 TRC721_Contract = ITRC721(tokenTRC721);
-    IPOOL POOL_Contract = IPOOL(contractPool);
+    ITRC20 BRST_Contract;
+    ITRC721 TRC721_Contract;
+    IPOOL POOL_Contract;
 
     mapping(uint256 => uint256) vaul;
+
+    uint256[] retirosP;
 
     bool public iniciado = true;
 
@@ -247,9 +250,15 @@ contract Lottery {
             if(ganado>0){
                 toTeam = toTeam.add(premioTeam());
                 if(_premio() > address(this).balance){
-                    POOL_Contract.solicitudRetiro((_premio().mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
-                    vaul[myNumber] += ganado;
+                    (bool insta, uint256 id) = POOL_Contract.solicitudRetiro((_premio().mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
                     
+                    if(insta){
+                        reclamarValueNFT(myNumber);
+                    }else{
+                        vaul[myNumber] += ganado;
+                        retirosP.push(id);
+
+                    }                    
                 
                 }else{
                     payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
@@ -265,15 +274,26 @@ contract Lottery {
 
     }
 
+    
+
     function solicitarRetiroPool(uint256 _valor) public {
         onlyOwner();
         POOL_Contract.solicitudRetiro((_valor.mul(10**6)).div(POOL_Contract.RATE()));
 
     }
 
-    function terminarRetiroPool(uint256 _id) public {
+    function terminarAllRetirosP() internal {
+        
+    }
+
+    function terminarRetiroPool(uint256 _id, bool _all) public {
         onlyOwner();
-        POOL_Contract.retirar(_id);
+        if(_all){
+
+        }else{
+            POOL_Contract.retirar(_id);
+
+        }
     }
   
     function update_tokenTRC721(address _tokenTRC721) public {

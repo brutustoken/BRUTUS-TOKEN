@@ -1,6 +1,7 @@
 import React, { Component } from "react";
 
-import abi_POOLBRST from "../abi/PoolBRSTv4.json";
+import abi_POOLBRST from "../abi/PoolBRSTv4";
+import abi_LOTERIA from "../abi/Lottery";
 import cons from "../cons.js";
 
 import Inicio from "./Inicio.js";
@@ -184,7 +185,7 @@ class App extends Component {
           contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
         }
         if(cons.SC4 !== ""){
-          contrato.loteria = await web3Contracts.contract().at(cons.SC4);
+          contrato.loteria = await web3Contracts.contract(abi_LOTERIA,cons.SC4);
         }
 
         this.setState({

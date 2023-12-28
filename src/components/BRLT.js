@@ -35,13 +35,50 @@ export default class nfts extends Component {
   async componentDidMount() {
 
     setTimeout(async () => {
-      await this.estado();
+      this.estado();
     }, 3 * 1000);
 
     setInterval(async () => {
       this.estado();
-    }, 20 * 1000);
+    }, 60 * 1000);
+
+    window.addEventListener('message', (e) => {
+
+      if (e.data.message && e.data.message.action === "accountsChanged") {
+        if(e.data.message.data.address){
+          this.estado();
+        }
+      }
+    })
   };
+
+  async estado() {
+
+    //await this.props.contrato.loteria.inicializar().send();
+
+    //await this.props.contrato.loteria.update_addressPOOL("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
+
+    //TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5
+
+    var cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
+    var totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
+    var premio = parseInt((await this.props.contrato.loteria.premio().call())._hex) / 10 ** 6
+    var LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
+
+    var proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
+    var prosort = proximoSorteo;
+    proximoSorteo = new Date(proximoSorteo*1000)
+
+    this.setState({
+      mc: cantidad,
+      totalNFT: totalNFT,
+      premio: premio,
+      LastWiner: LastWiner,
+      proximoSorteo: proximoSorteo.toString(),
+      prosort: prosort
+    });
+
+  }
 
   async compra() {
 
@@ -110,27 +147,7 @@ export default class nfts extends Component {
 
   };
 
-  async estado() {
-
-    var cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
-    var totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
-    var premio = parseInt((await this.props.contrato.loteria.premio().call())._hex) / 10 ** 6
-    var LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
-
-    var proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
-    var prosort = proximoSorteo;
-    proximoSorteo = new Date(proximoSorteo*1000)
-
-    this.setState({
-      mc: cantidad,
-      totalNFT: totalNFT,
-      premio: premio,
-      LastWiner: LastWiner,
-      proximoSorteo: proximoSorteo.toString(),
-      prosort: prosort
-    });
-
-  }
+  
 
   async sunSwap(){
     let token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"

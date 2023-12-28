@@ -104,7 +104,7 @@ contract PoolBRSTv4{
   uint256 public descuentoRapido;
   uint256 public precision;
 
-  uint256 private TRON_WALLET_BALANCE;
+  uint256 private _WALLET_SR_BALANCE;
   address payable public Wallet_SR;
 
   uint256 public TIEMPO;
@@ -141,7 +141,7 @@ contract PoolBRSTv4{
   }
 
   function TRON_BALANCE() public view returns (uint256){
-    return TRON_WALLET_BALANCE;
+    return _WALLET_SR_BALANCE;
   }
 
   function TRON_PAY_BALANCE() public view returns (uint256){
@@ -183,7 +183,7 @@ contract PoolBRSTv4{
 
   }
 
-  function staking() public payable returns (uint) {
+  function staking() public payable returns (uint256) {
 
     if(msg.value < MIN_DEPOSIT)revert();
     uint256 _value = msg.value;
@@ -191,7 +191,7 @@ contract PoolBRSTv4{
     payable(Wallet_SR).transfer(_value);
 
     _value = (_value.mul( 10 ** BRTS_Contract.decimals() )).div(RATE());
-    TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.add(msg.value);
+    _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.add(msg.value);
 
     BRTS_Contract.issue(_value);
     BRTS_Contract.transfer(msg.sender,_value);
@@ -200,13 +200,13 @@ contract PoolBRSTv4{
 
   }
 
-  function solicitudRetiro(uint256 _value) public returns(bool) {
+  function solicitudRetiro(uint256 _value) public returns(bool,uint256) {
 
-    if(!instaRetiro(_value)){
-      esperaRetiro(_value);
-      return false;
+    if(instaRetiro(_value)){
+      return (true,0);
+    
     }else{
-      return true;
+      return (false,esperaRetiro(_value));
     }
 
   }
@@ -233,7 +233,7 @@ contract PoolBRSTv4{
 
   }
 
-  function esperaRetiro(uint256 _value) public {
+  function esperaRetiro(uint256 _value) public returns(uint256 order) {
     
     if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
 
@@ -247,6 +247,7 @@ contract PoolBRSTv4{
 
     TRON_SOLICITADO = TRON_SOLICITADO.add(_value.mul(RATE()).div(10 ** BRTS_Contract.decimals()));
 
+    order = index;
     misSolicitudes[msg.sender].push(index);
     index++;
 
@@ -271,8 +272,8 @@ contract PoolBRSTv4{
           payable(peticiones[_id].wallet).transfer(pago);
           BRTS_Contract.redeem(peticiones[_id].brst);
 
-          TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.sub(pago);
-          TRON_SOLICITADO = TRON_WALLET_BALANCE.sub(pago);
+          _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
+          TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
           completada[_id] = true;
           exitoso = true;
         }
@@ -284,12 +285,12 @@ contract PoolBRSTv4{
 
   function asignarPerdida(uint256 _value) public {
     onlyOwner();
-    TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.sub(_value);
+    _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(_value);
   }
 
   function gananciaDirecta(uint256 _value) public {
     onlyOwner();
-    TRON_WALLET_BALANCE = TRON_WALLET_BALANCE.add(_value);
+    _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.add(_value);
   }
 
   function setWalletSR(address payable _w) public  {

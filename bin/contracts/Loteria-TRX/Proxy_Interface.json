@@ -1,14 +1,14 @@
 {
-    "contractName": "IPOOL",
+    "contractName": "Proxy_Interface",
     "abi": [
         {
             "inputs": [],
-            "name": "RATE",
+            "name": "admin",
             "outputs": [
                 {
-                    "internalType": "uint256",
+                    "internalType": "address",
                     "name": "",
-                    "type": "uint256"
+                    "type": "address"
                 }
             ],
             "stateMutability": "view",
@@ -17,80 +17,18 @@
         {
             "inputs": [
                 {
-                    "internalType": "uint256",
-                    "name": "_id",
-                    "type": "uint256"
+                    "internalType": "address",
+                    "name": "_admin",
+                    "type": "address"
                 }
             ],
-            "name": "completada",
-            "outputs": [
-                {
-                    "internalType": "bool",
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "_id",
-                    "type": "uint256"
-                }
-            ],
-            "name": "retirar",
-            "outputs": [
-                {
-                    "internalType": "bool",
-                    "name": "",
-                    "type": "bool"
-                }
-            ],
+            "name": "changeAdmin",
+            "outputs": [],
             "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "_value",
-                    "type": "uint256"
-                }
-            ],
-            "name": "solicitudRetiro",
-            "outputs": [
-                {
-                    "internalType": "bool",
-                    "name": "",
-                    "type": "bool"
-                },
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "nonpayable",
-            "type": "function"
-        },
-        {
-            "inputs": [],
-            "name": "staking",
-            "outputs": [
-                {
-                    "internalType": "uint256",
-                    "name": "",
-                    "type": "uint256"
-                }
-            ],
-            "stateMutability": "payable",
             "type": "function"
         }
     ],
-    "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"RATE\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"completada\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_id\",\"type\":\"uint256\"}],\"name\":\"retirar\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"solicitudRetiro\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"},{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"staking\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"\",\"type\":\"uint256\"}],\"stateMutability\":\"payable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"c:/Users/STC/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery.sol\":\"IPOOL\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"c:/Users/STC/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery.sol\":{\"keccak256\":\"0xfd68641572acd37791b5a82f96dbd9b5150611f1af5a9ee1d041f7851f0e6223\",\"license\":\"Apache-2.0\",\"urls\":[\"bzz-raw://647e13c28012590e1f5593cf5ddb74d2667abea9586cf619e2dd1316e3b6567f\",\"dweb:/ipfs/QmPTAq6VtgsmqdxczEqpf7eELfiprJrQmyAg5GYSKJtcrS\"]}},\"version\":1}",
+    "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[],\"name\":\"admin\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"_admin\",\"type\":\"address\"}],\"name\":\"changeAdmin\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"c:/Users/STC/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery.sol\":\"Proxy_Interface\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[]},\"sources\":{\"c:/Users/STC/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery.sol\":{\"keccak256\":\"0xfd68641572acd37791b5a82f96dbd9b5150611f1af5a9ee1d041f7851f0e6223\",\"license\":\"Apache-2.0\",\"urls\":[\"bzz-raw://647e13c28012590e1f5593cf5ddb74d2667abea9586cf619e2dd1316e3b6567f\",\"dweb:/ipfs/QmPTAq6VtgsmqdxczEqpf7eELfiprJrQmyAg5GYSKJtcrS\"]}},\"version\":1}",
     "bytecode": "",
     "deployedBytecode": "",
     "sourceMap": "",
@@ -15552,11 +15490,8 @@
         "src": "0:10751:0"
     },
     "functionHashes": {
-        "RATE()": "664e9704",
-        "completada(uint256)": "0edd11f4",
-        "retirar(uint256)": "e8b1298f",
-        "solicitudRetiro(uint256)": "75b2a546",
-        "staking()": "4cf088d9"
+        "admin()": "f851a440",
+        "changeAdmin(address)": "8f283970"
     },
     "gasEstimates": null
 }
