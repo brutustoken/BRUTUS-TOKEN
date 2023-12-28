@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+
 import abi_POOLBRST from "../abi/PoolBRSTv4.json";
 import cons from "../cons.js";
 
@@ -42,133 +43,156 @@ class App extends Component {
     };
 
     this.conectar = this.conectar.bind(this);
+    this.intervalo = this.intervalo.bind(this);
+
   }
 
   async componentDidMount() {
 
-    setInterval(() => {
-      this.conectar();
-    }, 3 * 1000);
+    this.intervalo();
+
+    window.addEventListener('message', (e) => {
+
+      if (e.data.message && e.data.message.action === "accountsChanged") {
+        if(e.data.message.data.address){
+          this.conectar("evento");
+        }
+      }
+
+     
+    })
 
   }
 
-  async conectar() {
+  intervalo(){
+    var interval = setInterval(() => {
+      if(!this.state.tronWeb.loggedIn){
+        this.conectar("intervalo");
+      }else{
+        clearInterval(this.state.interval)
+        this.setState({interval: null})
+      }
+    }, 3 * 1000);
 
-    var {tronWeb, wallet, contrato} = this.state;
-    var conexion = 0;
+    this.setState({interval})
 
-    if ( typeof window.tronWeb !== 'undefined' && typeof window.tronLink !== 'undefined' ) {
+  }
+
+  async conectar(from) {
+
+    console.log("EJECUCION: "+from)
+
+    let tronWeb = this.state.tronWeb;
+    let wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+
+    if ( typeof window.tronLink !== 'undefined' ) {
 
       tronWeb['installed'] = true;
 
-      if(window.tronWeb.ready || window.tronLink.ready){
-
-        try {
-          conexion = (await window.tronLink.request({ method: 'tron_requestAccounts' })).code;
-        } catch(e) {
-          conexion = 0
-        }
-
-        if(conexion === 200){
-          tronWeb['loggedIn'] = true;
-          wallet = window.tronLink.tronWeb.defaultAddress.base58
-
-        }else{
-          tronWeb['loggedIn'] = false;
-          wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
-
-        }
-
-        tronWeb['web3'] = window.tronWeb;
-
-        //window.tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
-
-        if(this.state.contrato.USDT == null){
-
-          window.tronWeb.setHeader(cons.TAK)
-
-          contrato = {};
-
-          if(cons.SC !== ""){
-            contrato.BRUT_USDT = await window.tronWeb.contract().at(cons.SC);
-          }
-          if(cons.USDT !== ""){
-            contrato.USDT = await window.tronWeb.contract().at(cons.USDT);
-          }
-          if(cons.BRUT !== ""){
-            contrato.BRUT =  await window.tronWeb.contract().at(cons.BRUT);
-          }
-          
-          if(cons.SC2 !== ""){
-            contrato.BRST_TRX = await window.tronWeb.contract().at(cons.SC2);
-          }
-
-          if(cons.ProxySC2 !== ""){
-            contrato.BRST_TRX_Proxy = await window.tronWeb.contract(abi_POOLBRST,cons.ProxySC2);
-
-          }
-
-          if(cons.BRST !== ""){
-            contrato.BRST = await window.tronWeb.contract().at(cons.BRST);
-          }
-          
-          if(cons.BRGY !== ""){
-            contrato.BRGY = await window.tronWeb.contract().at(cons.BRGY);
-          }
-          if(cons.SC3 !== ""){
-            contrato.MBOX =  await window.tronWeb.contract().at(cons.SC3);
-          }
-
-          if(cons.BRLT !== ""){
-            contrato.BRLT = await window.tronWeb.contract().at(cons.BRLT);
-          }
-          if(cons.SC4 !== ""){
-            contrato.loteria = await window.tronWeb.contract().at(cons.SC4);
-          }
-
-
-          this.setState({
-            contrato: contrato
-  
-          });
-
-        }
-        
-        
-        this.setState({
-          accountAddress: wallet,
-          tronWeb: tronWeb,
-
-        });
+      if(window.tronLink.ready){
+        wallet = window.tronLink.tronWeb.defaultAddress.base58
+        tronWeb['web3'] = window.tronLink.tronWeb;
+        tronWeb['loggedIn'] = true;
       }else{
 
-        this.setState({
-          tronWeb: tronWeb,
+        const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
+  
+        if(res.code === 200){
+          tronWeb['web3'] = window.tronLink.tronWeb;
+          wallet = window.tronLink.tronWeb.defaultAddress.base58
+          tronWeb['loggedIn'] = true;
 
-        });
+        }else{
+          wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+          tronWeb['loggedIn'] = false;
 
+        }
+
+        //window.tronLink.tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
+
+        
+        
       }
+
+      
+
+      this.setState({
+        accountAddress: wallet,
+        tronWeb: tronWeb,
+
+      });
 
 
     } else {
 
-      console.log("se salio")
+      console.log("Please install Tronlink to use this Dapp")
 
       tronWeb['installed'] = false;
       tronWeb['loggedIn'] = false;
 
       this.setState({
+        accountAddress: "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
         tronWeb: tronWeb
 
       });
+
     }
 
-    /*var inicio = wallet.substr(0,4);
-    var fin = wallet.substr(-4);*/
+    if(tronWeb['loggedIn']){
 
-    var texto = wallet; //inicio+"..."+fin;
+      document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+wallet+'</a>';
 
-    document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+texto+'</a>';
+      if(this.state.contrato.USDT == null ){
+
+        let web3Contracts = tronWeb['web3'];
+
+        web3Contracts.setHeader(cons.TAK)
+
+        let contrato = {};
+
+        if(cons.SC !== ""){
+          contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
+        }
+        if(cons.USDT !== ""){
+          contrato.USDT = await web3Contracts.contract().at(cons.USDT);
+        }
+        if(cons.BRUT !== ""){
+          contrato.BRUT =  await web3Contracts.contract().at(cons.BRUT);
+        }
+        
+        if(cons.SC2 !== ""){
+          contrato.BRST_TRX = await web3Contracts.contract().at(cons.SC2);
+        }
+
+        if(cons.ProxySC2 !== ""){
+          contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST,cons.ProxySC2);
+
+        }
+
+        if(cons.BRST !== ""){
+          contrato.BRST = await web3Contracts.contract().at(cons.BRST);
+        }
+        
+        if(cons.BRGY !== ""){
+          contrato.BRGY = await web3Contracts.contract().at(cons.BRGY);
+        }
+        if(cons.SC3 !== ""){
+          contrato.MBOX =  await web3Contracts.contract().at(cons.SC3);
+        }
+
+        if(cons.BRLT !== ""){
+          contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
+        }
+        if(cons.SC4 !== ""){
+          contrato.loteria = await web3Contracts.contract().at(cons.SC4);
+        }
+
+        this.setState({
+          contrato: contrato
+        });
+
+      }
+    }
 
 
   }
@@ -228,7 +252,10 @@ class App extends Component {
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     }
 
+
+
   }
   
 }
+
 export default App;

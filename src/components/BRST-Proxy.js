@@ -146,7 +146,20 @@ export default class Staking extends Component {
     setInterval(() => {
       this.consultarPrecio();
       this.estado();
-    }, 30 * 1000);
+    }, 60 * 1000);
+  
+    window.addEventListener('message', (e) => {
+
+      if (e.data.message && e.data.message.action === "accountsChanged") {
+        if(e.data.message.data.address){
+          this.consultarPrecio();
+          this.estado();
+        }
+      }
+
+     
+    })
+  
   }
 
   componentWillUnmount() {
@@ -337,6 +350,10 @@ export default class Staking extends Component {
     .then((result) => { return result.toNumber() / 1e6 })
     .catch((e)=>{console.error(e);return 0})
 
+    this.setState({
+      misBRST: misBRST
+    })
+
     var accountAddress = this.props.accountAddress;
 
     //var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
@@ -364,12 +381,12 @@ export default class Staking extends Component {
       useTrx: useTrx,
       contractEnergy: contractEnergy,
       balanceTRX: balance,
-      misBRST: misBRST,
       dataBRST: consulta,
       promE7to1day: promE7to1day
     })
 
     var MIN_DEPOSIT = await this.props.contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
+    
     MIN_DEPOSIT = parseInt(MIN_DEPOSIT._hex) / 10 ** 6;
 
     var aprovadoBRUT = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
@@ -397,15 +414,14 @@ export default class Staking extends Component {
       
     }
 
-    console.log(myids)
-
-    console.log("INDEX: "+await this.props.contrato.BRST_TRX_Proxy.index().call())
+    //console.log(myids)
+    //console.log("INDEX: "+await this.props.contrato.BRST_TRX_Proxy.index().call())
 
     var deposits = await this.props.contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
-    console.log(deposits)
+    //console.log(deposits)
 
     deposits = deposits[0];
-    console.log(deposits)
+    //console.log(deposits)
     var globDepositos = [];
 
     var tiempo = parseInt((await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
@@ -427,7 +443,8 @@ export default class Staking extends Component {
       var boton2 = <><p className="mb-0 fs-14 text-white">Order in UnStaking process for the next 14 days, once this period is over, return and claim the corresponding TRX</p></>;
 
       let cantidadTrx = new BigNumber(parseInt(pen.brst._hex)).times(parseInt(pen.precio._hex)).shiftedBy(-6)// cambiar abig number
-      if (this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))) {
+      let isOwner = this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
+      if (isOwner) {
 
         boton2 = <button className="btn  btn-success text-white mb-2" onClick={async () => {
           if (this.state.balanceTRX * 1 >= cantidadTrx.toNumber()) {
@@ -463,7 +480,7 @@ export default class Staking extends Component {
         )
       }
 
-      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0  || true) {
+      if ((myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0 ) || isOwner) {
 
         //console.log(myids.indexOf(parseInt(deposits[index]._hex)))
         boton = (
@@ -480,7 +497,7 @@ export default class Staking extends Component {
         diasrestantes = 0
       }
 
-      if(myids.includes(parseInt(deposits[index]._hex)) || this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))){
+      if(myids.includes(parseInt(deposits[index]._hex)) || isOwner ){
         globDepositos[index] = (
 
           <div className="row mt-4 align-items-center" id={"sale-"+parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
@@ -1000,7 +1017,7 @@ export default class Staking extends Component {
                   <div className="card quick-trade">
                     <div className="card-header pb-0 border-0 flex-wrap">
                       <div>
-                        <h4 className="heading mb-0">Quick Trade</h4>
+                        <h4 className="heading mb-0">Exchange V4</h4>
                         <p className="mb-0 fs-14">Contract energy: {(this.state.contractEnergy).toLocaleString('en-US')} for ~ {parseInt(this.state.contractEnergy / 65000)} free transactions</p>
                       </div>
                     </div>

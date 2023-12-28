@@ -31,11 +31,28 @@ export default class Inicio extends Component {
 	}
 
 	componentDidMount() {
-		setTimeout(() => { this.estado(); }, 3 * 1000);
-		setTimeout(() => { this.consultaPrecios(); }, 1 * 1000);
+		setTimeout(() => { 
+			this.consultaPrecios();
+			this.estado(); 
 
-		setInterval(() => { this.estado(); }, 60 * 1000);
-		setInterval(() => { this.consultaPrecios(); }, 60 * 1000);
+		}, 3 * 1000);
+
+		setInterval(() => { 
+			this.consultaPrecios(); 
+			this.estado(); 
+		}, 120 * 1000);
+
+		window.addEventListener('message', (e) => {
+
+			if (e.data.message && e.data.message.action === "accountsChanged") {
+			  if(e.data.message.data.address){
+				this.consultaPrecios();
+				this.estado();
+			  }
+			}
+	  
+		   
+		  })
 	}
 
 	subeobaja(valor) {

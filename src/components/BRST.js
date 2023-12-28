@@ -131,6 +131,7 @@ export default class Staking extends Component {
   }
 
   componentDidMount() {
+
     document.title = "B.F | BRST"
     this.grafico(1000, "day", 90);
 
@@ -142,16 +143,25 @@ export default class Staking extends Component {
 
     }, 3 * 1000);
 
-    setInterval(() => {
+    var interval = setInterval(() => {
+      console.log("antiguo intervalo")
       this.consultarPrecio();
       this.estado();
     }, 30 * 1000);
+
+    this.setState({interval})
+    
+
+    window.history.pushState(null, "", "?brst2");
+
   }
 
   componentWillUnmount() {
     if (this.root) {
       this.root.dispose();
     }
+    clearInterval(this.state.interval)
+    this.setState({interval: null})
   }
 
   subeobaja(valor) {
@@ -336,7 +346,10 @@ export default class Staking extends Component {
     .then((result) => { return result.toNumber() / 1e6 })
     .catch((e)=>{console.error(e);return 0})
 
-  
+    this.setState({
+      misBRST: misBRST
+    })
+
     var accountAddress = this.props.accountAddress;
 
     //var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
@@ -358,17 +371,12 @@ export default class Staking extends Component {
     let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
     consulta = (await consulta.json()).Data
 
-    //console.log(consulta)
-
     var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value) ) * 100) / this.state.tiempoPromediado
-
-    console.log(promE7to1day)
 
     this.setState({
       useTrx: useTrx,
       contractEnergy: contractEnergy,
       balanceUSDT: balance,
-      misBRST: misBRST,
       dataBRST: consulta,
       promE7to1day: promE7to1day
     })

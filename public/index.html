@@ -172,12 +172,12 @@
         ***********************************-->
 		<div class="footer out-footer">
 			<div class="copyright">
-				<p>Copyright ©
-					<script> document.write(new Date(Date.now()).getFullYear())</script> | <a
-						href="https://brutus.finance" target="_blank">Brutus.finance</a>
+				<p>Copyright © <span id="year"></span> | <a href="https://brutus.finance" target="_blank">Brutus.finance</a>
 				</p>
 			</div>
 		</div>
+
+		<script> document.getElementById("year").innerText = (new Date(Date.now()).getFullYear()).toLocaleString()</script>
 		<!--**********************************
             Footer end
         ***********************************-->
