@@ -222,10 +222,10 @@ class App extends Component {
       case "trx":
       case "tron":
       case "brst":
-        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
-
-      case "brst2":
         return <StakingV2 accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+
+      case "brst_old":
+        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
       case "nft":
       case "brgy":
