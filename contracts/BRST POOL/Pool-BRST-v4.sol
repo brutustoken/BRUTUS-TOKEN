@@ -57,6 +57,16 @@ library Array {
     return newArray;
   }
 
+  function findIndexOf(uint256[] memory arr, uint256 _id) internal pure returns(bool found,uint256 r){
+
+    for (uint256 i = 0; i < arr.length; i++) {
+      if (arr[i] == _id) {
+        found = true;
+        r = i;
+      }
+    }
+  }
+
 }
 
 interface TRC20_Interface {
@@ -253,32 +263,74 @@ contract PoolBRSTv4{
 
   }
 
+  
+
+  function retirarFrom(address _user) public returns(bool exitoso) {
+
+    uint256 pago;
+    uint256[] memory arr = todasSolicitudes(_user);
+    uint256[] memory salidaGlob;
+    uint256[] memory nuevo;
+    uint256 totalBRST;
+
+    for (uint256 i = 0; i < arr.length; i++) {
+      if( msg.sender == owner() || whiteList[_user] || peticiones[arr[i]].tiempo.add(TIEMPO) >= block.timestamp){
+        pago = pago.add(peticiones[arr[i]].brst.mul(peticiones[arr[i]].precio).div(10 ** BRTS_Contract.decimals()));
+        totalBRST = totalBRST.add(peticiones[arr[i]].brst);
+        salidaGlob = salidaGlob.addArray(arr[i]);
+      }else{
+        nuevo = nuevo.addArray(arr[i]);
+      }
+      
+    }
+
+    require(pago > 0 && totalBRST > 0);
+
+    if(TRON_PAY_BALANCE() >= pago){
+
+      misSolicitudes[_user] = nuevo;
+
+      for (uint256 i = 0; i < salidaGlob.length; i++) {
+        completada[salidaGlob[i]] = true;
+      }
+      
+      payable(_user).transfer(pago);
+      BRTS_Contract.redeem(totalBRST);
+
+      _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
+      TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
+      
+      exitoso = true;
+    }
+      
+  }
+
   function retirar(uint256 _id) public returns(bool exitoso) {
 
-    if(!whiteList[peticiones[_id].wallet]){
-      if( _id >= index || block.timestamp < peticiones[_id].tiempo.add(TIEMPO) )revert();
+    require(index > _id);
+    if( msg.sender != owner()){
+      if(!whiteList[peticiones[_id].wallet] ){
+        if(block.timestamp < peticiones[_id].tiempo.add(TIEMPO) )revert();
+      }
     }
 
     uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(10 ** BRTS_Contract.decimals());
 
     if(TRON_PAY_BALANCE() >= pago){
-      uint256[] memory arr = todasSolicitudes(peticiones[_id].wallet);
 
-      for (uint256 i = 0; i < arr.length; i++) {
-        if (arr[i] == _id) {
-          misSolicitudes[peticiones[_id].wallet][i] = misSolicitudes[peticiones[_id].wallet][misSolicitudes[peticiones[_id].wallet].length - 1];
-          misSolicitudes[peticiones[_id].wallet].pop();
+      ( ,uint256 i) = misSolicitudes[peticiones[_id].wallet].findIndexOf(_id);
 
-          payable(peticiones[_id].wallet).transfer(pago);
-          BRTS_Contract.redeem(peticiones[_id].brst);
+      misSolicitudes[peticiones[_id].wallet][i] = misSolicitudes[peticiones[_id].wallet][misSolicitudes[peticiones[_id].wallet].length - 1];
+      misSolicitudes[peticiones[_id].wallet].pop();
 
-          _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
-          TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
-          completada[_id] = true;
-          exitoso = true;
-        }
-      }
+      payable(peticiones[_id].wallet).transfer(pago);
+      BRTS_Contract.redeem(peticiones[_id].brst);
 
+      _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
+      TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
+      completada[_id] = true;
+      exitoso = true;
+        
     }
 
   }

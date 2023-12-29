@@ -168,182 +168,17 @@ export default class Staking extends Component {
     }
   }
 
-  subeobaja(valor) {
-    var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
-      xmlns="http://www.w3.org/2000/svg">
-      <g filter="url(#filter0_d2)">
-        <path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
-          stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
-      </g>
-      <defs>
-        <filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
-          height="22.0001" filterUnits="userSpaceOnUse"
-          colorInterpolationFilters="sRGB">
-          <feFlood floodOpacity="0" result="BackgroundImageFix" />
-          <feColorMatrix in="SourceAlpha" type="matrix"
-            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-          <feOffset dy="1" />
-          <feGaussianBlur stdDeviation="2" />
-          <feColorMatrix type="matrix"
-            values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
-          <feBlend mode="normal" in2="BackgroundImageFix"
-            result="effect1_dropShadow" />
-          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
-            result="shape" />
-        </filter>
-      </defs>
-    </svg>);
-    var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g filter="url(#filter0_d)">
-        <path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
-      </g>
-      <defs>
-        <filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
-          <feFlood floodOpacity="0" result="BackgroundImageFix" />
-          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
-          <feOffset dy="1" />
-          <feGaussianBlur stdDeviation="2" />
-          <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
-          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
-          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
-        </filter>
-      </defs>
-    </svg>);
-
-    var resultado = imgNPositivo;
-
-    if (valor < 0) {
-      resultado = imgNegativo
-    }
-
-    return resultado;
-  }
-
-  textoE(valor) {
-
-    var resultado = "success";
-
-    if (valor < 0) {
-      resultado = "danger"
-    }
-
-    return resultado;
-
-  }
-
-  consultaPrecio() {
-
-    fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
-      .then(r => { return r.json(); })
-      .then(data => {
-
-        this.setState({
-          precioBrst: data.Data.trx,
-          varBrst: data.Data.v24h
-        })
-
-      })
-      .catch(err => {console.log(err);});
-
-  }
-
-  handleChange(e) {
-    let evento = e.target.value;
-    this.grafico(500, evento, this.state.cantidadDatos);
-    this.setState({ temporalidad: evento });
-  }
-
-  handleChange2(e) {
-    let evento = parseInt(e.target.value);
-    this.grafico(500, this.state.temporalidad, evento);
-    this.setState({ cantidadDatos: evento });
-  }
-
-  handleChangeBRUT(event) {
-    let dato = event.target.value;
-    let oper = dato * this.state.precioBRST;
-    oper = parseInt(oper * 1e6) / 1e6;
-    this.setState({
-      valueBRUT: dato,
-      valueUSDT: oper
-    });
-  }
-
-  handleChangeUSDT(event) {
-    let dato = event.target.value;
-    let oper = dato / this.state.precioBRST
-    oper = parseInt(oper * 1e6) / 1e6;
-    this.setState({
-      valueUSDT: event.target.value,
-      valueBRUT: oper,
-    });
-  }
-
-  handleChangeDias(event) {
-    let dato = event.target.value;
-
-    let oper = ((this.state.brutCalc * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
-    oper = oper * parseInt(dato)
-    this.setState({
-      diasCalc: parseInt(dato),
-      resultCalc: oper
-    });
-  }
-
-  handleChangeCalc(event) {
-    let dato = event.target.value;
-    let oper = ((dato * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
-    oper = oper * parseInt(this.state.diasCalc)
-
-    this.setState({
-      brutCalc: dato,
-      resultCalc: oper
-    });
-  }
-
-  llenarBRST() {
-    document.getElementById('amountBRUT').value = this.state.balanceBRUT;
-    let oper = this.state.balanceBRUT * this.state.precioBRST;
-    oper = parseInt(oper * 1e6) / 1e6;
-    this.setState({
-      valueBRUT: this.state.balanceBRUT,
-      valueUSDT: oper
-    });
-
-  }
-
-  llenarUSDT() {
-    document.getElementById('amountUSDT').value = this.state.balanceTRX;
-    let oper = this.state.balanceTRX / this.state.precioBRST
-    oper = parseInt(oper * 1e6) / 1e6;
-    this.setState({
-      valueUSDT: this.state.balanceTRX,
-      valueBRUT: oper,
-    });
-  }
-
-  async consultarPrecio() {
-
-    var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
-    precio = precio.toNumber() / 1e6;
-
-    this.setState({
-      precioBRST: precio
-    });
-
-    return precio;
-
-  };
-
   async estado() {
 
     //await this.props.contrato.BRST_TRX_Proxy.setWalletSR("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").send();
 
-    //await this.props.contrato.BRST_TRX_Proxy.gananciaDirecta("53000000000").send();
+    //await this.props.contrato.BRST_TRX_Proxy.gananciaDirecta("500000000").send();
     
     //await this.props.contrato.BRST_TRX_Proxy.newOwnerBRTS("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
 
     //await this.props.contrato.BRST_TRX_Proxy.ChangeToken("TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq").send()
+
+    //await this.props.contrato.BRST_TRX_Proxy.setWhiteList("TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR").send();
 
    
     var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
@@ -567,6 +402,175 @@ export default class Staking extends Component {
     }
 
   }
+
+  subeobaja(valor) {
+    var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
+      xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#filter0_d2)">
+        <path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
+          stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <defs>
+        <filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
+          height="22.0001" filterUnits="userSpaceOnUse"
+          colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix in="SourceAlpha" type="matrix"
+            values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+          <feOffset dy="1" />
+          <feGaussianBlur stdDeviation="2" />
+          <feColorMatrix type="matrix"
+            values="0 0 0 0 0.172549 0 0 0 0 0.72549 0 0 0 0 0.337255 0 0 0 0.61 0" />
+          <feBlend mode="normal" in2="BackgroundImageFix"
+            result="effect1_dropShadow" />
+          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow"
+            result="shape" />
+        </filter>
+      </defs>
+    </svg>);
+    var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g filter="url(#filter0_d)">
+        <path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
+      </g>
+      <defs>
+        <filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
+          <feFlood floodOpacity="0" result="BackgroundImageFix" />
+          <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" />
+          <feOffset dy="1" />
+          <feGaussianBlur stdDeviation="2" />
+          <feColorMatrix type="matrix" values="0 0 0 0 1 0 0 0 0 0.180392 0 0 0 0 0.180392 0 0 0 0.61 0" />
+          <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow" />
+          <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow" result="shape" />
+        </filter>
+      </defs>
+    </svg>);
+
+    var resultado = imgNPositivo;
+
+    if (valor < 0) {
+      resultado = imgNegativo
+    }
+
+    return resultado;
+  }
+
+  textoE(valor) {
+
+    var resultado = "success";
+
+    if (valor < 0) {
+      resultado = "danger"
+    }
+
+    return resultado;
+
+  }
+
+  consultaPrecio() {
+
+    fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
+      .then(r => { return r.json(); })
+      .then(data => {
+
+        this.setState({
+          precioBrst: data.Data.trx,
+          varBrst: data.Data.v24h
+        })
+
+      })
+      .catch(err => {console.log(err);});
+
+  }
+
+  handleChange(e) {
+    let evento = e.target.value;
+    this.grafico(500, evento, this.state.cantidadDatos);
+    this.setState({ temporalidad: evento });
+  }
+
+  handleChange2(e) {
+    let evento = parseInt(e.target.value);
+    this.grafico(500, this.state.temporalidad, evento);
+    this.setState({ cantidadDatos: evento });
+  }
+
+  handleChangeBRUT(event) {
+    let dato = event.target.value;
+    let oper = dato * this.state.precioBRST;
+    oper = parseInt(oper * 1e6) / 1e6;
+    this.setState({
+      valueBRUT: dato,
+      valueUSDT: oper
+    });
+  }
+
+  handleChangeUSDT(event) {
+    let dato = event.target.value;
+    let oper = dato / this.state.precioBRST
+    oper = parseInt(oper * 1e6) / 1e6;
+    this.setState({
+      valueUSDT: event.target.value,
+      valueBRUT: oper,
+    });
+  }
+
+  handleChangeDias(event) {
+    let dato = event.target.value;
+
+    let oper = ((this.state.brutCalc * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
+    oper = oper * parseInt(dato)
+    this.setState({
+      diasCalc: parseInt(dato),
+      resultCalc: oper
+    });
+  }
+
+  handleChangeCalc(event) {
+    let dato = event.target.value;
+    let oper = ((dato * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
+    oper = oper * parseInt(this.state.diasCalc)
+
+    this.setState({
+      brutCalc: dato,
+      resultCalc: oper
+    });
+  }
+
+  llenarBRST() {
+    document.getElementById('amountBRUT').value = this.state.balanceBRUT;
+    let oper = this.state.balanceBRUT * this.state.precioBRST;
+    oper = parseInt(oper * 1e6) / 1e6;
+    this.setState({
+      valueBRUT: this.state.balanceBRUT,
+      valueUSDT: oper
+    });
+
+  }
+
+  llenarUSDT() {
+    document.getElementById('amountUSDT').value = this.state.balanceTRX;
+    let oper = this.state.balanceTRX / this.state.precioBRST
+    oper = parseInt(oper * 1e6) / 1e6;
+    this.setState({
+      valueUSDT: this.state.balanceTRX,
+      valueBRUT: oper,
+    });
+  }
+
+  async consultarPrecio() {
+
+    var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
+    precio = precio.toNumber() / 1e6;
+
+    this.setState({
+      precioBRST: precio
+    });
+
+    return precio;
+
+  };
+
+  
 
   async compra() {
 

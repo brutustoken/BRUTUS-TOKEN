@@ -119,9 +119,9 @@ contract Lottery {
 
     mapping(uint256 => uint256) vaul;
 
-    uint256[] retirosP;
-
     bool public iniciado = true;
+
+    uint256[] retirosP;
 
     constructor(){}
 
@@ -253,7 +253,8 @@ contract Lottery {
                     (bool insta, uint256 id) = POOL_Contract.solicitudRetiro((_premio().mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
                     
                     if(insta){
-                        reclamarValueNFT(myNumber);
+                        payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
+                        
                     }else{
                         vaul[myNumber] += ganado;
                         retirosP.push(id);
@@ -282,16 +283,30 @@ contract Lottery {
 
     }
 
-    function terminarAllRetirosP() internal {
-        
+    function verRetirosP() public view returns(uint256[] memory){
+        return retirosP;
     }
 
-    function terminarRetiroPool(uint256 _id, bool _all) public {
+    function terminarAllRetirosP() internal returns(bool [] memory ret) {
+
+        for (uint256 i = 0; i < retirosP.length; i++) {
+            if(!POOL_Contract.completada(retirosP[i])){
+                ret = new bool[](1);
+                ret[i] = POOL_Contract.retirar(retirosP[i]);
+            }
+            
+        }
+
+    }
+
+    function terminarRetiroPool(uint256 _id, bool _all) public returns(bool[] memory ret) {
         onlyOwner();
         if(_all){
-
+            return terminarAllRetirosP();
         }else{
-            POOL_Contract.retirar(_id);
+            ret = new bool[](1);
+            ret[0] = POOL_Contract.retirar(_id);
+            return ret;
 
         }
     }
@@ -346,6 +361,13 @@ contract Lottery {
         onlyOwner();
         beneficio = _beneficio;
         precicion = _precicion;
+    }
+    function retiroToTeam() public {
+        if(walletTeam != msg.sender){
+            onlyOwner();
+        }
+        payable(walletTeam).transfer(toTeam);
+        delete toTeam;
     }
 
     fallback() external payable{}

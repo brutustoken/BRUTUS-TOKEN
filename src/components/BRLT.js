@@ -62,7 +62,7 @@ export default class nfts extends Component {
 
     var cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
     var totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
-    var premio = parseInt((await this.props.contrato.loteria.premio().call())._hex) / 10 ** 6
+    var premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6
     var LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
 
     var proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
@@ -108,10 +108,11 @@ export default class nfts extends Component {
 
     if(Date.now() >= (this.state.prosort*1000)){
       this.props.contrato.loteria.sorteo().send()
-      .then(()=>{
+      .then((r)=>{
+        console.log(r)
         this.estado()
         this.setState({
-          modalTitulo: "good luck",
+          modalTitulo: "Good luck",
           modalBody: "Thank you for collaborating with the activation of the giveaway"
         })
         window.$("#alerta").modal("show");
