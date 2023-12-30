@@ -193,6 +193,15 @@ contract PoolBRSTv4{
 
   }
 
+  function donate() public payable{
+    _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.add(msg.value);
+  }
+
+  function donate(uint256 _value) public {
+    if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+    BRTS_Contract.redeem(_value);
+  }
+
   function staking() public payable returns (uint256) {
 
     if(msg.value < MIN_DEPOSIT)revert();
