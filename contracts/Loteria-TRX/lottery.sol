@@ -242,7 +242,6 @@ contract Lottery {
         }else{
             proximaRonda = proximaRonda+periodo;
         }
-
         // el ultimo corte nft vendidos a la fecha seran los que participen
         if(paso > 0){
             myNumber = RandomNumber.randMod(paso, uint256(keccak256(abi.encode(lastWiner,block.timestamp, blockhash(block.number)))),randNonce.numero);
@@ -274,8 +273,6 @@ contract Lottery {
         paso = TRC721_Contract.totalSupply();
 
     }
-
-    
 
     function solicitarRetiroPool(uint256 _valor) public {
         onlyOwner();
@@ -340,13 +337,11 @@ contract Lottery {
         periodo = _periodo;
     }
 
-    //retirar TRC20
     function retiroTRC20(uint256 _value, address _TRC20) public {
         onlyOwner();
         ITRC20(_TRC20).transfer(msg.sender, _value);
     }
 
-    //retirar TRC721
     function retiroTRC20(uint256 _tokenId) public {
         onlyOwner();
         ITRC721(TRC721_Contract).transferFrom(address(this), msg.sender, _tokenId);

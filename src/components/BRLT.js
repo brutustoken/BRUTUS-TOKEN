@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import abi_SUNSAWPv2 from "../abi/sunswapV2.json";
 
+const BigNumber = require('bignumber.js');
+
 export default class nfts extends Component {
 
   constructor(props) {
@@ -69,13 +71,17 @@ export default class nfts extends Component {
     var prosort = proximoSorteo;
     proximoSorteo = new Date(proximoSorteo*1000)
 
+    var price = parseInt((await this.props.contrato.loteria.allValueNFTs().call(this.props.accountAddress))._hex)
+    price = new BigNumber(price).shiftedBy(-6)
+    
     this.setState({
       mc: cantidad,
       totalNFT: totalNFT,
       premio: premio,
       LastWiner: LastWiner,
       proximoSorteo: proximoSorteo.toString(),
-      prosort: prosort
+      prosort: prosort,
+      price: price.toNumber()
     });
 
   }
@@ -235,25 +241,15 @@ export default class nfts extends Component {
                           <h4 className="my-1">My Tickets: {this.state.mc} BRLT</h4>
                           <h4 className="my-1">My probability: {(this.state.mc / this.state.totalNFT * 100).toFixed(2)}%</h4>
 
-                          <h4 className="my-1">I have earned: {this.state.mb} TRX</h4>
+                          <h4 className="my-1">My pending price : {this.state.price} TRX</h4>
                           <div className="shopping-cart  my-1 me-3">
                             <button className="btn btn-warning" onClick={async () => {
 
-                              var claim = prompt("Set number of NFT want you claim our value", "0")
+                              await this.props.contrato.BRLT.reclamarPremio(this.props.accountAddress).send()
+                              .then(() => { window.alert("Award is sended to your wallet ") })
+                              .catch(() => { window.alert("Error when claiming") })
 
-                              claim = parseInt(claim)
-
-                              if (parseInt(claim) <= 0 || isNaN(claim)) {
-
-                                window.alert("please enter a valid number to make a claim")
-
-                              } else {
-
-                                await this.props.contrato.BRLT.reclamarValueNFT(claim).send()
-                                  .then(() => { window.alert("Profits sent to the NFT wallet owner") })
-                                  .catch(() => { window.alert("Error when claiming") })
-
-                              }
+                              
 
                             }}>Claim</button>
 
