@@ -71,8 +71,8 @@ export default class nfts extends Component {
     var prosort = proximoSorteo;
     proximoSorteo = new Date(proximoSorteo*1000)
 
-    var price = parseInt((await this.props.contrato.loteria.allValueNFTs().call(this.props.accountAddress))._hex)
-    price = new BigNumber(price).shiftedBy(-6)
+    var price = (await this.props.contrato.loteria.allValueNFTs(this.props.accountAddress).call())[0]
+    price = new BigNumber(price._hex).shiftedBy(-6)
     
     this.setState({
       mc: cantidad,
@@ -228,12 +228,11 @@ export default class nfts extends Component {
                             <button className="btn btn-secondary me-1" onClick={() => this.compra()}><i
                               className="fa fa-shopping-basket me-2"></i>Buy Ticket 100 TRX
                             </button>
-                            <button className="btn btn-secondary me-1" onClick={() => this.compra()}><i
-                              className="fa fa-shopping-basket me-2"></i>Buy Ticket with USDT
-                            </button>
-                            <button className="btn btn-secondary " onClick={() => this.compra()}><i
-                              className="fa fa-shopping-basket me-2"></i>Buy Ticket with DCT
-                            </button>
+                            <select defaultValue="trx" name="select">
+                              <option value="value1">TRX</option>
+                              <option value="value2">USDT</option>
+                              <option value="value3">DCT</option>
+                            </select>
                           </div>
                         </div>
 

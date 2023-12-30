@@ -26,6 +26,7 @@ class App extends Component {
       tronWeb: {
         installed: false,
         loggedIn: false,
+        contratosReady: false,
         web3: null
       },
       contrato: {
@@ -143,7 +144,7 @@ class App extends Component {
 
       document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+wallet+'</a>';
 
-      if(this.state.contrato.USDT == null ){
+      if(!tronWeb['contratosReady']){
 
         let web3Contracts = tronWeb['web3'];
 
@@ -188,7 +189,10 @@ class App extends Component {
           contrato.loteria = await web3Contracts.contract(abi_LOTERIA,cons.SC4);
         }
 
+        tronWeb['contratosReady'] = true;
+
         this.setState({
+          tronWeb: tronWeb,
           contrato: contrato
         });
 
@@ -205,6 +209,20 @@ class App extends Component {
         <div className="container">
           <TronLinkGuide installed={this.state.tronWeb.installed}  />
         </div>
+    );
+
+    if ( !this.state.tronWeb.contratosReady ) return (
+
+      <div className="container">
+        <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} >
+          <div className='col-sm-8'>
+              <h1>Preparing application</h1>
+              <p>
+                All smart contracts are being loaded so that the application works correctly, please wait a few moments
+              </p>
+          </div>
+        </div>
+      </div>
     );
 
     let url = window.location.href;

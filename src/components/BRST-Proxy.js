@@ -1148,7 +1148,49 @@ export default class Staking extends Component {
                     <div className="card-body ">
                       <div className="text-center">
                         <div className="media d-block">
-                          <img src="images/brst.png" width="100%" alt="brutus tron staking" />
+                          <img onClick={()=>{
+                            this.setState({
+                              titulo: "Donate to grow BRST",
+                              body: <>
+                              <input type="number" id="trxD"></input> TRX
+                              <br />
+                              <button type="button" className="btn btn-success" onClick={()=>{
+                                let donacion = document.getElementById('trxD').value
+                                donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
+                                this.props.contrato.BRST_TRX_Proxy.donate().send({callValue:donacion})
+                                .then(()=>{
+                                  this.setState({
+                                    titulo: "Thanks for Donate to grow BRST",
+                                    body: "Thank you for contributing to this great project that we have done to help the community grow. We truly appreciate it <3"
+                                  })
+                                  window.$("#mensaje-brst").modal("show");
+                                })
+                                
+                                }}>Donate</button>
+                              <br /><br/>
+                              <input type="number" id="brstD"></input> BRST
+                              <br />
+                              <button type="button" className="btn btn-success" onClick={()=>{
+                                let donacion = document.getElementById('brstD').value
+                                donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
+                                this.props.contrato.BRST_TRX_Proxy.donate(donacion).send()
+                                .then(()=>{
+                                  this.setState({
+                                    titulo: "Thanks for Donate to grow BRST",
+                                    body: "Thank you for contributing to this great project that we have done to help the community grow. We truly appreciate it <3"
+                                  })
+                                  window.$("#mensaje-brst").modal("show");
+                                })
+                                
+
+                                }}>Donate</button>
+                                
+                              </>
+                            })
+                    
+                            window.$("#mensaje-brst").modal("show");
+
+                          }} src="images/brst.png" width="100%" alt="brutus tron staking" />
                           <div className="media-content">
                             <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">Automated Staking</h4>
                             <span className="font-w600 text-black">Brutus</span>
