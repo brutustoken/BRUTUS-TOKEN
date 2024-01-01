@@ -124,7 +124,6 @@ contract PoolBRSTv4{
   mapping (address => uint256[]) public misSolicitudes;
 
   mapping (address => bool) public whiteList;
-  mapping (address => uint256) public disponible;
   uint256 public totalDisponible;
 
   uint256 public index;
@@ -156,10 +155,35 @@ contract PoolBRSTv4{
 
   function TRON_PAY_BALANCE() public view returns (uint256){
 
-    if(address(this).balance > totalDisponible){
-      return address(this).balance.sub(totalDisponible);
+    if(address(this).balance > TRON_RR.add(totalDisponible)){
+      return address(this).balance.sub(TRON_RR.add(totalDisponible));
     }else{
       return 0;
+    }
+  }
+
+  function TRON_PAY_BALANCE_FAST() public view returns (uint256){
+
+    if(address(this).balance > totalDisponible){
+
+      if( address(this).balance.sub(totalDisponible) > TRON_RR){
+        return TRON_RR;
+      }else{
+        return address(this).balance.sub(totalDisponible);
+      }
+      
+    }else{
+      return 0;
+    }
+
+  }
+
+  function TRON_PAY_BALANCE_WHITE() public view returns (uint256){
+
+    if(address(this).balance > totalDisponible){
+      return totalDisponible;
+    }else{
+      return address(this).balance;
     }
   }
 
@@ -233,14 +257,12 @@ contract PoolBRSTv4{
   function instaRetiro(uint256 _value) public returns(bool){
 
     uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
-    uint256 reserva = TRON_PAY_BALANCE();
+    
     if(!whiteList[msg.sender]){
       pago = pago.mul(precision-descuentoRapido).div(100);
-    }else{
-      reserva = disponible[msg.sender];
     }
     
-    if(reserva >= pago && TRON_RR >= pago){
+    if(TRON_PAY_BALANCE_FAST() >= pago){
       if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
       BRTS_Contract.redeem(_value);
       payable(msg.sender).transfer(pago);
@@ -248,7 +270,6 @@ contract PoolBRSTv4{
     }else{
       return false;
     }
-
 
   }
 
@@ -272,8 +293,6 @@ contract PoolBRSTv4{
 
   }
 
-  
-
   function retirarFrom(address _user) public returns(bool exitoso) {
 
     uint256 pago;
@@ -292,10 +311,20 @@ contract PoolBRSTv4{
       }
       
     }
-
     require(pago > 0 && totalBRST > 0);
 
-    if(TRON_PAY_BALANCE() >= pago){
+    uint256 toPay;
+    if(whiteList[_user]){
+      toPay = TRON_PAY_BALANCE_WHITE();
+    }else{
+      if(msg.sender == owner()){
+        toPay = TRON_PAY_BALANCE_FAST();
+      }else{
+        toPay = TRON_PAY_BALANCE();
+      }
+    }
+
+    if(toPay >= pago){
 
       misSolicitudes[_user] = nuevo;
 
@@ -324,8 +353,17 @@ contract PoolBRSTv4{
     }
 
     uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(10 ** BRTS_Contract.decimals());
-
-    if(TRON_PAY_BALANCE() >= pago){
+    uint256 toPay;
+    if(whiteList[peticiones[_id].wallet]){
+      toPay = TRON_PAY_BALANCE_WHITE();
+    }else{
+      if(msg.sender == owner()){
+        toPay = TRON_PAY_BALANCE_FAST();
+      }else{
+        toPay = TRON_PAY_BALANCE();
+      }
+    }
+    if(toPay >= pago){
 
       ( ,uint256 i) = misSolicitudes[peticiones[_id].wallet].findIndexOf(_id);
 
@@ -411,17 +449,13 @@ contract PoolBRSTv4{
       
   }
 
-  function asignarDisponible(address _wl_user ,uint256 _value) public{
+  function asignarDisponible(uint256 _value) public{
     onlyOwner();
-    require(whiteList[_wl_user]);
-    disponible[_wl_user] = disponible[_wl_user].add(_value);
     totalDisponible = totalDisponible.add(_value);
   }
 
-  function retirarDisponible(address _wl_user ,uint256 _value) public{
+  function retirarDisponible(uint256 _value) public{
     onlyOwner();
-    require(whiteList[_wl_user]);
-    disponible[_wl_user] = disponible[_wl_user].sub(_value);
     totalDisponible = totalDisponible.sub(_value);
   }
 

@@ -269,7 +269,7 @@ export default class EnergyRental extends Component {
     if(hash[0] === "e"){
       this.setState({
         titulo: "Transaction failed",
-        body: <>{hash[1]}
+        body: <>{hash[1].toString()}
         <br /><br />
         <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Close</button>
         </>

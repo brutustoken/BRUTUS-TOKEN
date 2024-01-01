@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 
+import abi_PROXY from "../abi/Proxy";
 import abi_POOLBRST from "../abi/PoolBRSTv4";
 import abi_LOTERIA from "../abi/Lottery";
 import cons from "../cons.js";
@@ -110,13 +111,7 @@ class App extends Component {
 
         }
 
-        //window.tronLink.tronWeb.setHeader({"TRON-PRO-API-KEY": 'your api key'});
-
-        
-        
       }
-
-      
 
       this.setState({
         accountAddress: wallet,
@@ -147,6 +142,7 @@ class App extends Component {
       if(!tronWeb['contratosReady']){
 
         let web3Contracts = tronWeb['web3'];
+        //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
         web3Contracts.setHeader(cons.TAK)
 
@@ -167,6 +163,7 @@ class App extends Component {
         }
 
         if(cons.ProxySC2 !== ""){
+          contrato.Proxy = await web3Contracts.contract(abi_PROXY,cons.ProxySC2);
           contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST,cons.ProxySC2);
 
         }
@@ -205,10 +202,9 @@ class App extends Component {
   render(){
 
     if ( !this.state.tronWeb.loggedIn || !this.state.tronWeb.installed ) return (
-
-        <div className="container">
-          <TronLinkGuide installed={this.state.tronWeb.installed}  />
-        </div>
+      <div className="container">
+        <TronLinkGuide installed={this.state.tronWeb.installed}  />
+      </div>
     );
 
     if ( !this.state.tronWeb.contratosReady ) return (

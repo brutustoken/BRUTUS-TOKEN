@@ -1,7 +1,7 @@
 var proxy = "https://cors.brutusservices.com/";
 
 const conProxy = true;
-const testnet = true; // revisar si está tesnet activada
+const testnet = false; // revisar si está tesnet activada
 
 if(!conProxy)proxy = "";
 
@@ -12,7 +12,7 @@ const PRU = "shasta1.";// shasta1. para inhabilitar red de pruebas
 
 var SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
 var SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking  BRST/TRX
-var ProxySC2 = "";// versionable POOL Staking  BRST/TRX
+var ProxySC2 = "TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55";// versionable POOL Staking  BRST/TRX
 var SC3 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk";//contrato Mixtery box
 var SC4 = "";//contrato sorteo de loteria 15 dias
 

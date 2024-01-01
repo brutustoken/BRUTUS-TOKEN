@@ -179,9 +179,15 @@ export default class Staking extends Component {
 
   async estado() {
 
+    //await this.props.contrato.Proxy.upgradeTo("TCnyY3h6bBzAJ3QZhbkemu72to5QUR911M").send();
+
+
+    //await this.props.contrato.BRST_TRX_Proxy.inicializar().send();
+
+
     //await this.props.contrato.BRST_TRX_Proxy.setWalletSR("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").send();
 
-    //await this.props.contrato.BRST_TRX_Proxy.gananciaDirecta("500000000").send();
+    //await this.props.contrato.BRST_TRX_Proxy.gananciaDirecta("796586090000").send();
     
     //await this.props.contrato.BRST_TRX_Proxy.newOwnerBRTS("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
 
@@ -209,15 +215,19 @@ export default class Staking extends Component {
 
     var contractEnergy = cuenta.EnergyLimit - cuenta.EnergyUsed
 
-    let inputs = [
-      //{type: 'address', value: window.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-      //{type: 'uint256', value: '1000000'}
-    ]
+    var eenergy = {};
 
-    let funcion = "staking()"
-    const options = {callValue:'1000000'}
-    var eenergy = await window.tronWeb.transactionBuilder.triggerConstantContract(window.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, window.tronWeb.address.toHex(this.props.accountAddress));
-    
+    if(balance >= 1){
+      let inputs = [
+        //{type: 'address', value: window.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+        //{type: 'uint256', value: '1000000'}
+      ]
+
+      let funcion = "staking()"
+      const options = {callValue:'1000000'}
+      eenergy = await window.tronWeb.transactionBuilder.triggerConstantContract(window.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, window.tronWeb.address.toHex(this.props.accountAddress));
+    }
+
     if(eenergy.energy_used){
       eenergy = eenergy.energy_used
     }else{
@@ -1067,8 +1077,6 @@ export default class Staking extends Component {
 
     this.root = root;
   }
-
-
 
   render() {
 
