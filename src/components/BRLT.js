@@ -60,8 +60,6 @@ export default class nfts extends Component {
 
     //await this.props.contrato.loteria.update_addressPOOL("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
 
-    //TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5
-
     var cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
     var totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
     var premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6

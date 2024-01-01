@@ -414,122 +414,116 @@ export default class Staking extends Component {
 
   async estadoV3() {
    
-     var deposito = await this.props.contrato.BRST_TRX.todasSolicitudes(this.props.accountAddress).call();
+    var deposito = await this.props.contrato.BRST_TRX.todasSolicitudes(this.props.accountAddress).call();
+
+    var myids = []
+    var myidsAll = []
  
-     var myids = []
-     var myidsAll = []
- 
-     for (let index = 0; index < deposito.completado.length; index++) {
-       if (!deposito.completado[index]) {
-         myids.push(parseInt(deposito.id[index]._hex));
-       }
- 
-       myidsAll.push(parseInt(deposito.id[index]._hex));
- 
-     }
- 
-     var deposits = await this.props.contrato.BRST_TRX.solicitudesPendientesGlobales().call();
-     var globDepositos = [];
- 
-     var tiempo = (await this.props.contrato.BRST_TRX.TIEMPO().call()).toNumber() * 1000;
- 
-     for (let index = 0; index < deposits.length; index++) {
- 
-       let pen = await this.props.contrato.BRST_TRX.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
-       let inicio = pen[1].toNumber() * 1000
- 
-       let pv = new Date(inicio)
- 
-       let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
- 
-       var boton = <></>
-       var boton2 = <><p className="mb-0 fs-14 text-white">Order in UnStaking process for the next 14 days, once this period is over, return and claim the corresponding TRX</p></>;
- 
-       if (this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX.owner().call()))) {
- 
-         boton2 = <button className="btn  btn-success text-white mb-2" onClick={async () => {
-         
-             await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
-             this.consultarPrecio();
-             this.estado();
-             this.setState({
-               titulo: "Status",
-               body: "Order completed!"
-             })
- 
-             window.$("#mensaje-brst").modal("show");
-          
- 
-         }}>
-           Complete order {" "} <i className="bi bi-check-lg"></i>
-         </button>
- 
-       }
- 
-       if (myids.includes(parseInt(deposits[index]._hex)) && false) {
-         boton = (<>
-           <button className="btn btn-danger ms-4 mb-2" title="You only have 24 hours to cancel your order after this time you will not be able to cancel it" onClick={async () => {
-             await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: 0 });
-             this.estado()
-           }}>
-             Cancel {" "} <i className="bi bi-x-lg"></i>
-           </button>
-           <p className="mb-0 fs-14">You only have 6 hours to cancel your order after this time you will not be able to cancel it</p>
-         </>)
-       }
- 
-       if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 16.75 && diasrestantes > 0) {
-         boton = (
-           <button className="btn btn-warning ms-4 mb-2 disabled" aria-disabled="true" >
-             Claim {" "} <i className="bi bi-exclamation-circle"></i>
-           </button>
-         )
-       }
- 
-       if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) {
- 
-         console.log(myidsAll.indexOf(parseInt(deposits[index]._hex)))
-         boton = (
-           <button className="btn btn-primary ms-4 mb-2" aria-disabled="true" onClick={async () => {
-             await this.props.contrato.BRST_TRX.retirar(myidsAll.indexOf(parseInt(deposits[index]._hex))).send();
-             this.estado()
-           }}>
-             Claim {" "} <i className="bi bi-award"></i>
-           </button>
-         )
-       }
- 
-       if (diasrestantes <= 0) {
-         diasrestantes = 0
-       }
- 
-       globDepositos[deposits.length - 1 - index] = (
- 
-         <div className="row mt-4 align-items-center" id={"sale-"+parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
-           <div className="col-sm-6 mb-3">
-             <p className="mb-0 fs-14">Sale N° {parseInt(deposits[index]._hex)} | <span style={{ color: "white" }}>{diasrestantes} Days left</span> </p>
-             <h4 className="fs-20 text-black">{parseInt(pen[3]._hex) / 10 ** 6} BRST X {parseInt(pen[2]._hex) / 10 ** 6} TRX</h4>
-             <p className="mb-0 fs-14">Price by unit: {(parseInt(pen[2]._hex)/10**6)/(parseInt(pen[3]._hex)/10**6)} TRX</p>
-           </div>
-           <div className="col-sm-6 mb-1">
- 
-             {boton2}
-             {boton}
-           </div>
-           <div className="col-12 mb-3">
-             <p className="mb-0 fs-14"><span className="text-white">Application date:</span> {pv.toString()}</p>
-             <hr></hr>
-           </div>
- 
-         </div>
-       )
- 
+    for (let index = 0; index < deposito.completado.length; index++) {
+      if (!deposito.completado[index]) {
+        myids.push(parseInt(deposito.id[index]._hex));
       }
+
+      myidsAll.push(parseInt(deposito.id[index]._hex));
+
+    }
  
-     this.setState({
-       globDepositosV3: globDepositos,
-       solicitudesV3: globDepositos.length,
-     });
+    var deposits = await this.props.contrato.BRST_TRX.solicitudesPendientesGlobales().call();
+    var globDepositos = [];
+
+    var tiempo = (await this.props.contrato.BRST_TRX.TIEMPO().call()).toNumber() * 1000;
+
+    const admin =  window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX.owner().call()));
+ 
+    for (let index = 0; index < deposits.length; index++) {
+
+      let pen = await this.props.contrato.BRST_TRX.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
+      let inicio = pen[1].toNumber() * 1000
+
+      let pv = new Date(inicio)
+
+      let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
+
+      var boton = <></>
+      var boton2 = <><p className="mb-0 fs-14 text-white">Order in UnStaking process for the next 14 days, once this period is over, return and claim the corresponding TRX</p></>;
+
+      if (this.props.accountAddress === admin) {
+
+        boton2 = <button className="btn  btn-success text-white mb-2" onClick={async () => {
+        
+            await this.props.contrato.BRST_TRX.completarSolicitud(parseInt(deposits[index]._hex)).send({ callValue: parseInt(pen[2]._hex) });
+            this.consultarPrecio();
+            this.estado();
+            this.setState({
+              titulo: "Status",
+              body: "Order completed!"
+            })
+
+            window.$("#mensaje-brst").modal("show");
+        
+
+        }}>
+          Complete order {" "} <i className="bi bi-check-lg"></i>
+        </button>
+
+      }
+
+
+      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 16.75 && diasrestantes > 0) {
+        boton = (
+          <button className="btn btn-warning ms-4 mb-2 disabled" aria-disabled="true" >
+            Claim {" "} <i className="bi bi-exclamation-circle"></i>
+          </button>
+        )
+      }
+
+      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) {
+
+        console.log(myidsAll.indexOf(parseInt(deposits[index]._hex)))
+        boton = (
+          <button className="btn btn-primary ms-4 mb-2" aria-disabled="true" onClick={async () => {
+            await this.props.contrato.BRST_TRX.retirar(myidsAll.indexOf(parseInt(deposits[index]._hex))).send();
+            this.estado()
+          }}>
+            Claim {" "} <i className="bi bi-award"></i>
+          </button>
+        )
+      }
+
+      if (diasrestantes <= 0) {
+        diasrestantes = 0
+      }
+
+      if(myids.includes(parseInt(deposits[index]._hex)) || this.props.accountAddress === admin){
+
+        globDepositos.push(
+
+          <div className="row mt-4 align-items-center" id={"sale-"+parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
+            <div className="col-sm-6 mb-3">
+              <p className="mb-0 fs-14">Sale N° {parseInt(deposits[index]._hex)} | <span style={{ color: "white" }}>{diasrestantes} Days left</span> </p>
+              <h4 className="fs-20 text-black">{parseInt(pen[3]._hex) / 10 ** 6} BRST X {parseInt(pen[2]._hex) / 10 ** 6} TRX</h4>
+              <p className="mb-0 fs-14">Price by unit: {(parseInt(pen[2]._hex)/10**6)/(parseInt(pen[3]._hex)/10**6)} TRX</p>
+            </div>
+            <div className="col-sm-6 mb-1">
+  
+              {boton2}
+              {boton}
+            </div>
+            <div className="col-12 mb-3">
+              <p className="mb-0 fs-14"><span className="text-white">Application date:</span> {pv.toString()}</p>
+              <hr></hr>
+            </div>
+  
+          </div>
+        )
+      }
+
+    }
+
+    this.setState({
+      globDepositosV3: globDepositos,
+      solicitudesV3: globDepositos.length,
+    });
  
  
    }
@@ -1157,7 +1151,7 @@ export default class Staking extends Component {
                               <button type="button" className="btn btn-success" onClick={()=>{
                                 let donacion = document.getElementById('trxD').value
                                 donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
-                                this.props.contrato.BRST_TRX_Proxy.donate().send({callValue:donacion})
+                                this.props.contrato.BRST_TRX_Proxy['donate()']().send({callValue:donacion})
                                 .then(()=>{
                                   this.setState({
                                     titulo: "Thanks for Donate to grow BRST",
@@ -1173,7 +1167,7 @@ export default class Staking extends Component {
                               <button type="button" className="btn btn-success" onClick={()=>{
                                 let donacion = document.getElementById('brstD').value
                                 donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
-                                this.props.contrato.BRST_TRX_Proxy.donate(donacion).send()
+                                this.props.contrato.BRST_TRX_Proxy['donate(uint256)'](donacion.toString(10)).send()
                                 .then(()=>{
                                   this.setState({
                                     titulo: "Thanks for Donate to grow BRST",
