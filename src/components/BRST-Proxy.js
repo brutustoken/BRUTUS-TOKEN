@@ -74,7 +74,6 @@ export default class Staking extends Component {
       enPool: 0,
       solicitado: 0,
       data: [],
-      precioBRST: "#.###",
       solicitudes: 0,
       solicitudesV3: 0,
       temporalidad: "day",
@@ -181,9 +180,7 @@ export default class Staking extends Component {
 
     //await this.props.contrato.Proxy.upgradeTo("TCnyY3h6bBzAJ3QZhbkemu72to5QUR911M").send();
 
-
     //await this.props.contrato.BRST_TRX_Proxy.inicializar().send();
-
 
     //await this.props.contrato.BRST_TRX_Proxy.setWalletSR("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").send();
 
@@ -195,10 +192,11 @@ export default class Staking extends Component {
 
     //await this.props.contrato.BRST_TRX_Proxy.setWhiteList("TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR").send();
 
-   
+    await this.consultarPrecio();
+
     var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
     .then((result) => { return result.toNumber() / 1e6 })
-    .catch((e)=>{console.error(e);return 0})
+    .catch(()=>{;return 0})
 
     this.setState({
       misBRST: misBRST
@@ -213,7 +211,15 @@ export default class Staking extends Component {
 
     var cuenta = await window.tronWeb.trx.getAccountResources(origin.origin_address)
 
-    var contractEnergy = cuenta.EnergyLimit - cuenta.EnergyUsed
+    var contractEnergy = 0
+
+    if(cuenta.EnergyLimit){
+      contractEnergy = cuenta.EnergyLimit
+    }
+
+    if(cuenta.EnergyUsed){
+      contractEnergy -= cuenta.EnergyUsed
+    }
 
     var eenergy = {};
 
@@ -225,7 +231,8 @@ export default class Staking extends Component {
 
       let funcion = "staking()"
       const options = {callValue:'1000000'}
-      eenergy = await window.tronWeb.transactionBuilder.triggerConstantContract(window.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, window.tronWeb.address.toHex(this.props.accountAddress));
+      eenergy = await window.tronWeb.transactionBuilder.triggerConstantContract(window.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, window.tronWeb.address.toHex(this.props.accountAddress))
+      .catch(()=>{return {}})
     }
 
     if(eenergy.energy_used){
@@ -241,17 +248,23 @@ export default class Staking extends Component {
       useTrx = 21
     }
 
-    let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
-    consulta = (await consulta.json()).Data
 
-    var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value) ) * 100) / this.state.tiempoPromediado
+    let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
+    .then((r)=>r.json().Data)
+    .catch((e)=>{ return false })
+
+    if(consulta){
+      var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value) ) * 100) / this.state.tiempoPromediado
+      this.setState({
+        dataBRST: consulta,
+        promE7to1day: promE7to1day
+      })
+    }
 
     this.setState({
       useTrx: useTrx,
       contractEnergy: contractEnergy,
       balanceTRX: balance,
-      dataBRST: consulta,
-      promE7to1day: promE7to1day
     })
 
     var MIN_DEPOSIT = await this.props.contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
@@ -272,8 +285,6 @@ export default class Staking extends Component {
         valueBRUT: ""
       })
     }
-
-    var precioBRST = await this.consultarPrecio();
 
     var deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(accountAddress).call();
     var myids = []
@@ -405,7 +416,6 @@ export default class Staking extends Component {
       balanceBRUT: balanceBRUT,
       balanceTRX: balance,
       wallet: accountAddress,
-      precioBRST: precioBRST,
       espera: tiempo,
       enBrutus: enBrutus.toNumber() / 1e6,
       tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
@@ -604,12 +614,11 @@ export default class Staking extends Component {
   consultaPrecio() {
 
     fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
-      .then(r => { return r.json(); })
-      .then(data => {
+      .then(r => { return r.json().Data; })
+      .then(r => {
 
         this.setState({
-          precioBrst: data.Data.trx,
-          varBrst: data.Data.v24h
+          varBrst: r.v24h
         })
 
       })
@@ -631,7 +640,7 @@ export default class Staking extends Component {
 
   handleChangeBRUT(event) {
     let dato = event.target.value;
-    let oper = dato * this.state.precioBRST;
+    let oper = dato * this.state.precioBrst;
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
       valueBRUT: dato,
@@ -641,7 +650,7 @@ export default class Staking extends Component {
 
   handleChangeUSDT(event) {
     let dato = event.target.value;
-    let oper = dato / this.state.precioBRST
+    let oper = dato / this.state.precioBrst
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
       valueUSDT: event.target.value,
@@ -673,7 +682,7 @@ export default class Staking extends Component {
 
   llenarBRST() {
     document.getElementById('amountBRUT').value = this.state.balanceBRUT;
-    let oper = this.state.balanceBRUT * this.state.precioBRST;
+    let oper = this.state.balanceBRUT * this.state.precioBrst;
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
       valueBRUT: this.state.balanceBRUT,
@@ -684,7 +693,7 @@ export default class Staking extends Component {
 
   llenarUSDT() {
     document.getElementById('amountUSDT').value = this.state.balanceTRX;
-    let oper = this.state.balanceTRX / this.state.precioBRST
+    let oper = this.state.balanceTRX / this.state.precioBrst
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
       valueUSDT: this.state.balanceTRX,
@@ -695,10 +704,11 @@ export default class Staking extends Component {
   async consultarPrecio() {
 
     var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
-    precio = precio.toNumber() / 1e6;
+    precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
+    console.log(precio)
 
     this.setState({
-      precioBRST: precio
+      precioBrst: precio
     });
 
     return precio;
@@ -971,14 +981,20 @@ export default class Staking extends Component {
     async function generateDatas(count) {
 
       let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=" + temporalidad + "&limite=" + count)
-      consulta = (await consulta.json()).Data
+      .then((r)=>r.json().Data)
+      .catch(()=>{ return false})
 
-      let data = []
-      for (var i = consulta.length - 1; i >= 0; --i) {
-        data.push(generateData(consulta[i]));
+      if(consulta){
+        let data = []
+        for (var i = consulta.length - 1; i >= 0; --i) {
+          data.push(generateData(consulta[i]));
+        }
+
+        return data;
+      }else{
+        return false;
       }
-
-      return data;
+      
     }
 
     // Create axes
@@ -1065,8 +1081,10 @@ export default class Staking extends Component {
 
     // Generate and set data  
     let data = await generateDatas(cantidad);
-    series.data.setAll(data);
-    sbSeries.data.setAll(data);
+    if(data){
+      series.data.setAll(data);
+      sbSeries.data.setAll(data);
+    }
 
     // Make stuff animate on load
     // https://www.amcharts.com/docs/v5/concepts/animations/
@@ -1111,7 +1129,7 @@ export default class Staking extends Component {
                         <div className="d-flex align-items-center justify-content-between flex-wrap">
                           <div className="price-content">
                             <span className="fs-18 d-block mb-2">Price</span>
-                            <h4 className="fs-20 font-w600">{this.state.precioBRST} TRX</h4>
+                            <h4 className="fs-20 font-w600">{this.state.precioBrst} TRX</h4>
                           </div>
                           <div className="price-content">
                             <span className="fs-14 d-block mb-2">24h% change</span>

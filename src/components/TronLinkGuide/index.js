@@ -64,8 +64,7 @@ export default class TronLinkGuide extends Component {
             </>);
         }
 
-        
-
+    
         return (<div className="row">
             <div className="col-xl-12">
                 <div className="card">

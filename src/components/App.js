@@ -8,7 +8,6 @@ import cons from "../cons.js";
 import Inicio from "./Inicio.js";
 
 import TronLinkGuide from "./TronLinkGuide/index.js";
-import Construccion from "./construccion.js";
 
 import Home from "./BRUT.js";
 import Staking from "./BRST.js";
@@ -55,14 +54,11 @@ class App extends Component {
     this.intervalo();
 
     window.addEventListener('message', (e) => {
-
       if (e.data.message && e.data.message.action === "accountsChanged") {
         if(e.data.message.data.address){
           this.conectar("evento");
         }
       }
-
-     
     })
 
   }
@@ -70,7 +66,7 @@ class App extends Component {
   intervalo(){
     var interval = setInterval(() => {
       if(!this.state.tronWeb.loggedIn){
-        this.conectar("intervalo");
+        this.conectar();
       }else{
         clearInterval(this.state.interval)
         this.setState({interval: null})
@@ -81,9 +77,7 @@ class App extends Component {
 
   }
 
-  async conectar(from) {
-
-    console.log("EJECUCION: "+from)
+  async conectar() {
 
     let tronWeb = this.state.tronWeb;
     let wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
@@ -143,46 +137,50 @@ class App extends Component {
 
         let web3Contracts = tronWeb['web3'];
         //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
-
         web3Contracts.setHeader(cons.TAK)
-
         let contrato = {};
 
-        if(cons.SC !== ""){
-          contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
-        }
-        if(cons.USDT !== ""){
-          contrato.USDT = await web3Contracts.contract().at(cons.USDT);
-        }
-        if(cons.BRUT !== ""){
+        let url = window.location.href;
+        console.log(url)
+
+
+        if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
+        if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
+
+        if(url === window.location.href)url=""
+
+        if(cons.BRUT !== "" && (url === "" || url === "brut")){
           contrato.BRUT =  await web3Contracts.contract().at(cons.BRUT);
         }
+        if(cons.USDT !== "" && (url === "" || url === "brut")){
+          contrato.USDT = await web3Contracts.contract().at(cons.USDT);
+        }
+        if(cons.SC !== "" && (url === "" || url === "brut")){
+          contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
+        }
         
-        if(cons.SC2 !== ""){
+        if(cons.SC2 !== "" && (url === "" || url === "brst")){
           contrato.BRST_TRX = await web3Contracts.contract().at(cons.SC2);
         }
-
-        if(cons.ProxySC2 !== ""){
+        if(cons.ProxySC2 !== "" && (url === "" || url === "brst")){
           contrato.Proxy = await web3Contracts.contract(abi_PROXY,cons.ProxySC2);
           contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST,cons.ProxySC2);
-
         }
-
-        if(cons.BRST !== ""){
+        if(cons.BRST !== "" && (url === "" || url === "brst")){
           contrato.BRST = await web3Contracts.contract().at(cons.BRST);
         }
         
-        if(cons.BRGY !== ""){
+        if(cons.BRGY !== "" && (url === "" || url === "brgy")){
           contrato.BRGY = await web3Contracts.contract().at(cons.BRGY);
         }
-        if(cons.SC3 !== ""){
+        if(cons.SC3 !== "" && (url === "" || url === "brgy")){
           contrato.MBOX =  await web3Contracts.contract().at(cons.SC3);
         }
 
-        if(cons.BRLT !== ""){
+        if(cons.BRLT !== "" && (url === "" || url === "brlt")){
           contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
         }
-        if(cons.SC4 !== ""){
+        if(cons.SC4 !== "" && (url === "" || url === "brlt")){
           contrato.loteria = await web3Contracts.contract(abi_LOTERIA,cons.SC4);
         }
 
@@ -195,8 +193,6 @@ class App extends Component {
 
       }
     }
-
-
   }
 
   render(){
@@ -210,12 +206,18 @@ class App extends Component {
     if ( !this.state.tronWeb.contratosReady ) return (
 
       <div className="container">
-        <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} >
-          <div className='col-sm-8'>
-              <h1>Preparing application</h1>
-              <p>
-                All smart contracts are being loaded so that the application works correctly, please wait a few moments
-              </p>
+        <div className="row">
+          <div className="col-xl-12">
+            <div className="card">
+              <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} >
+                <div className='col-sm-8'>
+                  <h1>Tronlik connected preparing application</h1>
+                  <p>
+                    All smart contracts are being loaded so that the application works correctly, please wait a few moments
+                  </p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -227,47 +229,30 @@ class App extends Component {
     if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
 
     switch (url) {
-      case "usd":
-      case "usdt":
-      case "token":
       case "brut":
         return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
-      case "trx":
-      case "tron":
       case "brst":
         return <StakingV2 accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
       case "brst_old":
         return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
-      case "nft":
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
 
       case "ebot":
-      case "EBOT":
-      case "bot":
-      case "energia":
-      case "anchodebanda":
-      case "energy":
-      case "bandwidth":
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
       
       case "pro":
-        return <Construccion/>
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
 
       case "brlt":
-      case "suerte":
-      case "loteria":
-        //return <Construccion/>
         return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
 
       default:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
     }
-
-
 
   }
   
