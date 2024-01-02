@@ -58,9 +58,9 @@ class App extends Component {
 
     window.addEventListener('message', (e) => {
       if (e.data.message && e.data.message.action) {
-        console.log(e.data.message.action)
-
+        //console.log(e.data.message.action)
       }
+
       if(e.data.message && e.data.message.action === "tabReply"){
         if(!iniciado){
           this.conectar();
@@ -155,8 +155,6 @@ class App extends Component {
         let contrato = {};
 
         let url = window.location.href;
-        console.log(url)
-
 
         if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
         if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];

@@ -136,15 +136,15 @@ export default class Inicio extends Component {
 		});
 
 		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
-		.then(r => { return r.json().Data; })
-		.then(data => {
+		.then(async(r) => (await r.json()).Data)
+		.then((r) => {
 
 			this.setState({
-				varBrst: data.Data.v24h,
-				precioBrstUSD: data.Data.usd
+				varBrst: r.v24h,
+				precioBrstUSD: r.usd
 			})
 
-		}).catch(err => {
+		}).catch((err) => {
 			console.log(err);
 
 		});

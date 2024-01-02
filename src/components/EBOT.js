@@ -394,9 +394,25 @@ export default class EnergyRental extends Component {
     const amountButtons = amounts.map(amounts => <button key={"Amb-" + amounts.text} id="ra1" type="button" className="btn btn-primary"
       style={{ margin: "auto" }} onClick={() => { document.getElementById("amount").value = amounts.amount; this.handleChangeEnergy({ target: { value: amounts.amount } }) }}>{amounts.text}</button>)
 
+    let medidor = (<><p className="font-14">Bandwidth: {(this.state.available_bandwidth).toLocaleString('en-US')}</p>
+    <div className="progress" style={{ margin: "5px" }}>
+      <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool) + "%" }}
+        aria-valuenow={(this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool)} aria-valuemin="0" aria-valuemax="100">
+      </div>
+    </div></>)
+
+    if(this.state.recurso === "energy"){
+      medidor = (<><p className="font-14">Energy: {(this.state.available_energy).toLocaleString('en-US')}</p>
+      <div className="progress" style={{ margin: "5px" }}>
+        <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_energy * 100 / this.state.total_energy_pool) + "%" }}
+          aria-valuenow={(this.state.available_energy * 100 / this.state.total_energy_pool)} aria-valuemin="0" aria-valuemax="100">
+        </div>
+      </div></>)
+    }
+
     return (<>
 
-      <div className="row align-items-center">
+      <div className="row ">
         <div className="col-lg-6 col-sm-12 m-b30">
           <div className="info-box text-center">
             <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
@@ -460,23 +476,8 @@ export default class EnergyRental extends Component {
                     <form className="dzForm" method="" action="">
                       <div className="dzFormMsg"></div>
                       <input type="hidden" className="form-control" name="dzToDo" value="Contact" />
-                      <p className="font-14">Energy: {(this.state.available_energy).toLocaleString('en-US')}</p>
-                      <div className="progress" style={{ margin: "5px" }}>
-                        <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_energy * 100 / this.state.total_energy_pool) + "%" }}
-                          aria-valuenow={(this.state.available_energy * 100 / this.state.total_energy_pool)} aria-valuemin="0" aria-valuemax="100">
-                        </div>
-                      </div>
-                      <p className="font-14">Bandwidth: {(this.state.available_bandwidth).toLocaleString('en-US')}</p>
-                      <div className="progress" style={{ margin: "5px" }}>
-                        <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool) + "%" }}
-                          aria-valuenow={(this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool)} aria-valuemin="0" aria-valuemax="100">
-                        </div>
-                      </div>
-                      <p className="font-14">Resource wallet</p>
-                      <div className="col-xl-12 mb-3 mb-md-4">
-                        <input name="dzFirstName" required type="text"
-                          className="form-control" placeholder="Tron wallet" onChange={this.handleChangeWallet} />
-                      </div>
+                      {medidor}
+                      
                       <p className="font-14">Resource amount</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
                         <input id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder="32000" />
@@ -500,15 +501,24 @@ export default class EnergyRental extends Component {
                             style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "14d"; this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
                         </div>
                       </div>
-                      <p className="font-14">Price</p>
-                      <div className="col-xl-12 mb-3 mb-md-4">
-                        <input name="dzPhoneNumber" placeholder={"Calculating..."} value={this.state.precio} type="text" className="form-control" readOnly />
-                      </div>
-                      <div className="d-flex justify-content-xl-center">
-                        <button name="submit" type="button" value="Submit"
+                      
+                      <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
+                        <p style={{ width: "33%",color:"black" }} className="font-14">Price</p>
+                        
+                        <input style={{ width: "67%" }}  name="dzPhoneNumber" placeholder={"Calculating..."} value={this.state.precio} type="text" className="form-control" readOnly />
+                        
+                        <div className="d-flex justify-content-xl-center">
+                          <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ margin: "10px", width: "600px", height: "45px" }} onClick={() => this.preCompra()}>Buy Now
-                        </button>
+                          style={{ margin: "10px", width: "200px", height: "45px" }} onClick={() => this.preCompra()}>Buy Now
+                          </button>
+                        </div>
+                      </div>
+                      
+                      <p className="font-14">Send resources for another wallet</p>
+                      <div className="col-xl-12 mb-3 mb-md-4">
+                        <input name="dzFirstName" required type="text"
+                          className="form-control" placeholder={this.props.accountAddress} onChange={this.handleChangeWallet} />
                       </div>
 
                     </form>

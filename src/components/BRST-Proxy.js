@@ -60,7 +60,7 @@ export default class Staking extends Component {
 
     this.state = {
 
-      minCompra: 10,
+      minCompra: 1,
       minventa: 1,
       deposito: "Loading...",
       wallet: "Loading...",
@@ -250,7 +250,7 @@ export default class Staking extends Component {
 
 
     let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
-    .then((r)=>r.json().Data)
+    .then(async(r)=> (await r.json()).Data)
     .catch((e)=>{ return false })
 
     if(consulta){
@@ -614,7 +614,7 @@ export default class Staking extends Component {
   consultaPrecio() {
 
     fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
-      .then(r => { return r.json().Data; })
+      .then(async(r) => (await r.json()).Data)
       .then(r => {
 
         this.setState({
@@ -705,7 +705,6 @@ export default class Staking extends Component {
 
     var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
     precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
-    console.log(precio)
 
     this.setState({
       precioBrst: precio
@@ -981,7 +980,7 @@ export default class Staking extends Component {
     async function generateDatas(count) {
 
       let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=" + temporalidad + "&limite=" + count)
-      .then((r)=>r.json().Data)
+      .then(async(r)=>(await r.json()).Data)
       .catch(()=>{ return false})
 
       if(consulta){
