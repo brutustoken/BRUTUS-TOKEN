@@ -16,6 +16,7 @@ import Nft from "./BRGY/index.js";
 import LOTERIA from "./BRLT.js";
 import EBOT from "./EBOT.js";
 
+const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
 class App extends Component {
   constructor(props) {
@@ -51,12 +52,25 @@ class App extends Component {
 
   async componentDidMount() {
 
+    let iniciado = false
+
     this.intervalo();
 
     window.addEventListener('message', (e) => {
+      if (e.data.message && e.data.message.action) {
+        console.log(e.data.message.action)
+
+      }
+      if(e.data.message && e.data.message.action === "tabReply"){
+        if(!iniciado){
+          this.conectar();
+          iniciado = true;
+        }
+      }
+
       if (e.data.message && e.data.message.action === "accountsChanged") {
         if(e.data.message.data.address){
-          this.conectar("evento");
+          this.conectar();
         }
       }
     })
@@ -152,14 +166,14 @@ class App extends Component {
         if(cons.BRUT !== "" && (url === "" || url === "brut")){
           contrato.BRUT =  await web3Contracts.contract().at(cons.BRUT);
         }
-        if(cons.USDT !== "" && (url === "" || url === "brut")){
+        if(cons.USDT !== "" && (url === "brut")){
           contrato.USDT = await web3Contracts.contract().at(cons.USDT);
         }
-        if(cons.SC !== "" && (url === "" || url === "brut")){
+        if(cons.SC !== "" && (url === "brut")){
           contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
         }
         
-        if(cons.SC2 !== "" && (url === "" || url === "brst")){
+        if(cons.SC2 !== "" && (url === "brst")){
           contrato.BRST_TRX = await web3Contracts.contract().at(cons.SC2);
         }
         if(cons.ProxySC2 !== "" && (url === "" || url === "brst")){
@@ -173,14 +187,14 @@ class App extends Component {
         if(cons.BRGY !== "" && (url === "" || url === "brgy")){
           contrato.BRGY = await web3Contracts.contract().at(cons.BRGY);
         }
-        if(cons.SC3 !== "" && (url === "" || url === "brgy")){
+        if(cons.SC3 !== "" && (url === "brgy")){
           contrato.MBOX =  await web3Contracts.contract().at(cons.SC3);
         }
 
         if(cons.BRLT !== "" && (url === "" || url === "brlt")){
           contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
         }
-        if(cons.SC4 !== "" && (url === "" || url === "brlt")){
+        if(cons.SC4 !== "" && (url === "brlt")){
           contrato.loteria = await web3Contracts.contract(abi_LOTERIA,cons.SC4);
         }
 
@@ -211,7 +225,7 @@ class App extends Component {
             <div className="card">
               <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} >
                 <div className='col-sm-8'>
-                  <h1>Tronlik connected preparing application</h1>
+                  <h1>Tronlik connected preparing application {imgLoading}</h1>
                   <p>
                     All smart contracts are being loaded so that the application works correctly, please wait a few moments
                   </p>

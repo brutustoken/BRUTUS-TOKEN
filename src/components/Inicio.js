@@ -1,5 +1,7 @@
 import React, { Component } from "react";
 
+const BigNumber = require('bignumber.js');
+
 export default class Inicio extends Component {
 	constructor(props) {
 		super(props);
@@ -119,61 +121,60 @@ export default class Inicio extends Component {
 	}
 
 	consultaPrecios() {
-		var API = process.env.REACT_APP_API_URL;
+		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brut')
+		.then(response => { return response.json(); })
+		.then(data => {
 
-		var apiUrl = API + 'api/v1/precio/brut';
-		fetch(apiUrl)
-			.then(response => { return response.json(); })
-			.then(data => {
+			this.setState({
+				precioBrut: data.Data.usd,
+				varBrut: data.Data.v24h,
+			})
 
-				this.setState({
-					precioBrut: data.Data.usd,
-					varBrut: data.Data.v24h,
-				})
+		}).catch(err => {
+			console.log(err);
 
-			}).catch(err => {
-				console.log(err);
+		});
 
-			});
+		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
+		.then(r => { return r.json().Data; })
+		.then(data => {
 
-		apiUrl = API + 'api/v1/precio/brst';
-		fetch(apiUrl)
-			.then(response => { return response.json(); })
-			.then(data => {
+			this.setState({
+				varBrst: data.Data.v24h,
+				precioBrstUSD: data.Data.usd
+			})
 
-				this.setState({
-					precioBrst: data.Data.trx,
-					varBrst: data.Data.v24h,
-					precioBrstUSD: data.Data.usd
-				})
+		}).catch(err => {
+			console.log(err);
 
-			}).catch(err => {
-				console.log(err);
-
-			});
+		});
 
 	}
 
 	async estado() {
 
 		//console.log(window.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
+		var precioBrst = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
+		precioBrst = new BigNumber(precioBrst.toNumber()).shiftedBy(-6).toNumber();
+		this.setState({
+			precioBrst: precioBrst,
+		})
 
 		this.props.contrato.BRGY.totalSupply().call()
-			.then((result) => { this.setState({ BRGY: result.toNumber() }) })
-			.catch(console.error)
+		.then((result) => { this.setState({ BRGY: result.toNumber() }) })
+		.catch(console.error)
 
 		this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
-			.catch(console.error)
+		.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
+		.catch(console.error)
 
 		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
-			.catch(console.error)
+		.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
+		.catch(console.error)
 
 		this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
-			.catch(console.error)
-
+		.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+		.catch(console.error)
 
 
 	}
