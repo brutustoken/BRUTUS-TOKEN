@@ -101,7 +101,8 @@ export default class Staking extends Component {
       balanceBRUT: 0,
       balanceTRX: 0,
       globDepositos: [],
-      globDepositosV3: []
+      globDepositosV3: [],
+      eenergy: 1
 
 
     };
@@ -202,14 +203,11 @@ export default class Staking extends Component {
       misBRST: misBRST
     })
 
-    var accountAddress = this.props.accountAddress;
 
     //var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
     var balance = await window.tronWeb.trx.getUnconfirmedBalance()/10**6;
 
-    var origin = await window.tronWeb.trx.getContract(this.props.contrato.BRST_TRX_Proxy.address)
-
-    var cuenta = await window.tronWeb.trx.getAccountResources(origin.origin_address)
+    var cuenta = await window.tronWeb.trx.getAccountResources(this.props.accountAddress)
 
     var contractEnergy = 0
 
@@ -271,10 +269,10 @@ export default class Staking extends Component {
     
     MIN_DEPOSIT = parseInt(MIN_DEPOSIT._hex) / 10 ** 6;
 
-    var aprovadoBRUT = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+    var aprovadoBRUT = await this.props.contrato.BRST.allowance(this.props.accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
     aprovadoBRUT = parseInt(aprovadoBRUT._hex);
 
-    var balanceBRUT = await this.props.contrato.BRST.balanceOf(accountAddress).call();
+    var balanceBRUT = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
     balanceBRUT = parseInt(balanceBRUT._hex) / 10 ** 6;
 
     if (aprovadoBRUT > 0) {
@@ -286,7 +284,7 @@ export default class Staking extends Component {
       })
     }
 
-    var deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(accountAddress).call();
+    var deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(this.props.accountAddress).call();
     var myids = []
 
     for (let index = 0; index < deposito.length; index++) {
@@ -415,14 +413,15 @@ export default class Staking extends Component {
       depositoBRUT: aprovadoBRUT,
       balanceBRUT: balanceBRUT,
       balanceTRX: balance,
-      wallet: accountAddress,
+      wallet: this.props.accountAddress,
       espera: tiempo,
       enBrutus: enBrutus.toNumber() / 1e6,
       tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
       enPool: enPool.toNumber() / 1e6,
       solicitado: solicitado.toNumber() / 1e6,
       solicitudes: globDepositos.length,
-      dias: diasDeEspera
+      dias: diasDeEspera,
+      eenergy: eenergy
     });
 
     if(parseInt(this.state.resultCalc) === 0){
@@ -433,6 +432,7 @@ export default class Staking extends Component {
   }
 
   async estadoV3() {
+    /*
    
     var deposito = await this.props.contrato.BRST_TRX.todasSolicitudes(this.props.accountAddress).call();
 
@@ -545,8 +545,8 @@ export default class Staking extends Component {
       solicitudesV3: globDepositos.length,
     });
  
- 
-   }
+    */
+  }
 
   subeobaja(valor) {
     var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
@@ -714,8 +714,6 @@ export default class Staking extends Component {
 
   };
 
-  
-
   async compra() {
 
     const { minCompra } = this.state;
@@ -791,13 +789,37 @@ export default class Staking extends Component {
 
   async sell() {
 
+    var amount = document.getElementById("amountUSDT").value;
+    amount = new BigNumber(amount).multipliedBy(95).div(100);
+
+    var amountNorm = document.getElementById("amountUSDT").value;
+    amountNorm = new BigNumber(amountNorm)
+
+    var retiroRapido = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_FAST().call()
+    retiroRapido = new BigNumber(retiroRapido._hex).shiftedBy(-6)
+    let primerBoton = <></>
+
+    if(amount > retiroRapido){
+      primerBoton = (<>
+        <button type="button" id="fastw" className="btn btn-secondary" disabled >Fast Withdrawal {amount.toNumber()} TRX</button><br/>
+          you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a 5% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
+        <br/><br/>
+        
+        </>)
+    }else{
+      primerBoton = (<>
+      <button type="button" id="fastw" className="btn btn-warning" onClick={()=>{this.venta(true)}}>Fast Withdrawal {amount.toNumber()} TRX</button><br/>
+        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a 5% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
+      <br/><br/>
+      
+      </>)
+    }
+
     this.setState({
       titulo: "Select Your Method",
       body: <>We now have two withdrawal methods:<br/>
-      <button type="button" className="btn btn-warning" onClick={()=>{this.venta(true)}}>Fast Withdrawal</button><br/>
-        you can request up to {2000} TRX for instant withdrawal with a 5% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
-      <br/><br/><br/>
-      <button type="button" className="btn btn-success" onClick={()=>{this.venta(false)}}>Regular Withdrawal</button><br/>
+      {primerBoton}
+      <button type="button" className="btn btn-success"  onClick={()=>{this.venta(false)}}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br/>
        you can make a withdrawal request that you can claim from the contract in its entirety in 17 days.
       </>
     })
@@ -831,10 +853,21 @@ export default class Staking extends Component {
         document.getElementById("amountBRUT").value = "";
 
         if (rapida) {
+          this.setState({
+            titulo: "You select fast withdrawal",
+            body: <>
+            The request has been successfully processed! Your funds are on their way. Thank you for choosing our speedy service.
+            </>
+          })
+      
+          window.$("#mensaje-brst").modal("show");
           await this.props.contrato.BRST_TRX_Proxy.instaRetiro(amount).send();
          
         }else{
           await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
+          
+          window.$("#mensaje-brst").modal("hide");
+          document.getElementById("request-brst").scrollIntoView();
         }
 
       } else {
@@ -1229,7 +1262,7 @@ export default class Staking extends Component {
                     <div className="card-header pb-0 border-0 flex-wrap">
                       <div>
                         <h4 className="heading mb-0">Exchange V4</h4>
-                        <p className="mb-0 fs-14">Contract energy: {(this.state.contractEnergy).toLocaleString('en-US')} for ~ {parseInt(this.state.contractEnergy / 65000)} free transactions</p>
+                        <p className="mb-0 fs-14">Your energy: {(this.state.contractEnergy).toLocaleString('en-US')} for ~ {parseInt(this.state.contractEnergy / this.state.eenergy)} for transactions</p>
                       </div>
                     </div>
                     <div className="card-body pb-0">
@@ -1369,7 +1402,7 @@ export default class Staking extends Component {
           </div>
         </div>
 
-        <div className="col-12">
+        <div className="col-12" id="request-brst">
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
@@ -1388,32 +1421,6 @@ export default class Staking extends Component {
             </div>
           </div>
         </div>
-
-
-
-
-        <div className="col-12">
-          <div className="card">
-            <div className="card-header d-sm-flex d-block pb-0 border-0">
-              <div>
-                <h4 className="fs-20 text-black">V3 Withdrawal requests in process ({this.state.solicitudesV3}) {"   "}
-                  <button className="btn  btn-success text-white" onClick={async () => await this.estadoV3()}>
-                    Update {" "} <i className="bi bi-arrow-repeat"></i>
-                  </button></h4>
-              </div>
-
-            </div>
-            <div className="card-body">
-
-              {this.state.globDepositosV3}
-
-            </div>
-          </div>
-        </div>
-
-
-        
-
 
       </div>
 

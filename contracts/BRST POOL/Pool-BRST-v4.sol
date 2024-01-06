@@ -257,15 +257,21 @@ contract PoolBRSTv4{
   function instaRetiro(uint256 _value) public returns(bool){
 
     uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
-    
-    if(!whiteList[msg.sender]){
+    uint256 toPay;
+
+    if(whiteList[msg.sender]){
+      toPay = TRON_PAY_BALANCE_WHITE();
+      retirarDisponible(pago);
+    }else{
       pago = pago.mul(precision-descuentoRapido).div(100);
+      toPay = TRON_PAY_BALANCE_FAST();
     }
     
-    if(TRON_PAY_BALANCE_FAST() >= pago){
+    if(toPay >= pago){
       if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
       BRTS_Contract.redeem(_value);
       payable(msg.sender).transfer(pago);
+      _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
       return true;
     }else{
       return false;
@@ -331,6 +337,10 @@ contract PoolBRSTv4{
       for (uint256 i = 0; i < salidaGlob.length; i++) {
         completada[salidaGlob[i]] = true;
       }
+
+      if(whiteList[_user]){
+        retirarDisponible(pago); 
+      }
       
       payable(_user).transfer(pago);
       BRTS_Contract.redeem(totalBRST);
@@ -364,12 +374,15 @@ contract PoolBRSTv4{
       }
     }
     if(toPay >= pago){
-
+      
       ( ,uint256 i) = misSolicitudes[peticiones[_id].wallet].findIndexOf(_id);
 
       misSolicitudes[peticiones[_id].wallet][i] = misSolicitudes[peticiones[_id].wallet][misSolicitudes[peticiones[_id].wallet].length - 1];
       misSolicitudes[peticiones[_id].wallet].pop();
 
+      if(whiteList[peticiones[_id].wallet]){
+        retirarDisponible(pago); 
+      }
       payable(peticiones[_id].wallet).transfer(pago);
       BRTS_Contract.redeem(peticiones[_id].brst);
 
@@ -440,28 +453,43 @@ contract PoolBRSTv4{
     return true;
   }
 
-  function quemarBRTS(uint256 _value) public returns(bool, uint256){
+  function quemarBRTS(uint256 _value, bool _fromOwner) public returns(bool, uint256){
     onlyOwner();
-    if(!BRTS_Contract.transferFrom(msg.sender, address(this), _value))revert();
+    if(_fromOwner){
+      if(!BRTS_Contract.transferFrom(msg.sender, address(this), _value))revert();
+    }
     BRTS_Contract.redeem(_value);
 
     return (true,_value);
       
   }
 
-  function asignarDisponible(uint256 _value) public{
+  function sumarDisponible(uint256 _value) public{
     onlyOwner();
     totalDisponible = totalDisponible.add(_value);
   }
 
-  function retirarDisponible(uint256 _value) public{
+  function restarDisponible(uint256 _value) public{
     onlyOwner();
+    retirarDisponible(_value);
+  }
+
+  function retirarDisponible(uint256 _value) internal{
     totalDisponible = totalDisponible.sub(_value);
+  }
+
+  function setDisponible(uint256 _value) public{
+    onlyOwner();
+    totalDisponible = _value;
   }
 
   function setWhiteList(address _w, bool _sn) public  {
     onlyOwner();
     whiteList[_w]=_sn;
+  }
+
+  function setTRON_RR(uint256 _tron_retiro)public{
+    TRON_RR = _tron_retiro;
   }
 
   function setListaNegra(address _evilUser, bool _si_no) public {
