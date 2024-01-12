@@ -1,8 +1,17 @@
 import React, { Component } from 'react';
+import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
+
 import TronLinkLogo from './TronLinkLogo.png';
 
-const WEBSTORE_URL = 'https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec/';
+const adapter = new TronLinkAdapter();
 
+function conectDirect(){
+   adapter.connect()
+   .then(()=>{console.log("conectado")})
+   .catch((e)=>{console.log(e)})
+}
+
+const WEBSTORE_URL = 'https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec/';
 
 const logo = (
     <div className='col-sm-4 text-center'>
@@ -15,27 +24,15 @@ const openTronLink = () => {
 };
 export default class TronLinkGuide extends Component {
 
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            url: document.location.href,
-
-        };
-
-    }
-
-
-
     render() {
 
-        var { installed, url } = this.props;
+        var { installed } = this.props;
 
         var tronLink = (<></>)
 
         if (!installed) {
             tronLink = (
-                <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} onClick={openTronLink}>
+                <div className='row' style={{ 'padding': '3em', 'decoration': 'none', 'cursor':'pointer' }} onClick={openTronLink}>
                     <div className='col-sm-8'>
                         <h1>Install TronLink</h1>
                         <p>
@@ -47,8 +44,8 @@ export default class TronLinkGuide extends Component {
                 </div>
             );
         }else{
-            tronLink = (<>  <a href={url}>
-                <div className='tronLink row' style={{ 'padding': '3em', 'decoration': 'none' }} >
+            tronLink = (<>  
+                <div className='tronLink row' style={{ 'padding': '3em', 'decoration': 'none', 'cursor':'pointer' }} onClick={conectDirect}>
     
                     <div className='info col-sm-8'>
                         <h1>Unlock wallet</h1>
@@ -59,18 +56,21 @@ export default class TronLinkGuide extends Component {
                     </div>
                     {logo}
                 </div>
-            </a>
     
             </>);
         }
 
     
-        return (<div className="row">
-            <div className="col-xl-12">
-                <div className="card">
-                    {tronLink}
+        return (
+        <div className="container">
+            <div className="row">
+                <div className="col-xl-12">
+                    <div className="card">
+                        {tronLink}
+                    </div>
                 </div>
             </div>
-        </div>)
+        </div>
+        )
     }
 }

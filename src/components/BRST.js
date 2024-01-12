@@ -334,11 +334,11 @@ export default class Staking extends Component {
   async estado() {
    /*
     let inputs = [
-      //{type: 'address', value: window.tronWeb.address.toHex(this.props.accountAddress)}
+      //{type: 'address', value: this.props.tronWeb.address.toHex(this.props.accountAddress)}
     ]
 
     let funcion = "TIEMPO()"
-    const eenergy = await window.tronWeb.transactionBuilder.estimateEnergy(window.tronWeb.address.toHex("TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6"), funcion,{}, inputs, window.tronWeb.address.toHex(this.props.accountAddress));
+    const eenergy = await this.props.tronWeb.transactionBuilder.estimateEnergy(this.props.tronWeb.address.toHex("TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6"), funcion,{}, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress));
 
     console.log(eenergy)*/
 
@@ -352,12 +352,12 @@ export default class Staking extends Component {
 
     var accountAddress = this.props.accountAddress;
 
-    //var balance = await window.tronWeb.trx.getBalance() / 10 ** 6;
-    var balance = await window.tronWeb.trx.getUnconfirmedBalance()/10**6;
+    //var balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
+    var balance = await this.props.tronWeb.trx.getUnconfirmedBalance()/10**6;
 
-    var origin = await window.tronWeb.trx.getContract(this.props.contrato.BRST_TRX.address)
+    var origin = await this.props.tronWeb.trx.getContract(this.props.contrato.BRST_TRX.address)
 
-    var cuenta = await window.tronWeb.trx.getAccountResources(origin.origin_address)
+    var cuenta = await this.props.tronWeb.trx.getAccountResources(origin.origin_address)
 
     var contractEnergy = cuenta.EnergyLimit - cuenta.EnergyUsed
 
@@ -434,7 +434,7 @@ export default class Staking extends Component {
       var boton = <></>
       var boton2 = <><p className="mb-0 fs-14 text-white">Order in UnStaking process for the next 14 days, once this period is over, return and claim the corresponding TRX</p></>;
 
-      if (diasrestantes > 14 || this.props.accountAddress === window.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX.owner().call()))) {
+      if (diasrestantes > 14 || this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX.owner().call()))) {
 
         boton2 = <button className="btn  btn-success text-white mb-2" onClick={async () => {
           if (this.state.balanceUSDT * 1 >= parseInt(pen[2]._hex) / 10 ** 6) {
@@ -560,7 +560,7 @@ export default class Staking extends Component {
     amount = parseFloat(amount);
     amount = parseInt(amount * 10 ** 6);
 
-    var balance = await window.tronWeb.trx.getBalance();
+    var balance = await this.props.tronWeb.trx.getBalance();
 
     if (balance >= amount) {
       if (amount >= minCompra) {
@@ -633,8 +633,8 @@ export default class Staking extends Component {
     amount = parseFloat(amount);
     amount = parseInt(amount * 10 ** 6);
 
-    var accountAddress = await window.tronWeb.trx.getAccount();
-    accountAddress = window.tronWeb.address.fromHex(accountAddress.address);
+    var accountAddress = await this.props.tronWeb.trx.getAccount();
+    accountAddress = this.props.tronWeb.address.fromHex(accountAddress.address);
 
     var aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX.address).call();
     aprovado = parseInt(aprovado._hex);

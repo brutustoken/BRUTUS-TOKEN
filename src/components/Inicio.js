@@ -153,7 +153,7 @@ export default class Inicio extends Component {
 
 	async estado() {
 
-		//console.log(window.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
+		//console.log(this.props.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
 		var precioBrst = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
 		precioBrst = new BigNumber(precioBrst.toNumber()).shiftedBy(-6).toNumber();
 		this.setState({
@@ -172,9 +172,11 @@ export default class Inicio extends Component {
 		.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
 		.catch(console.error)
 
-		this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
-		.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
-		.catch(console.error)
+		if(this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"){
+			this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
+			.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+			.catch(console.error)
+		}
 
 
 	}

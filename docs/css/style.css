@@ -59,17 +59,6 @@
 @import url("https://fonts.googleapis.com/css?family=Montserrat:400,500,600,700");
 @import url("https://fonts.googleapis.com/css?family=Roboto:400,500,700");
 @import url("https://fonts.googleapis.com/css?family=Nunito:400,600,700");
-@import url("./../icons/simple-line-icons/css/simple-line-icons.css");
-@import url("./../icons/fontawesome6/css/all.min.css");
-@import url("./../icons/fontawesome/css/all.min.css");
-@import url("./../icons/material-design-iconic-font/css/materialdesignicons.min.css");
-@import url("./../icons/themify-icons/css/themify-icons.css");
-@import url("./../icons/line-awesome/css/line-awesome.min.css");
-@import url("./../icons/avasta/css/style.css");
-@import url("./../icons/flaticon/flaticon.css");
-@import url("./../icons/flaticon_1/flaticon_1.css");
-@import url("./../icons/icomoon/icomoon.css");
-@import url("./../icons/bootstrap-icons/font/bootstrap-icons.css");
 @import url(./../vendor/animate/animate.min.css);
 @import url(./../vendor/aos/css/aos.min.css);
 @import url(./../vendor/perfect-scrollbar/css/perfect-scrollbar.css);
@@ -2103,6 +2092,7 @@ textarea.form-control-lg {
 .input-group {
   position: relative;
   display: flex;
+  flex-direction: row-reverse;
   flex-wrap: wrap;
   align-items: stretch;
   width: 100%; }
@@ -9114,7 +9104,7 @@ svg.pulse-svg {
         width: 15.625rem; } }
     @media only screen and (max-width: 74.9375rem) {
       .header-right .search-area {
-        display: none; } }
+         } }
   .header-right .blur-img {
     position: absolute;
     left: 27%;
@@ -30056,10 +30046,15 @@ div#mCSB_1 {
     border-color: white; }
   @media only screen and (max-width: 87.5rem) {
     .coin-warpper {
-      padding: 0.625rem 0.0625rem; } }
+      padding: 0.625rem 0.0625rem; 
+    } 
+  }
 
 @media only screen and (max-width: 74.9375rem) {
-  padding: 0.9375rem 0.625rem; }
+  .coin-warpper {
+    padding: 0.9375rem 0.625rem; 
+  }
+}
 
 @media only screen and (max-width: 61.9375rem) {
   .nav .nav-item .nav-link {

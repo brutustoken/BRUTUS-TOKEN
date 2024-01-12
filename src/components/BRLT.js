@@ -157,9 +157,9 @@ export default class nfts extends Component {
   async sunSwap(){
     let token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
     let swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
-    let contrato = await window.tronWeb.contract(abi_SUNSAWPv2 , swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
+    let contrato = await this.props.tronWeb.contract(abi_SUNSAWPv2 , swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
 
-    let contract_token = await window.tronWeb.contract().at(token)
+    let contract_token = await this.props.tronWeb.contract().at(token)
     let aprove = await contract_token.allowance(this.props.accountAddress,"TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax").call()
     
 
@@ -294,10 +294,6 @@ export default class nfts extends Component {
             </div>
           </div>
         </div>
-
-
-        <button onClick={()=>{this.sunSwap()}}>cambiar BRST por cantidad fija de TRX</button>
-
 
       </>
     );

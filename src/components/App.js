@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import TronWeb from "tronweb";
+import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 
 import abi_PROXY from "../abi/Proxy";
 import abi_POOLBRST from "../abi/PoolBRSTv4";
@@ -7,7 +9,7 @@ import cons from "../cons.js";
 
 import Inicio from "./Inicio.js";
 
-import TronLinkGuide from "./TronLinkGuide/index.js";
+//import TronLinkGuide from "./TronLinkGuide/index.js";
 
 import Home from "./BRUT.js";
 import Staking from "./BRST.js";
@@ -16,6 +18,20 @@ import Nft from "./BRGY/index.js";
 import LOTERIA from "./BRLT.js";
 import EBOT from "./EBOT.js";
 
+const tronWeb = new TronWeb({
+  fullHost: cons.RED
+})
+
+const adapter = new TronLinkAdapter();
+
+function conectDirect(){
+   adapter.connect()
+   .then(()=>{console.log("conectado")})
+   .catch((e)=>{console.log(e)})
+}
+
+const adressDefault = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
 class App extends Component {
@@ -23,13 +39,13 @@ class App extends Component {
     super(props);
 
     this.state = {
-      accountAddress:"T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
-      tronWeb: {
+      accountAddress: adressDefault,
+      tronlink: {
         installed: false,
         loggedIn: false,
         contratosReady: false,
-        web3: null
       },
+      tronWeb: tronWeb,
       contrato: {
         BRUT_USDT: null,
         BRUT: null,
@@ -79,7 +95,7 @@ class App extends Component {
 
   intervalo(){
     var interval = setInterval(() => {
-      if(!this.state.tronWeb.loggedIn){
+      if(!this.state.tronlink.loggedIn){
         this.conectar();
       }else{
         clearInterval(this.state.interval)
@@ -91,31 +107,30 @@ class App extends Component {
 
   }
 
+
   async conectar() {
 
-    let tronWeb = this.state.tronWeb;
-    let wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
+    let tronlink = this.state.tronlink;
+    let wallet = adressDefault;
 
     if ( typeof window.tronLink !== 'undefined' ) {
-
-      tronWeb['installed'] = true;
+      
+      tronlink['installed'] = true;
 
       if(window.tronLink.ready){
         wallet = window.tronLink.tronWeb.defaultAddress.base58
-        tronWeb['web3'] = window.tronLink.tronWeb;
-        tronWeb['loggedIn'] = true;
+        tronlink['loggedIn'] = true;
       }else{
 
         const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
   
         if(res.code === 200){
-          tronWeb['web3'] = window.tronLink.tronWeb;
           wallet = window.tronLink.tronWeb.defaultAddress.base58
-          tronWeb['loggedIn'] = true;
+          tronlink['loggedIn'] = true;
 
         }else{
-          wallet = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
-          tronWeb['loggedIn'] = false;
+          wallet = adressDefault;
+          tronlink['loggedIn'] = false;
 
         }
 
@@ -123,7 +138,7 @@ class App extends Component {
 
       this.setState({
         accountAddress: wallet,
-        tronWeb: tronWeb,
+        tronlink: tronlink,
 
       });
 
@@ -132,24 +147,31 @@ class App extends Component {
 
       console.log("Please install Tronlink to use this Dapp")
 
-      tronWeb['installed'] = false;
-      tronWeb['loggedIn'] = false;
+      tronlink['installed'] = false;
+      tronlink['loggedIn'] = false;
 
       this.setState({
-        accountAddress: "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb",
-        tronWeb: tronWeb
+        accountAddress: adressDefault,
+        tronlink: tronlink
 
       });
 
     }
 
-    if(tronWeb['loggedIn']){
+    if(tronlink['loggedIn']){
 
       document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+wallet+'</a>';
+    }
 
-      if(!tronWeb['contratosReady']){
+    if(!tronlink["loggedIn"]){
+      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer">Conect Wallet</span>';
+      document.getElementById("conectTL").onclick = ()=>{conectDirect()}
 
-        let web3Contracts = tronWeb['web3'];
+      if(!tronlink['contratosReady']){
+
+        let web3Contracts = tronWeb;
+        web3Contracts.setAddress(adressDefault)
+
         //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
         web3Contracts.setHeader(cons.TAK)
         let contrato = {};
@@ -196,10 +218,10 @@ class App extends Component {
           contrato.loteria = await web3Contracts.contract(abi_LOTERIA,cons.SC4);
         }
 
-        tronWeb['contratosReady'] = true;
+        tronlink['contratosReady'] = true;
 
         this.setState({
-          tronWeb: tronWeb,
+          tronlink: tronlink,
           contrato: contrato
         });
 
@@ -209,13 +231,13 @@ class App extends Component {
 
   render(){
 
-    if ( !this.state.tronWeb.loggedIn || !this.state.tronWeb.installed ) return (
-      <div className="container">
-        <TronLinkGuide installed={this.state.tronWeb.installed}  />
-      </div>
-    );
+    /*if ( !this.state.tronlink.loggedIn || !this.state.tronlink.installed ) {
+      return (
+      <TronLinkGuide installed={this.state.tronlink.installed}  />
+      );
+    }*/
 
-    if ( !this.state.tronWeb.contratosReady ) return (
+    if ( !this.state.tronlink.contratosReady ) return (
 
       <div className="container">
         <div className="row">
@@ -223,7 +245,7 @@ class App extends Component {
             <div className="card">
               <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} >
                 <div className='col-sm-8'>
-                  <h1>Tronlik connected preparing application {imgLoading}</h1>
+                  <h1>Preparing application {imgLoading}</h1>
                   <p>
                     All smart contracts are being loaded so that the application works correctly, please wait a few moments
                   </p>
@@ -242,28 +264,29 @@ class App extends Component {
 
     switch (url) {
       case "brut":
-        return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
 
       case "brst":
-        return <StakingV2 accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <StakingV2 accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
 
       case "brst_old":
-        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
 
       case "brgy":
-        return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} />
+        return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
 
       case "ebot":
-        return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
       
       case "pro":
-        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
 
       case "brlt":
-        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} />
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
 
       default:
-        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato}/>
+        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} />
+
     }
 
   }

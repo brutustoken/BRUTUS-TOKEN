@@ -26,9 +26,9 @@ export default class EnergyRental extends Component {
       titulo: "Titulo",
       body: "Cuerpo del mensaje",
       amounts: [
-        { amount: 32000, text: "32k" },
-        { amount: 100000, text: "100k" },
-        { amount: 160000, text: "160k" },
+        { amount: 32000, text: "32K" },
+        { amount: 100000, text: "100K" },
+        { amount: 160000, text: "160K" },
         { amount: 1000000, text: "1M" },
         { amount: 3000000, text: "3M" }
       ],
@@ -218,7 +218,7 @@ export default class EnergyRental extends Component {
   async preCompra() {
     await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
-    if (this.state.wallet_orden === "" || !window.tronWeb.isAddress(this.state.wallet_orden)) {
+    if (this.state.wallet_orden === "" || !this.props.tronWeb.isAddress(this.state.wallet_orden)) {
       this.setState({
         wallet_orden: this.props.accountAddress
       })
@@ -247,7 +247,7 @@ export default class EnergyRental extends Component {
     const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
     await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
-    if (this.state.wallet_orden === "" || !window.tronWeb.isAddress(this.state.wallet_orden)) {
+    if (this.state.wallet_orden === "" || !this.props.tronWeb.isAddress(this.state.wallet_orden)) {
       this.setState({
         wallet_orden: this.props.accountAddress
       })
@@ -260,7 +260,7 @@ export default class EnergyRental extends Component {
 
     window.$("#mensaje-ebot").modal("show");
 
-    var hash = await window.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, window.tronWeb.toSun(this.state.precio))
+    var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(this.state.precio))
     .catch((e)=>{
       console.log(e)
       return ["e",e];
@@ -297,9 +297,9 @@ export default class EnergyRental extends Component {
 
     window.$("#mensaje-ebot").modal("show");
 
-    if (hash.result && envio.amount + "" === window.tronWeb.toSun(this.state.precio) && window.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
+    if (hash.result && envio.amount + "" === this.props.tronWeb.toSun(this.state.precio) && this.props.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
 
-      hash = await window.tronWeb.trx.getTransaction(hash.txid);
+      hash = await this.props.tronWeb.trx.getTransaction(hash.txid);
       
       if (hash.ret[0].contractRet === "SUCCESS" ) {
 
@@ -418,7 +418,7 @@ export default class EnergyRental extends Component {
             <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
 
             <div className="info">
-              <h1>Brutus Resources rental </h1>
+              <h1>Brutus Resources Rental </h1>
               <p className="font-20">In Brutus Energy Bot, we've developed a DApp that provides you
                 with a faster, more convenient, and secure experience. This DApp represents an
                 innovative third way to access Brutus's resources on the Tron network. Our
@@ -477,17 +477,25 @@ export default class EnergyRental extends Component {
                       <div className="dzFormMsg"></div>
                       <input type="hidden" className="form-control" name="dzToDo" value="Contact" />
                       {medidor}
+
+                      <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
+                        <p style={{"marginTop": "auto", "marginRight": "10px"}} className="font-14">Amount</p>
+                        <input style={{"textAlign": "end"}} id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder="32000" />
+
+                      </div>
                       
-                      <p className="font-14">Resource amount</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
-                        <input id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder="32000" />
                         <div className="d-flex justify-content-xl-center">
                           {amountButtons}
                         </div>
                       </div>
-                      <p className="font-14">Duration</p>
-                      <div className="col-xl-12 mb-3 mb-md-4">
-                        <input id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
+                      <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
+                        <p style={{"marginTop": "auto", "marginRight": "10px"}} className="font-14">Duration</p>
+
+                        <input style={{"textAlign": "end"}} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
+                        
+                      </div>
+                      <div className="col-12 ">
                         <div className="d-flex justify-content-xl-center">
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1h"; this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
@@ -503,14 +511,11 @@ export default class EnergyRental extends Component {
                       </div>
                       
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
-                        <p style={{ width: "33%",color:"black" }} className="font-14">Price</p>
-                        
-                        <input style={{ width: "67%" }}  name="dzPhoneNumber" placeholder={"Calculating..."} value={this.state.precio} type="text" className="form-control" readOnly />
-                        
+         
                         <div className="d-flex justify-content-xl-center">
                           <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ margin: "10px", width: "200px", height: "45px" }} onClick={() => this.preCompra()}>Buy Now
+                          style={{ margin: "10px", width: "400px", height: "45px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
                           </button>
                         </div>
                       </div>
