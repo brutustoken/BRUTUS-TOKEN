@@ -37,7 +37,8 @@ export default class Inicio extends Component {
 			this.consultaPrecios();
 			this.estado(); 
 
-		}, 3 * 1000);
+		}, 4 * 1000);
+
 
 		setInterval(() => { 
 			this.consultaPrecios(); 

@@ -164,8 +164,6 @@ export default class Staking extends Component {
       await this.estado();
       await this.consultaPrecio();
       this.grafico(1000, "day", 90);
-
-
     }, 3 * 1000);
 
     setInterval(() => {
