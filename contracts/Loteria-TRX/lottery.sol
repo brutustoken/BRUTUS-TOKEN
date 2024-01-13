@@ -166,13 +166,11 @@ contract Lottery {
 
     }
 
-    function _premio() internal view returns(uint256){
-        uint256 prix;
-        uint256 brstPooled = BRST_Contract.balanceOf(address(this)).mul(POOL_Contract.RATE()).div(1e6);
-        if(brstPooled > trxPooled){
-           prix = (brstPooled).sub(trxPooled);
+    function _premio() internal view returns(uint256 prix){
+        uint256 brstPooledInTrx = BRST_Contract.balanceOf(address(this)).mul(POOL_Contract.RATE()).div(1e6);
+        if(brstPooledInTrx > trxPooled.add(toTeam)){
+           prix = (brstPooledInTrx).sub(trxPooled).sub(toTeam);
         }
-        return prix;
 
     }
 
@@ -247,17 +245,16 @@ contract Lottery {
             myNumber = RandomNumber.randMod(paso, uint256(keccak256(abi.encode(lastWiner,block.timestamp, blockhash(block.number)))),randNonce.numero);
 
             if(ganado>0){
+                uint256 granPrix = _premio();
                 toTeam = toTeam.add(premioTeam());
-                if(_premio() > address(this).balance){
-                    (bool insta, uint256 id) = POOL_Contract.solicitudRetiro((_premio().mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
+                if(granPrix > address(this).balance){
+                    (bool insta, uint256 id) = POOL_Contract.solicitudRetiro((granPrix.mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
                     
                     if(insta){
                         payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
-                        
                     }else{
                         vaul[myNumber] += ganado;
                         retirosP.push(id);
-
                     }                    
                 
                 }else{
@@ -276,7 +273,12 @@ contract Lottery {
 
     function solicitarRetiroPool(uint256 _valor) public {
         onlyOwner();
-        POOL_Contract.solicitudRetiro((_valor.mul(10**6)).div(POOL_Contract.RATE()));
+        (bool insta, uint256 id) =POOL_Contract.solicitudRetiro((_valor.mul(10**6)).div(POOL_Contract.RATE()));
+                    
+        if(!insta){
+            retirosP.push(id);
+
+        }   
 
     }
 

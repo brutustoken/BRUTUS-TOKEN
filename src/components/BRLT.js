@@ -111,20 +111,21 @@ export default class nfts extends Component {
   async sorteo() {
 
     if(Date.now() >= (this.state.prosort*1000)){
-      this.props.contrato.loteria.sorteo().send()
-      .then((r)=>{
+      this.props.contrato.loteria.sorteo().send({shouldPollResponse:true})
+      .then(async(r)=>{
         console.log(r)
-        this.estado()
+        await this.estado()
         this.setState({
           modalTitulo: "Good luck",
           modalBody: "Thank you for collaborating with the activation of the giveaway"
         })
         window.$("#alerta").modal("show");
       })
-      .catch(()=>{
+      .catch((e)=>{
+        console.log(e)
         this.setState({
           modalTitulo: "Bad luck",
-          modalBody: "something has not gone well, thank you for trying to collaborate, it will be on a next occasion"
+          modalBody: "something has not gone well, thank you for trying to collaborate, it will be on a next occasion "
         })
         window.$("#alerta").modal("show");
       })

@@ -85,6 +85,8 @@ var earnings = [
 
 ]
 
+var iniciado = 0;
+
 export default class Staking extends Component {
   constructor(props) {
     super(props);
@@ -153,21 +155,16 @@ export default class Staking extends Component {
     this.llenarBRST = this.llenarBRST.bind(this);
     this.llenarTRX = this.llenarTRX.bind(this);
 
-    this.consultarPrecio = this.consultarPrecio.bind(this);
-
   }
 
   componentDidMount() {
     document.title = "B.F | BRST"
 
-    setTimeout(async() => {
-      await this.estado();
-      await this.consultaPrecio();
-      this.grafico(1000, "day", 90);
-    }, 3 * 1000);
+    setTimeout(() => {
+      this.estado();
+    }, 4 * 1000);
 
     setInterval(() => {
-      this.consultarPrecio();
       this.estado();
     }, 60 * 1000);
   
@@ -175,7 +172,6 @@ export default class Staking extends Component {
 
       if (e.data.message && e.data.message.action === "accountsChanged") {
         if(e.data.message.data.address){
-          this.consultarPrecio();
           this.estado();
         }
       }
@@ -207,7 +203,19 @@ export default class Staking extends Component {
 
     //await this.props.contrato.BRST_TRX_Proxy.setWhiteList("TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR").send();
 
-    await this.consultarPrecio();
+
+    var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
+    precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
+
+    this.setState({
+      precioBrst: precio
+    });
+
+    if(iniciado === 0){
+      this.grafico(1000, "day", 90);
+      iniciado++;
+    }
+
 
     var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
     .then((result) => { return result.toNumber() / 1e6 })
@@ -221,8 +229,7 @@ export default class Staking extends Component {
 
     //var balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
     var balance = await this.props.tronWeb.trx.getUnconfirmedBalance()/10**6;
-
-    var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress)
+    var cuenta = await this.props.tronWeb.trx.getAccountResources();
 
     var contractEnergy = 0
 
@@ -604,19 +611,6 @@ export default class Staking extends Component {
     this.handleChangeBRST({event:{target:{value:this.state.balanceTRX}}})
 
   }
-
-  async consultarPrecio() {
-
-    var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
-    precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
-
-    this.setState({
-      precioBrst: precio
-    });
-
-    return precio;
-
-  };
 
   async compra() {
 
@@ -1138,6 +1132,7 @@ export default class Staking extends Component {
                                     ModalBody: "Thank you for contributing to this great project that we have done to help the community grow. We truly appreciate it <3"
                                   })
                                   window.$("#mensaje-brst").modal("show");
+                                  this.estado();
                                 })
                                 
                                 }}>Donate</button>
@@ -1154,6 +1149,8 @@ export default class Staking extends Component {
                                     ModalBody: "Thank you for contributing to this great project that we have done to help the community grow. We truly appreciate it <3"
                                   })
                                   window.$("#mensaje-brst").modal("show");
+                                  this.estado();
+
                                 })
                                 
 
@@ -1380,12 +1377,12 @@ export default class Staking extends Component {
         <div className="modal-dialog" role="document">
           <div className="modal-content">
             <div className="modal-header">
-              <h5 className="modal-title">{this.state.titulo}</h5>
+              <h5 className="modal-title">{this.state.ModalTitulo}</h5>
               <button type="button" className="btn-close" data-bs-dismiss="modal">
               </button>
             </div>
             <div className="modal-body">
-              <p>{this.state.body}</p>
+              <p>{this.state.ModalBody}</p>
             </div>
           </div>
         </div>

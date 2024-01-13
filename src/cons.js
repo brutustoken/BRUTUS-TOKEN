@@ -27,7 +27,7 @@ var TAK = {"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'}
 
 if(testnet){
 
-    RED = ""
+    RED = "https://nile.trongrid.io"
 
     SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
     SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX

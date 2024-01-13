@@ -12,7 +12,6 @@ import Inicio from "./Inicio.js";
 //import TronLinkGuide from "./TronLinkGuide/index.js";
 
 import Home from "./BRUT.js";
-import Staking from "./BRST.js";
 import StakingV2 from "./BRST-Proxy.js";
 import Nft from "./BRGY/index.js";
 import LOTERIA from "./BRLT.js";
@@ -112,6 +111,11 @@ class App extends Component {
 
     let tronlink = this.state.tronlink;
     let wallet = adressDefault;
+    let web3Contracts = {};
+
+    web3Contracts = tronWeb;
+    web3Contracts.setAddress(adressDefault)
+
 
     if ( typeof window.tronLink !== 'undefined' ) {
       
@@ -120,6 +124,8 @@ class App extends Component {
       if(window.tronLink.ready){
         wallet = window.tronLink.tronWeb.defaultAddress.base58
         tronlink['loggedIn'] = true;
+        web3Contracts = window.tronLink.tronWeb;
+  
       }else{
 
         const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
@@ -127,6 +133,8 @@ class App extends Component {
         if(res.code === 200){
           wallet = window.tronLink.tronWeb.defaultAddress.base58
           tronlink['loggedIn'] = true;
+          web3Contracts = window.tronLink.tronWeb;
+
 
         }else{
           wallet = adressDefault;
@@ -162,28 +170,21 @@ class App extends Component {
 
       document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/'+wallet+'" className="logibtn gradient-btn">'+wallet+'</a>';
     }else{
-      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer">Conect Wallet</span>';
+      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer">Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
       document.getElementById("conectTL").onclick = ()=>{conectDirect()}
     }
 
 
     if(!tronlink['contratosReady']){
 
-      let web3Contracts = tronWeb;
-      web3Contracts.setAddress(adressDefault)
-
       //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
       web3Contracts.setHeader(cons.TAK)
       let contrato = {};
 
       let url = window.location.href;
-      console.log(url)
       if(url.indexOf("/?") >= 0 )url = (url.split("/?"))[1];
-      console.log(url)
       if(url.indexOf("&") >= 0 )url = (url.split("&"))[0];
-      console.log(url)
       if(url === window.location.href || url === "utm_source=tronlink")url=""
-      console.log(url)
 
       if(cons.BRUT !== "" && (url === "" || url === "brut")){
         contrato.BRUT =  await web3Contracts.contract().at(cons.BRUT);
@@ -270,9 +271,6 @@ class App extends Component {
 
       case "brst":
         return <StakingV2 accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} />
-
-      case "brst_old":
-        return <Staking accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} />
 
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress}  contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} />
