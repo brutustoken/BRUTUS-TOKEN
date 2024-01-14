@@ -111,7 +111,7 @@ export default class nfts extends Component {
   async sorteo() {
 
     if(Date.now() >= (this.state.prosort*1000)){
-      this.props.contrato.loteria.sorteo().send({shouldPollResponse:true})
+      this.props.contrato.loteria.sorteo().send()//.send({shouldPollResponse:true})
       .then(async(r)=>{
         console.log(r)
         await this.estado()

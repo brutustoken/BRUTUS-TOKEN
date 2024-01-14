@@ -147,6 +147,7 @@ class App extends Component {
       this.setState({
         accountAddress: wallet,
         tronlink: tronlink,
+        tronWeb: web3Contracts
 
       });
 

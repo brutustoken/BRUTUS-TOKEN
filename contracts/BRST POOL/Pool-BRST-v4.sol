@@ -95,7 +95,7 @@ contract PoolBRSTv4{
   using SafeMath for uint256;
   using Array for uint256[];
 
-  TRC20_Interface BRTS_Contract;
+  TRC20_Interface BRST_Contract;
 
   TRC20_Interface OTRO_Contract;
 
@@ -135,10 +135,10 @@ contract PoolBRSTv4{
   function inicializar() public{
     onlyOwner();
     require(!iniciado);
+    iniciado = true;
     MIN_DEPOSIT = 1 * 10**6;
     TIEMPO = 17 * 86400;
-    iniciado = true;
-    BRTS_Contract = TRC20_Interface(0x389ccc30de1d311738Dffd3F60D4fD6188970F45);
+    BRST_Contract = TRC20_Interface(0x389ccc30de1d311738Dffd3F60D4fD6188970F45);
     OTRO_Contract = TRC20_Interface(0x389ccc30de1d311738Dffd3F60D4fD6188970F45);
     descuentoRapido = 5;
     precision = 100;
@@ -189,7 +189,7 @@ contract PoolBRSTv4{
 
   function RATE() public view returns (uint256){
     //1 BRST -> TRX
-    return (TRON_BALANCE().mul(10**BRTS_Contract.decimals())).div( BRTS_Contract.totalSupply() );
+    return (TRON_BALANCE().mul(10**BRST_Contract.decimals())).div( BRST_Contract.totalSupply() );
   }
 
   function largoSolicitudes(address _user) public view returns(uint256){
@@ -222,8 +222,8 @@ contract PoolBRSTv4{
   }
 
   function donate(uint256 _value) public {
-    if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
-    BRTS_Contract.redeem(_value);
+    if( !BRST_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+    BRST_Contract.redeem(_value);
   }
 
   function staking() public payable returns (uint256) {
@@ -233,11 +233,11 @@ contract PoolBRSTv4{
       
     payable(Wallet_SR).transfer(_value);
 
-    _value = (_value.mul( 10 ** BRTS_Contract.decimals() )).div(RATE());
+    _value = (_value.mul( 10 ** BRST_Contract.decimals() )).div(RATE());
     _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.add(msg.value);
 
-    BRTS_Contract.issue(_value);
-    BRTS_Contract.transfer(msg.sender,_value);
+    BRST_Contract.issue(_value);
+    BRST_Contract.transfer(msg.sender,_value);
 
     return _value;
 
@@ -256,7 +256,7 @@ contract PoolBRSTv4{
 
   function instaRetiro(uint256 _value) public returns(bool){
 
-    uint256 pago = _value.mul(RATE()).div(10 ** BRTS_Contract.decimals());
+    uint256 pago = _value.mul(RATE()).div(10 ** BRST_Contract.decimals());
     uint256 toPay;
 
     if(whiteList[msg.sender]){
@@ -268,8 +268,8 @@ contract PoolBRSTv4{
     }
     
     if(toPay >= pago){
-      if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
-      BRTS_Contract.redeem(_value);
+      if( !BRST_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+      BRST_Contract.redeem(_value);
       payable(msg.sender).transfer(pago);
       _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
       return true;
@@ -281,9 +281,11 @@ contract PoolBRSTv4{
 
   function esperaRetiro(uint256 _value) public returns(uint256 order) {
     
-    if( !BRTS_Contract.transferFrom(msg.sender, address(this), _value) )revert();
+    if( !BRST_Contract.transferFrom(msg.sender, address(this), _value) )revert();
 
-    peticiones[index] = Peticion({
+    order = index;
+
+    peticiones[order] = Peticion({
       wallet:msg.sender,
      tiempo:block.timestamp,
      precio:RATE(),
@@ -291,10 +293,9 @@ contract PoolBRSTv4{
 
     });
 
-    TRON_SOLICITADO = TRON_SOLICITADO.add(_value.mul(RATE()).div(10 ** BRTS_Contract.decimals()));
+    TRON_SOLICITADO = TRON_SOLICITADO.add(_value.mul(RATE()).div(10 ** BRST_Contract.decimals()));
+    misSolicitudes[msg.sender].push(order);
 
-    order = index;
-    misSolicitudes[msg.sender].push(index);
     index++;
 
   }
@@ -309,7 +310,7 @@ contract PoolBRSTv4{
 
     for (uint256 i = 0; i < arr.length; i++) {
       if( msg.sender == owner() || whiteList[_user] || peticiones[arr[i]].tiempo.add(TIEMPO) >= block.timestamp){
-        pago = pago.add(peticiones[arr[i]].brst.mul(peticiones[arr[i]].precio).div(10 ** BRTS_Contract.decimals()));
+        pago = pago.add(peticiones[arr[i]].brst.mul(peticiones[arr[i]].precio).div(10 ** BRST_Contract.decimals()));
         totalBRST = totalBRST.add(peticiones[arr[i]].brst);
         salidaGlob = salidaGlob.addArray(arr[i]);
       }else{
@@ -343,7 +344,7 @@ contract PoolBRSTv4{
       }
       
       payable(_user).transfer(pago);
-      BRTS_Contract.redeem(totalBRST);
+      BRST_Contract.redeem(totalBRST);
 
       _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
       TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
@@ -362,7 +363,7 @@ contract PoolBRSTv4{
       }
     }
 
-    uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(10 ** BRTS_Contract.decimals());
+    uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(10 ** BRST_Contract.decimals());
     uint256 toPay;
     if(whiteList[peticiones[_id].wallet]){
       toPay = TRON_PAY_BALANCE_WHITE();
@@ -384,7 +385,7 @@ contract PoolBRSTv4{
         retirarDisponible(pago); 
       }
       payable(peticiones[_id].wallet).transfer(pago);
-      BRTS_Contract.redeem(peticiones[_id].brst);
+      BRST_Contract.redeem(peticiones[_id].brst);
 
       _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
       TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
@@ -423,7 +424,7 @@ contract PoolBRSTv4{
 
   function ChangeToken(address _tokenTRC20) public {
     onlyOwner();
-    BRTS_Contract = TRC20_Interface(_tokenTRC20);
+    BRST_Contract = TRC20_Interface(_tokenTRC20);
   }
 
   function ChangeTokenOTRO(address _tokenTRC20) public {
@@ -433,7 +434,7 @@ contract PoolBRSTv4{
 
   function newOwnerBRTS(address _newOwner) public {
     onlyOwner();
-    BRTS_Contract.transferOwnership(_newOwner);
+    BRST_Contract.transferOwnership(_newOwner);
   }
   function owner() public view returns(address){
     Proxy_Interface Proxy_Contract = Proxy_Interface(address(this));
@@ -448,17 +449,17 @@ contract PoolBRSTv4{
 
   function crearBRTS(uint256 _value) public returns(bool){
     onlyOwner();
-    BRTS_Contract.issue(_value);
-    BRTS_Contract.transfer(msg.sender, _value);
+    BRST_Contract.issue(_value);
+    BRST_Contract.transfer(msg.sender, _value);
     return true;
   }
 
   function quemarBRTS(uint256 _value, bool _fromOwner) public returns(bool, uint256){
     onlyOwner();
     if(_fromOwner){
-      if(!BRTS_Contract.transferFrom(msg.sender, address(this), _value))revert();
+      if(!BRST_Contract.transferFrom(msg.sender, address(this), _value))revert();
     }
-    BRTS_Contract.redeem(_value);
+    BRST_Contract.redeem(_value);
 
     return (true,_value);
       
@@ -495,16 +496,16 @@ contract PoolBRSTv4{
   function setListaNegra(address _evilUser, bool _si_no) public {
     onlyOwner();
     if(_si_no){
-      BRTS_Contract.addBlackList(_evilUser);
+      BRST_Contract.addBlackList(_evilUser);
     }else{
-      BRTS_Contract.removeBlackList(_evilUser);
+      BRST_Contract.removeBlackList(_evilUser);
     }
   }
 
   function redimBRTS(uint256 _value) public returns (uint256) {
     onlyOwner();
-    if ( BRTS_Contract.balanceOf(address(this)) < _value)revert();
-    BRTS_Contract.transfer(owner(), _value);
+    if ( BRST_Contract.balanceOf(address(this)) < _value)revert();
+    BRST_Contract.transfer(owner(), _value);
     return _value;
   }
 

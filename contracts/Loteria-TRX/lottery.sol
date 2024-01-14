@@ -82,6 +82,8 @@ interface IPOOL {
     function retirar(uint256 _id) external returns(bool);
     function RATE() external view returns (uint256);
     function completada(uint256 _id) external view returns(bool);
+    function retirarFrom(address _user) external returns(bool exitoso);
+    function todasSolicitudes(address _user) external view returns(uint256[] memory);
 }
 
 interface Proxy_Interface{
@@ -121,11 +123,12 @@ contract Lottery {
 
     bool public iniciado = true;
 
-    uint256[] retirosP;
-
     constructor(){}
 
     function inicializar() public{
+        onlyOwner();
+        require(!iniciado);
+        iniciado = true;
         precio = 100 * 1e6;
         beneficio = 20;
         precicion = 100;
@@ -133,7 +136,7 @@ contract Lottery {
         periodo = 30;//15*86400;
         tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;//0x389ccc30de1d311738Dffd3F60D4fD6188970F45;//BRST 
         tokenTRC721 = 0x922De0b0fd795Bb6Cd34B8a38EA0ba6954e93aF6;//0x0D8AdCA61a885Df7fCB8cC5f26225DdBb4Ca70FA; // nft loteria
-        contractPool = 0xb5Ea6649ddb66cC296A7ee0e07d5B526dbaf01F8;//0x83F62b5EA709673649c4D2a8a9d2e47F50ef694F; // BRST_TRX pool
+        contractPool = 0x4ddF1924DCD5A3b7b56977a423D360Ca5c033C96;//0x83F62b5EA709673649c4D2a8a9d2e47F50ef694F; // BRST_TRX pool proxyed
         BRST_Contract = ITRC20(tokenBRST);
         TRC721_Contract = ITRC721(tokenTRC721);
         POOL_Contract = IPOOL(contractPool);
@@ -248,13 +251,14 @@ contract Lottery {
                 uint256 granPrix = _premio();
                 toTeam = toTeam.add(premioTeam());
                 if(granPrix > address(this).balance){
-                    (bool insta, uint256 id) = POOL_Contract.solicitudRetiro((granPrix.mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
+                    (bool insta, ) = POOL_Contract.solicitudRetiro((granPrix.mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
                     
                     if(insta){
                         payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
+                        payable(walletTeam).transfer(toTeam);
+                        delete toTeam;
                     }else{
                         vaul[myNumber] += ganado;
-                        retirosP.push(id);
                     }                    
                 
                 }else{
@@ -271,42 +275,22 @@ contract Lottery {
 
     }
 
-    function solicitarRetiroPool(uint256 _valor) public {
+    function solicitarRetiroPool(uint256 _valor) public returns(bool insta, uint256 id){
         onlyOwner();
-        (bool insta, uint256 id) =POOL_Contract.solicitudRetiro((_valor.mul(10**6)).div(POOL_Contract.RATE()));
-                    
-        if(!insta){
-            retirosP.push(id);
-
-        }   
-
+        ( insta, id) = POOL_Contract.solicitudRetiro((_valor.mul(10**6)).div(POOL_Contract.RATE()));
+                     
     }
 
     function verRetirosP() public view returns(uint256[] memory){
-        return retirosP;
+        return POOL_Contract.todasSolicitudes(address(this));
     }
 
-    function terminarAllRetirosP() internal returns(bool [] memory ret) {
-
-        for (uint256 i = 0; i < retirosP.length; i++) {
-            if(!POOL_Contract.completada(retirosP[i])){
-                ret = new bool[](1);
-                ret[i] = POOL_Contract.retirar(retirosP[i]);
-            }
-            
-        }
-
-    }
-
-    function terminarRetiroPool(uint256 _id, bool _all) public returns(bool[] memory ret) {
+    function terminarRetiroPool(uint256 _id, bool _all) public returns(bool ret) {
         onlyOwner();
         if(_all){
-            return terminarAllRetirosP();
+            ret = POOL_Contract.retirarFrom(address(this));
         }else{
-            ret = new bool[](1);
-            ret[0] = POOL_Contract.retirar(_id);
-            return ret;
-
+            ret = POOL_Contract.retirar(_id);
         }
     }
   

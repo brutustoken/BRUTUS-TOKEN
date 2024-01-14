@@ -203,6 +203,10 @@ export default class Staking extends Component {
 
     //await this.props.contrato.BRST_TRX_Proxy.setWhiteList("TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR").send();
 
+    //await this.props.contrato.BRST_TRX_Proxy.setDisponible("50000000").send()
+
+    //var pywhite = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
+    //console.log(pywhite.toNumber())
 
     var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
     precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
@@ -678,7 +682,6 @@ export default class Staking extends Component {
     }
 
 
-    this.llenarUSDT();
     await delay(5);
     this.estado();
 
@@ -816,9 +819,6 @@ export default class Staking extends Component {
       }
 
     }
-
-
-    this.llenarBRST();
 
     this.estado();
 
