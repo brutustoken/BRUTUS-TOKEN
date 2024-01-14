@@ -205,8 +205,8 @@ export default class Staking extends Component {
 
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("50000000").send()
 
-    //var pywhite = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
-    //console.log(pywhite.toNumber())
+    var pywhite = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
+    console.log(pywhite.toNumber())
 
     var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
     precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
@@ -416,7 +416,7 @@ export default class Staking extends Component {
           <div className="row mt-4 align-items-center" id={"sale-"+parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
             <div className="col-sm-6 mb-3">
               <p className="mb-0 fs-14">Sale N° {parseInt(deposits[index]._hex)} | {diasrestantes} Days left</p>
-              <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {cantidadTrx.shiftedBy(-6).toString(10)} TRX</h4>
+              <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {cantidadTrx.shiftedBy(-6).dp(6).toString(10)} TRX</h4>
               <p className="mb-0 fs-14">Price by unit: {(parseInt(pen.precio._hex)/10**6)} TRX</p>
             </div>
             <div className="col-sm-6 mb-1">

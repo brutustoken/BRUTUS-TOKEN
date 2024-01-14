@@ -62,6 +62,7 @@ interface ITRC20 {
     function approve(address spender, uint256 value) external returns (bool);
     function transfer(address recipient, uint256 amount) external returns (bool);
     function transferFrom(address from, address to, uint256 amount) external returns (bool);
+    function decimals() external view returns (uint256);
 
 }
 
@@ -169,8 +170,8 @@ contract Lottery {
 
     }
 
-    function _premio() internal view returns(uint256 prix){
-        uint256 brstPooledInTrx = BRST_Contract.balanceOf(address(this)).mul(POOL_Contract.RATE()).div(1e6);
+    function _premio() public view returns(uint256 prix){
+        uint256 brstPooledInTrx = toTRX(BRST_Contract.balanceOf(address(this)));
         if(brstPooledInTrx > trxPooled.add(toTeam)){
            prix = (brstPooledInTrx).sub(trxPooled).sub(toTeam);
         }
@@ -191,9 +192,14 @@ contract Lottery {
 
     }
 
-    function toBRST(uint256 _value) public view returns(uint256){
-        // consulta cuanto TRX vale el BRST
-        return _value.mul(POOL_Contract.RATE()).div(1e6);
+    function toTRX(uint256 _valueBRST) public view returns(uint256 rtrx){
+        // consulta cuanto TRX vale el BRST  351995.666666  || 2.111974
+        return _valueBRST.mul(POOL_Contract.RATE()).div(10**BRST_Contract.decimals());
+    }
+
+    function toBRST(uint256 _valueTRX) public view returns(uint256 brst){
+        // consulta cuanto TRX vale el BRST 999999
+        return _valueTRX.mul(10**BRST_Contract.decimals()).div(POOL_Contract.RATE());
     }
 
     function valueNFT(uint256 _nft)public view returns(uint256 tron) {
@@ -250,22 +256,15 @@ contract Lottery {
             if(ganado>0){
                 uint256 granPrix = _premio();
                 toTeam = toTeam.add(premioTeam());
-                if(granPrix > address(this).balance){
-                    (bool insta, ) = POOL_Contract.solicitudRetiro((granPrix.mul(10**6)).div(POOL_Contract.RATE()));// recibo premio en TRX debo convertir a BRST para solicitar retiro
-                    
-                    if(insta){
-                        payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
-                        payable(walletTeam).transfer(toTeam);
-                        delete toTeam;
-                    }else{
-                        vaul[myNumber] += ganado;
-                    }                    
+                (bool insta, ) = POOL_Contract.solicitudRetiro(toBRST(granPrix));// recibo premio en TRX debo convertir a BRST para solicitar retiro
                 
-                }else{
+                if(insta && address(this).balance >= ganado){
                     payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
-                    payable(walletTeam).transfer(toTeam);
-                    delete toTeam;
-                }
+                    
+                }else{
+                    vaul[myNumber] += ganado;
+                }                    
+               
             }
 
             lastWiner = myNumber;
@@ -275,9 +274,9 @@ contract Lottery {
 
     }
 
-    function solicitarRetiroPool(uint256 _valor) public returns(bool insta, uint256 id){
+    function solicitarRetiroPool(uint256 _valorTrx) public returns(bool insta, uint256 id){
         onlyOwner();
-        ( insta, id) = POOL_Contract.solicitudRetiro((_valor.mul(10**6)).div(POOL_Contract.RATE()));
+        ( insta, id) = POOL_Contract.solicitudRetiro(toBRST(_valorTrx));
                      
     }
 
