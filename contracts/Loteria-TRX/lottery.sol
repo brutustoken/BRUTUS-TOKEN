@@ -255,11 +255,16 @@ contract Lottery {
 
             if(ganado>0){
                 uint256 granPrix = _premio();
-                toTeam = toTeam.add(premioTeam());
+                uint256 temp = premioTeam();
                 (bool insta, ) = POOL_Contract.solicitudRetiro(toBRST(granPrix));// recibo premio en TRX debo convertir a BRST para solicitar retiro
                 
                 if(insta && address(this).balance >= ganado){
                     payable(TRC721_Contract.ownerOf(myNumber)).transfer(ganado);
+                    if(address(this).balance >= temp){
+                        payable(walletTeam).transfer(temp);
+                    }else{
+                        toTeam = toTeam.add(temp);
+                    }
                     
                 }else{
                     vaul[myNumber] += ganado;
