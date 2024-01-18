@@ -253,7 +253,11 @@ contract Lottery {
         if(paso > 0){
             myNumber = RandomNumber.randMod(paso, uint256(keccak256(abi.encode(lastWiner,block.timestamp, blockhash(block.number)))),randNonce.numero);
 
-            if(ganado>0){
+            if(myNumber == 0){
+                myNumber = RandomNumber.randMod(paso, uint256(keccak256(abi.encode(blockhash(block.number), lastWiner, block.timestamp))),randNonce.numero);
+            }
+
+            if(ganado>0 ){
                 uint256 granPrix = _premio();
                 uint256 temp = premioTeam();
                 (bool insta, ) = POOL_Contract.solicitudRetiro(toBRST(granPrix));// recibo premio en TRX debo convertir a BRST para solicitar retiro

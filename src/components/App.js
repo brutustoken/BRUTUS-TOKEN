@@ -219,6 +219,7 @@ class App extends Component {
         contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
       }
       if(cons.SC4 !== "" && (url === "brlt")){
+        contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY,cons.SC4);
         contrato.loteria = await web3Contracts.contract(abi_LOTERIA,cons.SC4);
       }
 

@@ -74,6 +74,8 @@ export default class nfts extends Component {
     //let cosa = await this.props.contrato.loteria._premio().call()
     //console.log(cosa)
 
+    //await this.props.contrato.ProxyLoteria.upgradeTo("TV5WezZcBPA3v3HJEkM47BBp29dYNmPdj4").send()
+
 
 
     var cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
@@ -126,7 +128,15 @@ export default class nfts extends Component {
 
   async sorteo() {
 
-    if(Date.now() >= (this.state.prosort*1000)){
+    //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
+    let premio = await this.props.contrato.loteria._premio().call()
+    console.log(premio)
+
+    var salida = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
+
+    console.log(salida)
+
+    if(Date.now() >= (this.state.prosort*1000) && salida >= premio){
       this.props.contrato.loteria.sorteo().send()//.send({shouldPollResponse:true})
       .then(async(r)=>{
         console.log(r)
