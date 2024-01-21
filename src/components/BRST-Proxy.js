@@ -341,7 +341,7 @@ export default class Staking extends Component {
 
     var diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
 
-    var adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY","TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf"]
+    var adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY","TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf","TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
     
     for (let index = 0; index < deposits.length; index++) {
 

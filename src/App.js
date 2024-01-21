@@ -2,20 +2,20 @@ import React, { Component } from "react";
 import TronWeb from "tronweb";
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 
-import abi_PROXY from "../abi/Proxy";
-import abi_POOLBRST from "../abi/PoolBRSTv4";
-import abi_LOTERIA from "../abi/Lottery";
-import cons from "../cons.js";
+import abi_PROXY from "./abi/Proxy";
+import abi_POOLBRST from "./abi/PoolBRSTv4";
+import abi_LOTERIA from "./abi/Lottery";
+import cons from "./cons.js";
 
-import Inicio from "./Inicio.js";
+import Inicio from "./components/Inicio.js";
 
 //import TronLinkGuide from "./TronLinkGuide/index.js";
 
-import Home from "./BRUT.js";
-import StakingV2 from "./BRST-Proxy.js";
-import Nft from "./BRGY/index.js";
-import LOTERIA from "./BRLT.js";
-import EBOT from "./EBOT.js";
+import Home from "./components/BRUT.js";
+import StakingV2 from "./components/BRST-Proxy.js";
+import Nft from "./components/BRGY/index.js";
+import LOTERIA from "./components/BRLT.js";
+import EBOT from "./components/EBOT.js";
 
 const tronWeb = new TronWeb({
   fullHost: cons.RED
