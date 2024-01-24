@@ -193,9 +193,8 @@ export default class EnergyRental extends Component {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-      })
+      }).then((r)=>r.json())
 
-      consulta2 = (await consulta2.json())
       console.log(consulta2)
 
       var precio = consulta2.price * 1

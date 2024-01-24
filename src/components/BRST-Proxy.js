@@ -137,7 +137,10 @@ export default class Staking extends Component {
     this.consultaPrecio = this.consultaPrecio.bind(this);
     this.grafico = this.grafico.bind(this);
 
+    this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
+
+    this.preVenta = this.preVenta.bind(this);
     this.venta = this.venta.bind(this);
     this.sell = this.sell.bind(this);
 
@@ -154,6 +157,8 @@ export default class Staking extends Component {
 
     this.llenarBRST = this.llenarBRST.bind(this);
     this.llenarTRX = this.llenarTRX.bind(this);
+
+    this.rentEnergy = this.rentEnergy.bind(this);
 
   }
 
@@ -598,15 +603,229 @@ export default class Staking extends Component {
 
   }
 
+  async rentEnergy(cantidad) {
+
+    var retorno = false;
+
+    const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
+
+    var body = { "resource": "energy", "amount": cantidad, "duration": "1h" }
+    var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }).then((r)=>r.json())
+
+    var precio = new BigNumber(consultaPrecio.price).dp(6)
+
+    console.log(precio)
+
+    this.setState({
+      wallet_orden: this.props.accountAddress
+    })
+    
+
+    this.setState({
+      ModalTitulo: <>Confirm transaction {imgLoading}</>,
+      ModalBody: <>Please confirm the transaction from your wallet </>
+    })
+
+    window.$("#mensaje-brst").modal("show");
+
+    var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio))
+    .catch((e)=>{
+      console.log(e)
+      return ["e",e];
+    })
+
+    if(hash[0] === "e"){
+      this.setState({
+        ModalTitulo: "Transaction failed",
+        ModalBody: <>{hash[1].toString()}
+        <br /><br />
+        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
+        </>
+      })
+  
+      window.$("#mensaje-brst").modal("show");
+      return;
+    }
+
+    this.setState({
+      ModalTitulo: <>Waiting for the blockchain {imgLoading}</>,
+      ModalBody: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute"
+    })
+
+    window.$("#mensaje-brst").modal("show");
+
+    await delay(3);
+
+    var envio = hash.transaction.raw_data.contract[0].parameter.value
+
+    this.setState({
+      ModalTitulo: <>we are verifying {imgLoading}</>,
+      ModalBody: "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
+    })
+
+    window.$("#mensaje-brst").modal("show");
+
+    if (hash.result && envio.amount + "" === this.props.tronWeb.toSun(precio) && this.props.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
+
+      hash = await this.props.tronWeb.trx.getTransaction(hash.txid);
+      
+      if (hash.ret[0].contractRet === "SUCCESS" ) {
+
+        this.setState({
+          ModalTitulo: <>we are allocating your energy {imgLoading}</>,
+          ModalBody: "Please do not close or leave the page as this will cause an error in the energy allocation."
+        })
+    
+        window.$("#mensaje-brst").modal("show");
+
+        var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "energy"
+
+        var body1 = {
+          "id_api": process.env.REACT_APP_USER_ID,
+          "wallet": this.state.wallet_orden,
+          "amount": this.state.cantidad,
+          "time": "1h",
+          "user_id": "Fw-"+(Date.now()/1000)
+        }
+
+        var consulta2 = await fetch(url, {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body1)
+        }).then((r)=>r.json())
+
+        console.log(consulta2)
+
+        if (consulta2.response === 1) {
+
+          this.setState({
+            ModalTitulo: "Completed successfully",
+            ModalBody: <><p>Energy rental completed successfully. </p><button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
+          })
+
+          window.$("#mensaje-brst").modal("show");
+
+          retorno = true
+
+        } else {
+
+          this.setState({
+            ModalTitulo: "Contact support",
+            ModalBody: "Please contact support for: " + hash.txID + " | "+consulta2.msg
+          })
+
+          window.$("#mensaje-brst").modal("show");
+
+        }
+
+
+
+      } else {
+        this.setState({
+          ModalTitulo: "Contact support",
+          ModalBody: "Please contact support for: Error SUC-808831"
+        })
+
+        window.$("#mensaje-brst").modal("show");
+      }
+
+
+    } else {
+      this.setState({
+        ModalTitulo: "Contact support",
+        ModalBody: "Please contact support for: Error NN-0001"
+      })
+
+      window.$("#mensaje-brst").modal("show");
+    }
+
+    return retorno;
+
+  }
+
+  async preCompra(){
+
+    var amount = document.getElementById("amountTRX").value;
+    amount = parseInt(parseFloat(amount) * 10 ** 6);
+
+    var eenergy = {};
+
+        let inputs = [
+          //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+          //{type: 'uint256', value: '1000000'}
+        ]
+
+        let funcion = "staking()"
+        const options = {callValue:amount}
+        eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+        .catch(()=>{return {}})
+        
+
+        if(eenergy.energy_used){
+          eenergy = eenergy.energy_used;
+        }else{
+          eenergy = 80000;
+        }
+
+
+    if(eenergy > this.state.contractEnergy){
+
+      var requerido = eenergy - this.state.contractEnergy
+
+      if(requerido < 32000){
+        requerido = 32000;
+      }else{
+        requerido += 1000;
+      }
+
+      var body = { "resource": "energy", "amount": requerido, "duration": "1h" }
+    var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }).then((r)=>r.json())
+
+    var precio = new BigNumber(consultaPrecio.price).dp(6)
+
+    console.log(precio)
+
+      this.setState({
+        ModalTitulo: "Energy Notice",
+        ModalBody: <>This operation usually requires {eenergy} energy, and you have {this.state.contractEnergy} energy and need at least {requerido} energy, rent them for {precio.toString(10)} TRX to perform this operation.
+        <br /><br/>
+        <button type="button" className="btn btn-success" onClick={async()=>{
+          if(await this.rentEnergy(requerido)){
+            this.compra()
+          }
+          }}>Rent Energy</button>
+        </>
+      })
+
+      window.$("#mensaje-brst").modal("show");
+    }else{
+      this.compra()
+    }
+  }
+
   async compra() {
 
     const { minCompra } = this.state;
 
     var amount = document.getElementById("amountTRX").value;
-    amount = parseFloat(amount);
-    amount = parseInt(amount * 10 ** 6);
+    amount = parseInt(parseFloat(amount) * 10 ** 6);
 
-    var balance = await this.props.tronWeb.trx.getBalance();
+    var balance = await this.props.tronWeb.trx.getUnconfirmedBalance();
 
     if (balance >= amount) {
       if (amount >= minCompra) {
@@ -691,7 +910,7 @@ export default class Staking extends Component {
         </>)
     }else{
       primerBoton = (<>
-      <button type="button" id="fastw" className="btn btn-warning" onClick={()=>{this.venta(true)}}>Fast Withdrawal {amount.toNumber()} TRX</button><br/>
+      <button type="button" id="fastw" className="btn btn-warning" onClick={()=>{this.preVenta(true)}}>Fast Withdrawal {amount.toNumber()} TRX</button><br/>
         you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a 5% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
       <br/><br/>
       
@@ -702,13 +921,107 @@ export default class Staking extends Component {
       ModalTitulo: "Select Your Method",
       ModalBody: <>We now have two withdrawal methods:<br/>
       {primerBoton}
-      <button type="button" className="btn btn-success"  onClick={()=>{this.venta(false)}}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br/>
+      <button type="button" className="btn btn-success"  onClick={()=>{this.preVenta(false)}}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br/>
        you can make a withdrawal request that you can claim from the contract in its entirety in 17 days.
       </>
     })
 
     window.$("#mensaje-brst").modal("show");
   
+  }
+
+  async preVenta(rapida){
+
+    var eenergy = 0;
+
+    var amount = document.getElementById("amountBRST").value;
+    amount = parseFloat(amount);
+    amount = parseInt(amount * 10 ** 6);
+
+    var accountAddress = this.props.accountAddress;
+
+    var aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+    aprovado = parseInt(aprovado._hex);
+
+    if(aprovado === 0){
+
+      let inputs1 = [
+        {type: 'address', value: this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address)},
+        {type: 'uint256', value: '115792089237316195423570985008687907853269984665640564039457584007913129639935'}
+      ]
+  
+      let funcion1 = "approve(address,uint256)"
+      const options1 = {callValue:amount}
+      var transaccion1 = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST.address), funcion1, options1, inputs1, this.props.tronWeb.address.toHex(this.props.accountAddress))
+      .catch(()=>{return {}})
+
+      if(transaccion1.energy_used){
+        eenergy += transaccion1.energy_used;
+      }else{
+        eenergy += 32000
+      }
+
+    }
+
+    let inputs = [
+      {type: 'uint256', value: amount}
+
+    ]
+    let funcion = "esperaRetiro(uint256)"
+
+    if(rapida){
+      funcion = "instaRetiro(uint256)"
+    }
+    const options = {}
+    var transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    .catch(()=>{return {}})
+    
+
+    if(transaccion.energy_used){
+      eenergy += transaccion.energy_used;
+    }else{
+      eenergy += 80000;
+    }
+
+    if(eenergy > this.state.contractEnergy){
+
+      var requerido = eenergy - this.state.contractEnergy
+
+      if(requerido < 32000){
+        requerido = 32000;
+      }else{
+        requerido += 1000;
+      }
+
+      var body = { "resource": "energy", "amount": requerido, "duration": "1h" }
+    var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }).then((r)=>r.json())
+
+    var precio = new BigNumber(consultaPrecio.price).dp(6)
+
+    console.log(precio)
+
+      this.setState({
+        ModalTitulo: "Energy Notice",
+        ModalBody: <>This operation usually requires {eenergy} energy, and you have {this.state.contractEnergy} energy and need at least {requerido} energy, rent them for {precio.toString(10)} TRX to perform this operation.
+        <br /><br/>
+        <button type="button" className="btn btn-success" onClick={async()=>{
+          if(await this.rentEnergy(requerido)){
+            this.venta(rapida)
+          }
+          }}>Rent Energy</button>
+        </>
+      })
+
+      window.$("#mensaje-brst").modal("show");
+    }else{
+      this.venta(rapida)
+    }
   }
 
   async venta(rapida) {
@@ -1191,7 +1504,7 @@ export default class Staking extends Component {
                         </div>
 
                         <div className="col-6">
-                          <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.compra()}>
+                          <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.preCompra()}>
                             BUY
                             <img src="/images/svg/up.svg" height="16px" alt=""/>
                           </button>
@@ -1291,6 +1604,7 @@ export default class Staking extends Component {
                     Update {" "} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>
                 <p className="mb-0 fs-12">Come back when time is up and claim your TRX</p>
+                <p><button className="btn btn-success text-white" onClick={()=>this.rentEnergy(100000)}>Rent 100K Energy for Whitdrawl</button></p>
               </div>
 
             </div>
