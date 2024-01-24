@@ -205,6 +205,8 @@ export default class Staking extends Component {
 
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
 
+    this.consultaPrecio();
+
     var pywhite = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
     console.log(pywhite.toNumber())
 
