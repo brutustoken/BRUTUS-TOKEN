@@ -145,6 +145,7 @@ export default class Staking extends Component {
     this.sell = this.sell.bind(this);
 
     this.estado = this.estado.bind(this);
+    this.preClaim = this.preClaim.bind(this);
 
     this.handleChange = this.handleChange.bind(this);
     this.handleChange2 = this.handleChange2.bind(this);
@@ -212,8 +213,8 @@ export default class Staking extends Component {
 
     this.consultaPrecio();
 
-    var pywhite = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
-    console.log(pywhite.toNumber())
+    //var pywhite = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
+    //console.log(pywhite.toNumber())
 
     var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
     precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
@@ -276,7 +277,7 @@ export default class Staking extends Component {
     if (useTrx >= 1) {
       useTrx = 1
     } else {
-      useTrx = 21
+      useTrx = "20 ~ 40"
     }
 
 
@@ -385,7 +386,7 @@ export default class Staking extends Component {
         //console.log(myids.indexOf(parseInt(deposits[index]._hex)))
         boton = (
           <button className="btn btn-primary ms-4 mb-2" onClick={async () => {
-            await this.props.contrato.BRST_TRX_Proxy.retirar(parseInt(deposits[index]._hex)).send();
+            await this.preClaim(parseInt(deposits[index]._hex));
             this.estado()
           }}>
             Claim {" "} <i className="bi bi-award"></i>
@@ -447,6 +448,66 @@ export default class Staking extends Component {
       this.handleChangeCalc({target:{value:misBRST}})
     }
 
+  }
+
+  async preClaim(id){
+
+    var eenergy = 0;
+
+    let inputs = [
+      {type: 'uint256', value: id}
+    ]
+    let funcion = "retirar(uint256)"
+    const options = {}
+    var transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    .catch(()=>{return {}})
+
+    if(transaccion.energy_used){
+      eenergy += transaccion.energy_used;
+    }else{
+      eenergy += 80000;
+    }
+
+    if(eenergy > this.state.contractEnergy){
+
+      var requerido = eenergy - this.state.contractEnergy
+
+      if(requerido < 32000){
+        requerido = 32000;
+      }else{
+        requerido += 1000;
+      }
+
+      var body = { "resource": "energy", "amount": requerido, "duration": "1h" }
+    var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(body)
+    }).then((r)=>r.json())
+
+    var precio = new BigNumber(consultaPrecio.price).dp(6)
+
+    console.log(precio)
+
+      this.setState({
+        ModalTitulo: "Energy Notice",
+        ModalBody: <>This operation usually requires <b>{eenergy} energy</b>, and you have <b>{this.state.contractEnergy} energy</b> and need at least <b>{requerido} energy</b>, rent them for <b>{precio.toString(10)} TRX</b> to perform this operation.
+        <br /><br/>
+        <button type="button" className="btn btn-success" onClick={async()=>{
+          if(await this.rentEnergy(requerido)){
+            await this.props.contrato.BRST_TRX_Proxy.retirar(id).send();
+
+          }
+          }}>Rent Energy</button>
+        </>
+      })
+
+      window.$("#mensaje-brst").modal("show");
+    }else{
+      await this.props.contrato.BRST_TRX_Proxy.retirar(id).send();
+    }
   }
 
 
@@ -618,14 +679,7 @@ export default class Staking extends Component {
       body: JSON.stringify(body)
     }).then((r)=>r.json())
 
-    var precio = new BigNumber(consultaPrecio.price).dp(6)
-
-    console.log(precio)
-
-    this.setState({
-      wallet_orden: this.props.accountAddress
-    })
-    
+    var precio = new BigNumber(consultaPrecio.price).dp(6).toNumber()
 
     this.setState({
       ModalTitulo: <>Confirm transaction {imgLoading}</>,
@@ -650,7 +704,7 @@ export default class Staking extends Component {
       })
   
       window.$("#mensaje-brst").modal("show");
-      return;
+      return false;
     }
 
     this.setState({
@@ -688,8 +742,8 @@ export default class Staking extends Component {
 
         var body1 = {
           "id_api": process.env.REACT_APP_USER_ID,
-          "wallet": this.state.wallet_orden,
-          "amount": this.state.cantidad,
+          "wallet": this.props.accountAddress,
+          "amount": cantidad,
           "time": "1h",
           "user_id": "Fw-"+(Date.now()/1000)
         }
@@ -709,7 +763,7 @@ export default class Staking extends Component {
 
           this.setState({
             ModalTitulo: "Completed successfully",
-            ModalBody: <><p>Energy rental completed successfully. </p><button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
+            ModalBody: <><p>Energy rental completed successfully. </p><button type="button" data-bs-dismiss="modal" className="btn btn-success">Continue the process</button></>
           })
 
           window.$("#mensaje-brst").modal("show");
@@ -802,7 +856,7 @@ export default class Staking extends Component {
 
       this.setState({
         ModalTitulo: "Energy Notice",
-        ModalBody: <>This operation usually requires {eenergy} energy, and you have {this.state.contractEnergy} energy and need at least {requerido} energy, rent them for {precio.toString(10)} TRX to perform this operation.
+        ModalBody: <>This operation usually requires <b>{eenergy} energy</b>, and you have <b>{this.state.contractEnergy} energy</b> and need at least <b>{requerido} energy</b>, rent them for <b>{precio.toString(10)} TRX</b> to perform this operation.
         <br /><br/>
         <button type="button" className="btn btn-success" onClick={async()=>{
           if(await this.rentEnergy(requerido)){
@@ -935,8 +989,7 @@ export default class Staking extends Component {
     var eenergy = 0;
 
     var amount = document.getElementById("amountBRST").value;
-    amount = parseFloat(amount);
-    amount = parseInt(amount * 10 ** 6);
+    amount = parseInt(parseFloat(amount) * 10 ** 6);
 
     var accountAddress = this.props.accountAddress;
 
@@ -1008,7 +1061,7 @@ export default class Staking extends Component {
 
       this.setState({
         ModalTitulo: "Energy Notice",
-        ModalBody: <>This operation usually requires {eenergy} energy, and you have {this.state.contractEnergy} energy and need at least {requerido} energy, rent them for {precio.toString(10)} TRX to perform this operation.
+        ModalBody: <>This operation usually requires <b>{eenergy} energy</b>, and you have <b>{this.state.contractEnergy} energy</b> and need at least <b>{requerido} energy</b>, rent them for <b>{precio.toString(10)} TRX</b> to perform this operation.
         <br /><br/>
         <button type="button" className="btn btn-success" onClick={async()=>{
           if(await this.rentEnergy(requerido)){
@@ -1604,7 +1657,6 @@ export default class Staking extends Component {
                     Update {" "} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>
                 <p className="mb-0 fs-12">Come back when time is up and claim your TRX</p>
-                <p><button className="btn btn-success text-white" onClick={()=>this.rentEnergy(100000)}>Rent 100K Energy for Whitdrawl</button></p>
               </div>
 
             </div>
