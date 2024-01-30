@@ -152,7 +152,7 @@ export default class nfts extends Component {
 
   async compra() {
 
-    this.props.contrato.loteria.buyLoteria(this.props.accountAddress, this.comprarBRLT).send({ callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10) })
+    this.props.contrato.loteria.buyLoteria(this.props.accountAddress, this.state.comprarBRLT).send({ callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10) })
       .then(() => {
         this.setState({
           modalTitulo: "Purchased lottery ticket",
