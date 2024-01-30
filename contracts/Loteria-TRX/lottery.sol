@@ -134,10 +134,10 @@ contract Lottery {
         beneficio = 20;
         precicion = 100;
         walletTeam = 0x51A2ae8110057556c9Fa4Dc18964ACA5f6D47945;
-        periodo = 30;//15*86400;
-        tokenBRST = 0xd36C2506eF27Fa376612eCBA208926bA0261A4ad;//0x389ccc30de1d311738Dffd3F60D4fD6188970F45;//BRST 
-        tokenTRC721 = 0x922De0b0fd795Bb6Cd34B8a38EA0ba6954e93aF6;//0x0D8AdCA61a885Df7fCB8cC5f26225DdBb4Ca70FA; // nft loteria
-        contractPool = 0x4ddF1924DCD5A3b7b56977a423D360Ca5c033C96;//0x83F62b5EA709673649c4D2a8a9d2e47F50ef694F; // BRST_TRX pool proxyed
+        periodo = 15*86400;
+        tokenBRST = 0x389ccc30de1d311738Dffd3F60D4fD6188970F45;//BRST 
+        tokenTRC721 = 0x0D8AdCA61a885Df7fCB8cC5f26225DdBb4Ca70FA; // nft loteria
+        contractPool = 0x83F62b5EA709673649c4D2a8a9d2e47F50ef694F; // BRST_TRX pool proxyed
         BRST_Contract = ITRC20(tokenBRST);
         TRC721_Contract = ITRC721(tokenTRC721);
         POOL_Contract = IPOOL(contractPool);
