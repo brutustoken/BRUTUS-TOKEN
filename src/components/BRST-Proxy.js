@@ -126,7 +126,7 @@ export default class Staking extends Component {
       balanceBRST: 0,
       balanceTRX: 0,
       globDepositos: [],
-      eenergy: 1
+      eenergy: 62000
 
 
     };
@@ -811,24 +811,38 @@ export default class Staking extends Component {
     var amount = document.getElementById("amountTRX").value;
     amount = parseInt(parseFloat(amount) * 10 ** 6);
 
+    if(amount <= 0){
+
+      this.setState({
+        ModalTitulo: "Input Error",
+        ModalBody: <>Please Enter valid amount
+        <br /><br/>
+        <button type="button" className="btn btn-danger" onClick={()=>{window.$("#mensaje-brst").modal("hide")}}>Close</button>
+        </>
+
+      })
+
+      return;
+    }
+
     var eenergy = {};
 
-        let inputs = [
-          //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-          //{type: 'uint256', value: '1000000'}
-        ]
+    let inputs = [
+      //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+      //{type: 'uint256', value: '1000000'}
+    ]
 
-        let funcion = "staking()"
-        const options = {callValue:amount}
-        eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-        .catch(()=>{return {}})
-        
+    let funcion = "staking()"
+    const options = {callValue:amount}
+    eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion,options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    .catch(()=>{return {}})
+    
 
-        if(eenergy.energy_used){
-          eenergy = eenergy.energy_used;
-        }else{
-          eenergy = 80000;
-        }
+    if(eenergy.energy_used){
+      eenergy = eenergy.energy_used;
+    }else{
+      eenergy = 80000;
+    }
 
 
     if(eenergy > this.state.contractEnergy){
