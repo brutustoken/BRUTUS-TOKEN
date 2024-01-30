@@ -442,7 +442,7 @@ export default class nfts extends Component {
                   </p>
 
                   <p className="text-center">
-                    <a href="https://brutus.finance/blog/">{"--> "}Read all Terms and Conditions {" <--"}</a>
+                    <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf">{"--> "}Read all Terms and Conditions {" <--"}</a>
                   </p>
                 </div>
                 </div>
