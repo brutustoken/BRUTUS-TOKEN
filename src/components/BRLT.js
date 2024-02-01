@@ -152,7 +152,13 @@ export default class nfts extends Component {
 
   async compra() {
 
-    this.props.contrato.loteria.buyLoteria(this.props.accountAddress, this.state.comprarBRLT).send({ callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10) })
+    var feelimit = 200 * 10**6;
+
+    if(this.state.comprarBRLT > 1)feelimit = 1000 * 10**6;
+
+    if(this.state.comprarBRLT > 20)feelimit = 2000 * 10**6;
+
+    this.props.contrato.loteria.buyLoteria(this.props.accountAddress, this.state.comprarBRLT).send({ callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10), feeLimit: feelimit })
       .then(() => {
         this.setState({
           modalTitulo: "Purchased lottery ticket",
@@ -346,11 +352,13 @@ export default class nfts extends Component {
               <div className="col-md-4">
                 <div className="card overflow-hidden">
                   <div className="card-body py-4 pt-4">
-                    <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between" style={{cursor: "pointer"}} onClick={()=>{
+                          window.open("https://apenft.io/#/collection/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU" , '_blank')
+                        }}>
+                    
                       <h4 className="fs-18 font-w400">NFT Sold</h4>
                       <div className="d-flex align-items-center">
                         <h2 className="count-num">{this.state.totalNFT}</h2>
-                        <span className="fs-16 font-w500 text-success ps-2"><i className="bi bi-caret-up-fill pe-2"></i></span>
                       </div>
                     </div>
                     <div id="totalInvoices"></div>
@@ -360,12 +368,15 @@ export default class nfts extends Component {
               <div className="col-md-4">
                 <div className="card overflow-hidden">
                   <div className="card-body py-4 pt-4">
-                    <div className="d-flex align-items-center justify-content-between">
+                    <div className="d-flex align-items-center justify-content-between" style={{cursor: "pointer"}} onClick={()=>{
+                          window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/"+this.state.LastWiner , '_blank')
+                        }}>
+                      
                       <h4 className="fs-18 font-w400">Last Winner</h4>
                       <div className="d-flex align-items-center">
-                        <h2 className="count-num">#{this.state.LastWiner}</h2>
-                        <span className="fs-16 font-w500 text-danger ps-2"><i className="bi bi-caret-down-fill pe-2"></i></span>
+                        <h2 className="count-num" >#{this.state.LastWiner}</h2>
                       </div>
+                      
                     </div>
                     <div id="paidinvoices"></div>
                   </div>

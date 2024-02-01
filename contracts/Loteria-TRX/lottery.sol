@@ -271,7 +271,8 @@ contract Lottery {
                     }
                     
                 }else{
-                    vaul[myNumber] += ganado;
+                    vaul[myNumber] =  vaul[myNumber].add(ganado);
+                    toTeam = toTeam.add(temp);
                 }                    
                
             }
