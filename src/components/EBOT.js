@@ -343,7 +343,7 @@ export default class EnergyRental extends Component {
         })
         consulta2 = (await consulta2.json())
 
-        console.log(consulta2)
+        //console.log(consulta2)
 
         if (consulta2.response === 1) {
 
@@ -364,7 +364,6 @@ export default class EnergyRental extends Component {
           window.$("#mensaje-ebot").modal("show");
 
         }
-
 
 
       } else {
@@ -412,29 +411,8 @@ export default class EnergyRental extends Component {
     return (<>
 
       <div className="row ">
-        <div className="col-lg-6 col-sm-12 m-b30">
-          <div className="info-box text-center">
-            <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
 
-            <div className="info">
-              <h1>Brutus Resources Rental </h1>
-              <p className="font-20">In Brutus Energy Bot, we've developed a DApp that provides you
-                with a faster, more convenient, and secure experience. This DApp represents an
-                innovative third way to access Brutus's resources on the Tron network. Our
-                application is designed to simplify the energy rental process, ensuring
-                efficient resource management at competitive prices.</p>
-            </div>
-
-            <div className="widget widget_about">
-              <div className="widget widget_getintuch">
-              </div>
-            </div>
-            <div className="social-box dz-social-icon style-3">
-            </div>
-          </div>
-        </div>
-
-        <div className="col-lg-6 col-sm-12">
+      <div className="col-lg-6 col-sm-12">
           <div className="contact-box">
             <div className="card">
               <div className="card-body">
@@ -509,18 +487,18 @@ export default class EnergyRental extends Component {
                         </div>
                       </div>
                       
-                      <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
+                      <div className="col-12 mt-5 mb-3 justify-content-center align-items-center">
          
-                        <div className="d-flex justify-content-xl-center">
                           <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ margin: "10px", width: "400px", height: "45px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
+                          style={{width: "100%", height: "40px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
                           </button>
-                        </div>
+         
                       </div>
                       
-                      <p className="font-14">Send resources for another wallet</p>
                       <div className="col-xl-12 mb-3 mb-md-4">
+                        <p className="font-14">Send resources for another wallet</p>
+
                         <input name="dzFirstName" required type="text"
                           className="form-control" placeholder={this.props.accountAddress} onChange={this.handleChangeWallet} />
                       </div>
@@ -532,6 +510,25 @@ export default class EnergyRental extends Component {
             </div>
           </div>
         </div>
+
+        <div className="col-lg-6 pt-4 mt-5 col-sm-12 m-b30">
+          <div className="info-box text-center">
+            <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
+
+            <div className="info">
+              <h1>Brutus Resources Rental </h1>
+              <p className="font-20">In Brutus Energy Bot, we've developed a DApp for a faster and secure resource rental experience on the Tron network. Innovatively simplifying the process, we ensure efficient management at competitive prices. Explore further through our <a href="https://t.me/BRUTUS_energy_bot">Telegram bot</a> or API for added accessibility. For additional information, reach out to us at <a href="mailto:support@brutus.finance">support@brutus.finance</a></p>
+            </div>
+
+            <div className="widget widget_about">
+              <div className="widget widget_getintuch">
+              </div>
+            </div>
+            <div className="social-box dz-social-icon style-3">
+            </div>
+          </div>
+        </div>
+
       </div >
 
       <div className="modal fade" id="mensaje-ebot">

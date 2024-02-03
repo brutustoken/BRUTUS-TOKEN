@@ -3,6 +3,9 @@ import abi_SUNSAWPv2 from "../abi/sunswapV2.json";
 
 const BigNumber = require('bignumber.js');
 
+let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
+
+
 export default class nfts extends Component {
 
   constructor(props) {
@@ -15,7 +18,7 @@ export default class nfts extends Component {
       precioBRUT: 0,
       mc: 0,
       mb: 0,
-      totalNFT: 1,
+      totalNFT: "Loading...",
       premio: "Loading...",
       LastWiner: "Loading...",
       proximoSorteo: "Loading...",
@@ -34,6 +37,8 @@ export default class nfts extends Component {
 
     this.estado = this.estado.bind(this);
     this.consultarPrecio = this.consultarPrecio.bind(this);
+
+    this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
 
 
@@ -137,7 +142,23 @@ export default class nfts extends Component {
       minutos = "0" + minutos;
     }
 
+
+    let contract_token = await this.props.tronWeb.contract().at("TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL")
+    let balanceDCT = await contract_token.balanceOf(this.props.accountAddress).call()
+    let decimalesDCT = await contract_token.decimals().call()
+    balanceDCT = new BigNumber(balanceDCT._hex).shiftedBy(-decimalesDCT).toNumber()
+
+
+    contract_token = await this.props.tronWeb.contract().at("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+    let decimales = await contract_token.decimals().call()
+    let balanceUSDT = await contract_token.balanceOf(this.props.accountAddress).call()
+    balanceUSDT = new BigNumber(balanceUSDT._hex).shiftedBy(-decimales).dp(6).toNumber()
+
+
     this.setState({
+      balanceDCT: balanceDCT,
+      decimalesDCT: decimalesDCT,
+      balanceUSDT: balanceUSDT,
       mc: cantidad,
       totalNFT: totalNFT,
       premio: premio,
@@ -149,9 +170,21 @@ export default class nfts extends Component {
 
   }
 
+  async preCompra(){
+
+    if(this.state.moneda !== "trx"){
+      await this.sunSwap(this.state.moneda);
+    }
+
+
+    this.compra()
+
+  }
+
 
   async compra() {
 
+    
     var feelimit = 200 * 10**6;
 
     if(this.state.comprarBRLT > 1)feelimit = 1000 * 10**6;
@@ -234,34 +267,77 @@ export default class nfts extends Component {
 
 
 
-  async sunSwap() {
-    let token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
-    let swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
-    let contrato = await this.props.tronWeb.contract(abi_SUNSAWPv2, swapContract)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
+  async sunSwap(coin) {
+  
+    let token
+    let swapContract
+    let trxAddress
 
-    let contract_token = await this.props.tronWeb.contract().at(token)
-    let aprove = await contract_token.allowance(this.props.accountAddress, "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax").call()
+    switch (coin) {
+      case "usdt":
+
+        token = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+        swapContract = "TFGDbUyP8xez44C76fin3bn3Ss6jugoUwJ"
+        trxAddress = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR"
+        
+        break;
+
+      case "dct":
+
+        token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
+        swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
+        trxAddress = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR"
+        
+        break;
+    
+      default:
+        break;
+    }
+    
+  // cantidades que costará
+
+  let contract_base_token = await this.props.tronWeb.contract().at(token)
+  let amount_base_token = await contract_base_token.balanceOf(swapContract).call()
+  amount_base_token= parseInt(amount_base_token._hex)
+  amount_base_token = new BigNumber(amount_base_token).shiftedBy(-1* (await contract_base_token.decimals().call()))
+  
+  let contract_result_token = await this.props.tronWeb.contract().at(trxAddress)
+  let amount_result_token = await contract_result_token.balanceOf(swapContract).call()
+  amount_result_token= parseInt(amount_result_token._hex)
+  amount_result_token = new BigNumber(amount_result_token).shiftedBy(-1* (await contract_result_token.decimals().call()))
+
+
+  let price = new BigNumber(amount_base_token).dividedBy(amount_result_token)
+
+
+  price = price.times(this.state.comprarBRLT).times(this.state.precioUnidad)
+
+  console.log(price.toString(10))
+
+
+  alert("will spend approximately ~ "+price.toString(10)+" ("+await contract_base_token.name().call()+") -> "+await contract_base_token.name().call())
+
+
+    let contrato = await this.props.tronWeb.contract(abi_SUNSAWPv2, sunswapRouter)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
+
+    let aprove = await contract_base_token.allowance(this.props.accountAddress, sunswapRouter).call()
 
 
     if (aprove._hex) aprove = parseInt(aprove._hex)
 
     if (aprove <= 0) {
-      await contract_token.approve("TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax", "115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
+      await contract_base_token.approve(sunswapRouter, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
     }
 
-    var cantidadTrx = 101000000
+    var cantidadTrx = parseInt(this.state.comprarBRLT * this.state.precioUnidad * 10**6)
 
-    cantidadTrx = parseInt(cantidadTrx)
-
-    var splitage = 0.0005
-
-    splitage = cantidadTrx - (cantidadTrx * splitage)
-
-    splitage = parseInt(splitage)
-
-    let intercam = await contrato["4a25d94a"](cantidadTrx, splitage, ["0xaf3f2254a9c6a3c143c10cbe15eb9eb75c553f45", "0x891cdb91d149f23B1a45D9c5Ca78a88d0cB44C18"], this.props.accountAddress, (parseInt(Date.now() / 1000)) + 300).send()
+    var tokenMax = new BigNumber(this.state.balanceDCT).shiftedBy((this.state.decimalesDCT)).toString(10)
+    
+    let intercam = await contrato["4a25d94a"](cantidadTrx, tokenMax, [this.props.tronWeb.address.toHex(token), this.props.tronWeb.address.toHex(trxAddress)], this.props.accountAddress, (parseInt(Date.now() / 1000)) + 100).send()
 
     console.log(intercam)
+
+
   }
 
   render() {
@@ -274,56 +350,37 @@ export default class nfts extends Component {
             <div className="card">
               <div className="card-body pb-2">
                 <div className="row">
-                  <div className="col-xl-3">
-                    <img src="images/brutuslotteysinfondo.png" width="200px" alt=""/>
-                  </div>
-                  <div className="col-xl-6">
-                    <h1 className="text-center no-border font-w600 fs-60">Brutus Lottery <br /><span className="text-warning">One</span> NFT <span className="text-primary">Unlimited </span> Possibilities<br /> </h1>
-                    <h4 className="text-center ">Your ticket to endless draws, a new chance to win every fortnight!</h4>
-                
-                  </div>
-
-                  <div className="col-xl-3">
-                    <img src="images/brutuslotteysinfondo.png" width="200px" alt=""/>
+                  <div className="col-xl-12">
+                    <img src="images/banner-brutuslottery.jpg" width="100%" alt="" style={{borderRadius: "4px"}}/>
                   </div>
                 </div>
                 <div className="row">
                   <div className="col-xl-12">
                     <hr></hr>
-                    <div className="text-center mt-3 row justify-content-center">
-                      <div className="col-xl-1 ">
-                        <div className="row">
-                          <div className="col-xl-12">
-                            <input type="number" className="form-control mb-3" name="value" placeholder="1" onChange={this.handleChange} defaultValue={1} min={1} step={1} />
-                          </div>
+                    <div className="text-center mt-3 row align-items-center justify-content-center">
+                      <div className="col-xl-1 my-3">
+                        <input type="number" className="form-control " name="value" placeholder="1" onChange={this.handleChange} defaultValue={1} min={1} step={1} />
 
-                        </div>
                       </div>
-                      <div className=" col-xl-1 ">
+                      <div className=" col-xl-1 my-3">
                         <div className="equalto text-rigth">
                           =
                         </div>
                       </div>
-                      <div className="col-xl-3">
-                        <div className="row">
-                        <div className="col-xl-6">
-                            <input type="number" className="form-control mb-3" name="value" placeholder="100 TRX" value={this.state.total} readOnly />
-                          </div>
-                        <div className="col-xl-6">
+                      <div className="col-sm-2 my-3">
+                        <b>{this.state.total+" "}TRX</b>
+                      </div>
+                      <div className="col-xl-3 my-3">
+                          <button className="btn btn-primary " onClick={() => this.preCompra()} >Purchase {this.state.comprarBRLT} BRLT wiht {"->"}</button>
+
+                      </div>
+                      <div className="col-xl-2 my-3">
                             <select style={{cursor: "pointer"}} className="default-select exchange-select form-control" name="state" onChange={this.handleChangeSelect} defaultValue={this.state.moneda}>
                               <option value="trx">TRX</option>
                               <option value="usdt">USDT</option>
                               <option value="dct">DCT</option>
                             </select>
                           </div>
-                          
-                        </div>
-                      </div>
-                      <div className="col-xl-3 ">
-                        <div className="">
-                          <button className="btn btn-primary mx-auto" onClick={() => this.compra()} >Purchase {this.state.comprarBRLT} BRLT</button>
-                        </div>
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -412,8 +469,10 @@ export default class nfts extends Component {
                   <p>
                     Where the thrill of acquiring unique NFTs meets the chance to win substantial prizes. Discover a collection of 9999 exclusive NFTs, each representing a digital masterpiece priced at 100 TRX. Engage in bi-weekly automated draws, with 80% of the proceeds going to the winner and 20% to the Brutus Lottery team.
                     <br /><br />
-                    <b>What We Offer:</b><br />
 
+                  </p>
+
+                  <h4>What We Offer:</h4><br />
                     <ol>
                       <li>
                         <b>Exclusive NFTs:</b> Explore a collection of 9999 unique NFTs, each a digital artwork priced at 100 TRX.
@@ -432,7 +491,7 @@ export default class nfts extends Component {
                       </li>
                     </ol>
 
-                    <b>How to Participate:</b>
+                  <h4>How to Participate:</h4>
 
                     <ol>
                       <li>
@@ -448,11 +507,12 @@ export default class nfts extends Component {
 
                       </li>
                     </ol>
+                    <p>
                     <br /><br />
                     Join Brutus Lottery and experience the thrill of the unique, where every NFT unlocks endless opportunities.
                   </p>
 
-                  <p className="text-center">
+                  <p className="text-center" >
                     <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf">{"--> "}Read all Terms and Conditions {" <--"}</a>
                   </p>
                 </div>

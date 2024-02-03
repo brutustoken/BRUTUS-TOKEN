@@ -67,20 +67,12 @@ class App extends Component {
 
   async componentDidMount() {
 
-    let iniciado = false
 
-    this.intervalo();
+    this.intervalo(3);
 
     window.addEventListener('message', (e) => {
       if (e.data.message && e.data.message.action) {
         //console.log(e.data.message.action)
-      }
-
-      if(e.data.message && e.data.message.action === "tabReply"){
-        if(!iniciado){
-          this.conectar();
-          iniciado = true;
-        }
       }
 
       if (e.data.message && e.data.message.action === "accountsChanged") {
@@ -92,15 +84,21 @@ class App extends Component {
 
   }
 
-  intervalo(){
+  async componentWillUnmount(){
+    clearInterval(this.state.interval)
+    this.setState({interval: null})
+  }
+
+  intervalo(s){
     var interval = setInterval(() => {
-      if(!this.state.tronlink.loggedIn){
-        this.conectar();
+      if(this.state.tronlink.loggedIn && window.tronLink.ready){
+        //console.log("intervalo a la espera...")
+        
       }else{
-        clearInterval(this.state.interval)
-        this.setState({interval: null})
+        //console.log("conectando...")
+        this.conectar();
       }
-    }, 3 * 1000);
+    }, s * 1000);
 
     this.setState({interval})
 
@@ -139,6 +137,8 @@ class App extends Component {
         }else{
           wallet = adressDefault;
           tronlink['loggedIn'] = false;
+          web3Contracts = tronWeb;
+          web3Contracts.setAddress(adressDefault)
 
         }
 
