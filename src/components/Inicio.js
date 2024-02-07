@@ -159,6 +159,7 @@ export default class Inicio extends Component {
 			precioBrst: precioBrst,
 		})
 
+
 		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
 		.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
 		.catch(console.error)
@@ -167,11 +168,11 @@ export default class Inicio extends Component {
 		.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
 		.catch(console.error)
 
-		this.props.contrato.BRGY.totalSupply().call()
-		.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
-		.catch(console.error)
-
 		if(this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"){
+			this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
+			.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+			.catch(console.error)
+
 			this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()
 			.then((result) => { this.setState({ misBRLT: result.toNumber() }) })
 			.catch(console.error)
