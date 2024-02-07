@@ -12,8 +12,6 @@ export default class Inicio extends Component {
 			varBrut: 0,
 			precioBrst: 0,
 			varBrst: 0,
-			BRGY: 0,
-			BRLT: 0,
 			misBRUT: 0,
 			misBRST: 0,
 			misBRGY: 0,
@@ -161,21 +159,21 @@ export default class Inicio extends Component {
 			precioBrst: precioBrst,
 		})
 
-		this.props.contrato.BRGY.totalSupply().call()
-		.then((result) => { this.setState({ BRGY: result.toNumber() }) })
+		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
+		.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
 		.catch(console.error)
 
 		this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call()
 		.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
 		.catch(console.error)
 
-		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-		.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
+		this.props.contrato.BRGY.totalSupply().call()
+		.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
 		.catch(console.error)
 
 		if(this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"){
-			this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+			this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()
+			.then((result) => { this.setState({ misBRLT: result.toNumber() }) })
 			.catch(console.error)
 		}
 
@@ -300,9 +298,9 @@ export default class Inicio extends Component {
 														</td>
 														<td>{this.state.misBRLT}</td>
 														<td>100 TRX</td>
-														<td>0</td>
-														<td>{this.state.misBRLT * 100}</td>
-														<td>0</td>
+														<td>-0-</td>
+														<td>-0-</td>
+														<td>-0-</td>
 													</tr>
 												</tbody>
 											</table>

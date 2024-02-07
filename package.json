@@ -3,6 +3,7 @@
   "version": "1.40.0",
   "description": "Es la aplicacion para hacer crecer tus finanzas de forma automatica",
   "scripts": {
+    "dev": "node --openssl-legacy-provider scripts/start.js",
     "start": "node --openssl-legacy-provider scripts/start.js",
     "build": "node --openssl-legacy-provider scripts/build.js && npx rimraf docs && npx move-cli build docs"
   },
