@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
-function getRandomInt(max) {return Math.floor(Math.random() * max);}
+function getRandomInt(max) { return Math.floor(Math.random() * max); }
 
 export default class EnergyRental extends Component {
 
@@ -32,6 +32,7 @@ export default class EnergyRental extends Component {
         { amount: 1000000, text: "1M" },
         { amount: 3000000, text: "3M" }
       ],
+      energyOn: false,
 
     };
 
@@ -101,6 +102,20 @@ export default class EnergyRental extends Component {
   }
 
   async recursos() {
+
+    let energyOn = false;
+
+    try {
+
+      energyOn = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL)
+        .then((r) => r.json())
+
+      energyOn = energyOn.available
+
+    } catch (error) {
+      console.log(error.toString())
+    }
+
     var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available"
     var consulta = await fetch(url)
     consulta = (await consulta.json())
@@ -121,7 +136,8 @@ export default class EnergyRental extends Component {
       available_bandwidth: band,
       available_energy: energi,
       total_bandwidth_pool: consulta.total_bandwidth_pool,
-      total_energy_pool: consulta.total_energy_pool
+      total_energy_pool: consulta.total_energy_pool,
+      energyOn: energyOn
     });
   }
 
@@ -193,7 +209,7 @@ export default class EnergyRental extends Component {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-      }).then((r)=>r.json())
+      }).then((r) => r.json())
 
       console.log(consulta2)
 
@@ -215,6 +231,18 @@ export default class EnergyRental extends Component {
   }
 
   async preCompra() {
+
+    if (!this.state.energyOn) {
+      this.setState({
+        titulo: <>Resource Alert</>,
+        body: (<span>At this time we do not have resources available, please try again later.
+        </span>)
+      })
+
+      window.$("#mensaje-ebot").modal("show");
+      return;
+    }
+
     await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
     if (this.state.wallet_orden === "" || !this.props.tronWeb.isAddress(this.state.wallet_orden)) {
@@ -226,9 +254,9 @@ export default class EnergyRental extends Component {
     this.setState({
       titulo: <>Confirm order information</>,
       body: (<span>
-        <b>Buy: </b> {this.state.cantidad + " "+this.state.recurso+" " + this.state.periodo + this.state.temporalidad}<br></br>
-        <b>For: </b> {this.state.precio + " TRX"}<br></br> 
-        <b>To: </b> {this.state.wallet_orden}<br></br> 
+        <b>Buy: </b> {this.state.cantidad + " " + this.state.recurso + " " + this.state.periodo + this.state.temporalidad}<br></br>
+        <b>For: </b> {this.state.precio + " TRX"}<br></br>
+        <b>To: </b> {this.state.wallet_orden}<br></br>
         <br /><br />
         <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel</button>
         {" "}
@@ -260,20 +288,20 @@ export default class EnergyRental extends Component {
     window.$("#mensaje-ebot").modal("show");
 
     var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(this.state.precio))
-    .catch((e)=>{
-      console.log(e)
-      return ["e",e];
-    })
+      .catch((e) => {
+        console.log(e)
+        return ["e", e];
+      })
 
-    if(hash[0] === "e"){
+    if (hash[0] === "e") {
       this.setState({
         titulo: "Transaction failed",
         body: <>{hash[1].toString()}
-        <br /><br />
-        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Close</button>
+          <br /><br />
+          <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Close</button>
         </>
       })
-  
+
       window.$("#mensaje-ebot").modal("show");
       return;
     }
@@ -299,29 +327,29 @@ export default class EnergyRental extends Component {
     if (hash.result && envio.amount + "" === this.props.tronWeb.toSun(this.state.precio) && this.props.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
 
       hash = await this.props.tronWeb.trx.getTransaction(hash.txid);
-      
-      if (hash.ret[0].contractRet === "SUCCESS" ) {
+
+      if (hash.ret[0].contractRet === "SUCCESS") {
 
         var recurso = this.state.recurso
 
         this.setState({
           titulo: <>we are allocating your {recurso} {imgLoading}</>,
-          body: "Please do not close or leave the page as this will cause an error in the "+recurso+" allocation."
+          body: "Please do not close or leave the page as this will cause an error in the " + recurso + " allocation."
         })
-    
+
         window.$("#mensaje-ebot").modal("show");
 
-        
 
-        if(recurso === "bandwidth" ){
+
+        if (recurso === "bandwidth") {
           recurso = "band"
         }
 
         var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + recurso
 
-        var time = this.state.periodo 
+        var time = this.state.periodo
 
-        if(this.state.temporalidad === "h"){
+        if (this.state.temporalidad === "h") {
           time = this.state.periodo + this.state.temporalidad
         }
 
@@ -330,7 +358,7 @@ export default class EnergyRental extends Component {
           "wallet": this.state.wallet_orden,
           "amount": this.state.cantidad,
           "time": time,
-          "user_id": "fromWeb"+getRandomInt(999)
+          "user_id": "fromWeb" + getRandomInt(999)
         }
 
         var consulta2 = await fetch(url, {
@@ -358,7 +386,7 @@ export default class EnergyRental extends Component {
 
           this.setState({
             titulo: "Contact support",
-            body: "Please contact support for: " + hash.txID + " | "+consulta2.msg
+            body: "Please contact support for: " + hash.txID + " | " + consulta2.msg
           })
 
           window.$("#mensaje-ebot").modal("show");
@@ -393,26 +421,26 @@ export default class EnergyRental extends Component {
       style={{ margin: "auto" }} onClick={() => { document.getElementById("amount").value = amounts.amount; this.handleChangeEnergy({ target: { value: amounts.amount } }) }}>{amounts.text}</button>)
 
     let medidor = (<><p className="font-14">Bandwidth: {(this.state.available_bandwidth).toLocaleString('en-US')}</p>
-    <div className="progress" style={{ margin: "5px" }}>
-      <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool) + "%" }}
-        aria-valuenow={(this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool)} aria-valuemin="0" aria-valuemax="100">
-      </div>
-    </div></>)
-
-    if(this.state.recurso === "energy"){
-      medidor = (<><p className="font-14">Energy: {(this.state.available_energy).toLocaleString('en-US')}</p>
       <div className="progress" style={{ margin: "5px" }}>
-        <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_energy * 100 / this.state.total_energy_pool) + "%" }}
-          aria-valuenow={(this.state.available_energy * 100 / this.state.total_energy_pool)} aria-valuemin="0" aria-valuemax="100">
+        <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool) + "%" }}
+          aria-valuenow={(this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool)} aria-valuemin="0" aria-valuemax="100">
         </div>
       </div></>)
+
+    if (this.state.recurso === "energy") {
+      medidor = (<><p className="font-14">Energy: {(this.state.available_energy).toLocaleString('en-US')}</p>
+        <div className="progress" style={{ margin: "5px" }}>
+          <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_energy * 100 / this.state.total_energy_pool) + "%" }}
+            aria-valuenow={(this.state.available_energy * 100 / this.state.total_energy_pool)} aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div></>)
     }
 
     return (<>
 
       <div className="row ">
 
-      <div className="col-lg-6 col-sm-12">
+        <div className="col-lg-6 col-sm-12">
           <div className="contact-box">
             <div className="card">
               <div className="card-body">
@@ -456,21 +484,21 @@ export default class EnergyRental extends Component {
                       {medidor}
 
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
-                        <p style={{"marginTop": "auto", "marginRight": "10px"}} className="font-14">Amount</p>
-                        <input style={{"textAlign": "end"}} id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder="32000" />
+                        <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Amount</p>
+                        <input style={{ "textAlign": "end" }} id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder="32000" />
 
                       </div>
-                      
+
                       <div className="col-xl-12 mb-3 mb-md-4">
                         <div className="d-flex justify-content-xl-center">
                           {amountButtons}
                         </div>
                       </div>
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
-                        <p style={{"marginTop": "auto", "marginRight": "10px"}} className="font-14">Duration</p>
+                        <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Duration</p>
 
-                        <input style={{"textAlign": "end"}} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
-                        
+                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
+
                       </div>
                       <div className="col-12 ">
                         <div className="d-flex justify-content-xl-center">
@@ -486,16 +514,16 @@ export default class EnergyRental extends Component {
                             style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "14d"; this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
                         </div>
                       </div>
-                      
+
                       <div className="col-12 mt-5 mb-3 justify-content-center align-items-center">
-         
-                          <button name="submit" type="button" value="Submit"
+
+                        <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{width: "100%", height: "40px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
-                          </button>
-         
+                          style={{ width: "100%", height: "40px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
+                        </button>
+
                       </div>
-                      
+
                       <div className="col-xl-12 mb-3 mb-md-4">
                         <p className="font-14">Send resources for another wallet</p>
 
