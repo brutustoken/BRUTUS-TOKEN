@@ -95,7 +95,7 @@ export default class Staking extends Component {
 
       minCompra: 1,
       minventa: 1,
-      deposito: "Loading...",
+      deposito: props.i18n.t("loading") + "...",
       valueBRST: "",
       valueTRX: "",
       cantidad: 0,
@@ -107,9 +107,9 @@ export default class Staking extends Component {
       data: [],
       solicitudes: 0,
       solicitudesV3: 0,
-      temporalidad: "day",
+      temporalidad: props.i18n.t("day"),
       cantidadDatos: 30,
-      dias: "Loading...",
+      dias: props.i18n.t("loading") + "...",
       varBrut: 0,
       precioBrst: 0,
       varBrst: 0,
@@ -166,6 +166,9 @@ export default class Staking extends Component {
 
   componentDidMount() {
     document.title = "B.F | BRST"
+    document.getElementById("tittle").innerText = this.props.i18n.t("brst.tittle")
+
+    console.log(this.props.i18n.t("brst.alert.energy", { returnObjects: true })[0])
 
     setTimeout(() => {
       this.estado();
@@ -364,9 +367,9 @@ export default class Staking extends Component {
       let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
 
       var boton = <></>
-      var boton2 = <><p className="mb-0 fs-14 text-white">Order in UnStaking process for the next 14 days, once this period is over, return and claim the corresponding TRX</p></>;
+      var boton2 = <><p className="mb-0 fs-14 text-white">{this.props.i18n.t("brst.unStaking", { days: 14 })}</p></>;
 
-      let cantidadTrx = new BigNumber(parseInt(pen.brst._hex)).times(parseInt(pen.precio._hex)).shiftedBy(-6)// cambiar abig number
+      let cantidadTrx = new BigNumber(parseInt(pen.brst._hex)).times(parseInt(pen.precio._hex)).shiftedBy(-6)
       let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
       let isAdmin = false;
       if (adminsBrst.indexOf(this.props.accountAddress) >= 0) {
@@ -377,7 +380,7 @@ export default class Staking extends Component {
       if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 17 && diasrestantes > 0) {
         boton = (
           <button className="btn btn-warning ms-4 mb-2" disabled aria-disabled="true" >
-            Claim {" "} <i className="bi bi-exclamation-circle"></i>
+            {this.props.i18n.t("claim") + " "} <i className="bi bi-exclamation-circle"></i>
           </button>
         )
       }
@@ -390,7 +393,7 @@ export default class Staking extends Component {
             await this.preClaim(parseInt(deposits[index]._hex));
             this.estado()
           }}>
-            Claim {" "} <i className="bi bi-award"></i>
+            {this.props.i18n.t("claim") + " "} <i className="bi bi-award"></i>
           </button>
         )
       }
@@ -404,9 +407,9 @@ export default class Staking extends Component {
 
           <div className="row mt-4 align-items-center" id={"sale-" + parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
             <div className="col-sm-6 mb-3">
-              <p className="mb-0 fs-14">Sale N° {parseInt(deposits[index]._hex)} | {diasrestantes} Days left | {this.props.tronWeb.address.fromHex(pen.wallet)}</p>
+              <p className="mb-0 fs-14">{this.props.i18n.t("brst.sale", { number: parseInt(deposits[index]._hex), days: diasrestantes, wallet: this.props.tronWeb.address.fromHex(pen.wallet) })}</p>
               <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {cantidadTrx.shiftedBy(-6).dp(6).toString(10)} TRX</h4>
-              <p className="mb-0 fs-14">Price by unit: {(parseInt(pen.precio._hex) / 10 ** 6)} TRX</p>
+              <p className="mb-0 fs-14">{this.props.i18n.t("brst.price", { price: (parseInt(pen.precio._hex) / 10 ** 6) })}</p>
             </div>
             <div className="col-sm-6 mb-1">
 
@@ -414,7 +417,7 @@ export default class Staking extends Component {
               {boton}
             </div>
             <div className="col-12 mb-3">
-              <p className="mb-0 fs-14">Available on: {pv.toString()}</p>
+              <p className="mb-0 fs-14">{this.props.i18n.t("brst.avaliable")} {pv.toString()}</p>
               <hr></hr>
             </div>
 
@@ -509,16 +512,18 @@ export default class Staking extends Component {
 
       //console.log(precio)
 
+      let textoModal = this.props.i18n.t("brst.alert.energy", { returnObjects: true })
+
       this.setState({
-        ModalTitulo: "Energy Notice",
-        ModalBody: <>This operation usually requires <b>{eenergy} energy</b>, and you have <b>{this.state.contractEnergy} energy</b> and need at least <b>{requerido} energy</b>, rent them for <b>{precio.toString(10)} TRX</b> to perform this operation.
+        ModalTitulo: textoModal[0],
+        ModalBody: <>{textoModal[1]} <b>{eenergy} {textoModal[2]}</b>{textoModal[3]}<b>{this.state.contractEnergy} {textoModal[2]}</b> {textoModal[4]} <b>{requerido} {textoModal[2]}</b>{textoModal[5]}<b>{precio.toString(10)} TRX</b>{textoModal[6]}
           <br /><br />
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
               await this.props.contrato.BRST_TRX_Proxy.retirar(id).send();
 
             }
-          }}>Rent Energy</button>
+          }}>{textoModal[7]}</button>
 
         </>
       })
@@ -1544,16 +1549,16 @@ export default class Staking extends Component {
 
                           }} src="images/brst.png" width="100%" alt="brutus tron staking" />
                           <div className="media-content">
-                            <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">Automated Staking</h4>
+                            <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">{this.props.i18n.t("brst.aStaking")}</h4>
                             <span className="font-w600 text-black">Brutus</span>
                             <span className="my-4 fs-16 font-w600 d-block">1 BRST = {this.state.precioBrst} TRX</span>
-                            <p className="text-start">BRST is a token in the tron network, which allows its holders to generate returns in TRX thanks to staking, energy rental, an additional 10% of what is generated by all Brutus Energy Bot providers and automatic compound interest. All this makes profits grow exponentially, fully automated.</p>
+                            <p className="text-start">{this.props.i18n.t("brst.description")}</p>
                           </div>
                         </div>
                       </div>
                     </div>
                     <div className="card-footer p-2 border-0">
-                      <a href="https://brutus.finance/brutusblog.html" className="btn btn-link text-primary">Read more</a>
+                      <a href="https://brutus.finance/brutusblog.html" className="btn btn-link text-primary">{this.props.i18n.t("brst.button.readM")}</a>
                     </div>
                   </div>
                 </div>
@@ -1561,8 +1566,8 @@ export default class Staking extends Component {
                   <div className="card quick-trade">
                     <div className="card-header pb-0 border-0 flex-wrap">
                       <div>
-                        <h4 className="heading mb-0">Exchange V4</h4>
-                        <p className="mb-0 fs-14">Your energy: {(this.state.contractEnergy).toLocaleString('en-US')} for ~ {parseInt(this.state.contractEnergy / this.state.eenergy)} for transactions</p>
+                        <h4 className="heading mb-0">{this.props.i18n.t("brst.exchange")} V4</h4>
+                        <p className="mb-0 fs-14">{this.props.i18n.t("brst.energy", { e1: (this.state.contractEnergy).toLocaleString('en-US'), e2: parseInt(this.state.contractEnergy / this.state.eenergy) })}</p>
                       </div>
                     </div>
                     <div className="card-body pb-0">

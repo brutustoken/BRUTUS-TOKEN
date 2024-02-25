@@ -16,7 +16,7 @@ export default class Inicio extends Component {
 			misBRST: 0,
 			misBRGY: 0,
 			misBRLT: 0,
-			precioBrstUSD:0,
+			precioBrstUSD: 0,
 
 			imagerobots: []
 
@@ -31,29 +31,30 @@ export default class Inicio extends Component {
 	}
 
 	componentDidMount() {
-		setTimeout(() => { 
+		document.getElementById("tittle").innerText = this.props.i18n.t("inicio.tittle")
+		setTimeout(() => {
 			this.consultaPrecios();
-			this.estado(); 
+			this.estado();
 
 		}, 4 * 1000);
 
 
-		setInterval(() => { 
-			this.consultaPrecios(); 
-			this.estado(); 
+		setInterval(() => {
+			this.consultaPrecios();
+			this.estado();
 		}, 120 * 1000);
 
 		window.addEventListener('message', (e) => {
 
 			if (e.data.message && e.data.message.action === "accountsChanged") {
-			  if(e.data.message.data.address){
-				this.consultaPrecios();
-				this.estado();
-			  }
+				if (e.data.message.data.address) {
+					this.consultaPrecios();
+					this.estado();
+				}
 			}
-	  
-		   
-		  })
+
+
+		})
 	}
 
 	subeobaja(valor) {
@@ -121,32 +122,32 @@ export default class Inicio extends Component {
 
 	consultaPrecios() {
 		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brut')
-		.then(response => { return response.json(); })
-		.then(data => {
+			.then(response => { return response.json(); })
+			.then(data => {
 
-			this.setState({
-				precioBrut: data.Data.usd,
-				varBrut: data.Data.v24h,
-			})
+				this.setState({
+					precioBrut: data.Data.usd,
+					varBrut: data.Data.v24h,
+				})
 
-		}).catch(err => {
-			console.log(err);
+			}).catch(err => {
+				console.log(err);
 
-		});
+			});
 
 		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
-		.then(async(r) => (await r.json()).Data)
-		.then((r) => {
+			.then(async (r) => (await r.json()).Data)
+			.then((r) => {
 
-			this.setState({
-				varBrst: r.v24h,
-				precioBrstUSD: r.usd
-			})
+				this.setState({
+					varBrst: r.v24h,
+					precioBrstUSD: r.usd
+				})
 
-		}).catch((err) => {
-			console.log(err);
+			}).catch((err) => {
+				console.log(err);
 
-		});
+			});
 
 	}
 
@@ -161,21 +162,21 @@ export default class Inicio extends Component {
 
 
 		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-		.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
-		.catch(console.error)
+			.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
+			.catch(console.error)
 
 		this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call()
-		.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
-		.catch(console.error)
-
-		if(this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"){
-			this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+			.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
 			.catch(console.error)
+
+		if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
+			this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
+				.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+				.catch(console.error)
 
 			this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRLT: result.toNumber() }) })
-			.catch(console.error)
+				.then((result) => { this.setState({ misBRLT: result.toNumber() }) })
+				.catch(console.error)
 		}
 
 
@@ -191,20 +192,13 @@ export default class Inicio extends Component {
 						<div className="profile card card-body px-3 pt-3">
 							<div className="profile-head">
 								<div className="photo-content">
-									<a href="?ebot">
-										<div className="rounded"><img style={{borderRadius: "1%"}}
+									<a href="?ebot" title={this.props.i18n.t('inicio.try')}>
+										<div className="rounded"><img style={{ borderRadius: "1%" }}
 											src="images/banner.jpg" alt="tron energy rental" width="100%" />
 										</div>
 									</a>
 								</div>
-								<div className="profile-info d-none d-block">
-									<div className="profile-details d-flex flex-row-reverse">
-										<div className="text-center mt-12 mb-12 ">
-											<a href="?ebot" className="btn btn-primary mx-auto">Try it
-												now!</a>
-										</div>
-									</div>
-								</div>
+
 							</div>
 						</div>
 					</div>
@@ -219,7 +213,7 @@ export default class Inicio extends Component {
 									<li className="nav-item my-1" role="presentation">
 										<button className="nav-link active" id="pills-crypto-tab" data-bs-toggle="pill"
 											data-bs-target="#pills-crypto" type="button" role="tab"
-											aria-controls="pills-crypto" aria-selected="true">My Position</button>
+											aria-controls="pills-crypto" aria-selected="true">{this.props.i18n.t('inicio.position')}</button>
 									</li>
 								</ul>
 							</div>
@@ -229,15 +223,15 @@ export default class Inicio extends Component {
 										aria-labelledby="pills-crypto-tab">
 										<div className="table-responsive dataTablemarket">
 											<table id="example" className="table shadow-hover display"
-												style={{minWidth:"845px"}}>
+												style={{ minWidth: "845px" }}>
 												<thead>
 													<tr>
-														<th>Name</th>
-														<th className="text-center">Token Balance</th>
-														<th className="text-center">Price</th>
-														<th className="text-center">24h Change</th>
-														<th className="text-center">Total Value</th>
-														<th className="text-center">USD Value</th>
+														<th>{this.props.i18n.t('inicio.name')}</th>
+														<th className="text-center">{this.props.i18n.t('inicio.tokenB')}</th>
+														<th className="text-center">{this.props.i18n.t('inicio.price')}</th>
+														<th className="text-center">{this.props.i18n.t('inicio.changeH', { hours: 24 })}</th>
+														<th className="text-center">{this.props.i18n.t("inicio.totalB")}</th>
+														<th className="text-center">{this.props.i18n.t("inicio.usdValue")}</th>
 
 													</tr>
 												</thead>
@@ -247,14 +241,14 @@ export default class Inicio extends Component {
 															<a className="market-title d-flex align-items-center"
 																href="?brut">
 																<img src="images/brut.png" width="50px" alt="brutus token" />
-																	<h5 className="mb-0 ms-2">BRUT</h5>
-																	<span className="text-muted ms-2">Brutus Token</span>
+																<h5 className="mb-0 ms-2">BRUT</h5>
+																<span className="text-muted ms-2">Brutus Token</span>
 															</a>
 														</td>
 														<td>{this.state.misBRUT}</td>
 														<td>{this.state.precioBrut} USDT</td>
 														<td>{this.subeobaja(this.state.varBrut)}
-										<span className={"text-" + this.textoE(this.state.varBrut)}>{(this.state.varBrut).toFixed(3)}%</span></td>
+															<span className={"text-" + this.textoE(this.state.varBrut)}>{(this.state.varBrut).toFixed(3)}%</span></td>
 														<td>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USDT</td>
 														<td>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USD</td>
 													</tr>
@@ -263,8 +257,8 @@ export default class Inicio extends Component {
 															<a className="market-title d-flex align-items-center"
 																href="?brst">
 																<img src="images/brst.png" width="50px" alt="brutus tron staking" />
-																	<h5 className="mb-0 ms-2">BRST</h5>
-																	<span className="text-muted ms-2">Brutus Tron Staking</span>
+																<h5 className="mb-0 ms-2">BRST</h5>
+																<span className="text-muted ms-2">Brutus Tron Staking</span>
 															</a>
 														</td>
 														<td>{this.state.misBRST}</td>
@@ -277,9 +271,9 @@ export default class Inicio extends Component {
 														<td>
 															<a className="market-title d-flex align-items-center"
 																href="?brgy">
-																<img src="images/brgy.png" width="50px" alt="brutus gallery"/>
-																	<h5 className="mb-0 ms-2">BRGY</h5>
-																	<span className="text-muted ms-2">Brutus Gallery</span>
+																<img src="images/brgy.png" width="50px" alt="brutus gallery" />
+																<h5 className="mb-0 ms-2">BRGY</h5>
+																<span className="text-muted ms-2">Brutus {this.props.i18n.t("gallery")}</span>
 															</a>
 														</td>
 														<td>{this.state.misBRGY}</td>
@@ -292,9 +286,9 @@ export default class Inicio extends Component {
 														<td>
 															<a className="market-title d-flex align-items-center"
 																href="?brlt">
-																<img src="images/brlt.png" width="50px" alt="brutus lottery"/>
-																	<h5 className="mb-0 ms-2">BRLT</h5>
-																	<span className="text-muted ms-2">Brutus Lottery</span>
+																<img src="images/brlt.png" width="50px" alt="brutus lottery" />
+																<h5 className="mb-0 ms-2">BRLT</h5>
+																<span className="text-muted ms-2">Brutus {this.props.i18n.t("lottery")}</span>
 															</a>
 														</td>
 														<td>{this.state.misBRLT}</td>

@@ -1,0 +1,35 @@
+{
+    "es": {
+        "translation": {
+            "conect": "Conectar Billetera",
+            "gallery": "Galería",
+            "lottery": "Lotería",
+            "day": "Día",
+            "loading": "Cargando",
+            "claim": "Reclamar",
+            "brst": {
+                "tittle": "Staking TRX",
+                "sale": "Venta N° {{number}} | {{days}} días restantes | {{wallet}}",
+                "price": "Precio por unidad: {{price}} TRX",
+                "unStaking": "Pedido en proceso de UnStaking durante los próximos {{days}} días, una vez finalizado este período, vuelve y reclama el TRX correspondiente",
+                "available": "Disponible en: ",
+                "alert": {
+                    "energy": [
+                        "Aviso de energía"
+                    ]
+                }
+            },
+            "inicio": {
+                "tittle": "Panel",
+                "try": "¡Pruébalo ahora!",
+                "position": "Mi posición",
+                "name": "Nombre",
+                "tokenB": "Balance",
+                "price": "Precio",
+                "changeH": "Cambio {{hours}}H",
+                "totalB": "Valor Total",
+                "usdValue": "Valor en USD"
+            }
+        }
+    }
+}

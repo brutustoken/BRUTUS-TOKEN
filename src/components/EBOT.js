@@ -116,20 +116,31 @@ export default class EnergyRental extends Component {
       console.log(error.toString())
     }
 
+    let consulta = false
+
     var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available"
-    var consulta = await fetch(url)
-    consulta = (await consulta.json())
+
+    try {
+      consulta = await fetch(url)
+        .then((r) => r.json())
+
+
+    } catch (error) {
+      console.log(error.toString())
+
+    }
 
     var band = 0
     var energi = 0
 
     if (this.state.periodo > 3 && this.state.temporalidad === "d") {
-      band = consulta["BANDWIDTH_-_Rental_duration_more_than_3_days"]
-      energi = consulta["ENERGY_-_Rental_duration_more_than_3_days"]
+      band = consulta["BANDWIDTH_-_Rental_duration_1h"]
+      energi = consulta["ENERGY_-_Rental_duration_1h"]
     } else {
-      band = consulta["BANDWIDTH_-_Rental_duration_less_or_equal_to_3_days"]
-      energi = consulta["ENERGY_-_Rental_duration_less_or_equal_to_3_days"]
+      band = consulta["BANDWIDTH_-_Rental_duration_more_than_1h"]
+      energi = consulta["ENERGY_-_Rental_duration_more_than_1h"]
     }
+
 
 
     this.setState({
