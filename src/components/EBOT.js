@@ -133,7 +133,7 @@ export default class EnergyRental extends Component {
     var band = 0
     var energi = 0
 
-    if (this.state.periodo > 3 && this.state.temporalidad === "d") {
+    if (this.state.periodo === 1 && this.state.temporalidad === "h") {
       band = consulta["BANDWIDTH_-_Rental_duration_1h"]
       energi = consulta["ENERGY_-_Rental_duration_1h"]
     } else {
