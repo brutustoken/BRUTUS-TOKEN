@@ -133,25 +133,51 @@ export default class EnergyRental extends Component {
     var band = 0
     var energi = 0
 
+    console.log(consulta)
+
     if (this.state.periodo === 1 && this.state.temporalidad === "h") {
-      band = consulta["BANDWIDTH_-_Rental_duration_1h"]
-      energi = consulta["ENERGY_-_Rental_duration_1h"]
+      band = consulta.av_band[0].available
+      energi = consulta.av_energy[0].available
     } else {
-      band = consulta["BANDWIDTH_-_Rental_duration_more_than_1h"]
-      energi = consulta["ENERGY_-_Rental_duration_more_than_1h"]
+
+      for (let index = 0; index < consulta.av_band.length; index++) {
+        if (this.state.periodo <= consulta.av_band[index].period) {
+          band = consulta.av_band[index].available
+          break;
+        }
+
+      }
+
+      for (let index = 0; index < consulta.av_energy.length; index++) {
+        if (this.state.periodo <= consulta.av_energy[index].period) {
+          energi = consulta.av_energy[index].available
+          break;
+        }
+
+      }
     }
 
+    if (this.state.recurso === "energy") {
+      if (energi < consulta.total_energy_pool * 0.01) {
+        energyOn = false;
+        this.setState({
+          titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
+          body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
+        })
 
-    if (energi < consulta.total_energy_pool * 0.01) {
-      energyOn = false;
-      this.setState({
-        titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
-        body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
-      })
+        window.$("#mensaje-ebot").modal("show");
+      }
+    } else {
+      if (band < consulta.total_bandwidth_pool * 0.01) {
+        energyOn = false;
+        this.setState({
+          titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
+          body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
+        })
 
-      window.$("#mensaje-ebot").modal("show");
+        window.$("#mensaje-ebot").modal("show");
+      }
     }
-
 
     this.setState({
       available_bandwidth: band,

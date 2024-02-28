@@ -459,6 +459,18 @@ export default class Staking extends Component {
 
       energyOn = energyOn.available
 
+      let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available")
+        .then((r) => r.json())
+
+      let energi = consulta.av_energy[0].available
+
+      if (energi < consulta.total_energy_pool * 0.01) {
+        energyOn = false;
+      } else {
+        energyOn = true;
+      }
+
+
     } catch (error) {
       console.log(error.toString())
     }

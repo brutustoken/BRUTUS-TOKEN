@@ -53,7 +53,10 @@ const adapter = new TronLinkAdapter();
 
 function conectDirect() {
   adapter.connect()
-    .then(() => { console.log("conectado") })
+    .then(() => {
+      console.log("conectado")
+      this.conectar()
+    })
     .catch((e) => { console.log(e) })
 }
 
