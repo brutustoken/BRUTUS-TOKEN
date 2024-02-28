@@ -10,8 +10,6 @@ import cons from "./cons.js";
 
 import Inicio from "./components/Inicio.js";
 
-//import TronLinkGuide from "./TronLinkGuide/index.js";
-
 import Home from "./components/BRUT.js";
 import StakingV2 from "./components/BRST-Proxy.js";
 import Nft from "./components/BRGY/index.js";
@@ -265,12 +263,6 @@ class App extends Component {
 
   render() {
 
-    /*if ( !this.state.tronlink.loggedIn || !this.state.tronlink.installed ) {
-      return (
-      <TronLinkGuide installed={this.state.tronlink.installed}  />
-      );
-    }*/
-
     if (!this.state.tronlink.contratosReady) return (
 
       <div className="container">
@@ -279,9 +271,9 @@ class App extends Component {
             <div className="card">
               <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} >
                 <div className='col-sm-8'>
-                  <h1>Preparing application {imgLoading}</h1>
+                  <h1>{i18next.t("preLoad", { returnObjects: true })[0]}{imgLoading}</h1>
                   <p>
-                    All smart contracts are being loaded so that the application works correctly, please wait a few moments
+                    {i18next.t("preLoad", { returnObjects: true })[1]}
                   </p>
                 </div>
               </div>

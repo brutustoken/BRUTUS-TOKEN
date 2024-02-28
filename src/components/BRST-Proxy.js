@@ -168,8 +168,6 @@ export default class Staking extends Component {
     document.title = "B.F | BRST"
     document.getElementById("tittle").innerText = this.props.i18n.t("brst.tittle")
 
-    console.log(this.props.i18n.t("brst.alert.energy", { returnObjects: true })[0])
-
     setTimeout(() => {
       this.estado();
     }, 4 * 1000);
@@ -379,7 +377,7 @@ export default class Staking extends Component {
 
       if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 17 && diasrestantes > 0) {
         boton = (
-          <button className="btn btn-warning ms-4 mb-2" disabled aria-disabled="true" >
+          <button className="btn btn-warning ms-4 mb-2 disabled" disabled aria-disabled="true" >
             {this.props.i18n.t("claim") + " "} <i className="bi bi-exclamation-circle"></i>
           </button>
         )
@@ -706,8 +704,8 @@ export default class Staking extends Component {
     var precio = new BigNumber(consultaPrecio.price).dp(6).toNumber()
 
     this.setState({
-      ModalTitulo: <>Confirm transaction {imgLoading}</>,
-      ModalBody: <>Please confirm the transaction from your wallet </>
+      ModalTitulo: <>{this.props.i18n.t("brst.alert.renergy", { returnObjects: true })[0]}{imgLoading}</>,
+      ModalBody: <>{this.props.i18n.t("brst.alert.renergy", { returnObjects: true })[1]} </>
     })
 
     window.$("#mensaje-brst").modal("show");
@@ -720,7 +718,7 @@ export default class Staking extends Component {
 
     if (hash[0] === "e") {
       this.setState({
-        ModalTitulo: "Transaction failed",
+        ModalTitulo: this.props.i18n.t("brst.alert.tfail", { returnObjects: true })[0],
         ModalBody: <>{hash[1].toString()}
           <br /><br />
           <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
@@ -732,8 +730,8 @@ export default class Staking extends Component {
     }
 
     this.setState({
-      ModalTitulo: <>Waiting for the blockchain {imgLoading}</>,
-      ModalBody: "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute"
+      ModalTitulo: <>{this.props.i18n.t("brst.alert.renergy1", { returnObjects: true })[0]} {imgLoading}</>,
+      ModalBody: this.props.i18n.t("brst.alert.renergy1", { returnObjects: true })[1]
     })
 
     window.$("#mensaje-brst").modal("show");
@@ -743,8 +741,8 @@ export default class Staking extends Component {
     var envio = hash.transaction.raw_data.contract[0].parameter.value
 
     this.setState({
-      ModalTitulo: <>we are verifying {imgLoading}</>,
-      ModalBody: "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
+      ModalTitulo: <>{this.props.i18n.t("brst.alert.renergy2", { returnObjects: true })[0]}{imgLoading}</>,
+      ModalBody: this.props.i18n.t("brst.alert.renergy2", { returnObjects: true })[1]
     })
 
     window.$("#mensaje-brst").modal("show");
@@ -756,8 +754,8 @@ export default class Staking extends Component {
       if (hash.ret[0].contractRet === "SUCCESS") {
 
         this.setState({
-          ModalTitulo: <>we are allocating your energy {imgLoading}</>,
-          ModalBody: "Please do not close or leave the page as this will cause an error in the energy allocation."
+          ModalTitulo: <>{this.props.i18n.t("brst.alert.renergy3", { returnObjects: true })[0]} {imgLoading}</>,
+          ModalBody: this.props.i18n.t("brst.alert.renergy3", { returnObjects: true })[1]
         })
 
         window.$("#mensaje-brst").modal("show");
@@ -786,8 +784,8 @@ export default class Staking extends Component {
         if (consulta2.response === 1) {
 
           this.setState({
-            ModalTitulo: "Completed successfully",
-            ModalBody: <><p>Energy rental completed successfully. </p><button type="button" data-bs-dismiss="modal" className="btn btn-success">Continue the process</button></>
+            ModalTitulo: this.props.i18n.t("brst.alert.done", { returnObjects: true })[0],
+            ModalBody: <><p>{this.props.i18n.t("brst.alert.done", { returnObjects: true })[1]}</p><button type="button" data-bs-dismiss="modal" className="btn btn-success">{this.props.i18n.t("brst.alert.done", { returnObjects: true })[2]}</button></>
           })
 
           window.$("#mensaje-brst").modal("show");
@@ -797,8 +795,8 @@ export default class Staking extends Component {
         } else {
 
           this.setState({
-            ModalTitulo: "Contact support",
-            ModalBody: "Please contact support for: " + hash.txID + " | " + consulta2.msg
+            ModalTitulo: this.props.i18n.t("brst.alert.error", { returnObjects: true })[0],
+            ModalBody: this.props.i18n.t("brst.alert.error", { returnObjects: true, hash: hash.txID, msg: consulta2.msg })[1]
           })
 
           window.$("#mensaje-brst").modal("show");
@@ -809,8 +807,9 @@ export default class Staking extends Component {
 
       } else {
         this.setState({
-          ModalTitulo: "Contact support",
-          ModalBody: "Please contact support for: Error SUC-808831"
+          ModalTitulo: this.props.i18n.t("brst.alert.error", { returnObjects: true })[0],
+          ModalBody: this.props.i18n.t("brst.alert.error", { returnObjects: true, hash: "Error SUC-808831", msg: "" })[1]
+
         })
 
         window.$("#mensaje-brst").modal("show");
@@ -819,8 +818,8 @@ export default class Staking extends Component {
 
     } else {
       this.setState({
-        ModalTitulo: "Contact support",
-        ModalBody: "Please contact support for: Error NN-0001"
+        ModalTitulo: this.props.i18n.t("brst.alert.error", { returnObjects: true })[0],
+        ModalBody: this.props.i18n.t("brst.alert.error", { returnObjects: true, hash: "Error NN-0001", msg: "" })[1]
       })
 
       window.$("#mensaje-brst").modal("show");
@@ -838,10 +837,10 @@ export default class Staking extends Component {
     if (amount <= 0) {
 
       this.setState({
-        ModalTitulo: "Input Error",
-        ModalBody: <>Please Enter valid amount
+        ModalTitulo: this.props.i18n.t("brst.alert.errorInput", { returnObjects: true })[0],
+        ModalBody: <>{this.props.i18n.t("brst.alert.errorInput", { returnObjects: true })[1]}
           <br /><br />
-          <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
+          <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("close")}</button>
         </>
 
       })
@@ -890,17 +889,17 @@ export default class Staking extends Component {
 
       var precio = new BigNumber(consultaPrecio.price).dp(6)
 
-      console.log(precio)
+      let alerta = this.props.i18n.t("brst.alert.energyNotice", { returnObjects: true })
 
       this.setState({
-        ModalTitulo: "Energy Notice",
-        ModalBody: <>This operation usually requires <b>{eenergy} energy</b>, and you have <b>{this.state.contractEnergy} energy</b> and need at least <b>{requerido} energy</b>, rent them for <b>{precio.toString(10)} TRX</b> to perform this operation.
+        ModalTitulo: alerta[0],
+        ModalBody: <>{alerta[1]}<b>{eenergy} {alerta[2]}</b>, {alerta[3]}<b>{this.state.contractEnergy} {alerta[2]} </b>{alerta[4]} <b>{requerido} {alerta[2]}</b>{alerta[5]} <b>{precio.toString(10)} TRX</b> {alerta[6]}
           <br /><br />
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
               this.compra()
             }
-          }}>Rent Energy</button>
+          }}>{this.props.i18n.t("rentE")}</button>
         </>
       })
 
@@ -925,10 +924,10 @@ export default class Staking extends Component {
         await this.props.contrato.BRST_TRX_Proxy.staking().send({ callValue: amount })
           .then(() => {
             this.setState({
-              ModalTitulo: "Done!",
-              ModalBody: <>Your TRX automatic staking has started
+              ModalTitulo: this.props.i18n.t("brst.alert.compra", { returnObjects: true })[0],
+              ModalBody: <>{this.props.i18n.t("brst.alert.compra", { returnObjects: true })[1]}
                 <br /><br />
-                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Accept</button>
+                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
               </>
             })
 
@@ -937,8 +936,8 @@ export default class Staking extends Component {
           .catch(() => {
 
             this.setState({
-              ModalTitulo: "non-effective transaction",
-              ModalBody: "The transaction has failed, you have connection problems or you have taken too long to sign, this has made the transaction unsuccessful, try again"
+              ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
+              ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1]
             })
 
             window.$("#mensaje-brst").modal("show");
@@ -951,12 +950,11 @@ export default class Staking extends Component {
       } else {
         document.getElementById("amountTRX").value = minCompra;
         this.setState({
-          ModalTitulo: "Error",
-          ModalBody: "Please enter an amount greater than " + minCompra + " TRX"
+          ModalTitulo: this.props.i18n.t("error"),
+          ModalBody: this.props.i18n.t("brst.alert.errGreater", { returnObjects: true, min: minCompra })[0]
         })
 
         window.$("#mensaje-brst").modal("show");
-
 
       }
 
@@ -964,8 +962,8 @@ export default class Staking extends Component {
 
       document.getElementById("amountTRX").value = "";
       this.setState({
-        ModalTitulo: "Error",
-        ModalBody: "You do not have enough funds in your account you place at least " + minCompra + " TRX"
+        ModalTitulo: this.props.i18n.t("error"),
+        ModalBody: this.props.i18n.t("brst.alert.errFunds", { returnObjects: true, min: minCompra })[0]
       })
 
       window.$("#mensaje-brst").modal("show");
@@ -1448,13 +1446,13 @@ export default class Staking extends Component {
                   <div className="card coin-content">
                     <div className="card-header border-0 flex-wrap">
                       <div className="mb-2">
-                        <h4 className="heading m-0">BRST Chart</h4>
+                        <h4 className="heading m-0">{this.props.i18n.t("tokenChart", { token: "BRST" })}</h4>
                         <span className="fs-16">Brutus Tron Staking </span>
                       </div>
                       <div className="dropdown bootstrap-select">
                         <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0">
                           <option >TRX (Tron)</option>
-                          <option >USD (Dollar)</option>
+                          <option >USD ({this.props.i18n.t("dollar")})</option>
                         </select>
                       </div>
                     </div>
@@ -1462,7 +1460,7 @@ export default class Staking extends Component {
                       <div className="d-flex align-items-center justify-content-between flex-wrap">
                         <div className="d-flex align-items-center justify-content-between flex-wrap">
                           <div className="price-content">
-                            <span className="fs-18 d-block mb-2">Price</span>
+                            <span className="fs-18 d-block mb-2">{this.props.i18n.t("price")}</span>
                             <h4 className="fs-20 font-w600">{this.state.precioBrst} TRX</h4>
                           </div>
                           <div className="price-content">
@@ -1470,11 +1468,11 @@ export default class Staking extends Component {
                             <h4 className="font-w600 text-success">{(this.state.varBrst).toFixed(4)}<i className="fa-solid fa-caret-up ms-1 text-success"></i></h4>
                           </div>
                           <div className="price-content">
-                            <span className="fs-14 d-block mb-2">Circulating</span>
+                            <span className="fs-14 d-block mb-2">{this.props.i18n.t("circulating")}</span>
                             <h4 className="font-w600">{(this.state.tokensEmitidos * 1).toFixed(2)} BRST</h4>
                           </div>
                           <div className="price-content">
-                            <span className="fs-14 d-block mb-2">Endorsement</span>
+                            <span className="fs-14 d-block mb-2">{this.props.i18n.t("endorse")}</span>
                             <h4 className="font-w600">{(this.state.enBrutus * 1).toFixed(2)} TRX</h4>
                           </div>
                         </div>
@@ -1504,7 +1502,7 @@ export default class Staking extends Component {
                         <div className="media d-block">
                           <img onClick={() => {
                             this.setState({
-                              ModalTitulo: "Donate to grow BRST",
+                              ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[0],
                               ModalBody: <>
                                 <input type="number" id="trxD"></input> TRX
                                 <br />
@@ -1514,14 +1512,14 @@ export default class Staking extends Component {
                                   this.props.contrato.BRST_TRX_Proxy['donate()']().send({ callValue: donacion })
                                     .then(() => {
                                       this.setState({
-                                        ModalTitulo: "Thanks for Donate to grow BRST",
-                                        ModalBody: "Thank you for contributing to this great project that we have done to help the community grow. We truly appreciate it <3"
+                                        ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[1],
+                                        ModalBody: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[2]
                                       })
                                       window.$("#mensaje-brst").modal("show");
                                       this.estado();
                                     })
 
-                                }}>Donate</button>
+                                }}>{this.props.i18n.t("brst.alert.donate", { returnObjects: true })[3]}</button>
                                 <br /><br />
                                 <input type="number" id="brstD"></input> BRST
                                 <br />
@@ -1531,8 +1529,8 @@ export default class Staking extends Component {
                                   this.props.contrato.BRST_TRX_Proxy['donate(uint256)'](donacion.toString(10)).send()
                                     .then(() => {
                                       this.setState({
-                                        ModalTitulo: "Thanks for Donate to grow BRST",
-                                        ModalBody: "Thank you for contributing to this great project that we have done to help the community grow. We truly appreciate it <3"
+                                        ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[1],
+                                        ModalBody: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[2]
                                       })
                                       window.$("#mensaje-brst").modal("show");
                                       this.estado();
@@ -1540,7 +1538,7 @@ export default class Staking extends Component {
                                     })
 
 
-                                }}>Donate</button>
+                                }}>{this.props.i18n.t("brst.alert.donate", { returnObjects: true })[3]}</button>
 
                               </>
                             })
@@ -1589,14 +1587,15 @@ export default class Staking extends Component {
 
                         <div className="col-6">
                           <button className="btn d-flex  btn-danger justify-content-between w-100" onClick={() => this.sell()}>
-                            SELL
+                            {this.props.i18n.t("sell")}
                             <img src="/images/svg/up.svg" style={{ transform: "rotate(180deg)" }} height="16px" alt="" />
                           </button>
                         </div>
 
                         <div className="col-6">
                           <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.preCompra()}>
-                            BUY
+                            {this.props.i18n.t("buy")}
+
                             <img src="/images/svg/up.svg" height="16px" alt="" />
                           </button>
                         </div>
@@ -1614,7 +1613,7 @@ export default class Staking extends Component {
                   <div className="card price-list">
                     <div className="card-header border-0 pb-2">
                       <div className="chart-title">
-                        <h4 className="text-warning mb-0">My Assets</h4>
+                        <h4 className="text-warning mb-0">{this.props.i18n.t("mya")}</h4>
                       </div>
                     </div>
                     <div className="card-body p-3 py-0">
@@ -1622,8 +1621,8 @@ export default class Staking extends Component {
                         <table className="table text-center bg-warning-hover order-tbl">
                           <thead>
                             <tr>
-                              <th className="text-left">Token</th>
-                              <th className="text-center">Amount</th>
+                              <th className="text-left">{this.props.i18n.t("token")}</th>
+                              <th className="text-center">{this.props.i18n.t("amount")}</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -1641,7 +1640,7 @@ export default class Staking extends Component {
                       </div>
                     </div>
                     <div className="card-footer text-center py-3 border-0">
-                      <a href="/" className="btn-link text-black">Show more <i className="fa fa-caret-right"></i></a>
+                      <a href="/" className="btn-link text-black">{this.props.i18n.t("showM")}<i className="fa fa-caret-right"></i></a>
                     </div>
                   </div>
                 </div>
@@ -1665,18 +1664,18 @@ export default class Staking extends Component {
                 <table className="table table-hover table-responsive-sm">
                   <thead>
                     <tr>
-                      <th>Day</th>
-                      <th>Earned</th>
-                      <th>dayly Growth</th>
+                      <th>{this.props.i18n.t("day")}</th>
+                      <th>{this.props.i18n.t("earned")}</th>
+                      <th>{this.props.i18n.t("brst.dailyG")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     {earnings.map((objeto) => (
                       <tr key={objeto.dias.toString()}>
-                        <th>{objeto.dias} ago</th>
+                        <th>{this.props.i18n.t("brst.daysAgo", { days: objeto.dias })}</th>
 
                         <td>{(objeto.trx).toFixed(6)} TRX</td>
-                        <td className="color-primary">{(objeto.diario).toFixed(6)} TRX/day </td>
+                        <td className="color-primary">{(objeto.diario).toFixed(6)} TRX/{this.props.i18n.t("day")} </td>
                       </tr>))}
 
                   </tbody>
@@ -1690,11 +1689,11 @@ export default class Staking extends Component {
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
-                <h4 className="fs-20 text-black">Requests in process ({this.state.solicitudes}) {"   "}
+                <h4 className="fs-20 text-black">{this.props.i18n.t("brst.request", { returnObjects: true, number: this.state.globDepositos.length })[0]}
                   <button className="btn  btn-success text-white" onClick={async () => await this.estado()}>
-                    Update {" "} <i className="bi bi-arrow-repeat"></i>
+                    {this.props.i18n.t("brst.request", { returnObjects: true })[1]} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>
-                <p className="mb-0 fs-12">Come back when time is up and claim your TRX</p>
+                <p className="mb-0 fs-12">{this.props.i18n.t("brst.request", { returnObjects: true })[2]}</p>
               </div>
 
             </div>
@@ -1709,49 +1708,51 @@ export default class Staking extends Component {
         <div className="col-lg-12">
           <div className="card">
             <div className="card-header">
-              <h4 className="card-title">Estimate your Profit</h4><br></br>
-              <h6 className="card-subtitle" style={{ cursor: "pointer" }} onClick={() => { document.getElementById("hold").value = this.state.balanceBRST; this.handleChangeCalc({ target: { value: this.state.balanceBRST } }) }}>My Staking: {this.state.misBRST} BRST = {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</h6>
+              <h4 className="card-title">{this.props.i18n.t("brst.estimate")}</h4><br></br>
+              <h6 className="card-subtitle" style={{ cursor: "pointer" }} onClick={() => { document.getElementById("hold").value = this.state.balanceBRST; this.handleChangeCalc({ target: { value: this.state.balanceBRST } }) }}>
+                {this.props.i18n.t("brst.mystaking")}{this.state.misBRST} BRST = {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX
+              </h6>
             </div>
             <div className="card-body">
               <div className="table-responsive">
                 <table className="table table-hover table-responsive-sm">
                   <thead>
                     <tr>
-                      <th>Days</th>
-                      <th>You Hold</th>
-                      <th>Status</th>
-                      <th>Estimated income</th>
-                      <th>Growth rate</th>
+                      <th>{this.props.i18n.t("day", { count: 10 })}</th>
+                      <th>{this.props.i18n.t("brst.hold")}</th>
+                      <th>{this.props.i18n.t("brst.status")}</th>
+                      <th>{this.props.i18n.t("brst.estimateIn")}</th>
+                      <th>{this.props.i18n.t("brst.growthR")}</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
                       <th><input type="number" id="days" defaultValue={1} onChange={this.handleChangeDias} /></th>
                       <td><input type="number" id="hold" defaultValue={0} onChange={this.handleChangeCalc} /> BRST</td>
-                      <td><span className="badge badge-primary light">calculated</span>
+                      <td><span className="badge badge-primary light">{this.props.i18n.t("brst.calculated")}</span>
                       </td>
                       <td>{(this.state.resultCalc).toFixed(6)} TRX</td>
-                      <td className="color-primary">{(this.state.promE7to1day).toFixed(4)} % Daily </td>
+                      <td className="color-primary">{(this.state.promE7to1day).toFixed(4)} % {this.props.i18n.t("brst.daily")} </td>
                     </tr>
                     <tr>
                       <th>30</th>
                       <td>{this.state.misBRST} BRST</td>
-                      <td><span className="badge badge-success">likely</span>
+                      <td><span className="badge badge-success">{this.props.i18n.t("brst.likely")}</span>
                       </td>
                       <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * 30) / 100))).toFixed(6)} TRX</td>
-                      <td className="color-success">{(this.state.varBrst * 30).toFixed(4)} % Monthly</td>
+                      <td className="color-success">{(this.state.varBrst * 30).toFixed(4)} % {this.props.i18n.t("brst.monthly")}</td>
                     </tr>
                     <tr>
                       <th>365</th>
                       <td>{this.state.misBRST} BRST</td>
-                      <td><span className="badge badge-danger light">Estimated</span>
+                      <td><span className="badge badge-danger light">{this.props.i18n.t("brst.estimated")}</span>
                       </td>
                       <td className="text-danger">{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * 365) / 100))).toFixed(6)} TRX</td>
-                      <td className="text-danger">{(this.state.varBrst * 365).toFixed(4)} % Yearly</td>
+                      <td className="text-danger">{(this.state.varBrst * 365).toFixed(4)} % {this.props.i18n.t("brst.yearly")}</td>
                     </tr>
                   </tbody>
                 </table>
-                <p>This calculator uses the average of the last {this.state.tiempoPromediado} days of earnings to generate an estimate that is closest to reality, since earnings can fluctuate from one day to the next and are not fixed but variable.</p>
+                <p>{this.props.i18n.t("brst.calcullatorText", { days: this.state.tiempoPromediado })}</p>
               </div>
             </div>
           </div>

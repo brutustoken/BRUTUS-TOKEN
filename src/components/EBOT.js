@@ -142,6 +142,16 @@ export default class EnergyRental extends Component {
     }
 
 
+    if (energi < consulta.total_energy_pool * 0.01) {
+      energyOn = false;
+      this.setState({
+        titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
+        body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
+      })
+
+      window.$("#mensaje-ebot").modal("show");
+    }
+
 
     this.setState({
       available_bandwidth: band,
