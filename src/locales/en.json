@@ -1,4 +1,4 @@
-{"en": {
+{
     "translation": {
       "conect": "Conect Wallet",
       "gallery": "Gallery",
@@ -23,6 +23,7 @@
       "amount": "Amount",
       "showM": "Show more",
       "earned": "Earned",
+      "calculating": "Calculating",
       "preLoad": ["Preparing application ", "All smart contracts are being loaded so that the application works correctly, please wait a few moments"],
       "brst":{
         "tittle": "Staking TRX",
@@ -39,7 +40,7 @@
           "renergy2":["we are verifying ", "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."],
           "renergy3":["we are allocating your energy ", "Please do not close or leave the page as this will cause an error in the energy allocation."],
           "error":["Contact support","Support hash: {{hash}} | {{msg}}"],
-          "errorInput":["Input Error","Please Enter valid amount"],
+          "errorInput":["Input Error","Please enter a valid amount"],
           "energyNotice": ["Energy Notice","This operation usually requires ","energy","and you have ","and need at least",", rent them for","to perform this operation."],
           "tfail":["Transaction failed"],
           "done": ["Completed successfully","Energy rental completed successfully. ","Continue the process"],
@@ -88,11 +89,15 @@
       },
       "ebot":{
         "alert":{
-          "soldOut":["Sold Out Energy","We apologize that at this time we have sold all the available energy, please come back later when we have recovered"]
+          "eTronlink":["Tronlink Error","If you have TRONLINK installed, please open the application and connect. If you do not have it, you must download the TRONLINK extension for your browser or TRONLINK GLOBAL from your cell phone."],
+          "soldOut":["Sold Out Energy","We apologize that at this time we have sold all the available energy, please come back later when we have recovered"],
+          "eRange":["Error Range","Please enter a range of values between 1 hour and 14 days"],
+          "eRange2":"It is only available for 1 hour operations",
+          "eResource":["Resource Alert","At this time we do not have resources available, please try again later."]
         }
       }
       
 
     }
-  }
+  
 }

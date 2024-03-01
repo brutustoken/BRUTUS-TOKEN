@@ -93,6 +93,7 @@ class App extends Component {
 
     this.conectar = this.conectar.bind(this);
     this.intervalo = this.intervalo.bind(this);
+    this.loadContracts = this.loadContracts.bind(this);
 
   }
 
@@ -122,6 +123,22 @@ class App extends Component {
   intervalo(s) {
     var interval = setInterval(() => {
       //console.log("intervalo a la espera...")
+
+      let lgSelector = "en";
+
+      try {
+        lgSelector = document.getElementById("selectLng").value
+      } catch (error) {
+
+      }
+
+      let lenguaje = i18next.resolvedLanguage
+
+
+      if (lenguaje !== lgSelector) {
+        i18next.changeLanguage(lgSelector);
+      }
+
 
       if (!this.state.tronlink.loggedIn || !window.tronLink.ready) {
 
@@ -184,7 +201,7 @@ class App extends Component {
 
     } else {
 
-      console.log("Please install Tronlink to use this Dapp")
+      //console.log("Please install Tronlink to use this Dapp")
 
       tronlink['installed'] = false;
       tronlink['loggedIn'] = false;
@@ -205,62 +222,70 @@ class App extends Component {
       document.getElementById("conectTL").onclick = () => { conectDirect() }
     }
 
-
     if (!tronlink['contratosReady']) {
-
-      //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
-      web3Contracts.setHeader(cons.TAK)
-      let contrato = {};
-
-      let url = window.location.href;
-      if (url.indexOf("/?") >= 0) url = (url.split("/?"))[1];
-      if (url.indexOf("&") >= 0) url = (url.split("&"))[0];
-      if (url === window.location.href || url === "utm_source=tronlink") url = ""
-
-      if (cons.BRUT !== "" && (url === "" || url === "brut")) {
-        contrato.BRUT = await web3Contracts.contract().at(cons.BRUT);
-      }
-      if (cons.USDT !== "" && (url === "brut")) {
-        contrato.USDT = await web3Contracts.contract().at(cons.USDT);
-      }
-      if (cons.SC !== "" && (url === "brut")) {
-        contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
-      }
-
-      if (cons.SC2 !== "" && (url === "brst")) {
-        contrato.BRST_TRX = await web3Contracts.contract().at(cons.SC2);
-      }
-      if (cons.ProxySC2 !== "" && (url === "" || url === "brst")) {
-        contrato.Proxy = await web3Contracts.contract(abi_PROXY, cons.ProxySC2);
-        contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST, cons.ProxySC2);
-      }
-      if (cons.BRST !== "" && (url === "" || url === "brst")) {
-        contrato.BRST = await web3Contracts.contract().at(cons.BRST);
-      }
-
-      if (cons.BRGY !== "" && (url === "" || url === "brgy")) {
-        contrato.BRGY = await web3Contracts.contract().at(cons.BRGY);
-      }
-      if (cons.SC3 !== "" && (url === "brgy")) {
-        contrato.MBOX = await web3Contracts.contract().at(cons.SC3);
-      }
-
-      if (cons.BRLT !== "" && (url === "" || url === "brlt")) {
-        contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
-      }
-      if (cons.SC4 !== "" && (url === "brlt")) {
-        contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, cons.SC4);
-        contrato.loteria = await web3Contracts.contract(abi_LOTERIA, cons.SC4);
-      }
-
-      tronlink['contratosReady'] = true;
-
-      this.setState({
-        tronlink: tronlink,
-        contrato: contrato
-      });
-
+      this.loadContracts()
     }
+
+  }
+
+  async loadContracts() {
+
+    let web3Contracts = this.state.tronWeb;
+    let tronlink = this.state.tronlink;
+
+    //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
+    web3Contracts.setHeader(cons.TAK)
+    let contrato = {};
+
+    let url = window.location.href;
+    if (url.indexOf("/?") >= 0) url = (url.split("/?"))[1];
+    if (url.indexOf("&") >= 0) url = (url.split("&"))[0];
+    if (url === window.location.href || url === "utm_source=tronlink") url = ""
+
+    if (cons.BRUT !== "" && (url === "" || url === "brut")) {
+      contrato.BRUT = await web3Contracts.contract().at(cons.BRUT);
+    }
+    if (cons.USDT !== "" && (url === "brut")) {
+      contrato.USDT = await web3Contracts.contract().at(cons.USDT);
+    }
+    if (cons.SC !== "" && (url === "brut")) {
+      contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
+    }
+
+    if (cons.SC2 !== "" && (url === "brst")) {
+      contrato.BRST_TRX = await web3Contracts.contract().at(cons.SC2);
+    }
+    if (cons.ProxySC2 !== "" && (url === "" || url === "brst")) {
+      contrato.Proxy = await web3Contracts.contract(abi_PROXY, cons.ProxySC2);
+      contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST, cons.ProxySC2);
+    }
+    if (cons.BRST !== "" && (url === "" || url === "brst")) {
+      contrato.BRST = await web3Contracts.contract().at(cons.BRST);
+    }
+
+    if (cons.BRGY !== "" && (url === "" || url === "brgy")) {
+      contrato.BRGY = await web3Contracts.contract().at(cons.BRGY);
+    }
+    if (cons.SC3 !== "" && (url === "brgy")) {
+      contrato.MBOX = await web3Contracts.contract().at(cons.SC3);
+    }
+
+    if (cons.BRLT !== "" && (url === "" || url === "brlt")) {
+      contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
+    }
+    if (cons.SC4 !== "" && (url === "brlt")) {
+      contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, cons.SC4);
+      contrato.loteria = await web3Contracts.contract(abi_LOTERIA, cons.SC4);
+    }
+
+    tronlink['contratosReady'] = true;
+
+    this.setState({
+      tronlink: tronlink,
+      contrato: contrato
+    });
+
+
 
   }
 

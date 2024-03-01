@@ -67,10 +67,10 @@ export default class EnergyRental extends Component {
   }
 
   handleChangePeriodo(event) {
-    let dato = event.target.value;
+    let dato = (event.target.value).toLowerCase();
     let tmp = "d"
 
-    if (dato.split("h").length > 1 || dato.split("H").length > 1 || dato.split("hora").length > 1 || dato.split("Hora").length > 1) {
+    if (dato.split("h").length > 1 || dato.split("hora").length > 1) {
       tmp = "h"
     }
 
@@ -202,8 +202,8 @@ export default class EnergyRental extends Component {
 
       if (parseInt(time[0]) < 1 || parseInt(time[0]) > 14) {
         this.setState({
-          titulo: "Error Range",
-          body: "Please enter a range of values between 1 hour and 14 days"
+          titulo: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[0],
+          body: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[1]
         })
 
         ok = false;
@@ -214,8 +214,8 @@ export default class EnergyRental extends Component {
 
       if (parseInt(time[0]) !== 1) {
         this.setState({
-          titulo: "Error Range",
-          body: "It is only available for 1 hour operations",
+          titulo: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[0],
+          body: this.props.i18n.t("ebot.alert.eRange2"),
           periodo: "1"
         })
 
@@ -247,7 +247,7 @@ export default class EnergyRental extends Component {
       var body = { "resource": this.state.recurso, "amount": amount, "duration": time }
 
       this.setState({
-        precio: "Calculating..."
+        precio: this.props.i18n.t("calculating") + "..."
       })
 
       var consulta2 = await fetch(url, {
@@ -258,7 +258,7 @@ export default class EnergyRental extends Component {
         body: JSON.stringify(body)
       }).then((r) => r.json())
 
-      console.log(consulta2)
+      //console.log(consulta2)
 
       var precio = consulta2.price * 1
       precio = parseInt(precio * 10 ** 6) / 10 ** 6
@@ -281,8 +281,8 @@ export default class EnergyRental extends Component {
 
     if (!this.state.energyOn) {
       this.setState({
-        titulo: <>Resource Alert</>,
-        body: (<span>At this time we do not have resources available, please try again later.
+        titulo: this.props.i18n.t("ebot.alert.eResource", { returnObjects: true })[0],
+        body: (<span>{this.props.i18n.t("ebot.alert.eResource", { returnObjects: true })[1]}
         </span>)
       })
 
@@ -296,6 +296,20 @@ export default class EnergyRental extends Component {
       this.setState({
         wallet_orden: this.props.accountAddress
       })
+    }
+
+    if (this.state.wallet_orden === "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
+      this.setState({
+        titulo: this.props.i18n.t("ebot.alert.eTronlink", { returnObjects: true })[0],
+        body: (<span>
+          {this.props.i18n.t("ebot.alert.eTronlink", { returnObjects: true })[1]}
+          <br />
+          <button className="btn btn-danger" data-bs-dismiss="modal">Ok</button>
+        </span>)
+      })
+
+      window.$("#mensaje-ebot").modal("show");
+      return;
     }
 
     this.setState({
