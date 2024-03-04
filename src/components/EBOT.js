@@ -51,6 +51,8 @@ export default class EnergyRental extends Component {
   }
 
   componentDidMount() {
+    document.title = "B.F | EBot"
+    document.getElementById("tittle").innerText = "Energy Bot"//this.props.i18n.t("brst.tittle")
     this.recursos()
 
     setTimeout(() => {
@@ -108,7 +110,10 @@ export default class EnergyRental extends Component {
     try {
 
       energyOn = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL)
-        .then((r) => r.json())
+        .then((r) => {
+          //console.log(r); 
+          return r.json();
+        })
 
       energyOn = energyOn.available
 
@@ -501,6 +506,10 @@ export default class EnergyRental extends Component {
 
       <div className="row ">
 
+        <div className="col-md-12 text-center">
+          <h1>Brutus Resources Rental </h1>
+        </div>
+
         <div className="col-lg-6 col-sm-12">
           <div className="contact-box">
             <div className="card">
@@ -605,7 +614,6 @@ export default class EnergyRental extends Component {
             <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
 
             <div className="info">
-              <h1>Brutus Resources Rental </h1>
               <p className="font-20">In Brutus Energy Bot, we've developed a DApp for a faster and secure resource rental experience on the Tron network. Innovatively simplifying the process, we ensure efficient management at competitive prices. Explore further through our <a href="https://t.me/BRUTUS_energy_bot">Telegram bot</a> or API for added accessibility. For additional information, reach out to us at <a href="mailto:support@brutus.finance">support@brutus.finance</a></p>
             </div>
 
