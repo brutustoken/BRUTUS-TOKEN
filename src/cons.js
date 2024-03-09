@@ -3,10 +3,10 @@ var proxy = "https://cors.brutusservices.com/";
 const conProxy = true;
 const testnet = false; // revisar si está tesnet activada
 
-if(!conProxy)proxy = "";
+if (!conProxy) proxy = "";
 
-const PRICE = proxy+process.env.REACT_APP_API_URL+"api/v1/precio/BRUT"; //API de precio
-const market_brut =  proxy+process.env.REACT_APP_API_URL+"api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
+const PRICE = proxy + process.env.REACT_APP_API_URL + "api/v1/precio/BRUT"; //API de precio
+const market_brut = proxy + process.env.REACT_APP_API_URL + "api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
 
 var RED = "https://api.trongrid.io";// shasta1. para inhabilitar red de pruebas
 
@@ -23,9 +23,10 @@ var APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery bo
 var BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY 
 var BRLT = "TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU";//token NFT LOTERIA 
 
-var TAK = {"TRON-PRO-API-KEY": 'b0e8c09f-a9c8-4b77-8363-3cde81365fac'}
 
-if(testnet){
+var KEYS = (process.env.REACT_APP_LIST_API_KEY).split(",")
+
+if (testnet) {
 
     RED = "https://nile.trongrid.io"
 
@@ -41,8 +42,8 @@ if(testnet){
     APENFT = "TMaG566bcktJkjxQpQxshewfTqATzxmtPX";//token de venta de mixtery box
     BRGY = "TMEmo4xexAEu3zSmSrzPJoA1FE6AEfgVyW";//token NFT  BRGY 
     BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
-    TAK = {}
+    KEYS = {}
 
 }
 
-export default {proxy, RED,  SC, SC2, ProxySC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut,TAK};
+export default { proxy, RED, SC, SC2, ProxySC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut, KEYS };

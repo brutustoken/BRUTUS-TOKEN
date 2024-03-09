@@ -44,7 +44,6 @@ if (lenguaje !== lgSelector) {
   i18next.changeLanguage(lgSelector);
 }
 
-
 const tronWeb = new TronWeb({
   fullHost: cons.RED
 })
@@ -156,9 +155,8 @@ class App extends Component {
 
     let tronlink = this.state.tronlink;
     let wallet = adressDefault;
-    let web3Contracts = {};
 
-    web3Contracts = tronWeb;
+    let web3Contracts = tronWeb;
     web3Contracts.setAddress(adressDefault)
 
 
@@ -234,7 +232,12 @@ class App extends Component {
     let tronlink = this.state.tronlink;
 
     //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
-    web3Contracts.setHeader(cons.TAK)
+
+    let ranNum = Math.floor((Math.random() * cons.KEYS.length));
+    web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
+
+
+    console.log(await web3Contracts.isConnected())
     let contrato = {};
 
     let url = window.location.href;

@@ -1,8 +1,26 @@
 import React, { Component } from "react";
+const BigNumber = require('bignumber.js');
+
 
 function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
 function getRandomInt(max) { return Math.floor(Math.random() * max); }
+
+const amountsE = [
+  { amount: 32000, text: "32K" },
+  { amount: 100000, text: "100K" },
+  { amount: 160000, text: "160K" },
+  { amount: 1000000, text: "1M" },
+  { amount: 3000000, text: "3M" }
+]
+
+const amountB = [
+  { amount: 1000, text: "1k" },
+  { amount: 2000, text: "2k" },
+  { amount: 5000, text: "5k" },
+  { amount: 10000, text: "10k" },
+  { amount: 50000, text: "50k" }
+]
 
 export default class EnergyRental extends Component {
 
@@ -25,13 +43,7 @@ export default class EnergyRental extends Component {
       total_energy_pool: 0,
       titulo: "Titulo",
       body: "Cuerpo del mensaje",
-      amounts: [
-        { amount: 32000, text: "32K" },
-        { amount: 100000, text: "100K" },
-        { amount: 160000, text: "160K" },
-        { amount: 1000000, text: "1M" },
-        { amount: 3000000, text: "3M" }
-      ],
+      amounts: amountsE,
       energyOn: false,
 
     };
@@ -51,8 +63,8 @@ export default class EnergyRental extends Component {
   }
 
   componentDidMount() {
-    document.title = "B.F | EBot"
-    document.getElementById("tittle").innerText = "Energy Bot"//this.props.i18n.t("brst.tittle")
+    document.title = "B.F | E-Bot"
+    document.getElementById("tittle").innerText = this.props.i18n.t("ebot.tittle")
     this.recursos()
 
     setTimeout(() => {
@@ -138,7 +150,7 @@ export default class EnergyRental extends Component {
     var band = 0
     var energi = 0
 
-    console.log(consulta)
+    //console.log(consulta)
 
     if (this.state.periodo === 1 && this.state.temporalidad === "h") {
       band = consulta.av_band[0].available
@@ -283,6 +295,21 @@ export default class EnergyRental extends Component {
   }
 
   async preCompra() {
+
+    console.log(new BigNumber(await this.props.tronWeb.trx.getBalance()).shiftedBy(-6).toNumber())
+    console.log(parseFloat(this.state.precio))
+
+
+    if (parseFloat(this.state.precio) > new BigNumber(await this.props.tronWeb.trx.getBalance()).shiftedBy(-6).toNumber()) {
+      this.setState({
+        titulo: this.props.i18n.t("ebot.alert.noFounds", { returnObjects: true })[0],
+        body: (<span>{this.props.i18n.t("ebot.alert.noFounds", { returnObjects: true })[1]}
+        </span>)
+      })
+
+      window.$("#mensaje-ebot").modal("show");
+      return;
+    }
 
     if (!this.state.energyOn) {
       this.setState({
@@ -486,28 +513,29 @@ export default class EnergyRental extends Component {
     const amountButtons = amounts.map(amounts => <button key={"Amb-" + amounts.text} id="ra1" type="button" className="btn btn-primary"
       style={{ margin: "auto" }} onClick={() => { document.getElementById("amount").value = amounts.amount; this.handleChangeEnergy({ target: { value: amounts.amount } }) }}>{amounts.text}</button>)
 
-    let medidor = (<><p className="font-14">Bandwidth: {(this.state.available_bandwidth).toLocaleString('en-US')}</p>
+    let texto = <>Bandwidth Pool: {(this.state.available_bandwidth).toLocaleString('en-US')}</>
+    let porcentaje = this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool
+
+    if (this.state.recurso === "energy") {
+      texto = <>Energy Pool: {(this.state.available_energy).toLocaleString('en-US')}</>
+      porcentaje = this.state.available_energy * 100 / this.state.total_energy_pool
+    }
+
+
+    let medidor = (<><p className="font-14">{texto}</p>
       <div className="progress" style={{ margin: "5px" }}>
-        <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool) + "%" }}
-          aria-valuenow={(this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool)} aria-valuemin="0" aria-valuemax="100">
+        <div className="progress-bar" role="progressbar" style={{ "width": porcentaje + "%" }}
+          aria-valuenow={porcentaje} aria-valuemin="0" aria-valuemax="100">
         </div>
       </div></>)
 
-    if (this.state.recurso === "energy") {
-      medidor = (<><p className="font-14">Energy: {(this.state.available_energy).toLocaleString('en-US')}</p>
-        <div className="progress" style={{ margin: "5px" }}>
-          <div className="progress-bar" role="progressbar" style={{ "width": (this.state.available_energy * 100 / this.state.total_energy_pool) + "%" }}
-            aria-valuenow={(this.state.available_energy * 100 / this.state.total_energy_pool)} aria-valuemin="0" aria-valuemax="100">
-          </div>
-        </div></>)
-    }
 
     return (<>
 
       <div className="row ">
 
         <div className="col-md-12 text-center">
-          <h1>Brutus Resources Rental </h1>
+          <h1>{this.props.i18n.t("ebot.subTittle")}</h1>
         </div>
 
         <div className="col-lg-6 col-sm-12">
@@ -528,17 +556,11 @@ export default class EnergyRental extends Component {
                             Resource
                           </button>
                           <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                            <li><button className="dropdown-item" onClick={() => { this.setState({ recurso: "energy" }) }}>Energy</button></li>
+                            <li><button className="dropdown-item" onClick={() => { this.setState({ recurso: "energy", amounts: amountsE }) }}>Energy</button></li>
                             <li><button className="dropdown-item" onClick={() => {
                               this.setState({
                                 recurso: "bandwidth",
-                                amounts: [
-                                  { amount: 1000, text: "1k" },
-                                  { amount: 2000, text: "2k" },
-                                  { amount: 5000, text: "5k" },
-                                  { amount: 10000, text: "10k" },
-                                  { amount: 50000, text: "50k" }
-                                ]
+                                amounts: amountB
                               });
                             }}>Bandwidth</button>
                             </li>

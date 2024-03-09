@@ -88,12 +88,15 @@
         "usdValue": "USD Value"
       },
       "ebot":{
+        "tittle": "Energy Bot",
+        "subTittle": "Brutus Resources Rental",
         "alert":{
           "eTronlink":["Tronlink Error","If you have TRONLINK installed, please open the application and connect. If you do not have it, you must download the TRONLINK extension for your browser or TRONLINK GLOBAL from your cell phone."],
           "soldOut":["Sold Out Energy","We apologize that at this time we have sold all the available energy, please come back later when we have recovered"],
           "eRange":["Error Range","Please enter a range of values between 1 hour and 14 days"],
           "eRange2":"It is only available for 1 hour operations",
-          "eResource":["Resource Alert","At this time we do not have resources available, please try again later."]
+          "eResource":["Resource Alert","At this time we do not have resources available, please try again later."],
+          "noFounds": ["Insufficient Funds","Please top up your wallet with additional TRX to complete this operation."]
         }
       }
       
