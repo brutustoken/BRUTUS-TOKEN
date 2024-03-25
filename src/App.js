@@ -15,6 +15,8 @@ import StakingV2 from "./components/BRST-Proxy.js";
 import Nft from "./components/BRGY/index.js";
 import LOTERIA from "./components/BRLT.js";
 import EBOT from "./components/EBOT.js";
+import PRO from "./components/PRO.js";
+
 
 
 import i18next from 'i18next';
@@ -333,7 +335,7 @@ class App extends Component {
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
       case "pro":
-        return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
+        return <PRO accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
       case "brlt":
         return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
