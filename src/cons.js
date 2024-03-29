@@ -1,12 +1,11 @@
 var proxy = "https://cors.brutusservices.com/";
 
-const conProxy = true;
 const testnet = false; // revisar si está tesnet activada
-
-if (!conProxy) proxy = "";
 
 const PRICE = proxy + process.env.REACT_APP_API_URL + "api/v1/precio/BRUT"; //API de precio
 const market_brut = proxy + process.env.REACT_APP_API_URL + "api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
+
+const apiProviders = proxy + "https://api-providers.brutusservices.com/main/"
 
 var RED = "https://api.trongrid.io";// shasta1. para inhabilitar red de pruebas
 
@@ -46,4 +45,4 @@ if (testnet) {
 
 }
 
-export default { proxy, RED, SC, SC2, ProxySC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut, KEYS };
+export default { proxy, RED, SC, SC2, ProxySC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut, KEYS, apiProviders };
