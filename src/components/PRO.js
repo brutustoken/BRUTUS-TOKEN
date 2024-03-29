@@ -17,7 +17,7 @@ export default class ProviderPanel extends Component {
       sellband: false,
       bandover: "Loading...",
       burn: false,
-      autofreeze: false,
+      autofreeze: "off",
       paymenthour: "Loading...",
       maxdays: "Loading...",
       ongoins: [],
@@ -32,6 +32,7 @@ export default class ProviderPanel extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.setPaymentHour = this.setPaymentHour.bind(this);
     this.setMaxDays = this.setMaxDays.bind(this);
+    this.setFreez = this.setFreez.bind(this);
 
   }
 
@@ -197,8 +198,30 @@ export default class ProviderPanel extends Component {
 
         break;
 
+
       default:
         break;
+    }
+
+    this.estado()
+
+  }
+
+  async setFreez(data) {
+    try {
+      let body = { wallet: this.props.accountAddress, autofreeze: data }
+      await fetch(cons.apiProviders + "set/autofreeze", {
+        method: "POST",
+        headers: {
+          'token-api': process.env.REACT_APP_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+
+
+    } catch (error) {
+      console.log(error.toString())
     }
 
     this.estado()
@@ -318,7 +341,55 @@ export default class ProviderPanel extends Component {
 
       //console.log(ongoins)
 
-      const ordenesActivas = ongoins.map((item, index) => (
+      const ordenesActivas = ongoins.map((item, index) => {
+
+        let lock = "unlock"
+
+        //console.log(((item.order_type).toLowerCase()).includes("day"))
+        //console.log((item.order_type).toLowerCase())
+
+
+        if (((item.order_type).toLowerCase()).includes("day")) {
+
+          if (((item.order_type).toLowerCase()).includes("wol")) {
+            lock = "unlock"
+          } else {
+            lock = "lock"
+          }
+
+          item.order_type = "DAY"
+
+
+        } else {
+
+          if (((item.order_type).toLowerCase()).includes("wol")) {
+            lock = "unlock"
+          } else {
+            lock = "lock"
+          }
+
+        }
+
+
+
+        return (
+          <tr key={index}>
+            <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type}</td>
+            <td>{item.customer}<br />
+              {item.confirm}{" -> "}{item.unfreeze}
+            </td>
+            <td>{item.payout} TRX</td>
+            <td className="text-end">
+              <div className="dropdown custom-dropdown mb-0">
+                <i className={"bi bi-" + lock + "-fill"}></i>
+              </div>
+            </td>
+          </tr>
+        )
+      });
+
+
+      const ordenesNoregistradas = ongoins.map((item, index) => (
         <tr key={index}>
           <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type}</td>
           <td>{item.customer}<br />
@@ -331,7 +402,9 @@ export default class ProviderPanel extends Component {
                 <i className="bi bi-three-dots-vertical"></i>
               </div>
               <div className="dropdown-menu dropdown-menu-end">
-                <button className="dropdown-item text-danger" >Cancel</button>
+                <button className="dropdown-item text-info" >View on TronScan</button>
+
+                <button className="dropdown-item text-danger" >Terminate Delegation</button>
               </div>
             </div>
           </td>
@@ -346,6 +419,14 @@ export default class ProviderPanel extends Component {
         naranja = "+" + naranja
       }
 
+      info.freez = (info.freez).toLowerCase()
+
+      if (info.freez === "no") {
+        info.freez = "Off"
+
+      }
+
+
       this.setState({
         provider: true,
         rent: info.activo,
@@ -353,11 +434,12 @@ export default class ProviderPanel extends Component {
         sellband: info.sellband,
         bandover: info.bandover,
         burn: info.burn,
-        autofreeze: false,
+        autofreeze: info.freez,
         payhour: info.payhour,
         payment: info.payment,
         maxdays: info.maxdays,
         ongoins: ordenesActivas,
+        noregist: ordenesNoregistradas,
         payhere: info.payhere,
         payoutRatio: info.payout_ratio,
         ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
@@ -402,7 +484,7 @@ export default class ProviderPanel extends Component {
           <div className="row">
             <div className="col-12">
               <div className="row">
-                <div className="col-8">
+                <div className="col-lg-8 col-sm-12">
                   <div className="card exchange">
                     <div className="card-header d-block">
                       <h2 className="heading">Status {estatus} <button type="button" className="btn btn-outline-warning"><img height="15px" src="images/naranja.png" alt="" /> {this.state.cNaranja} </button></h2>
@@ -413,50 +495,61 @@ export default class ProviderPanel extends Component {
                             <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} />
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title=""></i></label>
                           </div>
-                          <div className="col-lg-6 col-sm-6 form-check form-switch" title={this.state.bandover}>
-                            <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band <i className="bi bi-question-circle-fill" title=""></i></label>
-                          </div>
-
                           <div className="col-lg-6 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} />
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title=""></i></label>
                           </div>
+                          <div className="col-lg-12 col-sm-12 form-check form-switch">
+                            <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} />
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {this.state.bandover} <i className="bi bi-question-circle-fill" title=""></i></label>
+                          </div>
 
-                          <div className="col-lg-6 col-sm-6 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="autofreeze" checked={this.state.autofreeze} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Autofreeze</label>
+
+                        </div>
+
+                        <div className="row">
+
+
+                          <div className="col-lg-12 col-sm-12 mb-2">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title=""></i>
+                            <div className="dropdown-menu" aria-labelledby="menu">
+                              <button className="dropdown-item" onClick={() => this.setFreez("no")}>Off</button>
+                              <button className="dropdown-item" onClick={() => this.setFreez("bandwidth")}>Bandwidth</button>
+                              <button className="dropdown-item" onClick={() => this.setFreez("energy")}>Energy</button>
+                            </div>
+                          </div>
+
+
+
+                          <div className="col-lg-12 col-sm-12 mb-2">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title=""></i>
+                            <div className="dropdown-menu" aria-labelledby="menu2">
+                              <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(7)}>7 days</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(14)}>14 days</button>
+                            </div>
+                          </div>
+
+                          <div className="col-lg-12 col-sm-12">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour}</button> {"  "} <i className="bi bi-question-circle-fill" title=""></i>
+                            <div className="dropdown-menu" aria-labelledby="menu1">
+                              <button className="dropdown-item" onClick={() => this.setPaymentHour("130")}>1:30 GMT</button>
+                              <button className="dropdown-item" onClick={() => this.setPaymentHour("930")}>9:30 GMT</button>
+                              <button className="dropdown-item" onClick={() => this.setPaymentHour("1730")}>17:30 GMT</button>
+                            </div>
                           </div>
 
 
                         </div>
                       </div>
-                      <br />
 
-                      <div className="dropdown">
-                        <button type="button" className="btn btn-primary mb-1 dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour}</button> {"  "} <i className="bi bi-question-circle-fill" title=""></i>
-                        <div className="dropdown-menu" aria-labelledby="menu1">
-                          <button className="dropdown-item" onClick={() => this.setPaymentHour("130")}>1:30 GMT</button>
-                          <button className="dropdown-item" onClick={() => this.setPaymentHour("930")}>9:30 GMT</button>
-                          <button className="dropdown-item" onClick={() => this.setPaymentHour("1730")}>17:30 GMT</button>
-                        </div>
-                      </div>
-                      <div className="dropdown">
-
-                        <button type="button" className="btn btn-primary mb-1 dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title=""></i>
-                        <div className="dropdown-menu" aria-labelledby="menu2">
-                          <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
-                          <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
-                          <button className="dropdown-item" onClick={() => this.setMaxDays(7)}>7 days</button>
-                          <button className="dropdown-item" onClick={() => this.setMaxDays(14)}>14 days</button>
-                        </div>
-                      </div>
 
 
                     </div>
                   </div>
                 </div>
-                <div className="col-4">
+                <div className="col-lg-4 col-sm-12">
                   <div className="card">
                     <div className="card-header border-0 pb-0">
                       <h2 className="heading mb-0 m-auto">Next Payment</h2>
@@ -476,7 +569,7 @@ export default class ProviderPanel extends Component {
                 <div className="col-12">
                   <div className="card">
                     <div className="card-header">
-                      <h4 className="card-title">Ongoing deals</h4>
+                      <h4 className="card-title">Ongoing deals ({this.state.ongoins.length})</h4>
                     </div>
                     <div className="card-body">
                       <div className="table-responsive recentOrderTable">
@@ -491,6 +584,34 @@ export default class ProviderPanel extends Component {
                           </thead>
                           <tbody>
                             {this.state.ongoins}
+
+
+
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-12">
+                  <div className="card">
+                    <div className="card-header">
+                      <h4 className="card-title">Others delegations </h4>
+                    </div>
+                    <div className="card-body">
+                      <div className="table-responsive recentOrderTable">
+                        <table className="table verticle-middle table-responsive-md">
+                          <thead>
+                            <tr>
+                              <th scope="col">Resource / Period</th>
+                              <th scope="col">Buyer / Time</th>
+                              <th scope="col">Payout</th>
+                              <th scope="col"></th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {this.state.noregist}
 
 
 
