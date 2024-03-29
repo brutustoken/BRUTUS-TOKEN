@@ -395,7 +395,7 @@ export default class ProviderPanel extends Component {
                     <div className="card-body text-center pt-3">
                       <div className="mt-1">Hour {this.state.payhour} GMT</div>
                       <div className="count-num mt-1">{this.state.payment} TRX</div>
-                      <div className="mt-1">sended to {this.state.payhere}</div>
+                      <div className="mt-1">that will be paid here {this.state.payhere}</div>
 
                     </div>
                   </div>
