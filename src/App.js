@@ -239,7 +239,7 @@ class App extends Component {
     web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
 
 
-    console.log(await web3Contracts.isConnected())
+    //console.log(await web3Contracts.isConnected())
     let contrato = {};
 
     let url = window.location.href;
