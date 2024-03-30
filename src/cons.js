@@ -23,7 +23,9 @@ var BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY
 var BRLT = "TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU";//token NFT LOTERIA 
 
 
-var KEYS = (process.env.REACT_APP_LIST_API_KEY).split(",")
+var KEYS = process.env.REACT_APP_LIST_API_KEY || ""
+KEYS = (KEYS).split(",")
+
 
 if (testnet) {
 

@@ -1,6 +1,9 @@
 import React, { Component } from "react";
 import cons from "../cons.js";
+import TronWeb from "tronweb";
+
 const BigNumber = require('bignumber.js');
+
 
 //function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
@@ -26,6 +29,8 @@ export default class ProviderPanel extends Component {
       ratioEnergy: 0,
       ratioEnergyPool: 0,
       paymentPoints: 0,
+      voteSR: "",
+      newVoteSR: "",
 
     };
 
@@ -199,6 +204,13 @@ export default class ProviderPanel extends Component {
 
         break;
 
+      case "voteSR":
+
+        this.setState({
+          newVoteSR: elemento.value
+        })
+
+        break;
 
       default:
         break;
@@ -445,7 +457,8 @@ export default class ProviderPanel extends Component {
         payoutRatio: info.payout_ratio,
         ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
         ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100).dp(3).toString(10),
-        cNaranja: naranja
+        cNaranja: naranja,
+        voteSR: "Default vote SR",
 
       })
     } else {
@@ -467,15 +480,40 @@ export default class ProviderPanel extends Component {
     if (this.state.provider) {
 
 
-      let estatus = <button className="btn btn-outline-danger" style={{ cursor: "default" }}><i class="bi bi-sign-stop-fill"></i> Stopped</button>
+      let estatus = <button className="btn btn-outline-danger" style={{ cursor: "default" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
 
       if (this.state.rent) {
 
-        estatus = <button className="btn btn-outline-info" style={{ cursor: "default" }}><i class="bi bi-arrow-clockwise"></i> Recharging</button>
+        estatus = <button className="btn btn-outline-info" style={{ cursor: "default" }}><i className="bi bi-arrow-clockwise"></i> Recharging</button>
 
         if (this.state.elegible) {
-          estatus = <button className="btn btn-outline-success" style={{ cursor: "default" }}><i class="bi bi-check-circle-fill"></i> Active</button>
+          estatus = <button className="btn btn-outline-success" style={{ cursor: "default" }}><i className="bi bi-check-circle-fill"></i> Active</button>
         }
+
+      }
+
+      let campoFreeze = <></>
+
+      if (this.state.autofreeze !== "Off") {
+
+        campoFreeze = <input type="text" className="form-control" id="voteSR" placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} />
+
+
+        if (this.state.voteSR !== "" && TronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
+
+          campoFreeze = (<>
+            {campoFreeze}
+            <button className="btn btn-outline-secondary" type="button">Update Wallet to Vote</button>
+
+          </>)
+
+        }
+
+
+
+
+
+
 
       }
 
@@ -494,15 +532,39 @@ export default class ProviderPanel extends Component {
                         <div className="row">
                           <div className="col-lg-6 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot"></i></label>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Pause/Resume the bot"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
                           </div>
                           <div className="col-lg-6 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth"></i></label>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Allow TRX burn to accept new orders when you run out of bandwidth"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
                           </div>
                           <div className="col-lg-12 col-sm-12 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {this.state.bandover} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish"></i></label>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {this.state.bandover} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Sell your staked bandwidth over the amount you establish"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
                           </div>
 
 
@@ -511,7 +573,15 @@ export default class ProviderPanel extends Component {
                         <div className="row">
 
                           <div className="col-lg-12 col-sm-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments"></i>
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Set the time you want to receive your daily payments"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i>
                             <div className="dropdown-menu" aria-labelledby="menu1">
                               <button className="dropdown-item" onClick={() => this.setPaymentHour("130")}>1:30 GMT</button>
                               <button className="dropdown-item" onClick={() => this.setPaymentHour("930")}>9:30 GMT</button>
@@ -519,8 +589,16 @@ export default class ProviderPanel extends Component {
                             </div>
                           </div>
 
-                          <div className="col-lg-12 col-sm-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfronzen)"></i>
+                          <div className="col-lg-6 col-sm-12 mb-2">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfronzen)" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfronzen)"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i>
                             <div className="dropdown-menu" aria-labelledby="menu">
                               <button className="dropdown-item" onClick={() => this.setFreez("no")}>Off</button>
                               <button className="dropdown-item" onClick={() => this.setFreez("bandwidth")}>Bandwidth</button>
@@ -528,8 +606,20 @@ export default class ProviderPanel extends Component {
                             </div>
                           </div>
 
+                          <div className="col-lg-6 col-sm-12 mb-2">
+                            {campoFreeze}
+                          </div>
+
                           <div className="col-lg-12 col-sm-12">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="establish the max. duration of the orders you want to accept"></i>
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="establish the max. duration of the orders you want to accept" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "establish the max. duration of the orders you want to accept"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i>
                             <div className="dropdown-menu" aria-labelledby="menu2">
                               <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
                               <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
@@ -540,8 +630,6 @@ export default class ProviderPanel extends Component {
 
                         </div>
                       </div>
-
-
 
                     </div>
                   </div>
@@ -625,12 +713,12 @@ export default class ProviderPanel extends Component {
           <div className="modal-dialog" role="document">
             <div className="modal-content">
               <div className="modal-header">
-                <h5 className="modal-title">{this.state.titulo}</h5>
+                <h5 className="modal-title">{this.state.ModalTitulo}</h5>
                 <button type="button" className="btn-close" data-bs-dismiss="modal">
                 </button>
               </div>
               <div className="modal-body">
-                <p>{this.state.body}</p>
+                <p>{this.state.ModalBody}</p>
               </div>
             </div>
           </div>

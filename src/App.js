@@ -238,6 +238,8 @@ class App extends Component {
     let ranNum = Math.floor((Math.random() * cons.KEYS.length));
     web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
 
+    //console.log(web3Contracts)
+
 
     //console.log(await web3Contracts.isConnected())
     let contrato = {};
