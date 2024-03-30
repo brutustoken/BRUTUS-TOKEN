@@ -25,6 +25,7 @@ export default class ProviderPanel extends Component {
       payoutRatio: 0,
       ratioEnergy: 0,
       ratioEnergyPool: 0,
+      paymentPoints: 0,
 
     };
 
@@ -368,22 +369,20 @@ export default class ProviderPanel extends Component {
             lock = "lock"
           }
 
+          item.order_type = "HOUR"
+
+
         }
 
 
 
         return (
           <tr key={index}>
-            <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type}</td>
+            <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
             <td>{item.customer}<br />
               {item.confirm}{" -> "}{item.unfreeze}
             </td>
             <td>{item.payout} TRX</td>
-            <td className="text-end">
-              <div className="dropdown custom-dropdown mb-0">
-                <i className={"bi bi-" + lock + "-fill"}></i>
-              </div>
-            </td>
           </tr>
         )
       });
@@ -404,7 +403,7 @@ export default class ProviderPanel extends Component {
               <div className="dropdown-menu dropdown-menu-end">
                 <button className="dropdown-item text-info" >View on TronScan</button>
 
-                <button className="dropdown-item text-danger" >Terminate Delegation</button>
+                <button className="dropdown-item text-danger" >Reclaim Resources</button>
               </div>
             </div>
           </td>
@@ -426,6 +425,7 @@ export default class ProviderPanel extends Component {
 
       }
 
+      console.log(info)
 
       this.setState({
         provider: true,
@@ -437,6 +437,7 @@ export default class ProviderPanel extends Component {
         autofreeze: info.freez,
         payhour: info.payhour,
         payment: info.payment,
+        paymentPoints: info.payout_ratio * 100,
         maxdays: info.maxdays,
         ongoins: ordenesActivas,
         noregist: ordenesNoregistradas,
@@ -466,14 +467,14 @@ export default class ProviderPanel extends Component {
     if (this.state.provider) {
 
 
-      let estatus = <button className="btn btn-outline-danger" style={{ cursor: "default" }}>Stopped</button>
+      let estatus = <button className="btn btn-outline-danger" style={{ cursor: "default" }}><i class="bi bi-sign-stop-fill"></i> Stopped</button>
 
       if (this.state.rent) {
 
-        estatus = <button className="btn btn-outline-info" style={{ cursor: "default" }}>Recharging</button>
+        estatus = <button className="btn btn-outline-info" style={{ cursor: "default" }}><i class="bi bi-arrow-clockwise"></i> Recharging</button>
 
         if (this.state.elegible) {
-          estatus = <button className="btn btn-outline-success" style={{ cursor: "default" }}>Active</button>
+          estatus = <button className="btn btn-outline-success" style={{ cursor: "default" }}><i class="bi bi-check-circle-fill"></i> Active</button>
         }
 
       }
@@ -487,21 +488,21 @@ export default class ProviderPanel extends Component {
                 <div className="col-lg-8 col-sm-12">
                   <div className="card exchange">
                     <div className="card-header d-block">
-                      <h2 className="heading">Status {estatus} <button type="button" className="btn btn-outline-warning"><img height="15px" src="images/naranja.png" alt="" /> {this.state.cNaranja} </button></h2>
+                      <h2 className="heading">Status {estatus} <button type="button" className="btn btn-outline-warning" style={{ cursor: "default" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.cNaranja} </button> <button className="btn btn-outline-secondary" style={{ cursor: "default" }}> <span role="img" aria-label="$">💲</span> Payout Rate %{this.state.paymentPoints} </button></h2>
 
                       <div className="container-fluid">
                         <div className="row">
                           <div className="col-lg-6 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title=""></i></label>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot"></i></label>
                           </div>
                           <div className="col-lg-6 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title=""></i></label>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth"></i></label>
                           </div>
                           <div className="col-lg-12 col-sm-12 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {this.state.bandover} <i className="bi bi-question-circle-fill" title=""></i></label>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {this.state.bandover} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish"></i></label>
                           </div>
 
 
@@ -509,30 +510,8 @@ export default class ProviderPanel extends Component {
 
                         <div className="row">
 
-
                           <div className="col-lg-12 col-sm-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title=""></i>
-                            <div className="dropdown-menu" aria-labelledby="menu">
-                              <button className="dropdown-item" onClick={() => this.setFreez("no")}>Off</button>
-                              <button className="dropdown-item" onClick={() => this.setFreez("bandwidth")}>Bandwidth</button>
-                              <button className="dropdown-item" onClick={() => this.setFreez("energy")}>Energy</button>
-                            </div>
-                          </div>
-
-
-
-                          <div className="col-lg-12 col-sm-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title=""></i>
-                            <div className="dropdown-menu" aria-labelledby="menu2">
-                              <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(7)}>7 days</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(14)}>14 days</button>
-                            </div>
-                          </div>
-
-                          <div className="col-lg-12 col-sm-12">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour}</button> {"  "} <i className="bi bi-question-circle-fill" title=""></i>
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments"></i>
                             <div className="dropdown-menu" aria-labelledby="menu1">
                               <button className="dropdown-item" onClick={() => this.setPaymentHour("130")}>1:30 GMT</button>
                               <button className="dropdown-item" onClick={() => this.setPaymentHour("930")}>9:30 GMT</button>
@@ -540,6 +519,24 @@ export default class ProviderPanel extends Component {
                             </div>
                           </div>
 
+                          <div className="col-lg-12 col-sm-12 mb-2">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfronzen)"></i>
+                            <div className="dropdown-menu" aria-labelledby="menu">
+                              <button className="dropdown-item" onClick={() => this.setFreez("no")}>Off</button>
+                              <button className="dropdown-item" onClick={() => this.setFreez("bandwidth")}>Bandwidth</button>
+                              <button className="dropdown-item" onClick={() => this.setFreez("energy")}>Energy</button>
+                            </div>
+                          </div>
+
+                          <div className="col-lg-12 col-sm-12">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="establish the max. duration of the orders you want to accept"></i>
+                            <div className="dropdown-menu" aria-labelledby="menu2">
+                              <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(7)}>7 days</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(14)}>14 days</button>
+                            </div>
+                          </div>
 
                         </div>
                       </div>
@@ -572,20 +569,17 @@ export default class ProviderPanel extends Component {
                       <h4 className="card-title">Ongoing deals ({this.state.ongoins.length})</h4>
                     </div>
                     <div className="card-body">
-                      <div className="table-responsive recentOrderTable">
-                        <table className="table verticle-middle table-responsive-md">
+                      <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
+                        <table className="table verticle-middle table-responsive-md " >
                           <thead>
                             <tr>
                               <th scope="col">Resource / Period</th>
                               <th scope="col">Buyer / Time</th>
                               <th scope="col">Payout</th>
-                              <th scope="col"></th>
                             </tr>
                           </thead>
                           <tbody>
                             {this.state.ongoins}
-
-
 
                           </tbody>
                         </table>
@@ -597,7 +591,7 @@ export default class ProviderPanel extends Component {
                 <div className="col-12">
                   <div className="card">
                     <div className="card-header">
-                      <h4 className="card-title">Others delegations </h4>
+                      <h4 className="card-title">Other delegations </h4>
                     </div>
                     <div className="card-body">
                       <div className="table-responsive recentOrderTable">
@@ -650,12 +644,12 @@ export default class ProviderPanel extends Component {
           <div className="row">
             <div className="col-12">
               <div className="row">
-                <div className="col-8">
+                <div className="col-12">
                   <div className="card exchange">
                     <div className="card-header d-block">
                       <h2 className="heading">Status</h2>
 
-                      <p>you are not a supplier, if you want to become one read the following <a href="https://brutus.finance/brutusprovider.html">article</a></p>
+                      <p>you are not a supplier, if you want to become one read the following <a className="btn btn-primary" href="https://brutus.finance/brutusprovider.html">article</a></p>
 
 
                     </div>
