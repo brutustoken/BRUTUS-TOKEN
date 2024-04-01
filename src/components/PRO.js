@@ -413,6 +413,8 @@ export default class ProviderPanel extends Component {
 
       const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(this.props.accountAddress)
 
+      //console.log(delegationInfo)
+
       let delegatedExternal = []
 
       if (delegationInfo.toAccounts) {
@@ -423,30 +425,31 @@ export default class ProviderPanel extends Component {
           if (listWallets.indexOf(delegationInfo.toAccounts[index]) === -1) {
             let info = await this.props.tronWeb.trx.getDelegatedResourceV2(this.props.accountAddress, delegationInfo.toAccounts[index])
 
-            console.log(info)
-
             for (let index2 = 0; index2 < info.delegatedResource.length; index2++) {
 
-              let resource
-              let trx
-              let sun
+              let order = {
+                wallet: delegationInfo.toAccounts[index],
+                resource: "ENERGY",
+                trx: 0,
+                sun: "0"
+              }
+
               if (info.delegatedResource[index2].frozen_balance_for_energy) {
-                resource = "ENERGY"
-                trx = info.delegatedResource[index2].frozen_balance_for_energy / 10 ** 6
-                sun = info.delegatedResource[index2].frozen_balance_for_energy
+
+                order.trx = info.delegatedResource[index2].frozen_balance_for_energy / 10 ** 6
+                order.sun = info.delegatedResource[index2].frozen_balance_for_energy
               } else {
-                resource = "BANDWIDTH"
+                order.trx = info.delegatedResource[index2].frozen_balance_for_bandwidth / 10 ** 6
+                order.sun = info.delegatedResource[index2].frozen_balance_for_bandwidth
+
+                order.resource = "BANDWIDTH"
               }
 
 
-              delegatedExternal.push({ wallet: delegationInfo.toAccounts[index], resource, trx, sun })
+              delegatedExternal.push(order)
 
 
             }
-
-
-
-
 
           }
 
