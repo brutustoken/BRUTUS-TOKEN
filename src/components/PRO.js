@@ -39,6 +39,7 @@ export default class ProviderPanel extends Component {
     this.setPaymentHour = this.setPaymentHour.bind(this);
     this.setMaxDays = this.setMaxDays.bind(this);
     this.setFreez = this.setFreez.bind(this);
+    this.setWalletSr = this.setWalletSr.bind(this);
 
   }
 
@@ -285,6 +286,27 @@ export default class ProviderPanel extends Component {
 
   }
 
+  async setWalletSr(wallet) {
+
+    try {
+      let body = { wallet: this.props.accountAddress, sr: wallet }
+      await fetch(cons.apiProviders + "set/sr", {
+        method: "POST",
+        headers: {
+          'token-api': process.env.REACT_APP_TOKEN,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
+
+
+    } catch (error) {
+      console.log(error.toString())
+    }
+
+    this.estado()
+  }
+
   async estado() {
 
     var url = cons.apiProviders;
@@ -350,42 +372,31 @@ export default class ProviderPanel extends Component {
 
       }
 
-      console.log(info)
+      let listWallets = []
 
-      //console.log(ongoins)
 
       const ordenesActivas = ongoins.map((item, index) => {
+
+        listWallets.push(item.customer)
 
         let lock = "unlock"
 
         //console.log(((item.order_type).toLowerCase()).includes("day"))
         //console.log((item.order_type).toLowerCase())
 
-
-        if (((item.order_type).toLowerCase()).includes("day")) {
-
-          if (((item.order_type).toLowerCase()).includes("wol")) {
-            lock = "unlock"
-          } else {
-            lock = "lock"
-          }
-
-          item.order_type = "DAY"
-
-
+        if (((item.order_type).toLowerCase()).includes("wol")) {
+          lock = "unlock"
         } else {
-
-          if (((item.order_type).toLowerCase()).includes("wol")) {
-            lock = "unlock"
-          } else {
-            lock = "lock"
-          }
-
-          item.order_type = "HOUR"
-
-
+          lock = "lock"
         }
 
+        if (((item.order_type).toLowerCase()).includes("hour")) {
+          item.order_type = "HOUR"
+
+        } else {
+          item.order_type = "DAY"
+
+        }
 
 
         return (
@@ -400,27 +411,95 @@ export default class ProviderPanel extends Component {
       });
 
 
-      const ordenesNoregistradas = ongoins.map((item, index) => (
-        <tr key={index}>
-          <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type}</td>
-          <td>{item.customer}<br />
-            {item.confirm}{" -> "}{item.unfreeze}
-          </td>
-          <td>{item.payout} TRX</td>
-          <td className="text-end">
-            <div className="dropdown custom-dropdown mb-0">
-              <div className="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown">
-                <i className="bi bi-three-dots-vertical"></i>
-              </div>
-              <div className="dropdown-menu dropdown-menu-end">
-                <button className="dropdown-item text-info" >View on TronScan</button>
+      const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(this.props.accountAddress)
 
-                <button className="dropdown-item text-danger" >Reclaim Resources</button>
+      let delegatedExternal = []
+
+      if (delegationInfo.toAccounts) {
+
+        for (let index = 0; index < delegationInfo.toAccounts.length; index++) {
+          delegationInfo.toAccounts[index] = this.props.tronWeb.address.fromHex(delegationInfo.toAccounts[index])
+
+          if (listWallets.indexOf(delegationInfo.toAccounts[index]) === -1) {
+            let info = await this.props.tronWeb.trx.getDelegatedResourceV2(this.props.accountAddress, delegationInfo.toAccounts[index])
+
+            console.log(info)
+
+            for (let index2 = 0; index2 < info.delegatedResource.length; index2++) {
+
+              let resource
+              let trx
+              let sun
+              if (info.delegatedResource[index2].frozen_balance_for_energy) {
+                resource = "ENERGY"
+                trx = info.delegatedResource[index2].frozen_balance_for_energy / 10 ** 6
+                sun = info.delegatedResource[index2].frozen_balance_for_energy
+              } else {
+                resource = "BANDWIDTH"
+              }
+
+
+              delegatedExternal.push({ wallet: delegationInfo.toAccounts[index], resource, trx, sun })
+
+
+            }
+
+
+
+
+
+          }
+
+        }
+
+      }
+
+      const ordenesNoregistradas = delegatedExternal.map((item, index) => {
+
+
+        let amount = item.sun;
+        let receiverAddress = item.wallet
+        let resource = item.resource
+        let ownerAddress = this.props.accountAddress
+
+        return (
+          <tr key={index}>
+            <td>{item.resource} </td>
+            <td>{(item.trx).toLocaleString('en-US')} </td>
+
+            <td>{item.wallet}
+            </td>
+            <td className="text-end">
+              <div className="dropdown custom-dropdown mb-0">
+                <div className="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown">
+                  <i className="bi bi-three-dots-vertical"></i>
+                </div>
+                <div className="dropdown-menu dropdown-menu-end">
+                  <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" >View on TronScan</a>
+
+                  <button className="dropdown-item text-danger" onClick={async () => {
+                    let transaction = await this.props.tronWeb.transactionBuilder.undelegateResource(amount, receiverAddress, resource, ownerAddress);
+                    transaction = await this.props.tronWeb.trx.sign(transaction)
+                    transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+
+                    this.setState({
+                      ModalTitulo: "Result: " + transaction.result,
+                      ModalBody: <a href={"https://tronscan.org/#/transaction/" + transaction.txid}>see result in TronScan</a>
+                    })
+
+                    window.$("#alert").modal("show");
+
+                  }}>Reclaim Resource</button>
+                </div>
               </div>
-            </div>
-          </td>
-        </tr>
-      ));
+            </td>
+          </tr>
+        )
+
+
+
+      })
+
 
 
 
@@ -430,14 +509,17 @@ export default class ProviderPanel extends Component {
         naranja = "+" + naranja
       }
 
-      info.freez = (info.freez).toLowerCase()
+      if (info.freez) {
+        info.freez = (info.freez).toLowerCase()
+
+      }
 
       if (info.freez === "no") {
         info.freez = "Off"
 
       }
 
-      console.log(info)
+      //console.log(info)
 
       this.setState({
         provider: true,
@@ -458,7 +540,7 @@ export default class ProviderPanel extends Component {
         ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
         ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100).dp(3).toString(10),
         cNaranja: naranja,
-        voteSR: "Default vote SR",
+        voteSR: info.srVote,
 
       })
     } else {
@@ -503,7 +585,9 @@ export default class ProviderPanel extends Component {
 
           campoFreeze = (<>
             {campoFreeze}
-            <button className="btn btn-outline-secondary" type="button">Update Wallet to Vote</button>
+            <button className="btn btn-outline-secondary" type="button" onClick={() => {
+              this.setWalletSr(this.state.newVoteSR)
+            }}>Update Wallet to Vote</button>
 
           </>)
 
@@ -590,11 +674,11 @@ export default class ProviderPanel extends Component {
                           </div>
 
                           <div className="col-lg-6 col-sm-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfronzen)" onClick={() => {
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
-                                ModalBody: "let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfronzen)"
+                                ModalBody: "Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)"
                               })
 
                               window.$("#alert").modal("show");
@@ -611,11 +695,11 @@ export default class ProviderPanel extends Component {
                           </div>
 
                           <div className="col-lg-12 col-sm-12">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="establish the max. duration of the orders you want to accept" onClick={() => {
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="Establish the max. duration of the orders you want to accept" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
-                                ModalBody: "establish the max. duration of the orders you want to accept"
+                                ModalBody: "Establish the max. duration of the orders you want to accept"
                               })
 
                               window.$("#alert").modal("show");
@@ -682,13 +766,13 @@ export default class ProviderPanel extends Component {
                       <h4 className="card-title">Other delegations </h4>
                     </div>
                     <div className="card-body">
-                      <div className="table-responsive recentOrderTable">
+                      <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
                         <table className="table verticle-middle table-responsive-md">
                           <thead>
                             <tr>
-                              <th scope="col">Resource / Period</th>
-                              <th scope="col">Buyer / Time</th>
-                              <th scope="col">Payout</th>
+                              <th scope="col">Resource</th>
+                              <th scope="col">TRX</th>
+                              <th scope="col">Wallet</th>
                               <th scope="col"></th>
                             </tr>
                           </thead>

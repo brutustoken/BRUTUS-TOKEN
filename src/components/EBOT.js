@@ -207,6 +207,11 @@ export default class EnergyRental extends Component {
 
   async calcularRecurso(amount, time) {
 
+    let transaction = await this.props.tronWeb.transactionBuilder.sendTrx("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA", "1000", this.props.accountAddress);
+    transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(transaction, 180);
+    transaction = await this.props.tronWeb.trx.sign(transaction)
+    console.log(transaction)
+
     this.recursos();
 
     var ok = true;
@@ -379,6 +384,12 @@ export default class EnergyRental extends Component {
     })
 
     window.$("#mensaje-ebot").modal("show");
+
+    let transaction = await this.props.tronWeb.transactionBuilder.sendTrx("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA", "1000", this.props.accountAddress);
+    transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(transaction, 180);
+    transaction = await this.props.tronWeb.trx.sign(transaction)
+    console.log(transaction)
+    //transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
 
     var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(this.state.precio))
       .catch((e) => {

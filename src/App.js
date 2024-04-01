@@ -17,8 +17,6 @@ import LOTERIA from "./components/BRLT.js";
 import EBOT from "./components/EBOT.js";
 import PRO from "./components/PRO.js";
 
-
-
 import i18next from 'i18next';
 import lng from "./locales/langs.js"
 
@@ -27,7 +25,7 @@ let lenguaje = navigator.language || navigator.userLanguage
 i18next.init({
   fallbackLng: 'en',
   lng: lenguaje, // if you're using a language detector, do not define the lng option
-  debug: true,
+  debug: false,
   resources: lng
 
 });
@@ -101,13 +99,14 @@ class App extends Component {
   async componentDidMount() {
 
     this.intervalo(3);
+    await this.conectar();
 
     window.addEventListener('message', (e) => {
       if (e.data.message && e.data.message.action) {
         //console.log(e.data.message.action)
       }
 
-      if (e.data.message && e.data.message.action === "accountsChanged") {
+      if (e.data.message && (e.data.message.action === "accountsChanged" || e.data.message.action === "setAccount")) {
         if (e.data.message.data.address) {
           this.conectar();
         }
@@ -122,8 +121,12 @@ class App extends Component {
   }
 
   intervalo(s) {
+    if (this.state.interval !== null) {
+      clearInterval(this.state.interval)
+      this.setState({ interval: null })
+    }
+
     var interval = setInterval(() => {
-      //console.log("intervalo a la espera...")
 
       let lgSelector = "en";
 
@@ -135,17 +138,15 @@ class App extends Component {
 
       let lenguaje = i18next.resolvedLanguage
 
-
       if (lenguaje !== lgSelector) {
         i18next.changeLanguage(lgSelector);
       }
 
-
       if (!this.state.tronlink.loggedIn || !window.tronLink.ready) {
-
         console.log("conectando...")
         this.conectar();
       }
+
     }, s * 1000);
 
     this.setState({ interval })
