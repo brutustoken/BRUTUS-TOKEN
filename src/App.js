@@ -177,9 +177,16 @@ class App extends Component {
         const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
 
         if (res.code === 200) {
-          wallet = window.tronLink.tronWeb.defaultAddress.base58
-          tronlink['loggedIn'] = true;
-          web3Contracts = window.tronLink.tronWeb;
+          try {
+
+            wallet = window.tronLink.tronWeb.defaultAddress.base58
+            tronlink['loggedIn'] = true;
+            web3Contracts = window.tronLink.tronWeb;
+
+          } catch (error) {
+
+          }
+
 
 
         } else {
@@ -338,7 +345,7 @@ class App extends Component {
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
       case "pro":
-        return <PRO accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
+        return <PRO accountAddress={"TAfuAtWRU1qXVX9U5CGiLHDNwtdvxjzFYf"} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
       case "brlt":
         return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />

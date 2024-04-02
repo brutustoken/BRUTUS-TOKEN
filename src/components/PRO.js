@@ -31,6 +31,8 @@ export default class ProviderPanel extends Component {
       paymentPoints: 0,
       voteSR: "",
       newVoteSR: "",
+      proEnergyTotal: 0,
+      proEnergy: 0
 
     };
 
@@ -325,8 +327,11 @@ export default class ProviderPanel extends Component {
     }
 
 
-
     if (provider.result) {
+
+      this.setState({
+        provider: true,
+      })
 
       let info = {}
 
@@ -344,6 +349,64 @@ export default class ProviderPanel extends Component {
       } catch (error) {
         console.log(error.toString())
       }
+
+
+
+      let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
+
+      if (naranja >= 0) {
+        naranja = "+" + naranja
+      }
+
+      if (info.freez) {
+        info.freez = (info.freez).toLowerCase()
+
+      }
+
+      if (info.freez === "no") {
+        info.freez = "Off"
+
+      }
+
+
+      var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
+
+      var providerEnergy = 0
+      var providerEnergyTotal = 0
+
+
+      if (cuenta.EnergyLimit) {
+        providerEnergy = cuenta.EnergyLimit
+        providerEnergyTotal = cuenta.EnergyLimit
+      }
+
+      if (cuenta.EnergyUsed) {
+        providerEnergy -= cuenta.EnergyUsed
+      }
+
+      //console.log(info)
+
+      this.setState({
+        rent: info.activo,
+        elegible: info.elegible,
+        sellband: info.sellband,
+        bandover: info.bandover,
+        burn: info.burn,
+        autofreeze: info.freez,
+        payhour: info.payhour,
+        payment: info.payment,
+        paymentPoints: info.payout_ratio * 100,
+        maxdays: info.maxdays,
+        payhere: info.payhere,
+        payoutRatio: info.payout_ratio,
+        ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
+        ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100).dp(3).toString(10),
+        cNaranja: naranja,
+        voteSR: info.srVote,
+        proEnergy: providerEnergy,
+        proEnergyTotal: providerEnergyTotal,
+
+      })
 
       let ongoins = []
 
@@ -425,22 +488,34 @@ export default class ProviderPanel extends Component {
           if (listWallets.indexOf(delegationInfo.toAccounts[index]) === -1) {
             let info = await this.props.tronWeb.trx.getDelegatedResourceV2(this.props.accountAddress, delegationInfo.toAccounts[index])
 
+            //console.log(info.delegatedResource)
+
+
             for (let index2 = 0; index2 < info.delegatedResource.length; index2++) {
 
               let order = {
                 wallet: delegationInfo.toAccounts[index],
                 resource: "ENERGY",
                 trx: 0,
-                sun: "0"
+                sun: "0",
+                expire: "--/--/--"
               }
 
               if (info.delegatedResource[index2].frozen_balance_for_energy) {
 
                 order.trx = info.delegatedResource[index2].frozen_balance_for_energy / 10 ** 6
                 order.sun = info.delegatedResource[index2].frozen_balance_for_energy
+                if (info.delegatedResource[index2].expire_time_for_energy) {
+                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_energy).toString()
+
+                }
               } else {
                 order.trx = info.delegatedResource[index2].frozen_balance_for_bandwidth / 10 ** 6
                 order.sun = info.delegatedResource[index2].frozen_balance_for_bandwidth
+                if (info.delegatedResource[index2].expire_time_for_bandwidth) {
+                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_bandwidth).toString()
+                }
+
 
                 order.resource = "BANDWIDTH"
               }
@@ -467,11 +542,6 @@ export default class ProviderPanel extends Component {
 
         return (
           <tr key={index}>
-            <td>{item.resource} </td>
-            <td>{(item.trx).toLocaleString('en-US')} </td>
-
-            <td>{item.wallet}
-            </td>
             <td className="text-end">
               <div className="dropdown custom-dropdown mb-0">
                 <div className="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown">
@@ -496,6 +566,13 @@ export default class ProviderPanel extends Component {
                 </div>
               </div>
             </td>
+            <td>{item.resource} </td>
+            <td>{(item.trx).toLocaleString('en-US')} </td>
+
+            <td>{item.wallet}<br />
+              {item.expire}
+            </td>
+
           </tr>
         )
 
@@ -506,45 +583,9 @@ export default class ProviderPanel extends Component {
 
 
 
-      let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
-
-      if (naranja >= 0) {
-        naranja = "+" + naranja
-      }
-
-      if (info.freez) {
-        info.freez = (info.freez).toLowerCase()
-
-      }
-
-      if (info.freez === "no") {
-        info.freez = "Off"
-
-      }
-
-      //console.log(info)
-
       this.setState({
-        provider: true,
-        rent: info.activo,
-        elegible: info.elegible,
-        sellband: info.sellband,
-        bandover: info.bandover,
-        burn: info.burn,
-        autofreeze: info.freez,
-        payhour: info.payhour,
-        payment: info.payment,
-        paymentPoints: info.payout_ratio * 100,
-        maxdays: info.maxdays,
         ongoins: ordenesActivas,
         noregist: ordenesNoregistradas,
-        payhere: info.payhere,
-        payoutRatio: info.payout_ratio,
-        ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
-        ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100).dp(3).toString(10),
-        cNaranja: naranja,
-        voteSR: info.srVote,
-
       })
     } else {
       this.setState({
@@ -615,8 +656,25 @@ export default class ProviderPanel extends Component {
                     <div className="card-header d-block">
                       <h2 className="heading">Status {estatus} <button type="button" className="btn btn-outline-warning" style={{ cursor: "default" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.cNaranja} </button> <button className="btn btn-outline-secondary" style={{ cursor: "default" }}> <span role="img" aria-label="$">💲</span> Payout Rate %{this.state.paymentPoints} </button></h2>
 
+
                       <div className="container-fluid">
                         <div className="row">
+                          <div className="col-lg-6 col-sm-12 mb-2">
+                            Energy ({(this.state.proEnergy).toLocaleString("en-us")}/{(this.state.proEnergyTotal).toLocaleString("en-us")})
+                            <div className="progress" style={{ margin: "5px" }}>
+                              <div className="progress-bar" role="progressbar" style={{ "width": ((this.state.proEnergy / this.state.proEnergyTotal) * 100) + "%" }}
+                                aria-valuenow={(this.state.proEnergy / this.state.proEnergyTotal) * 100} aria-valuemin="0" aria-valuemax="100">
+                              </div>
+                            </div>
+                          </div>
+                          <div className="col-lg-6 col-sm-12 mb-2">
+                            Bandwidth (10000/100000)
+                            <div className="progress" style={{ margin: "5px" }}>
+                              <div className="progress-bar" role="progressbar" style={{ "width": 60 + "%" }}
+                                aria-valuenow={60} aria-valuemin="0" aria-valuemax="100">
+                              </div>
+                            </div>
+                          </div>
                           <div className="col-lg-6 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} />
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
@@ -773,10 +831,11 @@ export default class ProviderPanel extends Component {
                         <table className="table verticle-middle table-responsive-md">
                           <thead>
                             <tr>
+                              <th scope="col"></th>
+
                               <th scope="col">Resource</th>
                               <th scope="col">TRX</th>
-                              <th scope="col">Wallet</th>
-                              <th scope="col"></th>
+                              <th scope="col">Wallet / Expire Time</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -794,7 +853,7 @@ export default class ProviderPanel extends Component {
               </div>
             </div>
           </div>
-        </div>
+        </div >
 
         <div className="modal fade" id="alert">
           <div className="modal-dialog" role="document">
