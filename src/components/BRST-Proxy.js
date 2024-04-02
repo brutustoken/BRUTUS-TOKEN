@@ -663,7 +663,7 @@ export default class Staking extends Component {
 
   handleChangeBRST(event) {
     let dato = event.target.value;
-    dato = parseFloat(dato.replace(",", "."))
+    dato = parseFloat(("" + dato).replace(",", "."))
     let oper = dato * this.state.precioBrst;
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
@@ -688,13 +688,13 @@ export default class Staking extends Component {
 
   llenarBRST() {
     document.getElementById('amountBRST').value = this.state.balanceBRST;
-    this.handleChangeBRST({ event: { target: { value: this.state.balanceBRST } } })
+    this.handleChangeBRST({ target: { value: this.state.balanceBRST } })
 
   }
 
   llenarTRX() {
     document.getElementById('amountTRX').value = this.state.balanceTRX;
-    this.handleChangeBRST({ event: { target: { value: this.state.balanceTRX } } })
+    this.handleChangeTRX({ target: { value: this.state.balanceTRX } })
 
   }
 
@@ -880,6 +880,9 @@ export default class Staking extends Component {
     }
 
 
+
+
+
     if (eenergy > this.state.contractEnergy && this.state.energyOn) {
 
       var requerido = eenergy - this.state.contractEnergy
@@ -933,7 +936,27 @@ export default class Staking extends Component {
     if (balance >= amount) {
       if (amount >= minCompra) {
 
-        await this.props.contrato.BRST_TRX_Proxy.staking().send({ callValue: amount })
+        let inputs = [
+          //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+          //{type: 'uint256', value: '1000000'}
+        ]
+
+        let funcion = "staking()"
+        const options = { callValue: amount }
+        let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+        let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+        transaction = await this.props.tronWeb.trx.sign(transaction)
+          .catch((e) => {
+
+            this.setState({
+              ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
+              ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+            })
+
+            window.$("#mensaje-brst").modal("show");
+          })
+        console.log(transaction)
+        transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
           .then(() => {
             this.setState({
               ModalTitulo: this.props.i18n.t("brst.alert.compra", { returnObjects: true })[0],
@@ -945,16 +968,33 @@ export default class Staking extends Component {
 
             window.$("#mensaje-brst").modal("show");
           })
-          .catch(() => {
 
+
+        /*
+        await this.props.contrato.BRST_TRX_Proxy.staking().send({ callValue: amount })
+          .then(() => {
+            this.setState({
+              ModalTitulo: this.props.i18n.t("brst.alert.compra", { returnObjects: true })[0],
+              ModalBody: <>{this.props.i18n.t("brst.alert.compra", { returnObjects: true })[1]}
+                <br /><br />
+                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
+              </>
+            })
+  
+            window.$("#mensaje-brst").modal("show");
+          })
+          .catch(() => {
+  
             this.setState({
               ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
               ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1]
             })
-
+  
             window.$("#mensaje-brst").modal("show");
-
+  
           })
+  
+          */
 
         document.getElementById("amountTRX").value = "";
 
@@ -1638,11 +1678,11 @@ export default class Staking extends Component {
                             </tr>
                           </thead>
                           <tbody>
-                            <tr style={{ cursor: "pointer" }} onClick={() => { this.handleChangeBRUT({ target: { value: this.state.balanceBRST } }) }}>
+                            <tr style={{ cursor: "pointer" }} onClick={() => { this.llenarBRST() }}>
                               <td className="text-left">BRST</td>
                               <td>{this.state.balanceBRST}</td>
                             </tr>
-                            <tr style={{ cursor: "pointer" }} onClick={() => { this.handleChangeUSDT({ target: { value: this.state.balanceTRX } }) }}>
+                            <tr style={{ cursor: "pointer" }} onClick={() => { this.llenarTRX() }}>
                               <td className="text-left">TRX</td>
                               <td>{this.state.balanceTRX}</td>
                             </tr>
