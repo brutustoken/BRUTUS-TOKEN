@@ -32,7 +32,9 @@ export default class ProviderPanel extends Component {
       voteSR: "",
       newVoteSR: "",
       proEnergyTotal: 0,
-      proEnergy: 0
+      proEnergy: 0,
+      proBand: 0,
+      proBandTotal: 0,
 
     };
 
@@ -371,8 +373,12 @@ export default class ProviderPanel extends Component {
 
       var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
 
+
       var providerEnergy = 0
       var providerEnergyTotal = 0
+
+      var providerBand = 0
+      var providerBandTotal = 0
 
 
       if (cuenta.EnergyLimit) {
@@ -382,6 +388,25 @@ export default class ProviderPanel extends Component {
 
       if (cuenta.EnergyUsed) {
         providerEnergy -= cuenta.EnergyUsed
+      }
+
+      if (cuenta.freeNetLimit) {
+        providerBandTotal = cuenta.freeNetLimit
+      }
+
+      if (cuenta.NetLimit) {
+        providerBandTotal += cuenta.NetLimit
+      }
+
+      providerBand = providerBandTotal
+
+      if (cuenta.freeNetUsed) {
+        providerBand -= cuenta.freeNetUsed
+
+      }
+
+      if (cuenta.NetUsed) {
+        providerBand -= cuenta.NetUsed
       }
 
       //console.log(info)
@@ -405,6 +430,9 @@ export default class ProviderPanel extends Component {
         voteSR: info.srVote,
         proEnergy: providerEnergy,
         proEnergyTotal: providerEnergyTotal,
+
+        proBand: providerBand,
+        proBandTotal: providerBandTotal,
 
       })
 
@@ -668,10 +696,10 @@ export default class ProviderPanel extends Component {
                             </div>
                           </div>
                           <div className="col-lg-6 col-sm-12 mb-2">
-                            Bandwidth (10000/100000)
+                            Bandwidth ({(this.state.proBand).toLocaleString("en-us")}/{(this.state.proBandTotal).toLocaleString("en-us")})
                             <div className="progress" style={{ margin: "5px" }}>
-                              <div className="progress-bar" role="progressbar" style={{ "width": 60 + "%" }}
-                                aria-valuenow={60} aria-valuemin="0" aria-valuemax="100">
+                              <div className="progress-bar" role="progressbar" style={{ "width": ((this.state.proBand / this.state.proBandTotal) * 100) + "%" }}
+                                aria-valuenow={(this.state.proBand / this.state.proBandTotal) * 100} aria-valuemin="0" aria-valuemax="100">
                               </div>
                             </div>
                           </div>
