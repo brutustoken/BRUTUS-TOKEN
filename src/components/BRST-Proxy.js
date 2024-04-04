@@ -1198,10 +1198,74 @@ export default class Staking extends Component {
           })
 
           window.$("#mensaje-brst").modal("show");
-          await this.props.contrato.BRST_TRX_Proxy.instaRetiro(amount).send();
+
+          let inputs = [
+            //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+            { type: 'uint256', value: amount }
+          ]
+
+          let funcion = "instaRetiro(uint256)"
+          const options = {}
+          let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+          let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+          transaction = await this.props.tronWeb.trx.sign(transaction)
+            .catch((e) => {
+
+              this.setState({
+                ModalTitulo: "Error",
+                ModalBody: e.toString()
+              })
+
+              window.$("#mensaje-brst").modal("show");
+            })
+          transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+            .then(() => {
+              this.setState({
+                ModalTitulo: "Result",
+                ModalBody: <>Insta retiro Done {transaction.txid}
+                  <br /><br />
+                  <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
+                </>
+              })
+
+              window.$("#mensaje-brst").modal("show");
+            })
+
+          //await this.props.contrato.BRST_TRX_Proxy.instaRetiro(amount).send();
 
         } else {
-          await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
+          let inputs = [
+            //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+            { type: 'uint256', value: amount }
+          ]
+
+          let funcion = "esperaRetiro(uint256)"
+          const options = {}
+          let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+          let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+          transaction = await this.props.tronWeb.trx.sign(transaction)
+            .catch((e) => {
+
+              this.setState({
+                ModalTitulo: "Error",
+                ModalBody: e.toString()
+              })
+
+              window.$("#mensaje-brst").modal("show");
+            })
+          transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+            .then(() => {
+              this.setState({
+                ModalTitulo: "Result",
+                ModalBody: <>Normal retiro Done {transaction.txid}
+                  <br /><br />
+                  <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
+                </>
+              })
+
+              window.$("#mensaje-brst").modal("show");
+            })
+          //await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
 
           window.$("#mensaje-brst").modal("hide");
           document.getElementById("request-brst").scrollIntoView();
