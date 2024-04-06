@@ -682,7 +682,7 @@ export default class ProviderPanel extends Component {
                 <div className="col-lg-8 col-sm-12">
                   <div className="card exchange">
                     <div className="card-header d-block">
-                      <h2 className="heading">Status {estatus} <button type="button" className="btn btn-outline-warning" style={{ cursor: "default" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.cNaranja} </button> <button className="btn btn-outline-secondary" style={{ cursor: "default" }}> <span role="img" aria-label="$">💲</span> Payout Rate %{this.state.paymentPoints} </button></h2>
+                      <h2 className="heading">Status {estatus} <button type="button" className="btn btn-outline-warning" style={{ cursor: "default" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} <img height="15px" src="images/energy.png" alt="" /></button> <button className="btn btn-outline-secondary" style={{ cursor: "default" }}> <span role="img" aria-label="$">💲</span> Payout Rate %{this.state.paymentPoints} </button></h2>
 
 
                       <div className="container-fluid">
