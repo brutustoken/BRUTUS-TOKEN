@@ -84,17 +84,17 @@ export default class nfts extends Component {
 
   handleChange(e) {
     let value = parseInt(e.target.value);
-    if(isNaN(value) ||value < 1)value=1;
-    this.setState({ 
-      comprarBRLT: value ,
+    if (isNaN(value) || value < 1) value = 1;
+    this.setState({
+      comprarBRLT: value,
       total: value * this.state.precioUnidad
     });
   }
 
-  handleChangeSelect(e){
+  handleChangeSelect(e) {
     let value = e.target.value;
-    this.setState({ 
-      moneda: value 
+    this.setState({
+      moneda: value
     });
   }
 
@@ -122,7 +122,7 @@ export default class nfts extends Component {
 
     var cantidad = 0
     var price = 0
-    if(this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"){
+    if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
       cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
       price = (await this.props.contrato.loteria.allValueNFTs(this.props.accountAddress).call())[0]
       price = new BigNumber(price._hex).shiftedBy(-6).toNumber()
@@ -170,9 +170,9 @@ export default class nfts extends Component {
 
   }
 
-  async preCompra(){
+  async preCompra() {
 
-    if(this.state.moneda !== "trx"){
+    if (this.state.moneda !== "trx") {
       await this.sunSwap(this.state.moneda);
     }
 
@@ -184,14 +184,32 @@ export default class nfts extends Component {
 
   async compra() {
 
-    
-    var feelimit = 200 * 10**6;
 
-    if(this.state.comprarBRLT > 1)feelimit = 1000 * 10**6;
+    var feelimit = 200 * 10 ** 6;
 
-    if(this.state.comprarBRLT > 20)feelimit = 2000 * 10**6;
+    if (this.state.comprarBRLT > 1) feelimit = 1000 * 10 ** 6;
+    if (this.state.comprarBRLT > 20) feelimit = 2000 * 10 ** 6;
 
-    this.props.contrato.loteria.buyLoteria(this.props.accountAddress, this.state.comprarBRLT).send({ callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10), feeLimit: feelimit })
+    let inputs = [
+      { type: 'address', value: this.props.tronWeb.address.toHex(this.props.accountAddress) },
+      { type: 'uint256', value: this.state.comprarBRLT }
+    ]
+
+    let funcion = "buyLoteria(address,uint256)"
+    const options = { callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10), feelimit: feelimit }
+    let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.loteria.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+    transaction = await this.props.tronWeb.trx.sign(transaction)
+      .catch((e) => {
+
+        this.setState({
+          ModalTitulo: "Error",
+          ModalBody: e.toString()
+        })
+
+        window.$("#alerta").modal("show");
+      })
+    transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
       .then(() => {
         this.setState({
           modalTitulo: "Purchased lottery ticket",
@@ -199,16 +217,31 @@ export default class nfts extends Component {
         })
         window.$("#alerta").modal("show");
         this.estado();
-
-      })
-      .catch(() => {
-        this.setState({
-          modalTitulo: "Failed transaction",
-          modalBody: "Please try again later remember to check that you have enough resources"
-        })
-        window.$("#alerta").modal("show");
       })
 
+    console.log(transaction.txid)
+
+    //await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
+
+    /*
+        this.props.contrato.loteria.buyLoteria(this.props.accountAddress, this.state.comprarBRLT).send({ callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10), feeLimit: feelimit })
+          .then(() => {
+            this.setState({
+              modalTitulo: "Purchased lottery ticket",
+              modalBody: "Thank you for collaborating with the activation of the giveaway"
+            })
+            window.$("#alerta").modal("show");
+            this.estado();
+    
+          })
+          .catch(() => {
+            this.setState({
+              modalTitulo: "Failed transaction",
+              modalBody: "Please try again later remember to check that you have enough resources"
+            })
+            window.$("#alerta").modal("show");
+          })
+    */
 
     this.estado();
   }
@@ -268,7 +301,7 @@ export default class nfts extends Component {
 
 
   async sunSwap(coin) {
-  
+
     let token
     let swapContract
     let trxAddress
@@ -279,7 +312,7 @@ export default class nfts extends Component {
         token = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
         swapContract = "TFGDbUyP8xez44C76fin3bn3Ss6jugoUwJ"
         trxAddress = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR"
-        
+
         break;
 
       case "dct":
@@ -287,35 +320,35 @@ export default class nfts extends Component {
         token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
         swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
         trxAddress = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR"
-        
+
         break;
-    
+
       default:
         break;
     }
-    
-  // cantidades que costará
 
-  let contract_base_token = await this.props.tronWeb.contract().at(token)
-  let amount_base_token = await contract_base_token.balanceOf(swapContract).call()
-  amount_base_token= parseInt(amount_base_token._hex)
-  amount_base_token = new BigNumber(amount_base_token).shiftedBy(-1* (await contract_base_token.decimals().call()))
-  
-  let contract_result_token = await this.props.tronWeb.contract().at(trxAddress)
-  let amount_result_token = await contract_result_token.balanceOf(swapContract).call()
-  amount_result_token= parseInt(amount_result_token._hex)
-  amount_result_token = new BigNumber(amount_result_token).shiftedBy(-1* (await contract_result_token.decimals().call()))
+    // cantidades que costará
 
+    let contract_base_token = await this.props.tronWeb.contract().at(token)
+    let amount_base_token = await contract_base_token.balanceOf(swapContract).call()
+    amount_base_token = parseInt(amount_base_token._hex)
+    amount_base_token = new BigNumber(amount_base_token).shiftedBy(-1 * (await contract_base_token.decimals().call()))
 
-  let price = new BigNumber(amount_base_token).dividedBy(amount_result_token)
+    let contract_result_token = await this.props.tronWeb.contract().at(trxAddress)
+    let amount_result_token = await contract_result_token.balanceOf(swapContract).call()
+    amount_result_token = parseInt(amount_result_token._hex)
+    amount_result_token = new BigNumber(amount_result_token).shiftedBy(-1 * (await contract_result_token.decimals().call()))
 
 
-  price = price.times(this.state.comprarBRLT).times(this.state.precioUnidad)
-
-  console.log(price.toString(10))
+    let price = new BigNumber(amount_base_token).dividedBy(amount_result_token)
 
 
-  alert("will spend approximately ~ "+price.toString(10)+" ("+await contract_base_token.name().call()+") -> "+await contract_base_token.name().call())
+    price = price.times(this.state.comprarBRLT).times(this.state.precioUnidad)
+
+    console.log(price.toString(10))
+
+
+    alert("will spend approximately ~ " + price.toString(10) + " (" + await contract_base_token.name().call() + ") -> " + await contract_base_token.name().call())
 
 
     let contrato = await this.props.tronWeb.contract(abi_SUNSAWPv2, sunswapRouter)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
@@ -329,10 +362,10 @@ export default class nfts extends Component {
       await contract_base_token.approve(sunswapRouter, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
     }
 
-    var cantidadTrx = parseInt(this.state.comprarBRLT * this.state.precioUnidad * 10**6)
+    var cantidadTrx = parseInt(this.state.comprarBRLT * this.state.precioUnidad * 10 ** 6)
 
     var tokenMax = new BigNumber(this.state.balanceDCT).shiftedBy((this.state.decimalesDCT)).toString(10)
-    
+
     let intercam = await contrato["4a25d94a"](cantidadTrx, tokenMax, [this.props.tronWeb.address.toHex(token), this.props.tronWeb.address.toHex(trxAddress)], this.props.accountAddress, (parseInt(Date.now() / 1000)) + 100).send()
 
     console.log(intercam)
@@ -351,7 +384,7 @@ export default class nfts extends Component {
               <div className="card-body pb-2">
                 <div className="row">
                   <div className="col-xl-12">
-                    <img src="images/banner-brutuslottery.jpg" width="100%" alt="" style={{borderRadius: "4px"}}/>
+                    <img src="images/banner-brutuslottery.jpg" width="100%" alt="" style={{ borderRadius: "4px" }} />
                   </div>
                 </div>
                 <div className="row">
@@ -368,19 +401,19 @@ export default class nfts extends Component {
                         </div>
                       </div>
                       <div className="col-sm-2 my-3">
-                        <b>{this.state.total+" "}TRX</b>
+                        <b>{this.state.total + " "}TRX</b>
                       </div>
                       <div className="col-xl-3 my-3">
-                          <button className="btn btn-primary " onClick={() => this.preCompra()} >Purchase {this.state.comprarBRLT} BRLT wiht {"->"}</button>
+                        <button className="btn btn-primary " onClick={() => this.preCompra()} >Purchase {this.state.comprarBRLT} BRLT wiht {"->"}</button>
 
                       </div>
                       <div className="col-xl-2 my-3">
-                            <select style={{cursor: "pointer"}} className="default-select exchange-select form-control" name="state" onChange={this.handleChangeSelect} defaultValue={this.state.moneda}>
-                              <option value="trx">TRX</option>
-                              <option value="usdt">USDT</option>
-                              <option value="dct">DCT</option>
-                            </select>
-                          </div>
+                        <select style={{ cursor: "pointer" }} className="default-select exchange-select form-control" name="state" onChange={this.handleChangeSelect} defaultValue={this.state.moneda}>
+                          <option value="trx">TRX</option>
+                          <option value="usdt">USDT</option>
+                          <option value="dct">DCT</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -389,7 +422,7 @@ export default class nfts extends Component {
           </div>
           <div className="col-xl-12">
             <div className="row">
-            <div className="col-md-12">
+              <div className="col-md-12">
                 <div className="card overflow-hidden">
                   <div className="card-body py-0">
                     <div className="d-flex align-items-center justify-content-between">
@@ -409,10 +442,10 @@ export default class nfts extends Component {
               <div className="col-md-4">
                 <div className="card overflow-hidden">
                   <div className="card-body py-4 pt-4">
-                    <div className="d-flex align-items-center justify-content-between" style={{cursor: "pointer"}} onClick={()=>{
-                          window.open("https://apenft.io/#/collection/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU" , '_blank')
-                        }}>
-                    
+                    <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
+                      window.open("https://apenft.io/#/collection/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU", '_blank')
+                    }}>
+
                       <h4 className="fs-18 font-w400">NFT Sold</h4>
                       <div className="d-flex align-items-center">
                         <h2 className="count-num">{this.state.totalNFT}</h2>
@@ -425,15 +458,15 @@ export default class nfts extends Component {
               <div className="col-md-4">
                 <div className="card overflow-hidden">
                   <div className="card-body py-4 pt-4">
-                    <div className="d-flex align-items-center justify-content-between" style={{cursor: "pointer"}} onClick={()=>{
-                          window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/"+this.state.LastWiner , '_blank')
-                        }}>
-                      
+                    <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
+                      window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + this.state.LastWiner, '_blank')
+                    }}>
+
                       <h4 className="fs-18 font-w400">Last Winner</h4>
                       <div className="d-flex align-items-center">
                         <h2 className="count-num" >#{this.state.LastWiner}</h2>
                       </div>
-                      
+
                     </div>
                     <div id="paidinvoices"></div>
                   </div>
@@ -453,7 +486,7 @@ export default class nfts extends Component {
                   </div>
                 </div>
               </div>
-              
+
             </div>
           </div>
           <div className="col-xl-12">
@@ -461,61 +494,61 @@ export default class nfts extends Component {
               <div className="col-xl-12">
                 <div className="card">
 
-                <div className="card-body ">
+                  <div className="card-body ">
 
-                  <h2 className="heading">Welcome to Brutus Lottery</h2>
+                    <h2 className="heading">Welcome to Brutus Lottery</h2>
 
 
-                  <p>
-                    Where the thrill of acquiring unique NFTs meets the chance to win substantial prizes. Discover a collection of 9999 exclusive NFTs, each representing a digital masterpiece priced at 100 TRX. Engage in bi-weekly automated draws, with 80% of the proceeds going to the winner and 20% to the Brutus Lottery team.
-                    <br /><br />
+                    <p>
+                      Where the thrill of acquiring unique NFTs meets the chance to win substantial prizes. Discover a collection of 9999 exclusive NFTs, each representing a digital masterpiece priced at 100 TRX. Engage in bi-weekly automated draws, with 80% of the proceeds going to the winner and 20% to the Brutus Lottery team.
+                      <br /><br />
 
-                  </p>
+                    </p>
 
-                  <h4>What We Offer:</h4><br />
+                    <h4>What We Offer:</h4><br />
                     <ol>
                       <li>
                         <b>Exclusive NFTs:</b> Explore a collection of 9999 unique NFTs, each a digital artwork priced at 100 TRX.
                       </li>
                       <li>
-                      <b>Bi-weekly Draws:</b> Participate in automatic draws every fifteen days, offering an 80% prize to the winner.
+                        <b>Bi-weekly Draws:</b> Participate in automatic draws every fifteen days, offering an 80% prize to the winner.
 
                       </li>
                       <li>
-                      <b>Transparent Process:</b> NFT minting via the Brutus Lottery TRC721 contract ensures authenticity.
+                        <b>Transparent Process:</b> NFT minting via the Brutus Lottery TRC721 contract ensures authenticity.
 
                       </li>
                       <li>
-                      <b>Automated and Randomized:</b> Draw results are automatic, and our randomness coefficient guarantees fairness.
+                        <b>Automated and Randomized:</b> Draw results are automatic, and our randomness coefficient guarantees fairness.
 
                       </li>
                     </ol>
 
-                  <h4>How to Participate:</h4>
+                    <h4>How to Participate:</h4>
 
                     <ol>
                       <li>
-                      <b>Acquire NFTs:</b> Increase your winning chances by acquiring unique NFTs.
+                        <b>Acquire NFTs:</b> Increase your winning chances by acquiring unique NFTs.
 
                       </li>
                       <li>
-                      <b>Effortless Draws:</b> Prizes are automatically delivered at draw time, eliminating the need for claims.
+                        <b>Effortless Draws:</b> Prizes are automatically delivered at draw time, eliminating the need for claims.
 
                       </li>
                       <li>
-                      <b>Explore Infinite Possibilities:</b> Each NFT opens doors to a universe of possibilities, merging digital art with the excitement of draws.
+                        <b>Explore Infinite Possibilities:</b> Each NFT opens doors to a universe of possibilities, merging digital art with the excitement of draws.
 
                       </li>
                     </ol>
                     <p>
-                    <br /><br />
-                    Join Brutus Lottery and experience the thrill of the unique, where every NFT unlocks endless opportunities.
-                  </p>
+                      <br /><br />
+                      Join Brutus Lottery and experience the thrill of the unique, where every NFT unlocks endless opportunities.
+                    </p>
 
-                  <p className="text-center" >
-                    <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf">{"--> "}Read all Terms and Conditions {" <--"}</a>
-                  </p>
-                </div>
+                    <p className="text-center" >
+                      <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf">{"--> "}Read all Terms and Conditions {" <--"}</a>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
