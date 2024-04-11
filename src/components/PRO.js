@@ -36,6 +36,9 @@ export default class ProviderPanel extends Component {
       proEnergy: 0,
       proBand: 0,
       proBandTotal: 0,
+      noregist: [],
+      historic: [],
+      tiempo: ""
 
     };
 
@@ -314,6 +317,10 @@ export default class ProviderPanel extends Component {
 
   async estado() {
 
+    this.setState({
+      tiempo: moment.tz.guess()
+    })
+
     var url = cons.apiProviders;
 
     let provider = { result: false };
@@ -435,6 +442,45 @@ export default class ProviderPanel extends Component {
         proBand: providerBand,
         proBandTotal: providerBandTotal,
 
+      })
+
+      let historic = {}
+      try {
+
+        historic = await fetch(url + "historic_payments", {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ wallet: this.props.accountAddress })
+
+        }
+        )
+          .then((r) => {
+            return r.json();
+          })
+          .then((r) => {
+            return r.data;
+          })
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+      historic = historic.map((item, index) => {
+
+
+        return (
+          <div key={index}>
+            {item.amount / 10 ** 6} {item.coin} {"->"} {moment.utc(item.date * 1000).tz(moment.tz.guess()).format("lll")}
+          </div>
+        )
+      })
+
+      this.setState({
+        historic: historic
       })
 
       let ongoins = []
@@ -661,7 +707,24 @@ export default class ProviderPanel extends Component {
 
       if (this.state.autofreeze !== "Off") {
 
-        campoFreeze = <input type="text" className="form-control" id="voteSR" placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} />
+        campoFreeze = <div className="container">
+          <div className="row">
+            <div className="col-11">
+              <input type="text" className="form-control" id="voteSR" placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} />
+            </div>
+            <div className="col-1">
+              <i className="bi bi-question-circle-fill" title="You can set by which super representative wallet the automatic votes will be made" onClick={() => {
+
+                this.setState({
+                  ModalTitulo: "Info",
+                  ModalBody: "You can set by which super representative wallet the automatic votes will be made"
+                })
+
+                window.$("#alert").modal("show");
+              }}></i>
+            </div>
+          </div>
+        </div>
 
 
         if (this.state.voteSR !== "" && TronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
@@ -825,7 +888,7 @@ export default class ProviderPanel extends Component {
                             </div>
                           </div>
 
-                          <div className="col-lg-6 col-sm-12 mb-2">
+                          <div className="col-lg-12 col-sm-12 mb-2">
                             {campoFreeze}
                           </div>
 
@@ -838,13 +901,13 @@ export default class ProviderPanel extends Component {
                 <div className="col-lg-4 col-sm-12">
                   <div className="card">
                     <div className="card-header border-0 pb-0">
-                      <h2 className="heading mb-0 m-auto">Next Payment</h2>
+                      <h2 className="heading mb-0 m-auto">Next Payment ({this.state.tiempo})</h2>
                     </div>
                     <div className="card-body text-center pt-3">
                       <div className="mt-1">Hour {this.state.payhour} GMT</div>
                       <div className="count-num mt-1">{this.state.payment} TRX</div>
                       <div className="mt-1">that will be paid here <u>{this.state.payhere}</u></div>
-
+                      {this.state.historic}
                     </div>
                   </div>
                 </div>
@@ -880,7 +943,7 @@ export default class ProviderPanel extends Component {
                 <div className="col-12">
                   <div className="card">
                     <div className="card-header">
-                      <h4 className="card-title">Other delegations </h4>
+                      <h4 className="card-title">Other delegations ({this.state.noregist.length})</h4>
                     </div>
                     <div className="card-body">
                       <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
