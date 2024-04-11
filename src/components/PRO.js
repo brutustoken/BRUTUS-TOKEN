@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import cons from "../cons.js";
 import TronWeb from "tronweb";
 
+var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
 
 
@@ -484,17 +485,26 @@ export default class ProviderPanel extends Component {
         if (((item.order_type).toLowerCase()).includes("hour")) {
           item.order_type = "HOUR"
 
-        } else {
+        }
+
+        if (((item.order_type).toLowerCase()).includes("day")) {
           item.order_type = "DAY"
 
         }
+
+        if (((item.order_type).toLowerCase()).includes("minutes")) {
+          item.order_type = "MINUTES"
+
+        }
+
 
 
         return (
           <tr key={index}>
             <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
             <td>{item.customer}<br />
-              {item.confirm}{" -> "}{item.unfreeze}
+              {moment.utc(item.confirm).tz(moment.tz.guess()).format("lll")}{" -> "}{moment.utc(item.unfreeze).tz(moment.tz.guess()).format("lll")}<br />
+
             </td>
             <td>{item.payout} TRX</td>
           </tr>
@@ -518,7 +528,6 @@ export default class ProviderPanel extends Component {
 
             //console.log(info.delegatedResource)
 
-
             for (let index2 = 0; index2 < info.delegatedResource.length; index2++) {
 
               let order = {
@@ -526,7 +535,7 @@ export default class ProviderPanel extends Component {
                 resource: "ENERGY",
                 trx: 0,
                 sun: "0",
-                expire: "--/--/--"
+                expire: "--/--/-- 00:00 --"
               }
 
               if (info.delegatedResource[index2].frozen_balance_for_energy) {
@@ -534,14 +543,16 @@ export default class ProviderPanel extends Component {
                 order.trx = info.delegatedResource[index2].frozen_balance_for_energy / 10 ** 6
                 order.sun = info.delegatedResource[index2].frozen_balance_for_energy
                 if (info.delegatedResource[index2].expire_time_for_energy) {
-                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_energy).toString()
-
+                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_energy)
+                  order.expire = moment.utc(order.expire).tz(moment.tz.guess()).format("lll")
                 }
               } else {
                 order.trx = info.delegatedResource[index2].frozen_balance_for_bandwidth / 10 ** 6
                 order.sun = info.delegatedResource[index2].frozen_balance_for_bandwidth
                 if (info.delegatedResource[index2].expire_time_for_bandwidth) {
-                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_bandwidth).toString()
+                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_bandwidth)
+                  order.expire = moment.utc(order.expire).tz(moment.tz.guess()).format("lll")
+
                 }
 
 
@@ -634,14 +645,14 @@ export default class ProviderPanel extends Component {
     if (this.state.provider) {
 
 
-      let estatus = <button className="btn btn-outline-danger" style={{ cursor: "default" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
+      let estatus = <button className="btn btn-outline-danger btn-block" style={{ cursor: "default" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
 
       if (this.state.rent) {
 
-        estatus = <button className="btn btn-outline-info" style={{ cursor: "default" }}><i className="bi bi-arrow-clockwise"></i> Recharging</button>
+        estatus = <button className="btn btn-outline-info btn-block" style={{ cursor: "default" }}><i className="bi bi-arrow-clockwise"></i> Recharging</button>
 
         if (this.state.elegible) {
-          estatus = <button className="btn btn-outline-success" style={{ cursor: "default" }}><i className="bi bi-check-circle-fill"></i> Active</button>
+          estatus = <button className="btn btn-outline-success btn-block" style={{ cursor: "default" }}><i className="bi bi-check-circle-fill"></i> Active</button>
         }
 
       }
@@ -682,28 +693,44 @@ export default class ProviderPanel extends Component {
                 <div className="col-lg-8 col-sm-12">
                   <div className="card exchange">
                     <div className="card-header d-block">
-                      <h2 className="heading">Status {estatus} <button type="button" className="btn btn-outline-warning" style={{ cursor: "default" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} <img height="15px" src="images/energy.png" alt="" /></button> <button className="btn btn-outline-secondary" style={{ cursor: "default" }}> <span role="img" aria-label="$">💲</span> Payout Rate %{this.state.paymentPoints} </button></h2>
 
 
                       <div className="container-fluid">
                         <div className="row">
+                          <div className="col-lg-12 col-sm-12 mb-2">
+                            <h2 className="heading">Status </h2>
+
+                          </div>
+                          <div className="col-lg-4 col-sm-12 mb-2">
+                            <h2 className="heading">{estatus} </h2>
+                          </div>
+                          <div className="col-lg-4 col-sm-12 mb-2">
+                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
+                          </div>
+                          <div className="col-lg-4 col-sm-12 mb-2">
+                            <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
+
+                          </div>
                           <div className="col-lg-6 col-sm-12 mb-2">
-                            Energy ({(this.state.proEnergy).toLocaleString("en-us")}/{(this.state.proEnergyTotal).toLocaleString("en-us")})
-                            <div className="progress" style={{ margin: "5px" }}>
-                              <div className="progress-bar" role="progressbar" style={{ "width": ((this.state.proEnergy / this.state.proEnergyTotal) * 100) + "%" }}
+                            Energy ({(this.state.proEnergy).toLocaleString('en-US')}/{(this.state.proEnergyTotal).toLocaleString("en-us")}) <img height="15px" src="images/energy.png" alt="" />
+                            <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
+                              <div className="progress-bar bg-warning" role="progressbar" style={{ "width": ((this.state.proEnergy / this.state.proEnergyTotal) * 100) + "%" }}
                                 aria-valuenow={(this.state.proEnergy / this.state.proEnergyTotal) * 100} aria-valuemin="0" aria-valuemax="100">
                               </div>
                             </div>
                           </div>
                           <div className="col-lg-6 col-sm-12 mb-2">
-                            Bandwidth ({(this.state.proBand).toLocaleString("en-us")}/{(this.state.proBandTotal).toLocaleString("en-us")})
-                            <div className="progress" style={{ margin: "5px" }}>
-                              <div className="progress-bar" role="progressbar" style={{ "width": ((this.state.proBand / this.state.proBandTotal) * 100) + "%" }}
+                            Bandwidth ({(this.state.proBand).toLocaleString("en-us")}/{(this.state.proBandTotal).toLocaleString("en-us")}) 🌐
+                            <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
+                              <div className="progress-bar bg-info" role="progressbar" style={{ "width": ((this.state.proBand / this.state.proBandTotal) * 100) + "%" }}
                                 aria-valuenow={(this.state.proBand / this.state.proBandTotal) * 100} aria-valuemin="0" aria-valuemax="100">
                               </div>
                             </div>
                           </div>
-                          <div className="col-lg-6 col-sm-6 form-check form-switch">
+
+
+
+                          <div className="col-lg-3 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} />
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
 
@@ -715,7 +742,7 @@ export default class ProviderPanel extends Component {
                               window.$("#alert").modal("show");
                             }}></i></label>
                           </div>
-                          <div className="col-lg-6 col-sm-6 form-check form-switch">
+                          <div className="col-lg-3 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} />
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
 
@@ -727,9 +754,9 @@ export default class ProviderPanel extends Component {
                               window.$("#alert").modal("show");
                             }}></i></label>
                           </div>
-                          <div className="col-lg-12 col-sm-12 form-check form-switch">
+                          <div className="col-lg-6 col-sm-12 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} />
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {this.state.bandover} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -743,9 +770,9 @@ export default class ProviderPanel extends Component {
 
                         </div>
 
-                        <div className="row">
+                        <div className="row mt-3">
 
-                          <div className="col-lg-12 col-sm-12 mb-2">
+                          <div className="col-lg-6 col-md-12 mb-2">
                             <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
 
                               this.setState({
@@ -761,6 +788,25 @@ export default class ProviderPanel extends Component {
                               <button className="dropdown-item" onClick={() => this.setPaymentHour("1730")}>17:30 GMT</button>
                             </div>
                           </div>
+
+                          <div className="col-lg-6 col-md-12 mb-2">
+                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="Establish the max. duration of the orders you want to accept" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Establish the max. duration of the orders you want to accept"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i>
+                            <div className="dropdown-menu" aria-labelledby="menu2">
+                              <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(7)}>7 days</button>
+                              <button className="dropdown-item" onClick={() => this.setMaxDays(14)}>14 days</button>
+                            </div>
+                          </div>
+
 
                           <div className="col-lg-6 col-sm-12 mb-2">
                             <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
@@ -781,24 +827,6 @@ export default class ProviderPanel extends Component {
 
                           <div className="col-lg-6 col-sm-12 mb-2">
                             {campoFreeze}
-                          </div>
-
-                          <div className="col-lg-12 col-sm-12">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="Establish the max. duration of the orders you want to accept" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Establish the max. duration of the orders you want to accept"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i>
-                            <div className="dropdown-menu" aria-labelledby="menu2">
-                              <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(7)}>7 days</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(14)}>14 days</button>
-                            </div>
                           </div>
 
                         </div>
