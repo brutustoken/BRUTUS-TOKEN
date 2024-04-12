@@ -247,8 +247,6 @@ class App extends Component {
     web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
 
     //console.log(web3Contracts)
-
-
     //console.log(await web3Contracts.isConnected())
     let contrato = {};
 

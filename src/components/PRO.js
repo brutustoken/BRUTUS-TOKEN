@@ -2,9 +2,11 @@ import React, { Component } from "react";
 import cons from "../cons.js";
 import TronWeb from "tronweb";
 
+import * as am5 from "@amcharts/amcharts5";
+import * as am5xy from "@amcharts/amcharts5/xy";
+
 var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
-
 
 //function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
@@ -38,6 +40,8 @@ export default class ProviderPanel extends Component {
       proBandTotal: 0,
       noregist: [],
       historic: [],
+      dataHistoric: [],
+      alturaGrafico: "0px",
       tiempo: ""
 
     };
@@ -48,6 +52,8 @@ export default class ProviderPanel extends Component {
     this.setMaxDays = this.setMaxDays.bind(this);
     this.setFreez = this.setFreez.bind(this);
     this.setWalletSr = this.setWalletSr.bind(this);
+
+    this.grafico = this.grafico.bind(this);
 
   }
 
@@ -229,6 +235,104 @@ export default class ProviderPanel extends Component {
 
   }
 
+  async grafico(external_data) {
+
+    if (this.root) {
+      this.root.dispose();
+    }
+    const root = am5.Root.new("chartdiv");
+    let chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panY: false,
+        layout: root.verticalLayout
+      })
+    );
+
+    // Define data
+    let data = [{
+      date: new Date(1712953610 * 1000),
+      amount: 1000,
+      coin: "trx"
+    }, {
+      date: new Date(1712780810 * 1000),
+      amount: 1300,
+      coin: "trx"
+    }, {
+      date: new Date(1712694410 * 1000),
+      amount: 1200,
+      coin: "trx"
+    },
+    {
+      date: new Date(1712694410 * 1000),
+      amount: 250,
+      coin: "brst"
+    }, {
+      date: new Date(1712521610 * 1000),
+      amount: 200,
+      coin: "brst"
+    }, {
+      date: new Date(1712435210 * 1000),
+      amount: 500,
+      coin: "brst"
+    }];
+
+    data = external_data
+
+    // Create Y-axis
+    let yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
+      })
+    );
+
+    // Create X-Axis
+    let xAxis = chart.xAxes.push(
+      am5xy.CategoryAxis.new(root, {
+        baseInterval: { timeUnit: "day", count: 1 },
+        renderer: am5xy.AxisRendererX.new(root, {}),
+        categoryField: "date"
+      })
+    );
+    xAxis.data.setAll(data);
+
+    // Create series
+    let series1 = chart.series.push(
+      am5xy.ColumnSeries.new(root, {
+        name: "Payed in TRX",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "amount",
+        categoryXField: "date",
+        fill: am5.color(0x7135ff),
+        stroke: am5.color(0x7135ff)
+      })
+    );
+    series1.data.setAll(data);
+
+    // Create series
+    /*
+    let series2 = chart.series.push(
+      am5xy.ColumnSeries.new(root, {
+        name: "Payed in BRST",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "value",
+        categoryXField: "date"
+      })
+    );
+    series2.data.setAll(data);
+*/
+
+    // Add legend
+    let legend = chart.children.push(am5.Legend.new(root, {}));
+    legend.data.setAll(chart.series.values);
+
+    // Add cursor
+    chart.set("cursor", am5xy.XYCursor.new(root, {}));
+
+    this.root = root;
+  }
+
   async setFreez(data) {
     try {
       let body = { wallet: this.props.accountAddress, autofreeze: data }
@@ -317,6 +421,8 @@ export default class ProviderPanel extends Component {
 
   async estado() {
 
+
+
     this.setState({
       tiempo: moment.tz.guess(true)
     })
@@ -359,8 +465,6 @@ export default class ProviderPanel extends Component {
       } catch (error) {
         console.log(error.toString())
       }
-
-
 
       let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
 
@@ -469,18 +573,23 @@ export default class ProviderPanel extends Component {
         console.log(error.toString())
       }
 
+      let dataHistoric = []
+
       historic = historic.toReversed().map((item, index) => {
 
+        dataHistoric.push({ date: new Date(item.date * 1000), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
 
         return (
           <div key={index}>
-            {moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")} {"->"} {new BigNumber(item.amount).shiftedBy(-6).dp(3).toString(10)} {item.coin}
+            {moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")} {"->"} {new BigNumber(item.amount).shiftedBy(-6).dp(3).toLocaleString('en-US')} {item.coin}
           </div>
         )
       })
 
+
       this.setState({
-        historic: historic
+        historic: historic,
+        dataHistoric: dataHistoric
       })
 
       let ongoins = []
@@ -540,15 +649,10 @@ export default class ProviderPanel extends Component {
 
         }
 
-
-
-
-
         return (
           <tr key={index}>
             <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
             <td>{item.customer}<br />
-              {item.confirm}{" -> "}{item.unfreeze}<br />
               {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
 
             </td>
@@ -684,24 +788,21 @@ export default class ProviderPanel extends Component {
 
   render() {
 
-
-
-
-
     if (this.state.provider) {
 
 
-      let estatus = <button className="btn btn-outline-danger btn-block" style={{ cursor: "default" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
+      let estatus = <button className="btn btn-outline-danger btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
 
       if (this.state.rent) {
 
-        estatus = <button className="btn btn-outline-info btn-block" style={{ cursor: "default" }}><i className="bi bi-arrow-clockwise"></i> Recharging</button>
+        estatus = <button className="btn btn-outline-info btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-arrow-clockwise"></i> Recharging</button>
 
         if (this.state.elegible) {
-          estatus = <button className="btn btn-outline-success btn-block" style={{ cursor: "default" }}><i className="bi bi-check-circle-fill"></i> Active</button>
+          estatus = <button className="btn btn-outline-success btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-check-circle-fill"></i> Active</button>
         }
 
       }
+
 
       let campoFreeze = <></>
 
@@ -747,6 +848,12 @@ export default class ProviderPanel extends Component {
 
       }
 
+      let historial = this.state.historic;
+
+      if (this.state.alturaGrafico !== "0px") {
+        historial = <></>
+      }
+
       return (<>
 
         <div className="container-fluid">
@@ -768,10 +875,10 @@ export default class ProviderPanel extends Component {
                             <h2 className="heading">{estatus} </h2>
                           </div>
                           <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
+                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
                           </div>
                           <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
+                            <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
 
                           </div>
                           <div className="col-lg-6 col-sm-12 mb-2">
@@ -836,7 +943,7 @@ export default class ProviderPanel extends Component {
                         <div className="row mt-3">
 
                           <div className="col-lg-6 col-md-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
+                            <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -853,7 +960,7 @@ export default class ProviderPanel extends Component {
                           </div>
 
                           <div className="col-lg-6 col-md-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="Establish the max. duration of the orders you want to accept" onClick={() => {
+                            <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="Establish the max. duration of the orders you want to accept" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -871,8 +978,8 @@ export default class ProviderPanel extends Component {
                           </div>
 
 
-                          <div className="col-lg-6 col-sm-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
+                          <div className="col-lg-12 col-sm-12 mb-2">
+                            <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: "95.33%" }} data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -907,7 +1014,10 @@ export default class ProviderPanel extends Component {
                       <div className="mt-1">Hour {this.state.payhour} GMT</div>
                       <div className="count-num mt-1">{this.state.payment} TRX</div>
                       <div className="mt-1">that will be paid here <u>{this.state.payhere}</u></div>
-                      {this.state.historic}
+                      <div className="mb-3" id="chartdiv" style={{ height: this.state.alturaGrafico, backgroundColor: "white" }}></div>
+                      <button className="btn btn-success" onClick={() => { if (this.state.alturaGrafico === "0px") { this.setState({ alturaGrafico: "400px" }); this.grafico(this.state.dataHistoric) } else { this.setState({ alturaGrafico: "0px" }); this.root.dispose(); } }}>Graphic (Open / Close)</button>
+                      {historial}
+
                     </div>
                   </div>
                 </div>
