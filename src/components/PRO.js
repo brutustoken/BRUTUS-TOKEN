@@ -318,7 +318,7 @@ export default class ProviderPanel extends Component {
   async estado() {
 
     this.setState({
-      tiempo: moment.tz.guess()
+      tiempo: moment.tz.guess(true)
     })
 
     var url = cons.apiProviders;
@@ -469,12 +469,12 @@ export default class ProviderPanel extends Component {
         console.log(error.toString())
       }
 
-      historic = historic.map((item, index) => {
+      historic = historic.toReversed().map((item, index) => {
 
 
         return (
           <div key={index}>
-            {item.amount / 10 ** 6} {item.coin} {"->"} {moment.utc(item.date * 1000).tz(moment.tz.guess()).format("lll")}
+            {moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")} {"->"} {new BigNumber(item.amount).shiftedBy(-6).dp(3).toString(10)} {item.coin}
           </div>
         )
       })
@@ -519,9 +519,6 @@ export default class ProviderPanel extends Component {
 
         let lock = "unlock"
 
-        //console.log(((item.order_type).toLowerCase()).includes("day"))
-        //console.log((item.order_type).toLowerCase())
-
         if (((item.order_type).toLowerCase()).includes("wol")) {
           lock = "unlock"
         } else {
@@ -545,11 +542,14 @@ export default class ProviderPanel extends Component {
 
 
 
+
+
         return (
           <tr key={index}>
             <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
             <td>{item.customer}<br />
-              {moment.utc(item.confirm).tz(moment.tz.guess()).format("lll")}{" -> "}{moment.utc(item.unfreeze).tz(moment.tz.guess()).format("lll")}<br />
+              {item.confirm}{" -> "}{item.unfreeze}<br />
+              {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
 
             </td>
             <td>{item.payout} TRX</td>
@@ -590,14 +590,14 @@ export default class ProviderPanel extends Component {
                 order.sun = info.delegatedResource[index2].frozen_balance_for_energy
                 if (info.delegatedResource[index2].expire_time_for_energy) {
                   order.expire = new Date(info.delegatedResource[index2].expire_time_for_energy)
-                  order.expire = moment.utc(order.expire).tz(moment.tz.guess()).format("lll")
+                  order.expire = moment.utc(order.expire).tz(this.state.tiempo).format("lll")
                 }
               } else {
                 order.trx = info.delegatedResource[index2].frozen_balance_for_bandwidth / 10 ** 6
                 order.sun = info.delegatedResource[index2].frozen_balance_for_bandwidth
                 if (info.delegatedResource[index2].expire_time_for_bandwidth) {
                   order.expire = new Date(info.delegatedResource[index2].expire_time_for_bandwidth)
-                  order.expire = moment.utc(order.expire).tz(moment.tz.guess()).format("lll")
+                  order.expire = moment.utc(order.expire).tz(this.state.tiempo).format("lll")
 
                 }
 
