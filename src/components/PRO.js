@@ -296,9 +296,10 @@ export default class ProviderPanel extends Component {
     xAxis.data.setAll(data);
 
     // Create series
+
     let series1 = chart.series.push(
       am5xy.ColumnSeries.new(root, {
-        name: "Payed in TRX",
+        name: "TRX",
         xAxis: xAxis,
         yAxis: yAxis,
         valueYField: "amount",
@@ -308,6 +309,7 @@ export default class ProviderPanel extends Component {
       })
     );
     series1.data.setAll(data);
+
 
     // Create series
     /*
@@ -577,7 +579,7 @@ export default class ProviderPanel extends Component {
 
       historic = historic.toReversed().map((item, index) => {
 
-        dataHistoric.push({ date: new Date(item.date * 1000), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
+        dataHistoric.unshift({ date: new Date(item.date * 1000), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
 
         return (
           <div key={index}>
