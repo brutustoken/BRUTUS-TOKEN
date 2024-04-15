@@ -42,7 +42,8 @@ export default class ProviderPanel extends Component {
       historic: [],
       dataHistoric: [],
       alturaGrafico: "0px",
-      tiempo: ""
+      tiempo: "",
+      payment: "0"
 
     };
 
