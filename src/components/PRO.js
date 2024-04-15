@@ -326,8 +326,10 @@ export default class ProviderPanel extends Component {
 */
 
     // Add legend
+    /*
     let legend = chart.children.push(am5.Legend.new(root, {}));
     legend.data.setAll(chart.series.values);
+    */
 
     // Add cursor
     chart.set("cursor", am5xy.XYCursor.new(root, {}));
@@ -583,7 +585,7 @@ export default class ProviderPanel extends Component {
 
         return (
           <div key={index}>
-            {moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")} {"->"} {new BigNumber(item.amount).shiftedBy(-6).dp(3).toLocaleString('en-US')} {item.coin}
+            {moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")} {"->"} {(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')} {item.coin}
           </div>
         )
       })
@@ -1010,11 +1012,11 @@ export default class ProviderPanel extends Component {
                 <div className="col-lg-4 col-sm-12">
                   <div className="card">
                     <div className="card-header border-0 pb-0">
-                      <h2 className="heading mb-0 m-auto">Next Payment ({this.state.tiempo})</h2>
+                      <h2 className="heading mb-0 m-auto">Next Payment</h2>
                     </div>
                     <div className="card-body text-center pt-3">
                       <div className="mt-1">Hour {this.state.payhour} GMT</div>
-                      <div className="count-num mt-1">{this.state.payment} TRX</div>
+                      <div className="count-num mt-1">{(this.state.payment).toLocaleString("en-US")} TRX</div>
                       <div className="mt-1">that will be paid here <u>{this.state.payhere}</u></div>
                       <div className="mb-3" id="chartdiv" style={{ height: this.state.alturaGrafico, backgroundColor: "white" }}></div>
                       <button className="btn btn-success" onClick={() => { if (this.state.alturaGrafico === "0px") { this.setState({ alturaGrafico: "400px" }); this.grafico(this.state.dataHistoric) } else { this.setState({ alturaGrafico: "0px" }); this.root.dispose(); } }}>Graphic (Open / Close)</button>
