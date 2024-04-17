@@ -108,7 +108,7 @@ class App extends Component {
 
       if (e.data.message && (e.data.message.action === "accountsChanged" || e.data.message.action === "setAccount")) {
         if (e.data.message.data.address) {
-          this.conectar();
+          this.conectar(true);
         }
       }
     })
@@ -154,7 +154,7 @@ class App extends Component {
   }
 
 
-  async conectar() {
+  async conectar(cambio) {
 
     let tronlink = this.state.tronlink;
     let wallet = adressDefault;
@@ -230,7 +230,7 @@ class App extends Component {
       document.getElementById("conectTL").onclick = () => { conectDirect() }
     }
 
-    if (!tronlink['contratosReady']) {
+    if (!tronlink['contratosReady'] || cambio) {
       this.loadContracts()
     }
 

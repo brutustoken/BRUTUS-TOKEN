@@ -21,7 +21,7 @@ export default class ProviderPanel extends Component {
       rent: false,
       elegible: false,
       sellband: false,
-      bandover: "Loading...",
+      bandover: "0",
       burn: false,
       autofreeze: "off",
       paymenthour: "Loading...",
