@@ -509,7 +509,7 @@ export default class Staking extends Component {
         requerido += 1000;
       }
 
-      var body = { "resource": "energy", "amount": requerido, "duration": "1h" }
+      var body = { "resource": "energy", "amount": requerido, "duration": "5min" }
       var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
@@ -704,7 +704,7 @@ export default class Staking extends Component {
 
     const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
-    var body = { "resource": "energy", "amount": cantidad, "duration": "1h" }
+    var body = { "resource": "energy", "amount": cantidad, "duration": "5min" }
     var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
       method: "POST",
       headers: {
@@ -778,7 +778,7 @@ export default class Staking extends Component {
           "id_api": process.env.REACT_APP_USER_ID,
           "wallet": this.props.accountAddress,
           "amount": cantidad,
-          "time": "1h",
+          "time": "5min",
           "user_id": "Fw-" + (Date.now() / 1000)
         }
 
@@ -879,10 +879,6 @@ export default class Staking extends Component {
       eenergy = 80000;
     }
 
-
-
-
-
     if (eenergy > this.state.contractEnergy && this.state.energyOn) {
 
       var requerido = eenergy - this.state.contractEnergy
@@ -893,7 +889,7 @@ export default class Staking extends Component {
         requerido += 1000;
       }
 
-      var body = { "resource": "energy", "amount": requerido, "duration": "1h" }
+      var body = { "resource": "energy", "amount": requerido, "duration": "5min" }
       var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
@@ -1134,7 +1130,7 @@ export default class Staking extends Component {
         requerido += 1000;
       }
 
-      var body = { "resource": "energy", "amount": requerido, "duration": "1h" }
+      var body = { "resource": "energy", "amount": requerido, "duration": "5min" }
       var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
@@ -1145,7 +1141,7 @@ export default class Staking extends Component {
 
       var precio = new BigNumber(consultaPrecio.price).dp(6)
 
-      console.log(precio)
+      //console.log(precio)
 
       this.setState({
         ModalTitulo: "Energy Notice",

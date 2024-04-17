@@ -160,7 +160,6 @@ class App extends Component {
     let wallet = adressDefault;
 
     let web3Contracts = tronWeb;
-    web3Contracts.setAddress(adressDefault)
 
 
     if (typeof window.tronLink !== 'undefined') {
@@ -170,59 +169,41 @@ class App extends Component {
 
 
       if (window.tronLink.ready) {
-        wallet = window.tronLink.tronWeb.defaultAddress.base58
-        tronlink['loggedIn'] = true;
+        try {
+          wallet = window.tronLink.tronWeb.defaultAddress.base58
+          tronlink['loggedIn'] = true;
+
+        } catch (error) { }
 
       } else {
 
         const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
-
 
         if (res.code === 200) {
           try {
             wallet = window.tronLink.tronWeb.defaultAddress.base58
             tronlink['loggedIn'] = true;
 
-
-          } catch (error) {
-
-          }
-
-
+          } catch (error) { }
 
         } else {
           wallet = adressDefault;
           tronlink['loggedIn'] = false;
-          //web3Contracts = tronWeb;
+          web3Contracts = tronWeb;
+          web3Contracts.setAddress(wallet)
 
         }
 
-
       }
-
-      web3Contracts.setAddress(wallet)
-
-
-      this.setState({
-        accountAddress: wallet,
-        tronlink: tronlink,
-        tronWeb: web3Contracts
-
-      });
 
 
     } else {
-
       //console.log("Please install Tronlink to use this Dapp")
+
+      web3Contracts.setAddress(adressDefault)
 
       tronlink['installed'] = false;
       tronlink['loggedIn'] = false;
-
-      this.setState({
-        accountAddress: adressDefault,
-        tronlink: tronlink
-
-      });
 
     }
 
@@ -234,6 +215,13 @@ class App extends Component {
       document.getElementById("conectTL").onclick = () => { conectDirect() }
     }
 
+    this.setState({
+      accountAddress: wallet,
+      tronlink: tronlink,
+      tronWeb: web3Contracts
+
+    });
+
     if (!tronlink['contratosReady'] || cambio) {
       this.loadContracts()
     }
@@ -243,16 +231,15 @@ class App extends Component {
 
   async loadContracts() {
 
-    let web3Contracts = this.state.tronWeb;
+    let web3Contracts = tronWeb;
     let tronlink = this.state.tronlink;
 
     //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
     let ranNum = Math.floor((Math.random() * cons.KEYS.length));
+    web3Contracts.setAddress(this.state.accountAddress)
     web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
 
-    //console.log(web3Contracts)
-    //console.log(await web3Contracts.isConnected())
     let contrato = {};
 
     let url = window.location.href;
