@@ -166,22 +166,23 @@ class App extends Component {
     if (typeof window.tronLink !== 'undefined') {
 
       tronlink['installed'] = true;
+      web3Contracts = window.tronLink.tronWeb;
+
 
       if (window.tronLink.ready) {
         wallet = window.tronLink.tronWeb.defaultAddress.base58
         tronlink['loggedIn'] = true;
-        web3Contracts = window.tronLink.tronWeb;
 
       } else {
 
         const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
 
+
         if (res.code === 200) {
           try {
-
             wallet = window.tronLink.tronWeb.defaultAddress.base58
             tronlink['loggedIn'] = true;
-            web3Contracts = window.tronLink.tronWeb;
+
 
           } catch (error) {
 
@@ -192,12 +193,15 @@ class App extends Component {
         } else {
           wallet = adressDefault;
           tronlink['loggedIn'] = false;
-          web3Contracts = tronWeb;
-          web3Contracts.setAddress(adressDefault)
+          //web3Contracts = tronWeb;
 
         }
 
+
       }
+
+      web3Contracts.setAddress(wallet)
+
 
       this.setState({
         accountAddress: wallet,
@@ -233,6 +237,7 @@ class App extends Component {
     if (!tronlink['contratosReady'] || cambio) {
       this.loadContracts()
     }
+
 
   }
 

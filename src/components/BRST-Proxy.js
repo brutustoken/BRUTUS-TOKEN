@@ -1040,7 +1040,7 @@ export default class Staking extends Component {
 
     var retiroRapido = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_FAST().call()
     retiroRapido = new BigNumber(retiroRapido._hex).shiftedBy(-6)
-    console.log(amount.toNumber(), retiroRapido.toNumber())
+    //console.log(amount.toNumber(), retiroRapido.toNumber())
     let primerBoton = <></>
 
     if (amount.toNumber() > retiroRapido.toNumber()) {
@@ -1176,6 +1176,7 @@ export default class Staking extends Component {
     var accountAddress = this.props.accountAddress;
 
     var aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+
     aprovado = parseInt(aprovado._hex);
 
     if (aprovado <= amount) {
