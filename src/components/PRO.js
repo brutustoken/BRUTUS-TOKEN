@@ -43,7 +43,8 @@ export default class ProviderPanel extends Component {
       dataHistoric: [],
       alturaGrafico: "0px",
       tiempo: "",
-      payment: "0"
+      payment: "0",
+      completed: []
 
     };
 
@@ -626,7 +627,6 @@ export default class ProviderPanel extends Component {
 
       let listWallets = []
 
-
       const ordenesActivas = ongoins.map((item, index) => {
 
         listWallets.push(item.customer)
@@ -667,9 +667,75 @@ export default class ProviderPanel extends Component {
       });
 
 
-      const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(this.props.accountAddress)
+      let completed = []
 
-      //console.log(delegationInfo)
+      try {
+
+        let body = { wallet: this.props.accountAddress }
+
+        completed = await fetch(url + "completed_deals", {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+          .then((r) => {
+            return r.json();
+          })
+          .then((r) => {
+            return r.completed_deals;
+          })
+
+
+
+      } catch (error) {
+
+      }
+
+
+      const ordenesCompletadas = completed.map((item, index) => {
+
+        listWallets.push(item.customer)
+
+        let lock = "unlock"
+
+        if (((item.order_type).toLowerCase()).includes("wol")) {
+          lock = "unlock"
+        } else {
+          lock = "lock"
+        }
+
+        if (((item.order_type).toLowerCase()).includes("hour")) {
+          item.order_type = "HOUR"
+
+        }
+
+        if (((item.order_type).toLowerCase()).includes("day")) {
+          item.order_type = "DAY"
+
+        }
+
+        if (((item.order_type).toLowerCase()).includes("minutes")) {
+          item.order_type = "MINUTES"
+
+        }
+
+        return (
+          <tr key={index}>
+            <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
+            <td>{item.customer}<br />
+              {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
+
+            </td>
+            <td>{item.payout} TRX</td>
+          </tr>
+        )
+      });
+
+
+      const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(this.props.accountAddress)
 
       let delegatedExternal = []
 
@@ -780,6 +846,7 @@ export default class ProviderPanel extends Component {
       this.setState({
         ongoins: ordenesActivas,
         noregist: ordenesNoregistradas,
+        completed: ordenesCompletadas,
       })
     } else {
       this.setState({
@@ -1047,6 +1114,31 @@ export default class ProviderPanel extends Component {
                           </thead>
                           <tbody>
                             {this.state.ongoins}
+
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="col-12">
+                  <div className="card">
+                    <div className="card-header">
+                      <h4 className="card-title">Completed deals ({this.state.completed.length})</h4>
+                    </div>
+                    <div className="card-body">
+                      <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
+                        <table className="table verticle-middle table-responsive-md " >
+                          <thead>
+                            <tr>
+                              <th scope="col">Resource / Period</th>
+                              <th scope="col">Buyer / Time</th>
+                              <th scope="col">Payout</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {this.state.completed}
 
                           </tbody>
                         </table>
