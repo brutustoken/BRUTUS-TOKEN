@@ -244,9 +244,7 @@ class App extends Component {
     //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
     //web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
-    console.log("here 1")
     web3Contracts.setAddress(this.state.accountAddress)
-    console.log("here 2")
 
     let contrato = {};
 

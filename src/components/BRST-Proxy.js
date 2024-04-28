@@ -780,25 +780,47 @@ export default class Staking extends Component {
     })
 
     window.$("#mensaje-brst").modal("show");
+    /*
+        var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio))
+          .catch((e) => {
+            console.log(e)
+            return ["e", e];
+          })
+    
+        if (hash[0] === "e") {
+          this.setState({
+            ModalTitulo: this.props.i18n.t("brst.alert.tfail", { returnObjects: true })[0],
+            ModalBody: <>{hash[1].toString()}
+              <br /><br />
+              <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
+            </>
+          })
+    
+    
+          window.$("#mensaje-brst").modal("show");
+          return false;
+        }
+    */
 
-    var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio))
+    const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio), this.props.accountAddress);
+    // using adapter to sign the transaction
+    const signedTransaction = await window.tronWeb.trx.sign(unSignedTransaction)
       .catch((e) => {
-        console.log(e)
-        return ["e", e];
-      })
+        this.setState({
+          ModalTitulo: "Transaction failed",
+          ModalBody: <>{e.toString()}
+            <br /><br />
+            <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
+          </>
+        })
 
-    if (hash[0] === "e") {
-      this.setState({
-        ModalTitulo: this.props.i18n.t("brst.alert.tfail", { returnObjects: true })[0],
-        ModalBody: <>{hash[1].toString()}
-          <br /><br />
-          <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
-        </>
+        window.$("#mensaje-brst").modal("show");
+        return false;
       })
+    // broadcast the transaction
 
-      window.$("#mensaje-brst").modal("show");
-      return false;
-    }
+    if (!signedTransaction) { return false; }
+    let hash = await this.props.tronWeb.trx.sendRawTransaction(signedTransaction)
 
     this.setState({
       ModalTitulo: <>{this.props.i18n.t("brst.alert.renergy1", { returnObjects: true })[0]} {imgLoading}</>,
@@ -856,7 +878,7 @@ export default class Staking extends Component {
 
           this.setState({
             ModalTitulo: this.props.i18n.t("brst.alert.done", { returnObjects: true })[0],
-            ModalBody: <><p>{this.props.i18n.t("brst.alert.done", { returnObjects: true })[1]}</p><button type="button" data-bs-dismiss="modal" className="btn btn-success">{this.props.i18n.t("brst.alert.done", { returnObjects: true })[2]}</button></>
+            ModalBody: <>{this.props.i18n.t("brst.alert.done", { returnObjects: true })[1]}<br /><button type="button" data-bs-dismiss="modal" className="btn btn-success">{this.props.i18n.t("brst.alert.done", { returnObjects: true })[2]}</button></>
           })
 
           window.$("#mensaje-brst").modal("show");
@@ -1024,32 +1046,31 @@ export default class Staking extends Component {
             window.$("#mensaje-brst").modal("show");
           })
 
-
         /*
-        await this.props.contrato.BRST_TRX_Proxy.staking().send({ callValue: amount })
-          .then(() => {
-            this.setState({
-              ModalTitulo: this.props.i18n.t("brst.alert.compra", { returnObjects: true })[0],
-              ModalBody: <>{this.props.i18n.t("brst.alert.compra", { returnObjects: true })[1]}
-                <br /><br />
-                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
-              </>
-            })
-  
-            window.$("#mensaje-brst").modal("show");
+      await this.props.contrato.BRST_TRX_Proxy.staking().send({ callValue: amount })
+        .then(() => {
+          this.setState({
+            ModalTitulo: this.props.i18n.t("brst.alert.compra", { returnObjects: true })[0],
+            ModalBody: <>{this.props.i18n.t("brst.alert.compra", { returnObjects: true })[1]}
+              <br /><br />
+              <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
+            </>
           })
-          .catch(() => {
-  
-            this.setState({
-              ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
-              ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1]
-            })
-  
-            window.$("#mensaje-brst").modal("show");
-  
+
+          window.$("#mensaje-brst").modal("show");
+        })
+        .catch(() => {
+
+          this.setState({
+            ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
+            ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1]
           })
-  
-          */
+
+          window.$("#mensaje-brst").modal("show");
+
+        })
+
+*/
 
         document.getElementById("amountTRX").value = "";
 
