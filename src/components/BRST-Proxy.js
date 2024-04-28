@@ -1256,7 +1256,41 @@ export default class Staking extends Component {
     aprovado = parseInt(aprovado._hex);
 
     if (aprovado <= amount) {
-      await this.props.contrato.BRST.approve(this.props.contrato.BRST_TRX_Proxy.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+
+      let inputs = [
+        { type: 'address', value: this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address) },
+        { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" }
+      ]
+
+      let funcion = "approve(address,uint256)"
+      const options = {}
+      let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+      let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+        .catch((e) => {
+
+          this.setState({
+            ModalTitulo: "Error",
+            ModalBody: e.toString()
+          })
+
+          window.$("#mensaje-brst").modal("show");
+        })
+      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+        .then(() => {
+          this.setState({
+            ModalTitulo: <>Result</>,
+            ModalBody: <>BRST Aproval is Done {transaction.txid}</>
+          })
+
+          window.$("#mensaje-brst").modal("show");
+        })
+
+
+
+      //await this.props.contrato.BRST.approve(this.props.contrato.BRST_TRX_Proxy.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+
+
       aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
     }
 
