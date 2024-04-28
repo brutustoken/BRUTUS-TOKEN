@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 
-import TronWeb from "tronweb";
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
+import TronWeb from "tronweb";
 
 import abi_PROXY from "./abi/Proxy";
 import abi_POOLBRST from "./abi/PoolBRSTv4";
@@ -44,9 +44,14 @@ if (lenguaje !== lgSelector) {
   i18next.changeLanguage(lgSelector);
 }
 
+let ranNum = Math.floor((Math.random() * (process.env.REACT_APP_LIST_API_KEY).split(",").length));
+
+
 const tronWeb = new TronWeb({
-  fullHost: cons.RED
+  fullHost: cons.RED,
+  headers: { "TRON-PRO-API-KEY": (process.env.REACT_APP_LIST_API_KEY).split(",")[ranNum] }
 })
+
 
 const adapter = new TronLinkAdapter();
 
@@ -87,7 +92,8 @@ class App extends Component {
         BRST_TRX: null,
         BRST_TRX_Proxy: null
 
-      }
+      },
+      web3Contracts: tronWeb,
     };
 
     this.conectar = this.conectar.bind(this);
@@ -162,10 +168,11 @@ class App extends Component {
     let web3Contracts = tronWeb;
 
 
-    if (typeof window.tronLink !== 'undefined') {
+    if (typeof window.tronWeb !== 'undefined') {
+
+      //adapter.connect()
 
       tronlink['installed'] = true;
-      web3Contracts = window.tronLink.tronWeb;
 
 
       if (window.tronLink.ready) {
@@ -189,8 +196,6 @@ class App extends Component {
         } else {
           wallet = adressDefault;
           tronlink['loggedIn'] = false;
-          web3Contracts = tronWeb;
-          web3Contracts.setAddress(wallet)
 
         }
 
@@ -200,25 +205,27 @@ class App extends Component {
     } else {
       //console.log("Please install Tronlink to use this Dapp")
 
-      web3Contracts.setAddress(adressDefault)
 
       tronlink['installed'] = false;
       tronlink['loggedIn'] = false;
 
     }
 
+    web3Contracts.setAddress(wallet)
+
+
     if (tronlink['loggedIn']) {
 
       document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/' + wallet + '" className="logibtn gradient-btn">' + wallet + '</a>';
     } else {
       document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer">Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
-      document.getElementById("conectTL").onclick = () => { conectDirect() }
+      document.getElementById("conectTL").onclick = () => { this.conectar(true); }
     }
 
     this.setState({
       accountAddress: wallet,
       tronlink: tronlink,
-      tronWeb: web3Contracts
+      web3Contracts: web3Contracts,
 
     });
 
@@ -230,15 +237,16 @@ class App extends Component {
   }
 
   async loadContracts() {
+    let tronlink = this.state.tronlink;
 
     let web3Contracts = tronWeb;
-    let tronlink = this.state.tronlink;
 
     //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
 
-    let ranNum = Math.floor((Math.random() * cons.KEYS.length));
+    //web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
+    console.log("here 1")
     web3Contracts.setAddress(this.state.accountAddress)
-    web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
+    console.log("here 2")
 
     let contrato = {};
 

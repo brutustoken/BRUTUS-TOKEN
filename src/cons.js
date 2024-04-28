@@ -7,7 +7,7 @@ const market_brut = proxy + process.env.REACT_APP_API_URL + "api/v1/consulta/mar
 
 const apiProviders = proxy + "https://api-providers.brutusservices.com/main/"
 
-var RED = "https://api.trongrid.io";// shasta1. para inhabilitar red de pruebas
+var RED = "https://api.trongrid.io";// shasta para habilitar red de pruebas
 
 var SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
 var SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking  BRST/TRX

@@ -198,19 +198,12 @@ export default class Staking extends Component {
   async estado() {
 
     //await this.props.contrato.Proxy.upgradeTo("TCnyY3h6bBzAJ3QZhbkemu72to5QUR911M").send();
-
     //await this.props.contrato.BRST_TRX_Proxy.inicializar().send();
-
     //await this.props.contrato.BRST_TRX_Proxy.setWalletSR("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").send();
-
     //await this.props.contrato.BRST_TRX_Proxy.gananciaDirecta("796586090000").send();
-
     //await this.props.contrato.BRST_TRX_Proxy.newOwnerBRTS("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
-
     //await this.props.contrato.BRST_TRX_Proxy.ChangeToken("TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq").send()
-
     //await this.props.contrato.BRST_TRX_Proxy.setWhiteList("TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR").send();
-
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
 
     this.consultaPrecio();
@@ -242,8 +235,8 @@ export default class Staking extends Component {
     })
 
     //var balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
-    var balance = await this.props.tronWeb.trx.getUnconfirmedBalance() / 10 ** 6;
-    var cuenta = await this.props.tronWeb.trx.getAccountResources();
+    var balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
+    var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
 
     var contractEnergy = 0
 
@@ -351,7 +344,7 @@ export default class Staking extends Component {
 
     var diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
 
-    var adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY", "TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf", "TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
+    let adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY", "TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf", "TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
 
     for (let index = 0; index < deposits.length; index++) {
 
@@ -530,7 +523,40 @@ export default class Staking extends Component {
           <br /><br />
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
-              await this.props.contrato.BRST_TRX_Proxy.retirar(id).send();
+
+              let inputs = [
+                //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+                { type: 'uint256', value: id }
+              ]
+
+              let funcion = "retirar(uint256)"
+              const options = {}
+              let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+              let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+              transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+                .catch((e) => {
+
+                  this.setState({
+                    ModalTitulo: "Error",
+                    ModalBody: e.toString()
+                  })
+
+                  window.$("#mensaje-brst").modal("show");
+                })
+              transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+                .then(() => {
+                  this.setState({
+                    ModalTitulo: "Result",
+                    ModalBody: <>Retiro is Done {transaction.txid}
+                      <br /><br />
+                      <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
+                    </>
+                  })
+
+                  window.$("#mensaje-brst").modal("show");
+                })
+
+
 
             }
           }}>{textoModal[7]}</button>
@@ -550,7 +576,7 @@ export default class Staking extends Component {
       const options = {}
       let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
       let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-      transaction = await this.props.tronWeb.trx.sign(transaction)
+      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
         .catch((e) => {
 
           this.setState({
@@ -974,7 +1000,7 @@ export default class Staking extends Component {
         const options = { callValue: amount }
         let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
         let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-        transaction = await this.props.tronWeb.trx.sign(transaction)
+        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
           .catch((e) => {
 
             this.setState({
@@ -1238,7 +1264,7 @@ export default class Staking extends Component {
           const options = {}
           let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
           let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-          transaction = await this.props.tronWeb.trx.sign(transaction)
+          transaction = await window.tronLink.tronWeb.trx.sign(transaction)
             .catch((e) => {
 
               this.setState({
@@ -1273,7 +1299,7 @@ export default class Staking extends Component {
           const options = {}
           let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
           let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-          transaction = await this.props.tronWeb.trx.sign(transaction)
+          transaction = await window.tronLink.tronWeb.trx.sign(transaction)
             .catch((e) => {
 
               this.setState({
