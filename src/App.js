@@ -20,6 +20,8 @@ import PRO from "./components/PRO.js";
 import i18next from 'i18next';
 import lng from "./locales/langs.js"
 
+function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
+
 let lenguaje = navigator.language || navigator.userLanguage
 
 i18next.init({
@@ -55,15 +57,6 @@ const tronWeb = new TronWeb({
 
 const adapter = new TronLinkAdapter();
 
-function conectDirect() {
-  adapter.connect()
-    .then(() => {
-      console.log("conectado")
-      this.conectar()
-    })
-    .catch((e) => { console.log(e) })
-}
-
 const adressDefault = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
 
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
@@ -94,6 +87,7 @@ class App extends Component {
 
       },
       web3Contracts: tronWeb,
+      conexion: false,
     };
 
     this.conectar = this.conectar.bind(this);
@@ -148,8 +142,7 @@ class App extends Component {
         i18next.changeLanguage(lgSelector);
       }
 
-      if (!this.state.tronlink.loggedIn || !window.tronLink.ready) {
-        console.log("conectando...")
+      if (!this.state.conexion) {
         this.conectar();
       }
 
@@ -161,65 +154,41 @@ class App extends Component {
 
 
   async conectar(cambio) {
-
     let tronlink = this.state.tronlink;
     let wallet = adressDefault;
-
     let web3Contracts = tronWeb;
 
+    if (typeof window.tronWeb !== 'undefined' && !this.state.conexion) {
 
-    if (typeof window.tronWeb !== 'undefined') {
+      this.setState({ conexion: true })
 
-      //adapter.connect()
+      /*
+      adapter.connect()
+        .catch((e) => { console.log(e.toString()) })
+      */
 
       tronlink['installed'] = true;
+      tronlink['loggedIn'] = true;
 
-
-      if (window.tronLink.ready) {
-        try {
-          wallet = window.tronLink.tronWeb.defaultAddress.base58
-          tronlink['loggedIn'] = true;
-
-        } catch (error) { }
-
-      } else {
-
-        const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
-
-        if (res.code === 200) {
-          try {
-            wallet = window.tronLink.tronWeb.defaultAddress.base58
-            tronlink['loggedIn'] = true;
-
-          } catch (error) { }
-
-        } else {
-          wallet = adressDefault;
-          tronlink['loggedIn'] = false;
-
-        }
-
+      if (adapter.address) {
+        wallet = adapter.address
       }
-
-
-    } else {
-      //console.log("Please install Tronlink to use this Dapp")
-
-
-      tronlink['installed'] = false;
-      tronlink['loggedIn'] = false;
 
     }
 
     web3Contracts.setAddress(wallet)
 
+    if (wallet !== adressDefault) {
 
-    if (tronlink['loggedIn']) {
+      document.getElementById("login").innerHTML = '<button class="btn gradient-btn" title="logout" >' + wallet + '</button>';
+      //document.getElementById("conectTL").onclick = () => { adapter.disconnect(); }
 
-      document.getElementById("login").innerHTML = '<a href="https://tronscan.io/#/address/' + wallet + '" className="logibtn gradient-btn">' + wallet + '</a>';
+
+      //document.getElementById("login").innerHTML = '<div class="dropdown"><button class="btn  gradient-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + wallet + '</button><div class="dropdown-menu" aria-labelledby="dropdownMenuButton"><a href="https://tronscan.io/#/address/' + wallet + '" class="dropdown-item">View on TronScan</a><a class="dropdown-item" href="#">Log Out </a></div></div>'
+
     } else {
       document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer">Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
-      document.getElementById("conectTL").onclick = () => { this.conectar(true); }
+      document.getElementById("conectTL").onclick = async () => { await adapter.connect().catch((e) => { console.log(e.toString()) }); this.conectar(true); }
     }
 
     this.setState({
@@ -233,6 +202,9 @@ class App extends Component {
       this.loadContracts()
     }
 
+    this.setState({
+      conexion: false
+    })
 
   }
 
@@ -240,9 +212,6 @@ class App extends Component {
     let tronlink = this.state.tronlink;
 
     let web3Contracts = tronWeb;
-
-    //web3Contracts.setHeader({"TRON-PRO-API-KEY": 'your api key'});
-
     //web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
     web3Contracts.setAddress(this.state.accountAddress)
 
@@ -255,38 +224,61 @@ class App extends Component {
 
     if (cons.BRUT !== "" && (url === "" || url === "brut")) {
       contrato.BRUT = await web3Contracts.contract().at(cons.BRUT);
+      await delay(1)
     }
     if (cons.USDT !== "" && (url === "brut")) {
       contrato.USDT = await web3Contracts.contract().at(cons.USDT);
+      await delay(1)
+
     }
     if (cons.SC !== "" && (url === "brut")) {
       contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
+      await delay(1)
+
     }
 
     if (cons.SC2 !== "" && (url === "brst")) {
       contrato.BRST_TRX = await web3Contracts.contract().at(cons.SC2);
+      await delay(1)
+
     }
     if (cons.ProxySC2 !== "" && (url === "" || url === "brst")) {
       contrato.Proxy = await web3Contracts.contract(abi_PROXY, cons.ProxySC2);
+      await delay(1)
+
       contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST, cons.ProxySC2);
+      await delay(1)
+
     }
     if (cons.BRST !== "" && (url === "" || url === "brst")) {
       contrato.BRST = await web3Contracts.contract().at(cons.BRST);
+      await delay(1)
+
     }
 
     if (cons.BRGY !== "" && (url === "" || url === "brgy")) {
       contrato.BRGY = await web3Contracts.contract().at(cons.BRGY);
+      await delay(1)
+
     }
     if (cons.SC3 !== "" && (url === "brgy")) {
       contrato.MBOX = await web3Contracts.contract().at(cons.SC3);
+      await delay(1)
+
     }
 
     if (cons.BRLT !== "" && (url === "" || url === "brlt")) {
       contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
+      await delay(1)
+
     }
     if (cons.SC4 !== "" && (url === "brlt")) {
       contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, cons.SC4);
+      await delay(1)
+
       contrato.loteria = await web3Contracts.contract(abi_LOTERIA, cons.SC4);
+      await delay(1)
+
     }
 
     tronlink['contratosReady'] = true;
@@ -296,7 +288,9 @@ class App extends Component {
       contrato: contrato
     });
 
-
+    this.setState({
+      conexion: true
+    })
 
   }
 

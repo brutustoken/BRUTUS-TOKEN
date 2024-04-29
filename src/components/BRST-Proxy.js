@@ -127,8 +127,8 @@ export default class Staking extends Component {
       balanceTRX: 0,
       globDepositos: [],
       eenergy: 62000,
-      energyOn: false
-
+      energyOn: false,
+      conexion: false,
 
     };
 
@@ -197,281 +197,295 @@ export default class Staking extends Component {
 
   async estado() {
 
-    //await this.props.contrato.Proxy.upgradeTo("TCnyY3h6bBzAJ3QZhbkemu72to5QUR911M").send();
-    //await this.props.contrato.BRST_TRX_Proxy.inicializar().send();
-    //await this.props.contrato.BRST_TRX_Proxy.setWalletSR("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").send();
-    //await this.props.contrato.BRST_TRX_Proxy.gananciaDirecta("796586090000").send();
-    //await this.props.contrato.BRST_TRX_Proxy.newOwnerBRTS("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
-    //await this.props.contrato.BRST_TRX_Proxy.ChangeToken("TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq").send()
-    //await this.props.contrato.BRST_TRX_Proxy.setWhiteList("TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR").send();
-    //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
-
-    this.consultaPrecio();
-
-    //var pywhite = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
-    //console.log(pywhite.toNumber())
-
-    var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
-    precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
-
-    this.setState({
-      precioBrst: precio
-    });
-
-    if (iniciado === 0) {
-      this.grafico(1000, "day", 90);
-      iniciado++;
-    }
-
-
-    var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-      .then((result) => { return result.toNumber() / 1e6 })
-      .catch(() => { ; return 0 })
-
-    document.getElementById("hold").value = misBRST
-
-    this.setState({
-      misBRST: misBRST
-    })
-
-    //var balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
-    var balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
-    var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
-
-    var contractEnergy = 0
-
-    if (cuenta.EnergyLimit) {
-      contractEnergy = cuenta.EnergyLimit
-    }
-
-    if (cuenta.EnergyUsed) {
-      contractEnergy -= cuenta.EnergyUsed
-    }
-
-    var eenergy = {};
-
-    if (balance >= 1) {
-      let inputs = [
-        //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-        //{type: 'uint256', value: '1000000'}
-      ]
-
-      let funcion = "staking()"
-      const options = { callValue: '1000000' }
-      eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-        .catch(() => { return {} })
-    }
-
-    if (eenergy.energy_used) {
-      eenergy = eenergy.energy_used
-    } else {
-      eenergy = 65000
-    }
-
-    var useTrx = parseInt(contractEnergy / eenergy)
-    if (useTrx >= 1) {
-      useTrx = 1
-    } else {
-      useTrx = "20 ~ 40"
-    }
-
-
-    let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
-      .then(async (r) => (await r.json()).Data)
-      .catch((e) => { return false })
-
-    if (consulta) {
-      var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value)) * 100) / this.state.tiempoPromediado
-      this.setState({
-        promE7to1day: promE7to1day
-      })
-    }
-
-    let consultaData = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=360")
-      .then(async (r) => (await r.json()).Data)
-      .catch((e) => { return false })
-
-    if (consultaData) {
-
-      earnings = [];
-
-      let dias = [1, 15, 30, 90, 180, 360]
-
-      for (let index = 0; index < dias.length; index++) {
-        earnings.push({
-          dias: dias[index],
-          trx: (misBRST * this.state.precioBrst) - (misBRST * consultaData[dias[index] - 1].value),
-          diario: ((misBRST * this.state.precioBrst) - (misBRST * consultaData[dias[index] - 1].value)) / dias[index]
-        })
-
-      }
+    if (!this.state.conexion) {
 
       this.setState({
-        dataBRST: consultaData
+        conexion: true
       })
-    }
 
-    this.setState({
-      useTrx: useTrx,
-      contractEnergy: contractEnergy,
-      balanceTRX: balance,
-    })
+      this.consultaPrecio();
 
-    var MIN_DEPOSIT = await this.props.contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
+      var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
+      precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
 
-    MIN_DEPOSIT = parseInt(MIN_DEPOSIT._hex) / 10 ** 6;
+      this.setState({
+        precioBrst: precio
+      });
 
-    var aprovadoBRUT = await this.props.contrato.BRST.allowance(this.props.accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
-    aprovadoBRUT = parseInt(aprovadoBRUT._hex);
-
-    var balanceBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
-    balanceBRST = parseInt(balanceBRST._hex) / 10 ** 6;
-
-    var deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(this.props.accountAddress).call();
-    var myids = []
-
-    for (let index = 0; index < deposito.length; index++) {
-      myids.push(parseInt(deposito[index]._hex));
-
-    }
-
-    var deposits = await this.props.contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
-    deposits = deposits[0];
-
-    var globDepositos = [];
-
-    var tiempo = parseInt((await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
-
-    var diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
-
-    let adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY", "TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf", "TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
-
-    for (let index = 0; index < deposits.length; index++) {
-
-      let pen = await this.props.contrato.BRST_TRX_Proxy.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
-      pen = pen[0];
-      //console.log(pen)
-      let inicio = parseInt(pen.tiempo._hex) * 1000
-
-      let pv = new Date(inicio + tiempo)
-
-      let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
-
-      var boton = <></>
-      var boton2 = <><p className="mb-0 fs-14 text-white">{this.props.i18n.t("brst.unStaking", { days: 14 })}</p></>;
-
-      let cantidadTrx = new BigNumber(parseInt(pen.brst._hex)).times(parseInt(pen.precio._hex)).shiftedBy(-6)
-      let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
-      let isAdmin = false;
-      if (adminsBrst.indexOf(this.props.accountAddress) >= 0) {
-        isAdmin = true;
+      if (iniciado === 0) {
+        this.grafico(1000, "day", 90);
+        iniciado++;
       }
 
 
-      if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 17 && diasrestantes > 0) {
-        boton = (
-          <button className="btn btn-warning ms-4 mb-2 disabled" disabled aria-disabled="true" >
-            {this.props.i18n.t("claim") + " "} <i className="bi bi-exclamation-circle"></i>
-          </button>
-        )
+      var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
+        .then((result) => { return result.toNumber() / 1e6 })
+        .catch(() => { ; return 0 })
+
+      document.getElementById("hold").value = misBRST
+
+      this.setState({
+        misBRST: misBRST
+      })
+
+      //var balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
+      var balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
+      var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
+
+      await delay(1)
+      var contractEnergy = 0
+
+      if (cuenta.EnergyLimit) {
+        contractEnergy = cuenta.EnergyLimit
       }
 
-      if ((myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) || isOwner) {
-
-        //console.log(myids.indexOf(parseInt(deposits[index]._hex)))
-        boton = (
-          <button className="btn btn-primary ms-4 mb-2" onClick={async () => {
-            await this.preClaim(parseInt(deposits[index]._hex));
-            this.estado()
-          }}>
-            {this.props.i18n.t("claim") + " "} <i className="bi bi-award"></i>
-          </button>
-        )
+      if (cuenta.EnergyUsed) {
+        contractEnergy -= cuenta.EnergyUsed
       }
 
-      if (diasrestantes <= 0) {
-        diasrestantes = 0
+      var eenergy = {};
+
+      if (balance >= 1) {
+        let inputs = [
+          //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+          //{type: 'uint256', value: '1000000'}
+        ]
+
+        let funcion = "staking()"
+        const options = { callValue: '1000000' }
+        eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+          .catch(() => { return {} })
       }
 
-      if (myids.includes(parseInt(deposits[index]._hex)) || isOwner || isAdmin) {
-        globDepositos[index] = (
-
-          <div className="row mt-4 align-items-center" id={"sale-" + parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
-            <div className="col-sm-6 mb-3">
-              <p className="mb-0 fs-14">{this.props.i18n.t("brst.sale", { number: parseInt(deposits[index]._hex), days: diasrestantes, wallet: this.props.tronWeb.address.fromHex(pen.wallet) })}</p>
-              <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {cantidadTrx.shiftedBy(-6).dp(6).toString(10)} TRX</h4>
-              <p className="mb-0 fs-14">{this.props.i18n.t("brst.price", { price: (parseInt(pen.precio._hex) / 10 ** 6) })}</p>
-            </div>
-            <div className="col-sm-6 mb-1">
-
-              {boton2}
-              {boton}
-            </div>
-            <div className="col-12 mb-3">
-              <p className="mb-0 fs-14">{this.props.i18n.t("brst.avaliable")} {pv.toString()}</p>
-              <hr></hr>
-            </div>
-
-          </div>
-        )
-      }
-
-    }
-
-    var enBrutus = await this.props.contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
-    var enPool = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
-    var solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
-    var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
-
-    this.setState({
-      minCompra: MIN_DEPOSIT,
-      globDepositos: globDepositos,
-      depositoBRUT: aprovadoBRUT,
-      balanceBRST: balanceBRST,
-      balanceTRX: balance,
-      espera: tiempo,
-      enBrutus: enBrutus.toNumber() / 1e6,
-      tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
-      enPool: enPool.toNumber() / 1e6,
-      solicitado: solicitado.toNumber() / 1e6,
-      solicitudes: globDepositos.length,
-      dias: diasDeEspera,
-      eenergy: eenergy
-    });
-
-    if (parseInt(this.state.resultCalc) === 0) {
-      this.handleChangeCalc({ target: { value: misBRST } })
-    }
-
-    let energyOn = false;
-
-    try {
-
-      energyOn = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL)
-        .then((r) => r.json())
-
-      energyOn = energyOn.available
-
-      let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available")
-        .then((r) => r.json())
-
-      let energi = consulta.av_energy[0].available
-
-      if (energi < consulta.total_energy_pool * 0.01) {
-        energyOn = false;
+      if (eenergy.energy_used) {
+        eenergy = eenergy.energy_used
       } else {
-        energyOn = true;
+        eenergy = 65000
+      }
+
+      var useTrx = parseInt(contractEnergy / eenergy)
+      if (useTrx >= 1) {
+        useTrx = 1
+      } else {
+        useTrx = "20 ~ 40"
       }
 
 
-    } catch (error) {
-      console.log(error.toString())
+      let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
+        .then(async (r) => (await r.json()).Data)
+        .catch((e) => { return false })
+
+      if (consulta) {
+        var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value)) * 100) / this.state.tiempoPromediado
+        this.setState({
+          promE7to1day: promE7to1day
+        })
+      }
+
+      let consultaData = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=360")
+        .then(async (r) => (await r.json()).Data)
+        .catch((e) => { return false })
+
+      if (consultaData) {
+
+        earnings = [];
+
+        let dias = [1, 15, 30, 90, 180, 360]
+
+        for (let index = 0; index < dias.length; index++) {
+          earnings.push({
+            dias: dias[index],
+            trx: (misBRST * this.state.precioBrst) - (misBRST * consultaData[dias[index] - 1].value),
+            diario: ((misBRST * this.state.precioBrst) - (misBRST * consultaData[dias[index] - 1].value)) / dias[index]
+          })
+
+        }
+
+        this.setState({
+          dataBRST: consultaData
+        })
+      }
+
+      this.setState({
+        useTrx: useTrx,
+        contractEnergy: contractEnergy,
+        balanceTRX: balance,
+      })
+
+      var MIN_DEPOSIT = await this.props.contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
+
+      MIN_DEPOSIT = parseInt(MIN_DEPOSIT._hex) / 10 ** 6;
+
+      var aprovadoBRUT = await this.props.contrato.BRST.allowance(this.props.accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+      aprovadoBRUT = parseInt(aprovadoBRUT._hex);
+
+      await delay(1)
+
+      var balanceBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
+      balanceBRST = parseInt(balanceBRST._hex) / 10 ** 6;
+
+      var deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(this.props.accountAddress).call();
+      var myids = []
+
+      for (let index = 0; index < deposito.length; index++) {
+        myids.push(parseInt(deposito[index]._hex));
+
+      }
+
+      var deposits = await this.props.contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
+      deposits = deposits[0];
+
+      var globDepositos = [];
+
+      var tiempo = parseInt((await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
+
+      var diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
+
+      let adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY", "TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf", "TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
+
+      this.setState({
+        minCompra: MIN_DEPOSIT,
+        depositoBRUT: aprovadoBRUT,
+        balanceBRST: balanceBRST,
+        balanceTRX: balance,
+        espera: tiempo,
+        solicitudes: globDepositos.length,
+        dias: diasDeEspera,
+        eenergy: eenergy,
+      })
+
+      await delay(1)
+
+      for (let index = 0; index < deposits.length; index++) {
+
+        let pen = await this.props.contrato.BRST_TRX_Proxy.verSolicitudPendiente(parseInt(deposits[index]._hex)).call();
+        pen = pen[0];
+        //console.log(pen)
+        let inicio = parseInt(pen.tiempo._hex) * 1000
+
+        let pv = new Date(inicio + tiempo)
+
+        let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
+
+        var boton = <></>
+        var boton2 = <><p className="mb-0 fs-14 text-white">{this.props.i18n.t("brst.unStaking", { days: 14 })}</p></>;
+
+        let cantidadTrx = new BigNumber(parseInt(pen.brst._hex)).times(parseInt(pen.precio._hex)).shiftedBy(-6)
+        let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
+        let isAdmin = false;
+        if (adminsBrst.indexOf(this.props.accountAddress) >= 0) {
+          isAdmin = true;
+        }
+
+
+        if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 17 && diasrestantes > 0) {
+          boton = (
+            <button className="btn btn-warning ms-4 mb-2 disabled" disabled aria-disabled="true" >
+              {this.props.i18n.t("claim") + " "} <i className="bi bi-exclamation-circle"></i>
+            </button>
+          )
+        }
+
+        if ((myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) || isOwner) {
+
+          //console.log(myids.indexOf(parseInt(deposits[index]._hex)))
+          boton = (
+            <button className="btn btn-primary ms-4 mb-2" onClick={async () => {
+              await this.preClaim(parseInt(deposits[index]._hex));
+              this.estado()
+            }}>
+              {this.props.i18n.t("claim") + " "} <i className="bi bi-award"></i>
+            </button>
+          )
+        }
+
+        if (diasrestantes <= 0) {
+          diasrestantes = 0
+        }
+
+        if (myids.includes(parseInt(deposits[index]._hex)) || isOwner || isAdmin) {
+          globDepositos[index] = (
+
+            <div className="row mt-4 align-items-center" id={"sale-" + parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
+              <div className="col-sm-6 mb-3">
+                <p className="mb-0 fs-14">{this.props.i18n.t("brst.sale", { number: parseInt(deposits[index]._hex), days: diasrestantes, wallet: this.props.tronWeb.address.fromHex(pen.wallet) })}</p>
+                <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {cantidadTrx.shiftedBy(-6).dp(6).toString(10)} TRX</h4>
+                <p className="mb-0 fs-14">{this.props.i18n.t("brst.price", { price: (parseInt(pen.precio._hex) / 10 ** 6) })}</p>
+              </div>
+              <div className="col-sm-6 mb-1">
+
+                {boton2}
+                {boton}
+              </div>
+              <div className="col-12 mb-3">
+                <p className="mb-0 fs-14">{this.props.i18n.t("brst.avaliable")} {pv.toString()}</p>
+                <hr></hr>
+              </div>
+
+            </div>
+          )
+        }
+      }
+
+      this.setState({
+        globDepositos: globDepositos,
+
+      })
+
+      await delay(1)
+
+      var enBrutus = await this.props.contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
+      var enPool = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
+      var solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
+      var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
+
+      this.setState({
+
+        enBrutus: enBrutus.toNumber() / 1e6,
+        enPool: enPool.toNumber() / 1e6,
+        solicitado: solicitado.toNumber() / 1e6,
+        tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
+
+      });
+
+      if (parseInt(this.state.resultCalc) === 0) {
+        this.handleChangeCalc({ target: { value: misBRST } })
+      }
+
+      let energyOn = false;
+
+      try {
+
+        energyOn = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL)
+          .then((r) => r.json())
+
+        energyOn = energyOn.available
+
+        let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available")
+          .then((r) => r.json())
+
+        let energi = consulta.av_energy[0].available
+
+        if (energi < consulta.total_energy_pool * 0.01) {
+          energyOn = false;
+        } else {
+          energyOn = true;
+        }
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+      this.setState({
+        energyOn: energyOn
+      })
+
+      this.setState({
+        conexion: false
+      })
+
     }
-
-    this.setState({
-      energyOn: energyOn
-    })
-
   }
 
   async preClaim(id) {
