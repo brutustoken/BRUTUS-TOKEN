@@ -780,27 +780,6 @@ export default class Staking extends Component {
     })
 
     window.$("#mensaje-brst").modal("show");
-    /*
-        var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio))
-          .catch((e) => {
-            console.log(e)
-            return ["e", e];
-          })
-    
-        if (hash[0] === "e") {
-          this.setState({
-            ModalTitulo: this.props.i18n.t("brst.alert.tfail", { returnObjects: true })[0],
-            ModalBody: <>{hash[1].toString()}
-              <br /><br />
-              <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
-            </>
-          })
-    
-    
-          window.$("#mensaje-brst").modal("show");
-          return false;
-        }
-    */
 
     const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio), this.props.accountAddress);
     // using adapter to sign the transaction

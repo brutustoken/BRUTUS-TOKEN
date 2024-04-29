@@ -206,12 +206,6 @@ export default class EnergyRental extends Component {
   }
 
   async calcularRecurso(amount, time) {
-    /*
-        let transaction = await this.props.tronWeb.transactionBuilder.sendTrx("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA", "1000", this.props.accountAddress);
-        transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(transaction, 180);
-        transaction = await this.props.tronWeb.trx.sign(transaction)
-        console.log(transaction)
-    */
 
     this.recursos();
 
@@ -281,8 +275,6 @@ export default class EnergyRental extends Component {
         body: JSON.stringify(body)
       }).then((r) => r.json())
 
-      //console.log(consulta2)
-
       var precio = consulta2.price * 1
       precio = parseInt(precio * 10 ** 6) / 10 ** 6
 
@@ -302,11 +294,7 @@ export default class EnergyRental extends Component {
 
   async preCompra() {
 
-    console.log(new BigNumber(await this.props.tronWeb.trx.getBalance()).shiftedBy(-6).toNumber())
-    console.log(parseFloat(this.state.precio))
-
-
-    if (parseFloat(this.state.precio) > new BigNumber(await this.props.tronWeb.trx.getBalance()).shiftedBy(-6).toNumber()) {
+    if (parseFloat(this.state.precio) > new BigNumber(await this.props.tronWeb.trx.getBalance(this.props.accountAddress)).shiftedBy(-6).toNumber()) {
       this.setState({
         titulo: this.props.i18n.t("ebot.alert.noFounds", { returnObjects: true })[0],
         body: (<span>{this.props.i18n.t("ebot.alert.noFounds", { returnObjects: true })[1]}
@@ -386,32 +374,25 @@ export default class EnergyRental extends Component {
 
     window.$("#mensaje-ebot").modal("show");
 
-    /*
-      let transaction = await this.props.tronWeb.transactionBuilder.sendTrx("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA", "1000", this.props.accountAddress);
-      transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(transaction, 180);
-      transaction = await this.props.tronWeb.trx.sign(transaction)
-      console.log(transaction)
-      //transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
-    */
-
-    var hash = await this.props.tronWeb.trx.sendTransaction(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(this.state.precio))
+    const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(this.state.precio), this.props.accountAddress);
+    // using adapter to sign the transaction
+    const signedTransaction = await window.tronWeb.trx.sign(unSignedTransaction)
       .catch((e) => {
-        console.log(e)
-        return ["e", e];
-      })
+        this.setState({
+          ModalTitulo: "Transaction failed",
+          ModalBody: <>{e.toString()}
+            <br /><br />
+            <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
+          </>
+        })
 
-    if (hash[0] === "e") {
-      this.setState({
-        titulo: "Transaction failed",
-        body: <>{hash[1].toString()}
-          <br /><br />
-          <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Close</button>
-        </>
+        window.$("#mensaje-brst").modal("show");
+        return false;
       })
+    // broadcast the transaction
 
-      window.$("#mensaje-ebot").modal("show");
-      return;
-    }
+    if (!signedTransaction) { return false; }
+    let hash = await this.props.tronWeb.trx.sendRawTransaction(signedTransaction)
 
     this.setState({
       titulo: <>Waiting for the blockchain {imgLoading}</>,
