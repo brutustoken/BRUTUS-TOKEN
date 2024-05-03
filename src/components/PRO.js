@@ -883,7 +883,7 @@ export default class ProviderPanel extends Component {
 
         campoFreeze = <div className="container mt-1">
           <div className="row mt-1">
-            <div className="col-12">Waller of SR to vote (default: Brutus)</div>
+            <div className="col-12">Wallet of SR to vote (default: Brutus)</div>
             <div className="col-11">
               <input type="text" className="form-control" id="voteSR" style={{ borderColor: "#c3c3c3" }} placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} />
             </div>
