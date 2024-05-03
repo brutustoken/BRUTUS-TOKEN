@@ -243,6 +243,7 @@ export default class ProviderPanel extends Component {
       this.root.dispose();
     }
     const root = am5.Root.new("chartdiv");
+    root._logo.dispose();
     let chart = root.container.children.push(
       am5xy.XYChart.new(root, {
         panY: false,
@@ -880,10 +881,11 @@ export default class ProviderPanel extends Component {
 
       if (this.state.autofreeze !== "Off") {
 
-        campoFreeze = <div className="container">
-          <div className="row">
+        campoFreeze = <div className="container mt-1">
+          <div className="row mt-1">
+            <div className="col-12">Waller of SR to vote (default: Brutus)</div>
             <div className="col-11">
-              <input type="text" className="form-control" id="voteSR" placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} />
+              <input type="text" className="form-control" id="voteSR" style={{ borderColor: "#c3c3c3" }} placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} />
             </div>
             <div className="col-1">
               <i className="bi bi-question-circle-fill" title="You can set by which super representative wallet the automatic votes will be made" onClick={() => {

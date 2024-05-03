@@ -1454,7 +1454,7 @@ export default class Staking extends Component {
     }
 
     const root = am5.Root.new("chartdiv");
-
+    root._logo.dispose();
     root.setThemes([
       am5themes_Animated.new(root)
     ]);
