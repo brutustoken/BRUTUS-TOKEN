@@ -199,7 +199,7 @@ export default class nfts extends Component {
     const options = { callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10), feelimit: feelimit }
     let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.loteria.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
     let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-    transaction = await this.props.tronWeb.trx.sign(transaction)
+    transaction = await window.tronLink.tronWeb.trx.sign(transaction)
       .catch((e) => {
 
         this.setState({

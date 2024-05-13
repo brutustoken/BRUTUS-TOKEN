@@ -23,6 +23,7 @@ export default class ProviderPanel extends Component {
       sellband: false,
       bandover: "0",
       burn: false,
+      noti: false,
       autofreeze: "off",
       paymenthour: "Loading...",
       maxdays: "Loading...",
@@ -44,7 +45,9 @@ export default class ProviderPanel extends Component {
       alturaGrafico: "0px",
       tiempo: "",
       payment: "0",
-      completed: []
+      completed: [],
+      totalPayed30: "Loading...",
+      allPayed: "Loading..."
 
     };
 
@@ -226,6 +229,47 @@ export default class ProviderPanel extends Component {
         this.setState({
           newVoteSR: elemento.value
         })
+
+        break;
+
+      case "noti":
+
+        if (elemento.value !== this.state.noti) {
+          //alert("diferentes: " + this.state.noti) //hace cambio
+
+          let activate = "1"
+          if (this.state.rent) {
+            activate = "0"
+          }
+          // activar renta
+
+
+          try {
+            let body = { wallet: this.props.accountAddress, allow_notifications: activate }
+            fetch(cons.apiProviders + "set/allow_notifications", {
+              method: "POST",
+              headers: {
+                'token-api': process.env.REACT_APP_TOKEN,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            })
+
+
+          } catch (error) {
+            console.log(error.toString())
+          }
+
+          let value = false
+          if (elemento.value === "true") {
+            value = true
+          }
+
+          this.setState({
+            noti: value
+          })
+        }
+
 
         break;
 
@@ -528,7 +572,7 @@ export default class ProviderPanel extends Component {
         providerBand -= cuenta.NetUsed
       }
 
-      //console.log(info)
+      console.log(info)
 
       this.setState({
         rent: info.activo,
@@ -536,6 +580,7 @@ export default class ProviderPanel extends Component {
         sellband: info.sellband,
         bandover: info.bandover,
         burn: info.burn,
+        noti: false,
         autofreeze: info.freez,
         payhour: info.payhour,
         payment: info.payment,
@@ -580,23 +625,63 @@ export default class ProviderPanel extends Component {
         console.log(error.toString())
       }
 
+
+
+      let allPayed = 0
+
+      try {
+
+        allPayed = await fetch(url + "acum_payments", {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ wallet: this.props.accountAddress })
+
+        }
+        )
+          .then((r) => {
+            return r.json();
+          })
+          .then((r) => {
+            return r.data;
+          })
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+
+
+      allPayed = (new BigNumber(allPayed).dp(3).toNumber()).toLocaleString('en-US')
+
+      this.setState({ allPayed: allPayed })
+
       let dataHistoric = []
+      let totalPayed30 = new BigNumber(0)
 
       historic = historic.toReversed().map((item, index) => {
 
         dataHistoric.unshift({ date: new Date(item.date * 1000), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
 
+        totalPayed30 = totalPayed30.plus(item.amount)
         return (
-          <div key={index}>
-            {moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")} {"->"} {(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')} {item.coin}
-          </div>
+          <tr key={index}>
+            <td>{moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")}</td>
+            <td>{(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')}
+            </td>
+            <td>{item.coin}</td>
+          </tr>
         )
       })
 
 
       this.setState({
         historic: historic,
-        dataHistoric: dataHistoric
+        dataHistoric: dataHistoric,
+        totalPayed30: (totalPayed30.shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US') + " TRX"
       })
 
       let ongoins = []
@@ -922,11 +1007,7 @@ export default class ProviderPanel extends Component {
 
       }
 
-      let historial = this.state.historic;
 
-      if (this.state.alturaGrafico !== "0px") {
-        historial = <></>
-      }
 
       return (<>
 
@@ -974,7 +1055,7 @@ export default class ProviderPanel extends Component {
 
 
 
-                          <div className="col-lg-3 col-sm-6 form-check form-switch">
+                          <div className="col-lg-4 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} />
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
 
@@ -986,13 +1067,25 @@ export default class ProviderPanel extends Component {
                               window.$("#alert").modal("show");
                             }}></i></label>
                           </div>
-                          <div className="col-lg-3 col-sm-6 form-check form-switch">
+                          <div className="col-lg-4 col-sm-6 form-check form-switch">
                             <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} />
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
                                 ModalBody: "Allow TRX burn to accept new orders when you run out of bandwidth"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
+                          </div>
+                          <div className="col-lg-4 col-sm-6 form-check form-switch">
+                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onChange={this.handleChange} />
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notifications <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Pause/Resume notifications from the telegram bot"
                               })
 
                               window.$("#alert").modal("show");
@@ -1086,11 +1179,20 @@ export default class ProviderPanel extends Component {
                     </div>
                     <div className="card-body text-center pt-3">
                       <div className="mt-1">Hour {this.state.payhour} GMT</div>
+                      <hr></hr>
                       <div className="count-num mt-1">{(this.state.payment).toLocaleString("en-US")} TRX</div>
-                      <div className="mt-1">that will be paid here <u>{this.state.payhere}</u></div>
-                      <div className="mb-3" id="chartdiv" style={{ height: this.state.alturaGrafico, backgroundColor: "white" }}></div>
-                      <button className="btn btn-success" onClick={() => { if (this.state.alturaGrafico === "0px") { this.setState({ alturaGrafico: "400px" }); this.grafico(this.state.dataHistoric) } else { this.setState({ alturaGrafico: "0px" }); this.root.dispose(); } }}>Graphic (Open / Close)</button>
-                      {historial}
+                      <hr></hr>
+
+                      <div className="mt-1">that will be paid here: <u>{this.state.payhere}</u></div>
+
+                      <hr></hr>
+
+                      <div className="mt-1">Total erned all time:<br>
+                      </br><b>{this.state.allPayed} TRX</b> </div>
+
+
+
+
 
                     </div>
                   </div>
@@ -1099,6 +1201,40 @@ export default class ProviderPanel extends Component {
             </div>
             <div className="col-xl-12">
               <div className="row">
+                <div className="col-12">
+                  <div className="card">
+                    <div className="card-header">
+                      <h4 className="card-title">last {this.state.historic.length} payments = {this.state.totalPayed30}</h4>
+                    </div>
+                    <div className="card-body">
+                      <div className="row">
+                        <div className="col-lg-8 col-sm-12">
+                          <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
+                            <table className="table verticle-middle table-responsive-md " >
+                              <thead>
+                                <tr>
+                                  <th scope="col">Date</th>
+                                  <th scope="col">Amount</th>
+                                  <th scope="col">Coin</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {this.state.historic}
+
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                        <div className="col-lg-4 col-sm-12">
+                          <div className="mb-3" id="chartdiv" style={{ height: this.state.alturaGrafico, backgroundColor: "white" }}></div>
+                          <button className="btn btn-success" onClick={() => { if (this.state.alturaGrafico === "0px") { this.setState({ alturaGrafico: "350px" }); this.grafico(this.state.dataHistoric) } else { this.setState({ alturaGrafico: "0px" }); this.root.dispose(); } }}>Graphic (Open / Close)</button>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+
                 <div className="col-12">
                   <div className="card">
                     <div className="card-header">
