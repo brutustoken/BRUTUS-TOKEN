@@ -572,7 +572,14 @@ export default class ProviderPanel extends Component {
         providerBand -= cuenta.NetUsed
       }
 
-      console.log(info)
+      if (info.allow_notifications === 1) {
+        info.allow_notifications = true
+      } else {
+        info.allow_notifications = false
+
+      }
+
+      //console.log(info)
 
       this.setState({
         rent: info.activo,
@@ -580,7 +587,7 @@ export default class ProviderPanel extends Component {
         sellband: info.sellband,
         bandover: info.bandover,
         burn: info.burn,
-        noti: false,
+        noti: info.allow_notifications,
         autofreeze: info.freez,
         payhour: info.payhour,
         payment: info.payment,
