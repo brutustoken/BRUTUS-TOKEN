@@ -238,7 +238,7 @@ export default class ProviderPanel extends Component {
           //alert("diferentes: " + this.state.noti) //hace cambio
 
           let activate = "1"
-          if (this.state.rent) {
+          if (this.state.noti) {
             activate = "0"
           }
           // activar renta
@@ -517,6 +517,9 @@ export default class ProviderPanel extends Component {
         console.log(error.toString())
       }
 
+      console.log(info)
+
+
       let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
 
       if (naranja >= 0) {
@@ -579,7 +582,7 @@ export default class ProviderPanel extends Component {
 
       }
 
-      //console.log(info)
+      console.log(info)
 
       this.setState({
         rent: info.activo,
