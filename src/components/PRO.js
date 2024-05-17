@@ -517,9 +517,6 @@ export default class ProviderPanel extends Component {
         console.log(error.toString())
       }
 
-      console.log(info)
-
-
       let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
 
       if (naranja >= 0) {
@@ -581,8 +578,6 @@ export default class ProviderPanel extends Component {
         info.allow_notifications = false
 
       }
-
-      console.log(info)
 
       this.setState({
         rent: info.activo,
@@ -1197,7 +1192,7 @@ export default class ProviderPanel extends Component {
 
                       <hr></hr>
 
-                      <div className="mt-1">Total erned all time:<br>
+                      <div className="mt-1">Total earned all time:<br>
                       </br><b>{this.state.allPayed} TRX</b> </div>
 
 
