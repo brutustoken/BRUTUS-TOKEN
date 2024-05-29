@@ -165,11 +165,13 @@ export default class Staking extends Component {
   }
 
   componentDidMount() {
+
     document.title = "B.F | BRST"
     document.getElementById("tittle").innerText = this.props.i18n.t("brst.tittle")
 
     setTimeout(() => {
       this.estado();
+
     }, 4 * 1000);
 
     setInterval(() => {
@@ -439,6 +441,24 @@ export default class Staking extends Component {
       var solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
       var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
 
+      /*
+      let inputs = [
+        //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+        { type: 'uint256', value: 5000 * 10 ** 6 }
+      ]
+
+      let funcion = "setTRON_RR(uint256)"
+      const options = {}
+      let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+      let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+
+      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+
+      console.log(transaction)
+      */
+
+
       this.setState({
 
         enBrutus: enBrutus.toNumber() / 1e6,
@@ -486,6 +506,8 @@ export default class Staking extends Component {
       })
 
     }
+
+
   }
 
   async preClaim(id) {
