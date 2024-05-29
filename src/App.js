@@ -71,6 +71,7 @@ class App extends Component {
         installed: false,
         loggedIn: false,
         contratosReady: false,
+        adapter: {}
       },
       tronWeb: tronWeb,
       contrato: {
@@ -88,6 +89,7 @@ class App extends Component {
       },
       web3Contracts: tronWeb,
       conexion: false,
+      walletConect: "Conect Wallet"
     };
 
     this.conectar = this.conectar.bind(this);
@@ -98,17 +100,20 @@ class App extends Component {
 
   async componentDidMount() {
 
+    document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + this.state.walletConect + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+    document.getElementById("conectTL").onclick = () => { this.conectar(true); }
+
     this.intervalo(3);
-    await this.conectar();
+
+    setTimeout(() => {
+      this.conectar(false);
+    }, 3 * 1000)
 
     window.addEventListener('message', (e) => {
-      if (e.data.message && e.data.message.action) {
-        //console.log(e.data.message.action)
-      }
 
       if (e.data.message && (e.data.message.action === "accountsChanged" || e.data.message.action === "setAccount")) {
         if (e.data.message.data.address) {
-          this.conectar(true);
+          //this.conectar(true);
         }
       }
     })
@@ -143,7 +148,7 @@ class App extends Component {
       }
 
       if (!this.state.conexion) {
-        this.conectar();
+        //this.conectar();
       }
 
     }, s * 1000);
@@ -158,20 +163,26 @@ class App extends Component {
     let wallet = adressDefault;
     let web3Contracts = tronWeb;
 
-    if (typeof window.tronWeb !== 'undefined' && !this.state.conexion) {
+
+    if (!this.state.conexion && cambio) {
 
       this.setState({ conexion: true })
 
-      /*
-      adapter.connect()
-        .catch((e) => { console.log(e.toString()) })
-      */
+      await adapter.connect()
+        .catch((e) => {
+          console.log(e.toString())
+          alert(e.toString())
 
-      tronlink['installed'] = true;
-      tronlink['loggedIn'] = true;
+          //this.setState({ walletConect: e.toString() })
+        })
+
+      console.log(adapter)
 
       if (adapter.address) {
         wallet = adapter.address
+        tronlink['installed'] = true;
+        tronlink['loggedIn'] = true;
+        tronlink['adapter'] = adapter;
       }
 
     }
@@ -179,16 +190,16 @@ class App extends Component {
     web3Contracts.setAddress(wallet)
 
     if (wallet !== adressDefault) {
+      console.log(wallet.length)
 
-      document.getElementById("login").innerHTML = '<button class="btn gradient-btn" title="logout" >' + wallet + '</button>';
-      //document.getElementById("conectTL").onclick = () => { adapter.disconnect(); }
+      let vierWallet = wallet.substring(0, 6) + "..." + wallet.substring(wallet.length - 6, wallet.length)
 
-
+      document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + wallet + '" >' + vierWallet + '</span>';
       //document.getElementById("login").innerHTML = '<div class="dropdown"><button class="btn  gradient-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + wallet + '</button><div class="dropdown-menu" aria-labelledby="dropdownMenuButton"><a href="https://tronscan.io/#/address/' + wallet + '" class="dropdown-item">View on TronScan</a><a class="dropdown-item" href="#">Log Out </a></div></div>'
 
     } else {
-      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer">Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
-      document.getElementById("conectTL").onclick = async () => { await adapter.connect().catch((e) => { console.log(e.toString()) }); this.conectar(true); }
+      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + this.state.walletConect + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+      document.getElementById("conectTL").onclick = () => { this.conectar(true); }
     }
 
     this.setState({
@@ -335,7 +346,7 @@ class App extends Component {
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
       case "pro":
-        return <PRO accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
+        return <PRO accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} tronlink={this.state.tronlink} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
       case "brlt":
         return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />

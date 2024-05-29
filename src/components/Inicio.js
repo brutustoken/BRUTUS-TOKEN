@@ -33,14 +33,12 @@ export default class Inicio extends Component {
 	componentDidMount() {
 		document.getElementById("tittle").innerText = this.props.i18n.t("inicio.tittle")
 		setTimeout(() => {
-			this.consultaPrecios();
 			this.estado();
 
 		}, 4 * 1000);
 
 
 		setInterval(() => {
-			this.consultaPrecios();
 			this.estado();
 		}, 120 * 1000);
 
@@ -48,7 +46,6 @@ export default class Inicio extends Component {
 
 			if (e.data.message && e.data.message.action === "accountsChanged") {
 				if (e.data.message.data.address) {
-					this.consultaPrecios();
 					this.estado();
 				}
 			}
@@ -120,8 +117,8 @@ export default class Inicio extends Component {
 
 	}
 
-	consultaPrecios() {
-		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brut')
+	async consultaPrecios() {
+		await fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brut')
 			.then(response => { return response.json(); })
 			.then(data => {
 
@@ -135,7 +132,7 @@ export default class Inicio extends Component {
 
 			});
 
-		fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
+		await fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
 			.then(async (r) => (await r.json()).Data)
 			.then((r) => {
 
@@ -152,6 +149,8 @@ export default class Inicio extends Component {
 	}
 
 	async estado() {
+
+		await this.consultaPrecios();
 
 		//console.log(this.props.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
 		var precioBrst = await this.props.contrato.BRST_TRX_Proxy.RATE().call();

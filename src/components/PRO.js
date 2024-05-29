@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import Cookies from 'universal-cookie';
+
 import cons from "../cons.js";
 import TronWeb from "tronweb";
 
@@ -9,6 +11,8 @@ var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
 
 //function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
+
+const cookies = new Cookies(null, { path: '/' });
 
 export default class ProviderPanel extends Component {
 
@@ -62,6 +66,7 @@ export default class ProviderPanel extends Component {
 
   }
 
+
   componentDidMount() {
     document.title = "B.F | Provider Panel"
     document.getElementById("tittle").innerText = this.props.i18n.t("Provider Panel")
@@ -70,9 +75,6 @@ export default class ProviderPanel extends Component {
       this.estado()
     }, 3 * 1000)
 
-    setInterval(() => {
-      this.estado()
-    }, 10 * 1000)
 
   }
 
@@ -208,7 +210,7 @@ export default class ProviderPanel extends Component {
             console.log(error.toString())
           }
 
-          console.log(elemento.value)
+          //console.log(elemento.value)
 
           let value = false
           if (elemento.value === "true") {
@@ -472,8 +474,6 @@ export default class ProviderPanel extends Component {
 
   async estado() {
 
-
-
     this.setState({
       tiempo: moment.tz.guess(true)
     })
@@ -493,387 +493,407 @@ export default class ProviderPanel extends Component {
       console.log(error.toString())
     }
 
-
-    if (provider.result) {
-
-      this.setState({
-        provider: true,
-      })
-
-      let info = {}
-
-      try {
-
-        info = await fetch(url + "status?wallet=" + this.props.accountAddress)
-          .then((r) => {
-            return r.json();
-          })
-          .then((r) => {
-            return r.data;
-          })
+    //firmar mensaje brutus.finance->
 
 
-      } catch (error) {
-        console.log(error.toString())
+    //console.log(this.props.tronlink.adapter)
+
+    if (provider.result && this.props.tronlink.adapter.connected) {
+
+      //cookies.set('firma-tron', 'Pacman');
+
+      let firma = cookies.get('firma-tron')
+      let messge = "brutus.finance 2024"
+
+      //console.log(firma)
+
+      if (firma === undefined) {
+        firma = await this.props.tronlink.adapter.signMessage(messge);
+        cookies.set('firma-tron', firma);
       }
 
-      let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
+      if (firma !== undefined) {
 
-      if (naranja >= 0) {
-        naranja = "+" + naranja
-      }
-
-      if (info.freez) {
-        info.freez = (info.freez).toLowerCase()
-
-      }
-
-      if (info.freez === "no") {
-        info.freez = "Off"
-
-      }
-
-
-      var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
-
-
-      var providerEnergy = 0
-      var providerEnergyTotal = 0
-
-      var providerBand = 0
-      var providerBandTotal = 0
-
-
-      if (cuenta.EnergyLimit) {
-        providerEnergy = cuenta.EnergyLimit
-        providerEnergyTotal = cuenta.EnergyLimit
-      }
-
-      if (cuenta.EnergyUsed) {
-        providerEnergy -= cuenta.EnergyUsed
-      }
-
-      if (cuenta.freeNetLimit) {
-        providerBandTotal = cuenta.freeNetLimit
-      }
-
-      if (cuenta.NetLimit) {
-        providerBandTotal += cuenta.NetLimit
-      }
-
-      providerBand = providerBandTotal
-
-      if (cuenta.freeNetUsed) {
-        providerBand -= cuenta.freeNetUsed
-
-      }
-
-      if (cuenta.NetUsed) {
-        providerBand -= cuenta.NetUsed
-      }
-
-      if (info.allow_notifications === 1) {
-        info.allow_notifications = true
-      } else {
-        info.allow_notifications = false
-
-      }
-
-      this.setState({
-        rent: info.activo,
-        elegible: info.elegible,
-        sellband: info.sellband,
-        bandover: info.bandover,
-        burn: info.burn,
-        noti: info.allow_notifications,
-        autofreeze: info.freez,
-        payhour: info.payhour,
-        payment: info.payment,
-        paymentPoints: info.payout_ratio * 100,
-        maxdays: info.maxdays,
-        payhere: info.payhere,
-        payoutRatio: info.payout_ratio,
-        ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
-        ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100).dp(3).toString(10),
-        cNaranja: naranja,
-        voteSR: info.srVote,
-        proEnergy: providerEnergy,
-        proEnergyTotal: providerEnergyTotal,
-
-        proBand: providerBand,
-        proBandTotal: providerBandTotal,
-
-      })
-
-      let historic = {}
-      try {
-
-        historic = await fetch(url + "historic_payments", {
-          method: "POST",
-          headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ wallet: this.props.accountAddress })
-
-        }
-        )
-          .then((r) => {
-            return r.json();
-          })
-          .then((r) => {
-            return r.data;
-          })
-
-
-      } catch (error) {
-        console.log(error.toString())
-      }
-
-
-
-      let allPayed = 0
-
-      try {
-
-        allPayed = await fetch(url + "acum_payments", {
-          method: "POST",
-          headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ wallet: this.props.accountAddress })
-
-        }
-        )
-          .then((r) => {
-            return r.json();
-          })
-          .then((r) => {
-            return r.data;
-          })
-
-
-      } catch (error) {
-        console.log(error.toString())
-      }
-
-
-
-      allPayed = (new BigNumber(allPayed).dp(3).toNumber()).toLocaleString('en-US')
-
-      this.setState({ allPayed: allPayed })
-
-      let dataHistoric = []
-      let totalPayed30 = new BigNumber(0)
-
-      historic = historic.toReversed().map((item, index) => {
-
-        dataHistoric.unshift({ date: new Date(item.date * 1000), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
-
-        totalPayed30 = totalPayed30.plus(item.amount)
-        return (
-          <tr key={index}>
-            <td>{moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")}</td>
-            <td>{(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')}
-            </td>
-            <td>{item.coin}</td>
-          </tr>
-        )
-      })
-
-
-      this.setState({
-        historic: historic,
-        dataHistoric: dataHistoric,
-        totalPayed30: (totalPayed30.shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US') + " TRX"
-      })
-
-      let ongoins = []
-
-      try {
-
-        let body = { wallet: this.props.accountAddress }
-
-        ongoins = await fetch(url + "ongoingdeals", {
-          method: "POST",
-          headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
+        this.setState({
+          provider: true,
         })
-          .then((r) => {
-            return r.json();
-          })
-          .then((r) => {
-            return r.ongoing_deals;
-          })
+
+        let info = {}
+
+        try {
+
+          info = await fetch(url + "status?wallet=" + this.props.accountAddress)
+            .then((r) => {
+              return r.json();
+            })
+            .then((r) => {
+              return r.data;
+            })
 
 
+        } catch (error) {
+          console.log(error.toString())
+        }
 
-      } catch (error) {
+        let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
 
-      }
+        if (naranja >= 0) {
+          naranja = "+" + naranja
+        }
 
-      let listWallets = []
+        if (info.freez) {
+          info.freez = (info.freez).toLowerCase()
 
-      const ordenesActivas = ongoins.map((item, index) => {
+        }
 
-        listWallets.push(item.customer)
+        if (info.freez === "no") {
+          info.freez = "Off"
 
-        let lock = "unlock"
+        }
 
-        if (((item.order_type).toLowerCase()).includes("wol")) {
-          lock = "unlock"
+
+        var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
+
+
+        var providerEnergy = 0
+        var providerEnergyTotal = 0
+
+        var providerBand = 0
+        var providerBandTotal = 0
+
+
+        if (cuenta.EnergyLimit) {
+          providerEnergy = cuenta.EnergyLimit
+          providerEnergyTotal = cuenta.EnergyLimit
+        }
+
+        if (cuenta.EnergyUsed) {
+          providerEnergy -= cuenta.EnergyUsed
+        }
+
+        if (cuenta.freeNetLimit) {
+          providerBandTotal = cuenta.freeNetLimit
+        }
+
+        if (cuenta.NetLimit) {
+          providerBandTotal += cuenta.NetLimit
+        }
+
+        providerBand = providerBandTotal
+
+        if (cuenta.freeNetUsed) {
+          providerBand -= cuenta.freeNetUsed
+
+        }
+
+        if (cuenta.NetUsed) {
+          providerBand -= cuenta.NetUsed
+        }
+
+        if (info.allow_notifications === 1) {
+          info.allow_notifications = true
         } else {
-          lock = "lock"
-        }
-
-        if (((item.order_type).toLowerCase()).includes("hour")) {
-          item.order_type = "HOUR"
+          info.allow_notifications = false
 
         }
 
-        if (((item.order_type).toLowerCase()).includes("day")) {
-          item.order_type = "DAY"
+        this.setState({
+          rent: info.activo,
+          elegible: info.elegible,
+          sellband: info.sellband,
+          bandover: info.bandover,
+          burn: info.burn,
+          noti: info.allow_notifications,
+          autofreeze: info.freez,
+          payhour: info.payhour,
+          payment: info.payment,
+          paymentPoints: info.payout_ratio * 100,
+          maxdays: info.maxdays,
+          payhere: info.payhere,
+          payoutRatio: info.payout_ratio,
+          ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
+          ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100).dp(3).toString(10),
+          cNaranja: naranja,
+          voteSR: info.srVote,
+          proEnergy: providerEnergy,
+          proEnergyTotal: providerEnergyTotal,
 
-        }
+          proBand: providerBand,
+          proBandTotal: providerBandTotal,
 
-        if (((item.order_type).toLowerCase()).includes("minutes")) {
-          item.order_type = "MINUTES"
-
-        }
-
-        return (
-          <tr key={index}>
-            <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
-            <td>{item.customer}<br />
-              {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
-
-            </td>
-            <td>{item.payout} TRX</td>
-          </tr>
-        )
-      });
-
-
-      let completed = []
-
-      try {
-
-        let body = { wallet: this.props.accountAddress }
-
-        completed = await fetch(url + "completed_deals", {
-          method: "POST",
-          headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
         })
-          .then((r) => {
-            return r.json();
+
+        let historic = {}
+        try {
+
+          historic = await fetch(url + "historic_payments", {
+            method: "POST",
+            headers: {
+              'token-api': process.env.REACT_APP_TOKEN,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ wallet: this.props.accountAddress })
+
+          }
+          )
+            .then((r) => {
+              return r.json();
+            })
+            .then((r) => {
+              return r.data;
+            })
+
+
+        } catch (error) {
+          console.log(error.toString())
+        }
+
+
+
+        let allPayed = 0
+
+        try {
+
+          allPayed = await fetch(url + "acum_payments", {
+            method: "POST",
+            headers: {
+              'token-api': process.env.REACT_APP_TOKEN,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ wallet: this.props.accountAddress })
+
+          }
+          )
+            .then((r) => {
+              return r.json();
+            })
+            .then((r) => {
+              return r.data;
+            })
+
+
+        } catch (error) {
+          console.log(error.toString())
+        }
+
+
+
+        allPayed = (new BigNumber(allPayed).dp(3).toNumber()).toLocaleString('en-US')
+
+        this.setState({ allPayed: allPayed })
+
+        let dataHistoric = []
+        let totalPayed30 = new BigNumber(0)
+
+        historic = historic.toReversed().map((item, index) => {
+
+          dataHistoric.unshift({ date: new Date(item.date * 1000), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
+
+          totalPayed30 = totalPayed30.plus(item.amount)
+          return (
+            <tr key={index}>
+              <td>{moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")}</td>
+              <td>{(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')}
+              </td>
+              <td>{item.coin}</td>
+            </tr>
+          )
+        })
+
+
+        this.setState({
+          historic: historic,
+          dataHistoric: dataHistoric,
+          totalPayed30: (totalPayed30.shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US') + " TRX"
+        })
+
+        let ongoins = []
+
+        try {
+
+          let body = { wallet: this.props.accountAddress }
+
+          ongoins = await fetch(url + "ongoingdeals", {
+            method: "POST",
+            headers: {
+              'token-api': process.env.REACT_APP_TOKEN,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
           })
-          .then((r) => {
-            return r.completed_deals;
+            .then((r) => {
+              return r.json();
+            })
+            .then((r) => {
+              return r.ongoing_deals;
+            })
+
+
+
+        } catch (error) {
+
+        }
+
+        let listWallets = []
+
+        const ordenesActivas = ongoins.map((item, index) => {
+
+          listWallets.push(item.customer)
+
+          let lock = "unlock"
+
+          if (((item.order_type).toLowerCase()).includes("wol")) {
+            lock = "unlock"
+          } else {
+            lock = "lock"
+          }
+
+          if (((item.order_type).toLowerCase()).includes("hour")) {
+            item.order_type = "HOUR"
+
+          }
+
+          if (((item.order_type).toLowerCase()).includes("day")) {
+            item.order_type = "DAY"
+
+          }
+
+          if (((item.order_type).toLowerCase()).includes("minutes")) {
+            item.order_type = "MINUTES"
+
+          }
+
+          return (
+            <tr key={index}>
+              <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
+              <td>{item.customer}<br />
+                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
+
+              </td>
+              <td>{item.payout} TRX</td>
+            </tr>
+          )
+        });
+
+
+        let completed = []
+
+        try {
+
+          let body = { wallet: this.props.accountAddress }
+
+          completed = await fetch(url + "completed_deals", {
+            method: "POST",
+            headers: {
+              'token-api': process.env.REACT_APP_TOKEN,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
           })
+            .then((r) => {
+              return r.json();
+            })
+            .then((r) => {
+              return r.completed_deals;
+            })
 
 
 
-      } catch (error) {
-
-      }
-
-
-      const ordenesCompletadas = completed.map((item, index) => {
-
-        listWallets.push(item.customer)
-
-        let lock = "unlock"
-
-        if (((item.order_type).toLowerCase()).includes("wol")) {
-          lock = "unlock"
-        } else {
-          lock = "lock"
-        }
-
-        if (((item.order_type).toLowerCase()).includes("hour")) {
-          item.order_type = "HOUR"
+        } catch (error) {
 
         }
 
-        if (((item.order_type).toLowerCase()).includes("day")) {
-          item.order_type = "DAY"
 
-        }
+        const ordenesCompletadas = completed.map((item, index) => {
 
-        if (((item.order_type).toLowerCase()).includes("minutes")) {
-          item.order_type = "MINUTES"
+          listWallets.push(item.customer)
 
-        }
+          let lock = "unlock"
 
-        return (
-          <tr key={index}>
-            <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
-            <td>{item.customer}<br />
-              {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
+          if (((item.order_type).toLowerCase()).includes("wol")) {
+            lock = "unlock"
+          } else {
+            lock = "lock"
+          }
 
-            </td>
-            <td>{item.payout} TRX</td>
-          </tr>
-        )
-      });
+          if (((item.order_type).toLowerCase()).includes("hour")) {
+            item.order_type = "HOUR"
+
+          }
+
+          if (((item.order_type).toLowerCase()).includes("day")) {
+            item.order_type = "DAY"
+
+          }
+
+          if (((item.order_type).toLowerCase()).includes("minutes")) {
+            item.order_type = "MINUTES"
+
+          }
+
+          return (
+            <tr key={index}>
+              <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
+              <td>{item.customer}<br />
+                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
+
+              </td>
+              <td>{item.payout} TRX</td>
+            </tr>
+          )
+        });
 
 
-      const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(this.props.accountAddress)
+        const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(this.props.accountAddress)
 
-      let delegatedExternal = []
+        let delegatedExternal = []
 
-      if (delegationInfo.toAccounts) {
+        if (delegationInfo.toAccounts) {
 
-        for (let index = 0; index < delegationInfo.toAccounts.length; index++) {
-          delegationInfo.toAccounts[index] = this.props.tronWeb.address.fromHex(delegationInfo.toAccounts[index])
+          for (let index = 0; index < delegationInfo.toAccounts.length; index++) {
+            delegationInfo.toAccounts[index] = this.props.tronWeb.address.fromHex(delegationInfo.toAccounts[index])
 
-          if (listWallets.indexOf(delegationInfo.toAccounts[index]) === -1) {
-            let info = await this.props.tronWeb.trx.getDelegatedResourceV2(this.props.accountAddress, delegationInfo.toAccounts[index])
+            if (listWallets.indexOf(delegationInfo.toAccounts[index]) === -1) {
+              let info = await this.props.tronWeb.trx.getDelegatedResourceV2(this.props.accountAddress, delegationInfo.toAccounts[index])
 
-            //console.log(info.delegatedResource)
+              //console.log(info.delegatedResource)
 
-            for (let index2 = 0; index2 < info.delegatedResource.length; index2++) {
+              for (let index2 = 0; index2 < info.delegatedResource.length; index2++) {
 
-              let order = {
-                wallet: delegationInfo.toAccounts[index],
-                resource: "ENERGY",
-                trx: 0,
-                sun: "0",
-                expire: "--/--/-- 00:00 --"
-              }
-
-              if (info.delegatedResource[index2].frozen_balance_for_energy) {
-
-                order.trx = info.delegatedResource[index2].frozen_balance_for_energy / 10 ** 6
-                order.sun = info.delegatedResource[index2].frozen_balance_for_energy
-                if (info.delegatedResource[index2].expire_time_for_energy) {
-                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_energy)
-                  order.expire = moment.utc(order.expire).tz(this.state.tiempo).format("lll")
-                }
-              } else {
-                order.trx = info.delegatedResource[index2].frozen_balance_for_bandwidth / 10 ** 6
-                order.sun = info.delegatedResource[index2].frozen_balance_for_bandwidth
-                if (info.delegatedResource[index2].expire_time_for_bandwidth) {
-                  order.expire = new Date(info.delegatedResource[index2].expire_time_for_bandwidth)
-                  order.expire = moment.utc(order.expire).tz(this.state.tiempo).format("lll")
-
+                let order = {
+                  wallet: delegationInfo.toAccounts[index],
+                  resource: "ENERGY",
+                  trx: 0,
+                  sun: "0",
+                  expire: "--/--/-- 00:00 --"
                 }
 
+                if (info.delegatedResource[index2].frozen_balance_for_energy) {
 
-                order.resource = "BANDWIDTH"
+                  order.trx = info.delegatedResource[index2].frozen_balance_for_energy / 10 ** 6
+                  order.sun = info.delegatedResource[index2].frozen_balance_for_energy
+                  if (info.delegatedResource[index2].expire_time_for_energy) {
+                    order.expire = new Date(info.delegatedResource[index2].expire_time_for_energy)
+                    order.expire = moment.utc(order.expire).tz(this.state.tiempo).format("lll")
+                  }
+                } else {
+                  order.trx = info.delegatedResource[index2].frozen_balance_for_bandwidth / 10 ** 6
+                  order.sun = info.delegatedResource[index2].frozen_balance_for_bandwidth
+                  if (info.delegatedResource[index2].expire_time_for_bandwidth) {
+                    order.expire = new Date(info.delegatedResource[index2].expire_time_for_bandwidth)
+                    order.expire = moment.utc(order.expire).tz(this.state.tiempo).format("lll")
+
+                  }
+
+
+                  order.resource = "BANDWIDTH"
+                }
+
+
+                delegatedExternal.push(order)
+
+
               }
-
-
-              delegatedExternal.push(order)
-
 
             }
 
@@ -881,64 +901,64 @@ export default class ProviderPanel extends Component {
 
         }
 
+        const ordenesNoregistradas = delegatedExternal.map((item, index) => {
+
+
+          let amount = item.sun;
+          let receiverAddress = item.wallet
+          let resource = item.resource
+          let ownerAddress = this.props.accountAddress
+
+          return (
+            <tr key={index}>
+              <td className="text-end">
+                <div className="dropdown custom-dropdown mb-0">
+                  <div className="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown">
+                    <i className="bi bi-three-dots-vertical"></i>
+                  </div>
+                  <div className="dropdown-menu dropdown-menu-end">
+                    <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" >View on TronScan</a>
+
+                    <button className="dropdown-item text-danger" onClick={async () => {
+                      let transaction = await this.props.tronWeb.transactionBuilder.undelegateResource(amount, receiverAddress, resource, ownerAddress);
+                      transaction = await this.props.tronWeb.trx.sign(transaction)
+                      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+
+                      this.setState({
+                        ModalTitulo: "Result: " + transaction.result,
+                        ModalBody: <a href={"https://tronscan.org/#/transaction/" + transaction.txid}>see result in TronScan</a>
+                      })
+
+                      window.$("#alert").modal("show");
+
+                    }}>Reclaim Resource</button>
+                  </div>
+                </div>
+              </td>
+              <td>{item.resource} </td>
+              <td>{(item.trx).toLocaleString('en-US')} </td>
+
+              <td>{item.wallet}<br />
+                {item.expire}
+              </td>
+
+            </tr>
+          )
+
+
+
+        })
+
+
+
+
+        this.setState({
+          ongoins: ordenesActivas,
+          noregist: ordenesNoregistradas,
+          completed: ordenesCompletadas,
+        })
+
       }
-
-      const ordenesNoregistradas = delegatedExternal.map((item, index) => {
-
-
-        let amount = item.sun;
-        let receiverAddress = item.wallet
-        let resource = item.resource
-        let ownerAddress = this.props.accountAddress
-
-        return (
-          <tr key={index}>
-            <td className="text-end">
-              <div className="dropdown custom-dropdown mb-0">
-                <div className="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown">
-                  <i className="bi bi-three-dots-vertical"></i>
-                </div>
-                <div className="dropdown-menu dropdown-menu-end">
-                  <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" >View on TronScan</a>
-
-                  <button className="dropdown-item text-danger" onClick={async () => {
-                    let transaction = await this.props.tronWeb.transactionBuilder.undelegateResource(amount, receiverAddress, resource, ownerAddress);
-                    transaction = await this.props.tronWeb.trx.sign(transaction)
-                    transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
-
-                    this.setState({
-                      ModalTitulo: "Result: " + transaction.result,
-                      ModalBody: <a href={"https://tronscan.org/#/transaction/" + transaction.txid}>see result in TronScan</a>
-                    })
-
-                    window.$("#alert").modal("show");
-
-                  }}>Reclaim Resource</button>
-                </div>
-              </div>
-            </td>
-            <td>{item.resource} </td>
-            <td>{(item.trx).toLocaleString('en-US')} </td>
-
-            <td>{item.wallet}<br />
-              {item.expire}
-            </td>
-
-          </tr>
-        )
-
-
-
-      })
-
-
-
-
-      this.setState({
-        ongoins: ordenesActivas,
-        noregist: ordenesNoregistradas,
-        completed: ordenesCompletadas,
-      })
     } else {
       this.setState({
         provider: false
@@ -950,6 +970,7 @@ export default class ProviderPanel extends Component {
 
 
   render() {
+
 
     if (this.state.provider) {
 
