@@ -75,6 +75,10 @@ export default class ProviderPanel extends Component {
       this.estado()
     }, 3 * 1000)
 
+    setInterval(() => {
+      this.estado()
+    }, 30 * 1000)
+
 
   }
 
@@ -494,8 +498,6 @@ export default class ProviderPanel extends Component {
     }
 
     //firmar mensaje brutus.finance->
-
-
     //console.log(this.props.tronlink.adapter)
 
     if (provider.result && this.props.tronlink.adapter.connected) {

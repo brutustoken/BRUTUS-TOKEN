@@ -106,7 +106,7 @@ class App extends Component {
     this.intervalo(3);
 
     setTimeout(() => {
-      this.conectar(false);
+      this.conectar(true);
     }, 3 * 1000)
 
     window.addEventListener('message', (e) => {
@@ -148,7 +148,7 @@ class App extends Component {
       }
 
       if (!this.state.conexion) {
-        //this.conectar();
+        //this.conectar(false);
       }
 
     }, s * 1000);
@@ -190,7 +190,6 @@ class App extends Component {
     web3Contracts.setAddress(wallet)
 
     if (wallet !== adressDefault) {
-      console.log(wallet.length)
 
       let vierWallet = wallet.substring(0, 6) + "..." + wallet.substring(wallet.length - 6, wallet.length)
 
