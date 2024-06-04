@@ -441,23 +441,25 @@ export default class Staking extends Component {
       var solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
       var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
 
+      //set retiradas rapidas
+
       /*
-      let inputs = [
-        //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-        { type: 'uint256', value: 5000 * 10 ** 6 }
-      ]
-
-      let funcion = "setTRON_RR(uint256)"
-      const options = {}
-      let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-      let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
-
-      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
-
-      console.log(transaction)
+            let inputs = [
+              //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+              { type: 'uint256', value: 0 }
+            ]
+      
+            let funcion = "setTRON_RR(uint256)"
+            const options = {}
+            let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+            let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+            transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+      
+            transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+      
+            console.log(transaction)
+      
       */
-
 
       this.setState({
 
