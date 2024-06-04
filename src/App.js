@@ -176,7 +176,7 @@ class App extends Component {
           //this.setState({ walletConect: e.toString() })
         })
 
-      console.log(adapter)
+      //console.log(adapter)
 
       if (adapter.address) {
         wallet = adapter.address

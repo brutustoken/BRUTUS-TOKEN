@@ -199,6 +199,13 @@ export default class Staking extends Component {
 
   async estado() {
 
+    let precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
+    precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
+
+    this.setState({
+      precioBrst: precio
+    });
+
     if (!this.state.conexion) {
 
       this.setState({
@@ -207,15 +214,8 @@ export default class Staking extends Component {
 
       this.consultaPrecio();
 
-      var precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
-      precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
-
-      this.setState({
-        precioBrst: precio
-      });
-
       if (iniciado === 0) {
-        this.grafico(1000, "day", 90);
+        this.grafico(1000, "day", 90, precio);
         iniciado++;
       }
 
@@ -703,9 +703,9 @@ export default class Staking extends Component {
 
   }
 
-  consultaPrecio() {
+  async consultaPrecio() {
 
-    fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
+    return await fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
       .then(async (r) => (await r.json()).Data)
       .then(r => {
 
@@ -713,20 +713,22 @@ export default class Staking extends Component {
           varBrst: r.v24h
         })
 
+        return r
+
       })
-      .catch(err => { console.log(err); });
+      .catch(err => { console.log(err); return 0; });
 
   }
 
   handleChange(e) {
     let evento = e.target.value;
-    this.grafico(500, evento, this.state.cantidadDatos);
+    this.grafico(500, evento, this.state.cantidadDatos, this.state.precioBrst);
     this.setState({ temporalidad: evento });
   }
 
   handleChange2(e) {
     let evento = parseInt(e.target.value);
-    this.grafico(500, this.state.temporalidad, evento);
+    this.grafico(500, this.state.temporalidad, evento, this.state.precioBrst);
     this.setState({ cantidadDatos: evento });
   }
 
@@ -795,12 +797,12 @@ export default class Staking extends Component {
 
   async rentEnergy(cantidad) {
 
-    var retorno = false;
+    let retorno = false;
 
     const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
-    var body = { "resource": "energy", "amount": cantidad, "duration": "5min" }
-    var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+    let body = { "resource": "energy", "amount": cantidad, "duration": "5min" }
+    let precios = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
@@ -808,7 +810,7 @@ export default class Staking extends Component {
       body: JSON.stringify(body)
     }).then((r) => r.json())
 
-    var precio = new BigNumber(consultaPrecio.price).dp(6).toNumber()
+    let precio = new BigNumber(precios.price).dp(6).toNumber()
 
     this.setState({
       ModalTitulo: <>{this.props.i18n.t("brst.alert.renergy", { returnObjects: true })[0]}{imgLoading}</>,
@@ -1469,7 +1471,7 @@ export default class Staking extends Component {
 
   };
 
-  async grafico(time, temporalidad, cantidad) {
+  async grafico(time, temporalidad, cantidad, lastPrice) {
 
     if (this.root) {
       this.root.dispose();
@@ -1536,7 +1538,9 @@ export default class Staking extends Component {
     }
 
 
-    const lastData = { date: Date.now(), value: this.state.precioBrst };
+    let lastData = { date: Date.now(), value: lastPrice };
+
+    console.log(lastData)
 
     async function generateDatas(count) {
 
