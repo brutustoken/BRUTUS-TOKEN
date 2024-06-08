@@ -71,6 +71,11 @@ export default class EnergyRental extends Component {
       this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
     }, 3 * 1000)
 
+    setInterval(() => {
+      this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
+
+    }, 60 * 1000)
+
   }
 
   handleChangeWallet(event) {
@@ -88,12 +93,13 @@ export default class EnergyRental extends Component {
       tmp = "h"
     }
 
+    this.calcularRecurso(this.state.cantidad, parseInt(dato) + tmp)
+
     this.setState({
       periodo: parseInt(dato),
       temporalidad: tmp
     });
 
-    this.calcularRecurso(this.state.cantidad, parseInt(dato) + tmp)
 
   }
 
@@ -209,9 +215,8 @@ export default class EnergyRental extends Component {
 
     this.recursos();
 
-    var ok = true;
-
-    var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+    let ok = true;
+    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
 
     time = time.split("d")
 
@@ -246,7 +251,7 @@ export default class EnergyRental extends Component {
 
     time = time[0]
 
-    var paso = false
+    let paso = false
 
     if (this.state.recurso === "bandwidth") {
       if (parseInt(amount) >= 1000) {
@@ -259,40 +264,59 @@ export default class EnergyRental extends Component {
       }
     }
 
+    let precio = this.props.i18n.t("calculating") + "..."
 
     if (parseInt(time) > 0 && ok && paso) {
-      var body = { "resource": this.state.recurso, "amount": amount, "duration": time }
+      let body = { "resource": this.state.recurso, "amount": amount, "duration": time }
 
-      this.setState({
-        precio: this.props.i18n.t("calculating") + "..."
-      })
-
-      var consulta2 = await fetch(url, {
+      await fetch(url, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
       }).then((r) => r.json())
+        .then((r) => {
+          precio = new BigNumber(r.price).toString(10)
 
-      var precio = consulta2.price * 1
-      precio = parseInt(precio * 10 ** 6) / 10 ** 6
+          this.setState({
+            precio: precio
+          })
+        })
+        .catch((e) => {
+          console.log(e.toString())
+          precio = "Calculating Error"
+          this.setState({
+            precio: precio
+          })
+        })
 
+
+
+
+    } else {
+      precio = "invalid amount"
       this.setState({
         precio: precio
       })
-
-      return precio
-    } else {
-      this.setState({
-        precio: 0
-      })
-
-      return 0
     }
+
+    return precio
   }
 
   async preCompra() {
+
+    if (isNaN(this.state.precio)) {
+      return;
+    }
+
+    //await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
+
+    if (this.state.wallet_orden === "" || !this.props.tronWeb.isAddress(this.state.wallet_orden)) {
+      this.setState({
+        wallet_orden: this.props.accountAddress
+      })
+    }
 
     if (parseFloat(this.state.precio) > new BigNumber(await this.props.tronWeb.trx.getBalance(this.props.accountAddress)).shiftedBy(-6).toNumber()) {
       this.setState({
@@ -315,8 +339,6 @@ export default class EnergyRental extends Component {
       window.$("#mensaje-ebot").modal("show");
       return;
     }
-
-    await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
     if (this.state.wallet_orden === "" || !this.props.tronWeb.isAddress(this.state.wallet_orden)) {
       this.setState({
@@ -342,7 +364,7 @@ export default class EnergyRental extends Component {
       titulo: <>Confirm order information</>,
       body: (<span>
         <b>Buy: </b> {this.state.cantidad + " " + this.state.recurso + " " + this.state.periodo + this.state.temporalidad}<br></br>
-        <b>For: </b> {this.state.precio + " TRX"}<br></br>
+        <b>For: </b> {this.state.precio} TRX<br></br>
         <b>To: </b> {this.state.wallet_orden}<br></br>
         <br /><br />
         <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel</button>
@@ -359,13 +381,7 @@ export default class EnergyRental extends Component {
   async compra() {
 
     const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
-    await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
-
-    if (this.state.wallet_orden === "" || !this.props.tronWeb.isAddress(this.state.wallet_orden)) {
-      this.setState({
-        wallet_orden: this.props.accountAddress
-      })
-    }
+    //await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
     this.setState({
       titulo: <>Confirm transaction {imgLoading}</>,
@@ -427,8 +443,6 @@ export default class EnergyRental extends Component {
 
         window.$("#mensaje-ebot").modal("show");
 
-
-
         if (recurso === "bandwidth") {
           recurso = "band"
         }
@@ -449,7 +463,7 @@ export default class EnergyRental extends Component {
           "user_id": "fromWeb" + getRandomInt(999)
         }
 
-        var consulta2 = await fetch(url, {
+        let consulta2 = await fetch(url, {
           method: "POST",
           headers: {
             'token-api': process.env.REACT_APP_TOKEN,
@@ -465,7 +479,7 @@ export default class EnergyRental extends Component {
 
           this.setState({
             titulo: "Completed successfully",
-            body: <><p>Energy rental completed successfully. </p><button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
+            body: <p>Energy rental completed successfully.<br></br> <button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></p>
           })
 
           window.$("#mensaje-ebot").modal("show");
