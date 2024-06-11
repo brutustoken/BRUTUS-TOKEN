@@ -35,6 +35,7 @@ export default class EnergyRental extends Component {
       wallet_orden: "",
       recurso: "energy",
       cantidad: 32000,
+      montoMin: 32000,
       periodo: 1,
       temporalidad: "h",
       available_bandwidth: 0,
@@ -68,11 +69,11 @@ export default class EnergyRental extends Component {
     this.recursos()
 
     setTimeout(() => {
-      this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
+      this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad, this.state.recurso)
     }, 3 * 1000)
 
     setInterval(() => {
-      this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
+      this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad, this.state.recurso)
 
     }, 60 * 1000)
 
@@ -93,7 +94,7 @@ export default class EnergyRental extends Component {
       tmp = "h"
     }
 
-    this.calcularRecurso(this.state.cantidad, parseInt(dato) + tmp)
+    this.calcularRecurso(this.state.cantidad, parseInt(dato) + tmp, this.state.recurso)
 
     this.setState({
       periodo: parseInt(dato),
@@ -108,7 +109,7 @@ export default class EnergyRental extends Component {
     this.setState({
       cantidad: parseInt(dato)
     });
-    this.calcularRecurso(parseInt(dato), this.state.periodo + this.state.temporalidad)
+    this.calcularRecurso(parseInt(dato), this.state.periodo + this.state.temporalidad, this.state.recurso)
   }
 
   handleChangeBand(event) {
@@ -121,7 +122,7 @@ export default class EnergyRental extends Component {
     });
   }
 
-  async recursos() {
+  async recursos(recurso) {
 
     let energyOn = false;
 
@@ -180,7 +181,7 @@ export default class EnergyRental extends Component {
       }
     }
 
-    if (this.state.recurso === "energy") {
+    if (recurso === "energy") {
       if (energi < consulta.total_energy_pool * 0.01) {
         energyOn = false;
         this.setState({
@@ -211,9 +212,16 @@ export default class EnergyRental extends Component {
     });
   }
 
-  async calcularRecurso(amount, time) {
+  async calcularRecurso(amount, time, recurso) {
 
-    this.recursos();
+    if (recurso === "energi") {
+      this.setState({ montoMin: 32000 })
+    } else {
+      this.setState({ montoMin: 1000 })
+
+    }
+
+    this.recursos(recurso);
 
     let ok = true;
     let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
@@ -248,69 +256,57 @@ export default class EnergyRental extends Component {
 
     }
 
-
     time = time[0]
 
-    let paso = false
-
-    if (this.state.recurso === "bandwidth") {
-      if (parseInt(amount) >= 1000) {
-        paso = true
+    if (recurso === "bandwidth") {
+      if (parseInt(amount) < 1000) {
+        amount = 1000
       }
 
     } else {
-      if (parseInt(amount) >= 32000) {
-        paso = true
+      if (parseInt(amount) < 32000) {
+        amount = 32000
       }
     }
 
     let precio = this.props.i18n.t("calculating") + "..."
 
-    if (parseInt(time) > 0 && ok && paso) {
-      let body = { "resource": this.state.recurso, "amount": amount, "duration": time }
+    if (parseInt(time) > 0 && ok) {
+      let body = { "resource": recurso, "amount": amount, "duration": time }
 
-      await fetch(url, {
+      let consulta = await fetch(url, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-      }).then((r) => r.json())
-        .then((r) => {
-          precio = new BigNumber(r.price).toString(10)
-
-          this.setState({
-            precio: precio
-          })
-        })
+      })
+        .then(async (r) => await r.json())
         .catch((e) => {
-          console.log(e.toString())
-          precio = "Calculating Error"
-          this.setState({
-            precio: precio
-          })
+          return e.toString()
         })
 
 
 
+      precio = consulta.price
 
     } else {
-      precio = "invalid amount"
-      this.setState({
-        precio: precio
-      })
+      precio = "Service not available"
+
     }
+
+    this.setState({
+      precio: precio
+    })
 
     return precio
   }
 
-  async preCompra() {
+  async preCompra(recurso) {
 
     if (isNaN(this.state.precio)) {
       return;
     }
-
-    //await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
     if (this.state.wallet_orden === "" || !this.props.tronWeb.isAddress(this.state.wallet_orden)) {
       this.setState({
@@ -369,7 +365,7 @@ export default class EnergyRental extends Component {
         <br /><br />
         <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel</button>
         {" "}
-        <button type="button" className="btn btn-success" onClick={() => { this.compra() }}>Confirm</button>
+        <button type="button" className="btn btn-success" onClick={() => { this.compra(recurso) }}>Confirm</button>
       </span>)
     })
 
@@ -378,10 +374,9 @@ export default class EnergyRental extends Component {
 
   }
 
-  async compra() {
+  async compra(recurso) {
 
     const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
-    //await this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad)
 
     this.setState({
       titulo: <>Confirm transaction {imgLoading}</>,
@@ -433,8 +428,6 @@ export default class EnergyRental extends Component {
       hash = await this.props.tronWeb.trx.getTransaction(hash.txid);
 
       if (hash.ret[0].contractRet === "SUCCESS") {
-
-        var recurso = this.state.recurso
 
         this.setState({
           titulo: <>we are allocating your {recurso} {imgLoading}</>,
@@ -565,12 +558,20 @@ export default class EnergyRental extends Component {
                             Resource
                           </button>
                           <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
-                            <li><button className="dropdown-item" onClick={() => { this.setState({ recurso: "energy", amounts: amountsE }) }}>Energy</button></li>
-                            <li><button className="dropdown-item" onClick={() => {
+                            <li><button className="dropdown-item" onClick={async () => {
+                              this.setState({ recurso: "energy", amounts: amountsE });
+                              await this.calcularRecurso(32000, "1h", "energy");
+
+                            }}>Energy</button></li>
+                            <li><button className="dropdown-item" onClick={async () => {
                               this.setState({
+                                cantidad: 1000,
                                 recurso: "bandwidth",
                                 amounts: amountB
                               });
+                              await this.calcularRecurso(1000, "1h", "bandwidth");
+
+
                             }}>Bandwidth</button>
                             </li>
                           </ul>
@@ -586,7 +587,7 @@ export default class EnergyRental extends Component {
 
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Amount</p>
-                        <input style={{ "textAlign": "end" }} id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder="32000" />
+                        <input style={{ "textAlign": "end" }} id="amount" name="dzLastName" type="text" onChange={this.handleChangeEnergy} className="form-control mb-1" placeholder={this.state.montoMin} />
 
                       </div>
 
@@ -620,7 +621,7 @@ export default class EnergyRental extends Component {
 
                         <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ width: "100%", height: "40px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
+                          style={{ width: "100%", height: "40px" }} onClick={() => this.preCompra(this.state.recurso)}> Complete Purchase - Total: {this.state.precio} TRX
                         </button>
 
                       </div>
