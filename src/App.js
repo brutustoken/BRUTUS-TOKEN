@@ -295,10 +295,7 @@ class App extends Component {
 
     this.setState({
       tronlink: tronlink,
-      contrato: contrato
-    });
-
-    this.setState({
+      contrato: contrato,
       conexion: true
     })
 
@@ -332,6 +329,7 @@ class App extends Component {
     if (url.indexOf("&") >= 0) url = (url.split("&"))[0];
 
     switch (url) {
+
       case "brut":
         return <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 

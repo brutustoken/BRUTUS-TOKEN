@@ -502,19 +502,27 @@ export default class ProviderPanel extends Component {
 
     if (provider.result && this.props.tronlink.adapter.connected) {
 
-      //cookies.set('firma-tron', 'Pacman');
-
-      let firma = cookies.get('firma-tron')
+      let firma = await cookies.get('firma-tron')
       let messge = "brutus.finance 2024"
-
-      //console.log(firma)
 
       if (firma === undefined) {
         firma = await this.props.tronlink.adapter.signMessage(messge);
-        cookies.set('firma-tron', firma);
+        cookies.set('firma-tron', firma, { maxAge: 86400 });
+      } else {
+        firma = await cookies.get('firma-tron');
       }
 
-      if (firma !== undefined) {
+      let auth = false
+      try {
+        if (await window.tronWeb.trx.verifyMessageV2(messge, firma) === this.props.tronlink.adapter.address || firma) {
+          auth = true
+        }
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+      if (firma !== undefined && auth) {
 
         this.setState({
           provider: true,
