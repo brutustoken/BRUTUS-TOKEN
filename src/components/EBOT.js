@@ -414,7 +414,7 @@ export default class EnergyRental extends Component {
 
     await delay(3);
 
-    var envio = hash.transaction.raw_data.contract[0].parameter.value
+    let envio = hash.transaction.raw_data.contract[0].parameter.value
 
     this.setState({
       titulo: <>we are verifying {imgLoading}</>,
@@ -500,9 +500,23 @@ export default class EnergyRental extends Component {
 
 
     } else {
+      let msg = "Error NN-0001 | "
+
+      if (!hash.result) {
+        msg = msg + " hash result is failed | "
+      }
+
+      if (envio.amount + "" !== this.props.tronWeb.toSun(this.state.precio)) {
+        msg = msg + " amount sended is incorrect | "
+      }
+
+      if (this.props.tronWeb.address.fromHex(envio.to_address) !== process.env.REACT_APP_WALLET_API) {
+        msg = msg + " the address destination is incorrect"
+      }
+
       this.setState({
         titulo: "Contact support",
-        body: "Please contact support for: Error NN-0001"
+        body: "Please contact support for: " + msg
       })
 
       window.$("#mensaje-ebot").modal("show");
