@@ -583,7 +583,11 @@ export default class EnergyRental extends Component {
                           </button>
                           <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
                             <li><button className="dropdown-item" onClick={async () => {
-                              this.setState({ recurso: "energy", amounts: amountsE });
+                              this.setState({ 
+                                cantidad: 32000,
+                                recurso: "energy", 
+                                amounts: amountsE 
+                              });
                               await this.calcularRecurso(32000, "1h", "energy");
 
                             }}>Energy</button></li>
