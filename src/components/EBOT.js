@@ -70,7 +70,7 @@ export default class EnergyRental extends Component {
 
     setTimeout(() => {
       this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad, this.state.recurso)
-    }, 3 * 1000)
+    }, 1 * 1000)
 
     setInterval(() => {
       this.calcularRecurso(this.state.cantidad, this.state.periodo + this.state.temporalidad, this.state.recurso)
@@ -94,14 +94,14 @@ export default class EnergyRental extends Component {
       tmp = "h"
     }
 
-    this.calcularRecurso(this.state.cantidad, parseInt(dato) + tmp, this.state.recurso)
-
     this.setState({
       periodo: parseInt(dato),
       temporalidad: tmp
     });
 
+    this.calcularRecurso(this.state.cantidad, parseInt(dato) + tmp, this.state.recurso)
 
+  
   }
 
   handleChangeEnergy(event) {
@@ -109,17 +109,15 @@ export default class EnergyRental extends Component {
     this.setState({
       cantidad: parseInt(dato)
     });
-    this.calcularRecurso(parseInt(dato), this.state.periodo + this.state.temporalidad, this.state.recurso)
+    this.calcularRecurso(parseInt(dato), this.state.periodo + this.state.temporalidad, "energy")
   }
 
   handleChangeBand(event) {
     let dato = event.target.value;
-    let oper = dato / this.state.precioBRST
-    oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
-      valueUSDT: event.target.value,
-      valueBRUT: oper,
+      cantidad: parseInt(dato)
     });
+    this.calcularRecurso(parseInt(dato), this.state.periodo + this.state.temporalidad, "band")
   }
 
   async recursos(recurso) {
@@ -154,8 +152,8 @@ export default class EnergyRental extends Component {
 
     }
 
-    var band = 0
-    var energi = 0
+    let band = 0
+    let energi = 0
 
     //console.log(consulta)
 
@@ -192,7 +190,7 @@ export default class EnergyRental extends Component {
         window.$("#mensaje-ebot").modal("show");
       }
     } else {
-      if (band < consulta.total_bandwidth_pool * 0.01) {
+      if (band < consulta.total_bandwidth_pool * 0.005) {
         energyOn = false;
         this.setState({
           titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
@@ -214,17 +212,25 @@ export default class EnergyRental extends Component {
 
   async calcularRecurso(amount, time, recurso) {
 
-    if (recurso === "energi") {
-      this.setState({ montoMin: 32000 })
+    let montoMin = 32000;
+    let ok = true;
+    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+
+    await this.recursos(recurso);
+    
+    if (recurso === "bandwidth") {
+      montoMin = 1000;
+      this.setState({ montoMin })
+
     } else {
-      this.setState({ montoMin: 1000 })
+      montoMin = 32000;
+      this.setState({ montoMin })
 
     }
 
-    this.recursos(recurso);
-
-    let ok = true;
-    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+    if (parseInt(amount) < montoMin) {
+      amount = montoMin
+    }
 
     time = time.split("d")
 
@@ -258,18 +264,12 @@ export default class EnergyRental extends Component {
 
     time = time[0]
 
-    if (recurso === "bandwidth") {
-      if (parseInt(amount) < 1000) {
-        amount = 1000
-      }
-
-    } else {
-      if (parseInt(amount) < 32000) {
-        amount = 32000
-      }
-    }
 
     let precio = this.props.i18n.t("calculating") + "..."
+
+    this.setState({
+      precio: precio
+    })
 
     if (parseInt(time) > 0 && ok) {
       let body = { "resource": recurso, "amount": amount, "duration": time }
@@ -302,9 +302,19 @@ export default class EnergyRental extends Component {
     return precio
   }
 
-  async preCompra(recurso) {
+  async preCompra(cantidad,periodo,temporalidad,recurso) {
 
-    if (isNaN(this.state.precio)) {
+    let pagas = await this.calcularRecurso(cantidad, periodo + temporalidad, recurso)
+
+    console.log(pagas)
+
+    if (isNaN(pagas)) {
+      this.setState({
+        titulo: "Error",
+        body: "error to calculating price of resource"
+      })
+
+      window.$("#mensaje-ebot").modal("show");
       return;
     }
 
@@ -314,7 +324,7 @@ export default class EnergyRental extends Component {
       })
     }
 
-    if (parseFloat(this.state.precio) > new BigNumber(await this.props.tronWeb.trx.getBalance(this.props.accountAddress)).shiftedBy(-6).toNumber()) {
+    if (parseFloat(pagas) > new BigNumber(await this.props.tronWeb.trx.getBalance(this.props.accountAddress)).shiftedBy(-6).toNumber()) {
       this.setState({
         titulo: this.props.i18n.t("ebot.alert.noFounds", { returnObjects: true })[0],
         body: (<span>{this.props.i18n.t("ebot.alert.noFounds", { returnObjects: true })[1]}
@@ -359,13 +369,13 @@ export default class EnergyRental extends Component {
     this.setState({
       titulo: <>Confirm order information</>,
       body: (<span>
-        <b>Buy: </b> {this.state.cantidad + " " + this.state.recurso + " " + this.state.periodo + this.state.temporalidad}<br></br>
-        <b>For: </b> {this.state.precio} TRX<br></br>
+        <b>Buy: </b> {cantidad + " " + recurso + " " + periodo + temporalidad}<br></br>
+        <b>For: </b> {pagas} TRX<br></br>
         <b>To: </b> {this.state.wallet_orden}<br></br>
         <br /><br />
-        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel</button>
+        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel <i class="bi bi-x-circle"></i></button>
         {" "}
-        <button type="button" className="btn btn-success" onClick={() => { this.compra(recurso) }}>Confirm</button>
+        <button type="button" className="btn btn-success" onClick={() => { this.compra(cantidad, periodo, temporalidad, recurso, this.state.wallet_orden, pagas) }}>Confirm <i class="bi bi-bag-check"></i></button>
       </span>)
     })
 
@@ -374,7 +384,7 @@ export default class EnergyRental extends Component {
 
   }
 
-  async compra(recurso) {
+  async compra(cantidad, periodo, temporalidad, recurso, wallet_orden, precio) {
 
     const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
@@ -385,7 +395,7 @@ export default class EnergyRental extends Component {
 
     window.$("#mensaje-ebot").modal("show");
 
-    const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(this.state.precio), this.props.accountAddress);
+    const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio), this.props.accountAddress);
     // using adapter to sign the transaction
     const signedTransaction = await window.tronWeb.trx.sign(unSignedTransaction)
       .catch((e) => {
@@ -423,7 +433,7 @@ export default class EnergyRental extends Component {
 
     window.$("#mensaje-ebot").modal("show");
 
-    if (hash.result && envio.amount + "" === this.props.tronWeb.toSun(this.state.precio) && this.props.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
+    if (hash.result && envio.amount + "" === this.props.tronWeb.toSun(precio) && this.props.tronWeb.address.fromHex(envio.to_address) === process.env.REACT_APP_WALLET_API) {
 
       hash = await this.props.tronWeb.trx.getTransaction(hash.txid);
 
@@ -442,16 +452,16 @@ export default class EnergyRental extends Component {
 
         var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + recurso
 
-        var time = this.state.periodo
+        var time = periodo
 
-        if (this.state.temporalidad === "h") {
-          time = this.state.periodo + this.state.temporalidad
+        if (temporalidad === "h") {
+          time = periodo + temporalidad
         }
 
         var body = {
           "id_api": process.env.REACT_APP_USER_ID,
-          "wallet": this.state.wallet_orden,
-          "amount": this.state.cantidad,
+          "wallet": wallet_orden,
+          "amount": cantidad,
           "time": time,
           "user_id": "fromWeb" + getRandomInt(999)
         }
@@ -506,7 +516,7 @@ export default class EnergyRental extends Component {
         msg = msg + " hash result is failed | "
       }
 
-      if (envio.amount + "" !== this.props.tronWeb.toSun(this.state.precio)) {
+      if (envio.amount + "" !== this.props.tronWeb.toSun(precio)) {
         msg = msg + " amount sended is incorrect | "
       }
 
@@ -635,7 +645,7 @@ export default class EnergyRental extends Component {
 
                         <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ width: "100%", height: "40px" }} onClick={() => this.preCompra(this.state.recurso)}> Complete Purchase - Total: {this.state.precio} TRX
+                          style={{ width: "100%", height: "40px" }} onClick={() => this.preCompra(this.state.cantidad, this.state.periodo , this.state.temporalidad,this.state.recurso)}> Complete Purchase - Total: {this.state.precio} TRX
                         </button>
 
                       </div>
