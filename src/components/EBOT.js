@@ -588,17 +588,20 @@ export default class EnergyRental extends Component {
                                 recurso: "energy", 
                                 amounts: amountsE 
                               });
+                              document.getElementById("amount").value = 32000
+
                               await this.calcularRecurso(32000, "1h", "energy");
 
                             }}>Energy</button></li>
+
                             <li><button className="dropdown-item" onClick={async () => {
                               this.setState({
                                 cantidad: 1000,
                                 recurso: "bandwidth",
                                 amounts: amountB
                               });
+                              document.getElementById("amount").value = 1000                              
                               await this.calcularRecurso(1000, "1h", "bandwidth");
-
 
                             }}>Bandwidth</button>
                             </li>
