@@ -345,6 +345,9 @@ export default class Staking extends Component {
 
       let adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY", "TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf", "TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
 
+      let balance_Pool= new BigNumber(await this.props.tronWeb.trx.getBalance("TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55")).shiftedBy(-6)
+
+
       this.setState({
         minCompra: MIN_DEPOSIT,
         depositoBRUT: aprovadoBRUT,
@@ -356,7 +359,7 @@ export default class Staking extends Component {
         eenergy: eenergy,
       })
 
-      await delay(1)
+
 
       for (let index = 0; index < deposits.length; index++) {
 
@@ -369,12 +372,12 @@ export default class Staking extends Component {
 
         let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
 
-        var boton = <></>
-        var boton2 = <><p className="mb-0 fs-14 text-white">{this.props.i18n.t("brst.unStaking", { days: 14 })}</p></>;
+        let boton = <b>login with an authorized account to interact with this asset retirement</b>
 
         let cantidadTrx = new BigNumber(parseInt(pen.brst._hex)).times(parseInt(pen.precio._hex)).shiftedBy(-6)
         let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
         let isAdmin = false;
+
         if (adminsBrst.indexOf(this.props.accountAddress) >= 0) {
           isAdmin = true;
         }
@@ -382,21 +385,33 @@ export default class Staking extends Component {
 
         if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 17 && diasrestantes > 0) {
           boton = (
-            <button className="btn btn-warning ms-4 mb-2 disabled" disabled aria-disabled="true" >
+            <button className="btn btn-warning ms-4 disabled" disabled aria-disabled="true" >
               {this.props.i18n.t("claim") + " "} <i className="bi bi-exclamation-circle"></i>
             </button>
           )
         }
 
+        console.log(balance_Pool.toNumber(), cantidadTrx.shiftedBy(-6).dp(6).toNumber())
+
+        
         if ((myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) || isOwner) {
 
           //console.log(myids.indexOf(parseInt(deposits[index]._hex)))
           boton = (
-            <button className="btn btn-primary ms-4 mb-2" onClick={async () => {
+            <button className="btn btn-primary ms-4" onClick={async () => {
               await this.preClaim(parseInt(deposits[index]._hex));
               this.estado()
             }}>
               {this.props.i18n.t("claim") + " "} <i className="bi bi-award"></i>
+            </button>
+          )
+        }
+
+        if(balance_Pool.toNumber() < cantidadTrx.shiftedBy(-6).dp(6).toNumber()){
+          
+          boton = (
+            <button className="btn btn-info ms-4 disabled" disabled aria-disabled="true" >
+              {this.props.i18n.t("We continue to unfreeze your assets") + " "} <i className="bi bi-exclamation-circle"></i>
             </button>
           )
         }
@@ -406,21 +421,36 @@ export default class Staking extends Component {
         }
 
         if (myids.includes(parseInt(deposits[index]._hex)) || isOwner || isAdmin) {
+          let extraData = <></>
+
+          if(isOwner || isAdmin){
+            extraData = <><b>Wallet: </b><a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/address/"+this.props.tronWeb.address.fromHex(pen.wallet)}>{this.props.tronWeb.address.fromHex(pen.wallet)}</a><br></br></>
+          }
+
           globDepositos[index] = (
 
-            <div className="row mt-4 align-items-center" id={"sale-" + parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
-              <div className="col-sm-6 mb-3">
-                <p className="mb-0 fs-14">{this.props.i18n.t("brst.sale", { number: parseInt(deposits[index]._hex), days: diasrestantes, wallet: this.props.tronWeb.address.fromHex(pen.wallet) })}</p>
-                <h4 className="fs-20 text-black">{parseInt(pen.brst._hex) / 10 ** 6} BRST X {cantidadTrx.shiftedBy(-6).dp(6).toString(10)} TRX</h4>
-                <p className="mb-0 fs-14">{this.props.i18n.t("brst.price", { price: (parseInt(pen.precio._hex) / 10 ** 6) })}</p>
-              </div>
-              <div className="col-sm-6 mb-1">
+            <div className="row mt-4" id={"sale-" + parseInt(deposits[index]._hex)} key={"glob" + parseInt(deposits[index]._hex)}>
+              <div className="col-12 mb-2">
 
-                {boton2}
+              <h4 className="fs-20 text-black">{this.props.i18n.t("brst.sale", { number: parseInt(deposits[index]._hex) })} {" -> "}{parseInt(pen.brst._hex) / 10 ** 6} BRST</h4>
+
+
+              </div>
+              <div className="col-sm-6 mb-2">
+                <p className="mb-0 fs-14">
+                  {extraData}
+                  <b>Total: </b>{cantidadTrx.shiftedBy(-6).dp(6).toString(10)} TRX<br></br>
+                  <b>{this.props.i18n.t("brst.price")}</b> {(parseInt(pen.precio._hex) / 10 ** 6)} TRX<br></br>
+                  <b>{this.props.i18n.t("brst.available")}</b> {pv.toString()}
+                </p>
+              </div>
+              <div className="col-sm-6 mb-2">
+                <p className="mb-0 fs-14">{this.props.i18n.t("brst.unStaking", { days: diasrestantes })}{cantidadTrx.shiftedBy(-6).dp(6).toString(10)} TRX</p>
+                <br></br>
                 {boton}
               </div>
-              <div className="col-12 mb-3">
-                <p className="mb-0 fs-14">{this.props.i18n.t("brst.avaliable")} {pv.toString()}</p>
+              <div className="col-12 mb-2">
+                
                 <hr></hr>
               </div>
 
@@ -533,7 +563,7 @@ export default class Staking extends Component {
 
     if (eenergy > this.state.contractEnergy && this.state.energyOn) {
 
-      var requerido = eenergy - this.state.contractEnergy
+      let requerido = eenergy - this.state.contractEnergy
 
       if (requerido < 32000) {
         requerido = 32000;
@@ -541,8 +571,8 @@ export default class Staking extends Component {
         requerido += 1000;
       }
 
-      var body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+      let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
+      let consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -550,7 +580,7 @@ export default class Staking extends Component {
         body: JSON.stringify(body)
       }).then((r) => r.json())
 
-      var precio = new BigNumber(consultaPrecio.price).dp(6)
+      let precio = new BigNumber(consultaPrecio.price).dp(6)
 
       //console.log(precio)
 
@@ -638,7 +668,6 @@ export default class Staking extends Component {
           window.$("#mensaje-brst").modal("show");
         })
 
-      //await this.props.contrato.BRST_TRX_Proxy.retirar(id).send();
     }
   }
 
