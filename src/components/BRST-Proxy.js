@@ -129,6 +129,7 @@ export default class Staking extends Component {
       eenergy: 62000,
       energyOn: false,
       conexion: false,
+      total_required: 0
 
     };
 
@@ -348,6 +349,8 @@ export default class Staking extends Component {
       let balance_Pool= new BigNumber(await this.props.tronWeb.trx.getBalance("TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55")).shiftedBy(-6)
 
 
+      let total_required = new BigNumber(0)
+
       this.setState({
         minCompra: MIN_DEPOSIT,
         depositoBRUT: aprovadoBRUT,
@@ -359,6 +362,13 @@ export default class Staking extends Component {
         eenergy: eenergy,
       })
 
+
+      let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
+      let isAdmin = false;
+
+      if (adminsBrst.indexOf(this.props.accountAddress) >= 0) {
+        isAdmin = true;
+      }
 
 
       for (let index = 0; index < deposits.length; index++) {
@@ -372,21 +382,15 @@ export default class Staking extends Component {
 
         let diasrestantes = ((inicio + tiempo - Date.now()) / (86400 * 1000)).toPrecision(2)
 
-        let boton = <b>login with an authorized account to interact with this asset retirement</b>
+        let boton = <b>login with an authorized account</b>
 
         let cantidadTrx = new BigNumber(parseInt(pen.brst._hex)).times(parseInt(pen.precio._hex)).shiftedBy(-6)
-        let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
-        let isAdmin = false;
-
-        if (adminsBrst.indexOf(this.props.accountAddress) >= 0) {
-          isAdmin = true;
-        }
-
-
-        if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes < 17 && diasrestantes > 0) {
+        total_required = total_required.plus(cantidadTrx.dp(0))
+        
+        if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes > 0) {
           boton = (
-            <button className="btn btn-warning ms-4 disabled" disabled aria-disabled="true" >
-              {this.props.i18n.t("claim") + " "} <i className="bi bi-exclamation-circle"></i>
+            <button className="btn btn-info ms-4 disabled" disabled aria-disabled="true" >
+              {"Unfreeze TRX "} <i className="bi bi-exclamation-circle"></i>
             </button>
           )
         }
@@ -396,25 +400,30 @@ export default class Staking extends Component {
         
         if ((myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) || isOwner) {
 
-          //console.log(myids.indexOf(parseInt(deposits[index]._hex)))
-          boton = (
-            <button className="btn btn-primary ms-4" onClick={async () => {
-              await this.preClaim(parseInt(deposits[index]._hex));
-              this.estado()
-            }}>
-              {this.props.i18n.t("claim") + " "} <i className="bi bi-award"></i>
-            </button>
-          )
+
+          if(balance_Pool.toNumber() < cantidadTrx.shiftedBy(-6).dp(6).toNumber()){
+          
+            boton = (
+              <button className="btn btn-info ms-4 disabled" disabled aria-disabled="true" >
+                {this.props.i18n.t("We continue to unfreeze TRX") + " "} <i className="bi bi-exclamation-circle"></i>
+              </button>
+            )
+
+          }else{
+
+            boton = (
+              <button className="btn btn-primary ms-4" onClick={async () => {
+                await this.preClaim(parseInt(deposits[index]._hex));
+                this.estado()
+              }}>
+                {this.props.i18n.t("claim") + " "} <i className="bi bi-award"></i>
+              </button>
+            )
+  
+          }
+
         }
 
-        if(balance_Pool.toNumber() < cantidadTrx.shiftedBy(-6).dp(6).toNumber()){
-          
-          boton = (
-            <button className="btn btn-info ms-4 disabled" disabled aria-disabled="true" >
-              {this.props.i18n.t("We continue to unfreeze your assets") + " "} <i className="bi bi-exclamation-circle"></i>
-            </button>
-          )
-        }
 
         if (diasrestantes <= 0) {
           diasrestantes = 0
@@ -433,7 +442,6 @@ export default class Staking extends Component {
               <div className="col-12 mb-2">
 
               <h4 className="fs-20 text-black">{this.props.i18n.t("brst.sale", { number: parseInt(deposits[index]._hex) })} {" -> "}{parseInt(pen.brst._hex) / 10 ** 6} BRST</h4>
-
 
               </div>
               <div className="col-sm-6 mb-2">
@@ -459,8 +467,20 @@ export default class Staking extends Component {
         }
       }
 
+      total_required = total_required.shiftedBy(-6).toString(10)
+
+      if(isAdmin || isOwner){
+        globDepositos.push(<div key="admin-panel">
+          Retiro normal: {total_required}<br></br>
+          Retiros Rapidos: <br></br>
+          Retiros loteria: <br></br>
+        </div>)
+      }
+     
+
       this.setState({
         globDepositos: globDepositos,
+        total_required: total_required
 
       })
 
@@ -1980,7 +2000,11 @@ export default class Staking extends Component {
 
               {this.state.globDepositos}
 
+              
+
+
             </div>
+
           </div>
         </div>
 

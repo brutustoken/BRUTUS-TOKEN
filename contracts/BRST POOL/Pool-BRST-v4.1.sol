@@ -96,7 +96,7 @@ interface Proxy_Interface {
     function changeAdmin(address _admin) external;
 }
 
-contract PoolBRSTv4 {
+contract PoolBRST_v4_1 {
     using SafeMath for uint256;
     using Array for uint256[];
 
@@ -133,7 +133,7 @@ contract PoolBRSTv4 {
     uint256 public index;
 
     bool public iniciado = true;
-
+    //almacenamiento adicional version 4
     uint256[] public almacen;
     uint256 public UnStaking;
 
