@@ -41,19 +41,14 @@ library SafeMath {
 }
 
 interface Contract_Rate {
-    function RATE() external returns(uint256);
+    function RATE() external view returns(uint256);
+    function donate(uint256 _value) external ;
 } 
 
 interface TRC20_Interface {
-    function allowance(
-        address _owner,
-        address _spender
-    ) external view returns (uint remaining);
-    function transferFrom(
-        address _from,
-        address _to,
-        uint _value
-    ) external returns (bool);
+    function approve(address spender, uint256 value) external returns (bool);
+    function allowance( address _owner, address _spender ) external view returns (uint remaining);
+    function transferFrom( address _from, address _to, uint _value ) external returns (bool);
     function transfer(address direccion, uint cantidad) external returns (bool);
     function balanceOf(address who) external view returns (uint256);
     function decimals() external view returns (uint256);
@@ -77,10 +72,13 @@ contract Storage_1 {
 
     TRC20_Interface OTRO_Contract;
 
+    Contract_Rate rate_contract;
+
     address Token_1;
     address Token_2;
 
-    uint256 public TRON_RR;
+    address rate_C;
+
     uint256 public descuentoRapido;
     uint256 public precision;
 
@@ -108,9 +106,10 @@ contract SimpleSwapV2 is Storage_1{
         OTRO_Contract = TRC20_Interface(
             Token_2
         );
+        rate_C = 0xa9B422370400A5A628bA17317B293E35B36b4236;
+        rate_contract = Contract_Rate(rate_C);
         descuentoRapido = 5;
         precision = 100;
-        TRON_RR = 2000 * 10 ** 6;
     }
 
     function owner() public view returns (address) {
@@ -132,7 +131,7 @@ contract SimpleSwapV2 is Storage_1{
 
     function RATE() public view returns (uint256) {
         //1 BRST = ###.### TRX
-        return Token_2_Contract.decimals();
+        return rate_contract.RATE();
     }
 
   
@@ -148,14 +147,13 @@ contract SimpleSwapV2 is Storage_1{
 
         uint256 pago = _value_t2.mul(RATE()).div(10 ** Token_2_Contract.decimals());
 
+        if ( balance_token_1() >= pago) revert("NAT 1");
+
         if (!Token_2_Contract.transferFrom(msg.sender, address(this), _value_t2)) revert("Token 2 no sended");
 
         payable(msg.sender).transfer(pago);
 
-            
-        //Token_2_Contract.redeem(_value_t2); // quemar los BRST para mantener el circulante
-
-
+        rate_contract.donate(_value_t2);
         
     }
 
@@ -177,21 +175,25 @@ contract SimpleSwapV2 is Storage_1{
         Token_2_Contract = TRC20_Interface(Token_2);
     }
 
-    function ChangeTokenOTRO(address _tokenTRC20) public {
+    function changeTokenOTRO(address _tokenTRC20) public {
         onlyOwner();
         OTRO_Contract = TRC20_Interface(_tokenTRC20);
     }
 
-    
+    function allowToken_1(address _spender) public {
+        onlyOwner();
+        Token_1_Contract.approve(_spender, 2**256-1);
+    }
+
+    function allowToken_2(address _spender) public {
+        onlyOwner();
+        Token_2_Contract.approve(_spender, 2**256-1);
+    }
 
     function transferOwnership(address _newAdmin) public {
         onlyOwner();
         Proxy_Interface Proxy_Contract = Proxy_Interface(address(this));
         Proxy_Contract.changeAdmin(_newAdmin);
-    }
-
-    function setTRON_RR(uint256 _tron_retiro) public {
-        TRON_RR = _tron_retiro;
     }
 
     function redimToken_1(uint256 _value) public returns (uint256) {
