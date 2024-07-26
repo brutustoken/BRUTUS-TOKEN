@@ -363,6 +363,8 @@ export default class Staking extends Component {
       })
 
 
+      console.log(this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call())))
+
       let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
       let isAdmin = false;
 
@@ -390,13 +392,11 @@ export default class Staking extends Component {
         if (myids.includes(parseInt(deposits[index]._hex)) && diasrestantes > 0) {
           boton = (
             <button className="btn btn-info ms-4 disabled" disabled aria-disabled="true" >
-              {"Unfreeze TRX "} <i className="bi bi-exclamation-circle"></i>
+              {"Processing Unfreeze TRX "} <i className="bi bi-exclamation-circle"></i>
             </button>
           )
         }
-
-        console.log(balance_Pool.toNumber(), cantidadTrx.shiftedBy(-6).dp(6).toNumber())
-
+        //console.log(balance_Pool.toNumber(), cantidadTrx.shiftedBy(-6).dp(6).toNumber())
         
         if ((myids.includes(parseInt(deposits[index]._hex)) && diasrestantes <= 0) || isOwner) {
 
@@ -496,7 +496,7 @@ export default class Staking extends Component {
       /*
         let inputs = [
           //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-          { type: 'uint256', value: 3000 * 10 ** 6 }
+          { type: 'uint256', value: 0 * 10 ** 6 }
         ]
   
         let funcion = "setTRON_RR(uint256)"
@@ -508,8 +508,8 @@ export default class Staking extends Component {
         transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
   
         console.log(transaction)
-      */
 
+      */
 
 
       this.setState({

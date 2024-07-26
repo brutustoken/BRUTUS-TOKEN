@@ -134,8 +134,6 @@ contract PoolBRST_v4_1 {
 
     bool public iniciado = true;
     //almacenamiento adicional version 4
-    uint256[] public almacen;
-    uint256 public UnStaking;
 
     constructor() {}
 
@@ -151,10 +149,7 @@ contract PoolBRST_v4_1 {
         OTRO_Contract = TRC20_Interface(
             0x389ccc30de1d311738Dffd3F60D4fD6188970F45
         );
-        descuentoRapido = 5;
         precision = 100;
-        TRON_RR = 2000 * 10 ** 6;
-        almacen = [0, 0, 0];
     }
 
     function onlyOwner() internal view {
@@ -162,35 +157,16 @@ contract PoolBRST_v4_1 {
     }
 
     function disponible_TRX() public view returns (uint256) {
-        uint256 balance = address(this).balance;
+        /*uint256 balance = address(this).balance;
         for (uint256 a = 0; a < almacen.length; a++) {
             balance = balance.sub(almacen[a]);
         }
-        return balance;
+        return balance;*/
+        return address(this).balance;
     }
 
     function TRON_BALANCE() public view returns (uint256) {
         return _WALLET_SR_BALANCE;
-    }
-
-    function TRON_PAY_BALANCE() public view returns (uint256) {
-        return almacen[0];
-    }
-
-    function TRON_PAY_BALANCE_FAST() public view returns (uint256) {
-        return almacen[1];
-    }
-
-    function TRON_PAY_BALANCE_WHITE() public view returns (uint256) {
-        return almacen[2];
-    }
-
-    function TRON_RN() public view returns (uint256) {
-        if (TRON_SOLICITADO > UnStaking) {
-            return TRON_SOLICITADO.sub(UnStaking);
-        } else {
-            return 0;
-        }
     }
 
     function RATE() public view returns (uint256) {
@@ -263,6 +239,7 @@ contract PoolBRST_v4_1 {
     }
 
     function instaRetiro(uint256 _value) public returns (bool) {
+        /*
         uint256 pago = _value.mul(RATE()).div(10 ** BRST_Contract.decimals());
         uint256 toPay;
 
@@ -284,6 +261,9 @@ contract PoolBRST_v4_1 {
         } else {
             return false;
         }
+        */
+        return false;
+
     }
 
     function esperaRetiro(uint256 _value) public returns (uint256 order) {
@@ -332,19 +312,7 @@ contract PoolBRST_v4_1 {
             }
         }
         require(pago > 0 && totalBRST > 0);
-
-        uint256 toPay;
-        if (whiteList[_user]) {
-            toPay = TRON_PAY_BALANCE_WHITE();
-        } else {
-            if (msg.sender == owner()) {
-                toPay = TRON_PAY_BALANCE_FAST();
-            } else {
-                toPay = TRON_PAY_BALANCE();
-            }
-        }
-
-        require(toPay >= pago);
+        require(address(this).balance >= pago);
 
         misSolicitudes[_user] = nuevo;
 
@@ -377,17 +345,8 @@ contract PoolBRST_v4_1 {
         uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(
             10 ** BRST_Contract.decimals()
         );
-        uint256 toPay;
-        if (whiteList[peticiones[_id].wallet]) {
-            toPay = TRON_PAY_BALANCE_WHITE();
-        } else {
-            if (msg.sender == owner()) {
-                toPay = TRON_PAY_BALANCE_FAST();
-            } else {
-                toPay = TRON_PAY_BALANCE();
-            }
-        }
-        if (toPay >= pago) {
+        
+        if (address(this).balance >= pago) {
             (, uint256 i) = misSolicitudes[peticiones[_id].wallet].findIndexOf(
                 _id
             );
@@ -428,12 +387,6 @@ contract PoolBRST_v4_1 {
     function setTiempo(uint256 _dias) public {
         onlyOwner();
         TIEMPO = _dias;
-    }
-
-    function setSalidaRapida(uint256 _descuento, uint256 _precision) public {
-        onlyOwner();
-        descuentoRapido = _descuento;
-        precision = _precision;
     }
 
     function ChangeToken(address _tokenTRC20) public {
@@ -504,33 +457,6 @@ contract PoolBRST_v4_1 {
     function setWhiteList(address _w, bool _sn) public {
         onlyOwner();
         whiteList[_w] = _sn;
-    }
-
-    function setTRON_RR(uint256 _tron_retiro) public {
-        onlyOwner();
-        TRON_RR = _tron_retiro;
-    }
-
-    function setAlmacen(uint256 _almacen, uint256 _tron) public {
-        onlyOwner();
-        almacen[_almacen] = _tron;
-    }
-
-    function addAlmacen(uint256 _almacen, uint256 _tron) public {
-        onlyOwner();
-        require(disponible_TRX() >= _tron);
-        almacen[_almacen] = almacen[_almacen].add(_tron);
-    }
-
-    function subAlmacen(uint256 _almacen, uint256 _tron) public {
-        onlyOwner();
-        require(almacen[_almacen] >= _tron);
-        almacen[_almacen] = almacen[_almacen].sub(_tron);
-    }
-
-    function setUnStaking(uint256 _tron) public {
-        onlyOwner();
-        UnStaking = _tron;
     }
 
     function setListaNegra(address _evilUser, bool _si_no) public {

@@ -12,6 +12,7 @@ var RED = "https://api.trongrid.io";// shasta para habilitar red de pruebas
 var SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
 var SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking  BRST/TRX
 var ProxySC2 = "TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55";// POOL Staking  BRST/TRX Proxy
+let ProxySC3 = "TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr";// Pool brst/trx retiradas rapidas
 var SC3 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk";//contrato Mixtery box
 var SC4 = "TKghr3aZvCbo41c8y5vUXofChF1gMmjTHr";//contrato sorteo de loteria 15 dias Proxy
 
@@ -33,7 +34,9 @@ if (testnet) {
 
     SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
     SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
-    ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX versionable 
+    ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox
+    ProxySC3 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox retiradas rapidas 
+
     SC3 = "";//pool APENFT_NFT
     SC4 = "TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR";// Loteria Contract NFT_BRST_TRX PROXY
 
@@ -47,4 +50,4 @@ if (testnet) {
 
 }
 
-export default { proxy, RED, SC, SC2, ProxySC2, SC3, SC4, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut, KEYS, apiProviders };
+export default { proxy, RED, SC, SC2, SC3, SC4, ProxySC2, ProxySC3, USDT, PRICE, BRUT, BRST, BRGY, APENFT, BRLT, market_brut, KEYS, apiProviders };

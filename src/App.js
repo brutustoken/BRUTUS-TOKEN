@@ -260,6 +260,16 @@ class App extends Component {
       await delay(1)
 
     }
+
+    if (cons.ProxySC3 !== "" && (url === "" || url === "brst")) {
+      contrato.Proxy_fast = await web3Contracts.contract(abi_PROXY, cons.ProxySC3);
+      await delay(1)
+
+      contrato.BRST_TRX_Proxy_fast = await web3Contracts.contract(abi_POOLBRST, cons.ProxySC3);
+      await delay(1)
+
+    }
+
     if (cons.BRST !== "" && (url === "" || url === "brst")) {
       contrato.BRST = await web3Contracts.contract().at(cons.BRST);
       await delay(1)
