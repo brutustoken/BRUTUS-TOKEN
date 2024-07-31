@@ -5,6 +5,7 @@ import TronWeb from "tronweb";
 
 import abi_PROXY from "./abi/Proxy";
 import abi_POOLBRST from "./abi/PoolBRSTv4";
+import abi_SimpleSwap from "./abi/SimpleSwapV2";
 import abi_LOTERIA from "./abi/Lottery";
 import cons from "./cons.js";
 
@@ -265,7 +266,7 @@ class App extends Component {
       contrato.Proxy_fast = await web3Contracts.contract(abi_PROXY, cons.ProxySC3);
       await delay(1)
 
-      contrato.BRST_TRX_Proxy_fast = await web3Contracts.contract(abi_POOLBRST, cons.ProxySC3);
+      contrato.BRST_TRX_Proxy_fast = await web3Contracts.contract(abi_SimpleSwap, cons.ProxySC3);
       await delay(1)
 
     }

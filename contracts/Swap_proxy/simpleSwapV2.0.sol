@@ -143,11 +143,11 @@ contract SimpleSwapV2 is Storage_1{
 
     function  sell_token_2(uint256 _value_t2) public {
 
-        //BRST -> TRX 5% mas barato 
-
         uint256 pago = _value_t2.mul(RATE()).div(10 ** Token_2_Contract.decimals());
 
-        if ( balance_token_1() >= pago) revert("NAT 1");
+        pago = pago.mul(precision.sub(descuentoRapido)).div(precision);
+
+        if ( balance_token_1() < pago) revert("NAT 1");
 
         if (!Token_2_Contract.transferFrom(msg.sender, address(this), _value_t2)) revert("Token 2 no sended");
 

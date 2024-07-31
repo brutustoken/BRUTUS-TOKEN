@@ -1183,7 +1183,7 @@ export default class Staking extends Component {
     amount = new BigNumber(amount).multipliedBy(95).div(100);
 
 
-    var retiroRapido = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_FAST().call()
+    var retiroRapido = await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call()
     retiroRapido = new BigNumber(retiroRapido._hex).shiftedBy(-6)
     //console.log(amount.toNumber(), retiroRapido.toNumber())
     let primerBoton = <></>
@@ -1254,12 +1254,16 @@ export default class Staking extends Component {
 
     ]
     let funcion = "esperaRetiro(uint256)"
+    let contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address);
 
     if (rapida) {
-      funcion = "instaRetiro(uint256)"
+      funcion = "sell_token_2(uint256)"
+      contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy_fast.address);
+
     }
+
     const options = {}
-    var transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    var transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(contrato, funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
       .catch(() => { return {} })
 
 
@@ -1271,7 +1275,7 @@ export default class Staking extends Component {
 
     if (eenergy > this.state.contractEnergy && this.state.energyOn) {
 
-      var requerido = eenergy - this.state.contractEnergy
+      let requerido = eenergy - this.state.contractEnergy
 
       if (requerido < 32000) {
         requerido = 32000;
@@ -1279,8 +1283,8 @@ export default class Staking extends Component {
         requerido += 1000;
       }
 
-      var body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+      let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
+      let consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -1288,7 +1292,7 @@ export default class Staking extends Component {
         body: JSON.stringify(body)
       }).then((r) => r.json())
 
-      var precio = new BigNumber(consultaPrecio.price).dp(6)
+      let precio = new BigNumber(consultaPrecio.price).dp(6)
 
       //console.log(precio)
 
@@ -1314,20 +1318,26 @@ export default class Staking extends Component {
 
     const { minventa } = this.state;
 
-    var amount = document.getElementById("amountBRST").value;
+    let amount = document.getElementById("amountBRST").value;
     amount = parseFloat(amount);
     amount = parseInt(amount * 10 ** 6);
 
-    var accountAddress = this.props.accountAddress;
+    let accountAddress = this.props.accountAddress;
 
-    var aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+    let contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address)
+
+    if(rapida){
+      contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy_fast.address);
+    }
+
+    let aprovado = await this.props.contrato.BRST.allowance(accountAddress, contrato).call();
 
     aprovado = parseInt(aprovado._hex);
 
     if (aprovado <= amount) {
 
       let inputs = [
-        { type: 'address', value: this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address) },
+        { type: 'address', value: contrato },
         { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" }
       ]
 
@@ -1355,12 +1365,9 @@ export default class Staking extends Component {
           window.$("#mensaje-brst").modal("show");
         })
 
-
-
       //await this.props.contrato.BRST.approve(this.props.contrato.BRST_TRX_Proxy.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
 
-
-      aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+      aprovado = await this.props.contrato.BRST.allowance(accountAddress, contrato).call();
     }
 
     if (aprovado >= amount) {
@@ -1383,10 +1390,13 @@ export default class Staking extends Component {
             //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
             { type: 'uint256', value: amount }
           ]
-
+          
           let funcion = "instaRetiro(uint256)"
+          if(rapida){
+            funcion = "sell_token_2(uint256)"
+          }
           const options = {}
-          let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+          let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(contrato, funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
           let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
           transaction = await window.tronLink.tronWeb.trx.sign(transaction)
             .catch((e) => {
@@ -1402,7 +1412,7 @@ export default class Staking extends Component {
             .then(() => {
               this.setState({
                 ModalTitulo: "Result",
-                ModalBody: <>Insta retiro Done {transaction.txid}
+                ModalBody: <>Your fast withdrawal was successfully processed {transaction.txid}
                   <br /><br />
                   <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
                 </>
