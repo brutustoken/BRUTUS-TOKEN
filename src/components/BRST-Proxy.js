@@ -1178,9 +1178,15 @@ export default class Staking extends Component {
 
   async sell() {
 
-    var amount = document.getElementById("amountTRX").value;
-    var amountNorm = new BigNumber(amount)
-    amount = new BigNumber(amount).multipliedBy(95).div(100);
+    let amount = document.getElementById("amountTRX").value;
+    let amountNorm = new BigNumber(amount)
+
+    let penalty = (await this.props.contrato.BRST_TRX_Proxy_fast.descuentoRapido().call()).toNumber()
+    let presicion = (await this.props.contrato.BRST_TRX_Proxy_fast.precision().call()).toNumber()
+
+    penalty = (penalty/presicion)*100
+
+    amount = new BigNumber(amount).multipliedBy(presicion-penalty).div(presicion);
 
 
     var retiroRapido = await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call()
@@ -1188,17 +1194,19 @@ export default class Staking extends Component {
     //console.log(amount.toNumber(), retiroRapido.toNumber())
     let primerBoton = <></>
 
+    
+
     if (amount.toNumber() > retiroRapido.toNumber()) {
       primerBoton = (<>
         <button type="button" id="fastw" className="btn btn-secondary" disabled >Fast Withdrawal {amount.toNumber()} TRX</button><br />
-        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a 5% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
+        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
         <br /><br />
 
       </>)
     } else {
       primerBoton = (<>
         <button type="button" id="fastw" className="btn btn-warning" onClick={() => { this.preVenta(true) }}>Fast Withdrawal {amount.toNumber()} TRX</button><br />
-        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a 5% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
+        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
         <br /><br />
 
       </>)
@@ -2067,6 +2075,21 @@ export default class Staking extends Component {
                 </table>
                 <p>{this.props.i18n.t("brst.calcullatorText", { days: this.state.tiempoPromediado })}</p>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-12">
+          <div className="card">
+            <div className="card-header">
+              <h4 className="card-title">Smart Contracts </h4>
+            </div>
+            <div className="card-body">
+              <p>
+              <b>Regular withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+this.props.contrato.BRST_TRX_Proxy.address+"/code"}>{this.props.contrato.BRST_TRX_Proxy.address}</a>
+              <br />
+              <b>Fast withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+this.props.contrato.BRST_TRX_Proxy_fast.address+"/code"}>{this.props.contrato.BRST_TRX_Proxy_fast.address}</a>
+              </p>
             </div>
           </div>
         </div>
