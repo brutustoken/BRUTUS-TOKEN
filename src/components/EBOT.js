@@ -366,6 +366,31 @@ export default class EnergyRental extends Component {
       return;
     }
 
+
+    if(recurso === "energy"){
+      if(cantidad > this.state.available_energy){
+        this.setState({
+          titulo: "Error",
+          body: "insufficient resources to cover this order try a lower value or try again later."
+        })
+  
+        window.$("#mensaje-ebot").modal("show");
+        return;
+      }
+    }else{
+      if(cantidad > this.state.available_bandwidth){
+        this.setState({
+          titulo: "Error",
+          body: "insufficient resources to cover this order try a lower value or try again later."
+        })
+  
+        window.$("#mensaje-ebot").modal("show");
+        return;
+      }
+    }
+
+   
+
     this.setState({
       titulo: <>Confirm order information</>,
       body: (<span>
@@ -373,9 +398,9 @@ export default class EnergyRental extends Component {
         <b>For: </b> {pagas} TRX<br></br>
         <b>To: </b> {this.state.wallet_orden}<br></br>
         <br /><br />
-        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel <i class="bi bi-x-circle"></i></button>
+        <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel <i className="bi bi-x-circle"></i></button>
         {" "}
-        <button type="button" className="btn btn-success" onClick={() => { this.compra(cantidad, periodo, temporalidad, recurso, this.state.wallet_orden, pagas) }}>Confirm <i class="bi bi-bag-check"></i></button>
+        <button type="button" className="btn btn-success" onClick={() => { this.compra(cantidad, periodo, temporalidad, recurso, this.state.wallet_orden, pagas) }}>Confirm <i className="bi bi-bag-check"></i></button>
       </span>)
     })
 
