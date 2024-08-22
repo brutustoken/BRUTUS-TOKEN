@@ -94,6 +94,10 @@ export default class EnergyRental extends Component {
       tmp = "h"
     }
 
+    if (dato.split("m").length > 1 || dato.split("min").length > 1) {
+      tmp = "m"
+    }
+
     this.setState({
       periodo: parseInt(dato),
       temporalidad: tmp
@@ -232,9 +236,8 @@ export default class EnergyRental extends Component {
       amount = montoMin
     }
 
-    time = time.split("d")
 
-    if (time.length >= 2) {
+    if (time.indexOf("d") >= 0) {
 
       if (parseInt(time[0]) < 1 || parseInt(time[0]) > 14) {
         this.setState({
@@ -246,7 +249,13 @@ export default class EnergyRental extends Component {
 
         window.$("#mensaje-ebot").modal("show");
       }
-    } else {
+
+      time = time.split("d")[0]
+
+    }
+
+
+    if(time.indexOf("h") >= 0) {
 
       if (parseInt(time[0]) !== 1) {
         this.setState({
@@ -260,9 +269,31 @@ export default class EnergyRental extends Component {
         window.$("#mensaje-ebot").modal("show");
       }
 
+      time = "1h"
+
     }
 
-    time = time[0]
+
+    if(time.indexOf("m") >= 0) {
+
+      if (parseInt(time[0]) !== 5) {
+        this.setState({
+          titulo: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[0],
+          body: this.props.i18n.t("ebot.alert.eRange2"),
+          periodo: "5"
+        })
+
+        ok = false;
+
+        window.$("#mensaje-ebot").modal("show");
+      }
+
+      time = "5min"
+
+    }
+
+
+    console.log(time)
 
 
     let precio = this.props.i18n.t("calculating") + "..."
@@ -660,6 +691,8 @@ export default class EnergyRental extends Component {
                       </div>
                       <div className="col-12 ">
                         <div className="d-flex justify-content-xl-center">
+                        <button type="button" className="btn btn-primary"
+                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "5m"; this.handleChangePeriodo({ target: { value: "5m" } }) }}>5m</button>
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1h"; this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
                           <button type="button" className="btn btn-primary"
