@@ -333,7 +333,7 @@ export default class EnergyRental extends Component {
 
     let pagas = await this.calcularRecurso(cantidad, periodo + temporalidad, recurso)
 
-    console.log(pagas)
+    //console.log(pagas)
 
     if (isNaN(pagas)) {
       this.setState({
@@ -502,15 +502,19 @@ export default class EnergyRental extends Component {
           recurso = "band"
         }
 
-        var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + recurso
+        let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + recurso
 
-        var time = periodo
+        let time = periodo
 
-        if (temporalidad === "h") {
+        if (temporalidad === "h" || temporalidad === "hour" || temporalidad === "hora") {
           time = periodo + temporalidad
         }
 
-        var body = {
+        if (temporalidad === "m" || temporalidad === "min" || temporalidad === "minutes" || temporalidad === "minutos" ) {
+          time = periodo + "min"
+        }
+
+        let body = {
           "id_api": process.env.REACT_APP_USER_ID,
           "wallet": wallet_orden,
           "amount": cantidad,
