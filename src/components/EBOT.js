@@ -36,8 +36,8 @@ export default class EnergyRental extends Component {
       recurso: "energy",
       cantidad: 32000,
       montoMin: 32000,
-      periodo: 1,
-      temporalidad: "h",
+      periodo: 5,
+      temporalidad: "m",
       available_bandwidth: 0,
       available_energy: 0,
       total_bandwidth_pool: 0,
@@ -144,24 +144,20 @@ export default class EnergyRental extends Component {
 
     let consulta = false
 
-    var url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available"
+    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available"
 
     try {
       consulta = await fetch(url)
         .then((r) => r.json())
 
-
     } catch (error) {
       console.log(error.toString())
-
     }
 
     let band = 0
     let energi = 0
 
-    //console.log(consulta)
-
-    if (this.state.periodo === 1 && this.state.temporalidad === "h") {
+    if (this.state.temporalidad.indexOf("m") >= 0 || this.state.temporalidad.indexOf("h") >= 0 || this.state.temporalidad.indexOf("d") >= 0) {
       band = consulta.av_band[0].available
       energi = consulta.av_energy[0].available
     } else {
@@ -184,7 +180,7 @@ export default class EnergyRental extends Component {
     }
 
     if (recurso === "energy") {
-      if (energi < consulta.total_energy_pool * 0.01) {
+      if (energi < consulta.total_energy_pool * 0.005) {
         energyOn = false;
         this.setState({
           titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
@@ -686,7 +682,7 @@ export default class EnergyRental extends Component {
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Duration</p>
 
-                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 1h (one hour)"} defaultValue="1h" />
+                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5min (five minutes)"} defaultValue="5min" />
 
                       </div>
                       <div className="col-12 ">
