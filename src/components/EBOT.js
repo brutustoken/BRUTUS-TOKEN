@@ -157,7 +157,7 @@ export default class EnergyRental extends Component {
     let band = 0
     let energi = 0
 
-    if (this.state.temporalidad.indexOf("m") >= 0 || this.state.temporalidad.indexOf("h") >= 0 || this.state.temporalidad.indexOf("d") >= 0) {
+    if (this.state.temporalidad.indexOf("m") >= 0 || this.state.temporalidad.indexOf("h") >= 0 ) {
       band = consulta.av_band[0].available
       energi = consulta.av_energy[0].available
     } else {
@@ -735,7 +735,7 @@ export default class EnergyRental extends Component {
             <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
 
             <div className="info">
-              <p className="font-20">In Brutus Energy Bot, we've developed a DApp for a faster and secure resource rental experience on the Tron network. Innovatively simplifying the process, we ensure efficient management at competitive prices. Explore further through our <a href="https://t.me/BRUTUS_energy_bot">Telegram bot</a> or API for added accessibility. For additional information, reach out to us at <a href="mailto:support@brutus.finance">support@brutus.finance</a></p>
+              <p className="font-20">In Brutus Energy Bot, we've developed a DApp for a faster and secure resource rental experience on the Tron network. <br></br> <br></br> Innovatively simplifying the process, we ensure efficient management at competitive prices. Explore further through our <a href="https://t.me/BRUTUS_energy_bot">Telegram bot</a> or API for added accessibility. <br></br> <br></br>For additional information, reach out to us at <a href="mailto:support@brutus.finance">support@brutus.finance</a></p>
             </div>
 
             <div className="widget widget_about">
@@ -743,6 +743,19 @@ export default class EnergyRental extends Component {
               </div>
             </div>
             <div className="social-box dz-social-icon style-3">
+            </div>
+          </div>
+        </div>
+
+        <div className="col-lg-12">
+          <div className="card">
+            <div className="card-header">
+              <h4 className="card-title">Smart Contracts </h4>
+            </div>
+            <div className="card-body">
+              <p>
+                <b>rental operator:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+process.env.REACT_APP_WALLET_API+"/code"}>{process.env.REACT_APP_WALLET_API}</a>
+              </p>
             </div>
           </div>
         </div>
