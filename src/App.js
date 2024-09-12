@@ -17,6 +17,8 @@ import Nft from "./components/BRGY/index.js";
 import LOTERIA from "./components/BRLT.js";
 import EBOT from "./components/EBOT.js";
 import PRO from "./components/PRO.js";
+import API from "./components/API.js";
+
 
 import i18next from 'i18next';
 import lng from "./locales/langs.js"
@@ -350,15 +352,18 @@ class App extends Component {
       case "brgy":
         return <Nft accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
+      case "brlt":
+        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
+
       case "ebot":
         return <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
       case "pro":
         return <PRO accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} tronlink={this.state.tronlink} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 
-      case "brlt":
-        return <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-
+      case "api":
+        return <API accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} tronlink={this.state.tronlink} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
+  
       default:
         return <Inicio accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
 

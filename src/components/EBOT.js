@@ -288,17 +288,13 @@ export default class EnergyRental extends Component {
 
     }
 
-
-    console.log(time)
-
-
     let precio = this.props.i18n.t("calculating") + "..."
 
     this.setState({
       precio: precio
     })
 
-    if (parseInt(time) > 0 && ok) {
+    if (ok) {
       let body = { "resource": recurso, "amount": amount, "duration": time }
 
       let consulta = await fetch(url, {
@@ -308,12 +304,10 @@ export default class EnergyRental extends Component {
         },
         body: JSON.stringify(body)
       })
-        .then(async (r) => await r.json())
-        .catch((e) => {
-          return e.toString()
-        })
-
-
+      .then(async (r) => await r.json())
+      .catch((e) => {
+        return e.toString()
+      })
 
       precio = consulta.price
 
@@ -332,8 +326,6 @@ export default class EnergyRental extends Component {
   async preCompra(cantidad,periodo,temporalidad,recurso) {
 
     let pagas = await this.calcularRecurso(cantidad, periodo + temporalidad, recurso)
-
-    //console.log(pagas)
 
     if (isNaN(pagas)) {
       this.setState({
