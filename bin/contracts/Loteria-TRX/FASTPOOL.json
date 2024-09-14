@@ -1,11 +1,25 @@
 {
-    "contractName": "RandomNumber",
-    "abi": [],
-    "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"c:/Users/Steven/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery-v2.sol\":\"RandomNumber\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[],\"viaIR\":true},\"sources\":{\"c:/Users/Steven/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery-v2.sol\":{\"keccak256\":\"0x4405f50035c8bb3a29b4bafde0765bf339b9fcd6a463008506d379906d846b60\",\"license\":\"Apache-2.0\",\"urls\":[\"bzz-raw://6a3fc72a20261503f78fb61d4a68e677427861f6e680e66602a95d8040681d93\",\"dweb:/ipfs/Qmapcw7N1KMAfCL4b3NcFJfJhFZaovbxgsYTzG67VRwgcq\"]}},\"version\":1}",
-    "bytecode": "6080806040523460175760399081601c823930815050f35b5f80fdfe5f80fdfea2646970667358221220cc44522897389460a499c20a74c5ea4ce82b4777d7dbdfd75876b2e68856796464736f6c63430008140033",
-    "deployedBytecode": "5f80fdfea2646970667358221220cc44522897389460a499c20a74c5ea4ce82b4777d7dbdfd75876b2e68856796464736f6c63430008140033",
-    "sourceMap": "1079:561:0:-:0;;;;;;;;;;;;;;;;;;;;;",
-    "deployedSourceMap": "1079:561:0:-:0;;",
+    "contractName": "FASTPOOL",
+    "abi": [
+        {
+            "inputs": [
+                {
+                    "internalType": "uint256",
+                    "name": "_value_t2",
+                    "type": "uint256"
+                }
+            ],
+            "name": "sell_token_2",
+            "outputs": [],
+            "stateMutability": "payable",
+            "type": "function"
+        }
+    ],
+    "metadata": "{\"compiler\":{\"version\":\"0.8.20+commit.a1b79de6\"},\"language\":\"Solidity\",\"output\":{\"abi\":[{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"_value_t2\",\"type\":\"uint256\"}],\"name\":\"sell_token_2\",\"outputs\":[],\"stateMutability\":\"payable\",\"type\":\"function\"}],\"devdoc\":{\"kind\":\"dev\",\"methods\":{},\"version\":1},\"userdoc\":{\"kind\":\"user\",\"methods\":{},\"version\":1}},\"settings\":{\"compilationTarget\":{\"c:/Users/Steven/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery-v2.sol\":\"FASTPOOL\"},\"evmVersion\":\"shanghai\",\"libraries\":{},\"metadata\":{\"bytecodeHash\":\"ipfs\"},\"optimizer\":{\"enabled\":true,\"runs\":200},\"remappings\":[],\"viaIR\":true},\"sources\":{\"c:/Users/Steven/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery-v2.sol\":{\"keccak256\":\"0x4405f50035c8bb3a29b4bafde0765bf339b9fcd6a463008506d379906d846b60\",\"license\":\"Apache-2.0\",\"urls\":[\"bzz-raw://6a3fc72a20261503f78fb61d4a68e677427861f6e680e66602a95d8040681d93\",\"dweb:/ipfs/Qmapcw7N1KMAfCL4b3NcFJfJhFZaovbxgsYTzG67VRwgcq\"]}},\"version\":1}",
+    "bytecode": "",
+    "deployedBytecode": "",
+    "sourceMap": "",
+    "deployedSourceMap": "",
     "sourcePath": "c:/Users/Steven/Documents/GitHub/BRUTUS-TOKEN/contracts/Loteria-TRX/lottery-v2.sol",
     "compiler": {
         "name": "solc",
@@ -19219,15 +19233,8 @@
         ],
         "src": "0:14239:0"
     },
-    "functionHashes": {},
-    "gasEstimates": {
-        "creation": {
-            "codeDepositCost": "11400",
-            "executionCost": "infinite",
-            "totalCost": "infinite"
-        },
-        "internal": {
-            "randMod(uint256,uint256,uint256)": "infinite"
-        }
-    }
+    "functionHashes": {
+        "sell_token_2(uint256)": "182f8993"
+    },
+    "gasEstimates": null
 }

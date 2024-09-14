@@ -118,7 +118,7 @@ interface Proxy_Interface {
     function changeAdmin(address _admin) external;
 }
 
-contract Lottery {
+contract LotteryV2 {
     using SafeMath for uint256;
 
     RandomNumber.Data randNonce;
