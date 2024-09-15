@@ -125,11 +125,8 @@ export default class nfts extends Component {
 
 
     var cantidad = 0
-    var price = 0
     if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
       cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
-      price = (await this.props.contrato.loteria.allValueNFTs(this.props.accountAddress).call())[0]
-      price = new BigNumber(price._hex).shiftedBy(-6).toNumber()
     }
     var totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
     var premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6
@@ -169,7 +166,6 @@ export default class nfts extends Component {
       LastWiner: LastWiner,
       proximoSorteo: "Day " + proximoSorteo.getDate() + " | " + proximoSorteo.getHours() + ":" + minutos + "Hrs",
       prosort: prosort,
-      price: price,
     });
 
 
@@ -203,7 +199,7 @@ export default class nfts extends Component {
       let URI = await this.props.contrato.BRLT.tokenURI(globalId).call()
       let metadata = JSON.parse( await (await fetch(cons.proxy+URI)).text());
 
-      console.log(metadata)
+      //console.log(metadata)
 
       tikets[index]=(
 
