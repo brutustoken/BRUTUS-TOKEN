@@ -201,20 +201,29 @@ export default class nfts extends Component {
 
       //console.log(metadata)
 
+      let button = <></>
+
+      let value = new BigNumber((await this.props.contrato.loteria.valueNFT(globalId).call())._hex).shiftedBy(-6).dp(2).toString(10)
+
+      if(value > 0){
+        button = (<div className="new-arrival-content text-center mt-3">
+        <button className="btn btn-success" >Prize {value} TRX</button>
+      </div>)
+      }
+
       tikets[index]=(
 
-        <div className="col" key={"tiket-lottery-"+globalId}>
+        <div className="col-3" key={"tiket-lottery-"+globalId}>
         <div className="card">
           <div className="card-body">
             <div className="new-arrival-product">
-              <div className="new-arrivals-img-contnent">
-                <img src={metadata.image} alt={metadata.name +" # "+metadata.number} width="100%" className="img-thumbnail"></img>
-              </div>
               <div className="new-arrival-content text-center mt-3">
-                <h4>Tiket #{globalId}
-                  
-                </h4>
+                <h4>Ticket #{globalId}</h4>
               </div>
+              <div className="new-arrivals-img-contnent">
+                <img src={metadata.image} alt={metadata.name +" # "+metadata.number} className="img-thumbnail"></img>
+              </div>
+              {button}
             </div>
           </div>
         </div>
@@ -556,7 +565,7 @@ export default class nfts extends Component {
 
                   <div className="card-body ">
 
-                    <h2 className="heading">Your Tikets</h2>
+                    <h2 className="heading">Your Tickets</h2>
                     <p>
                     the probability of winning is based on how many tickets you have, the more tickets you have, the greater the probability of winning.
                       <br /><br />
@@ -567,7 +576,7 @@ export default class nfts extends Component {
                 </div>
               </div>
               <div className="col-xl-12">
-                <div className="col-xl-3 col-lg-6 col-sm-6" key={"robbrutN"}>
+                <div className="row">
                  {this.state.tikets}
                 </div>
               </div>

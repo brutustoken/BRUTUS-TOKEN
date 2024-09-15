@@ -44,7 +44,6 @@ export default class nftOficina extends Component {
     var contractMistery = await window.tronWeb.contract().at(cons.SC3);
     var contractNFT = await window.tronWeb.contract().at(cons.BRGY);
 
-
     var robots = [];
 
 
