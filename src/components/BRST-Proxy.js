@@ -200,6 +200,11 @@ export default class Staking extends Component {
 
   async estado() {
 
+    //console.log((await this.props.contrato.BRST_TRX_Proxy.totalDisponible().call()).toNumber())
+    //console.log((await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()).toNumber())
+
+    //console.log((await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_FAST().call()).toNumber())
+
     let precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
     precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
 
@@ -496,10 +501,10 @@ export default class Staking extends Component {
       /*
         let inputs = [
           //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-          { type: 'uint256', value: 0 * 10 ** 6 }
+          { type: 'uint256', value: 405 * 10 ** 6 }
         ]
   
-        let funcion = "setTRON_RR(uint256)"
+        let funcion = "setDisponible(uint256)"
         const options = {}
         let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
         let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);

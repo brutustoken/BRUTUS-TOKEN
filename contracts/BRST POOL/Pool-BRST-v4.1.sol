@@ -157,11 +157,6 @@ contract PoolBRST_v4_1 {
     }
 
     function disponible_TRX() public view returns (uint256) {
-        /*uint256 balance = address(this).balance;
-        for (uint256 a = 0; a < almacen.length; a++) {
-            balance = balance.sub(almacen[a]);
-        }
-        return balance;*/
         return address(this).balance;
     }
 
@@ -238,34 +233,6 @@ contract PoolBRST_v4_1 {
         }
     }
 
-    function instaRetiro(uint256 _value) public returns (bool) {
-        /*
-        uint256 pago = _value.mul(RATE()).div(10 ** BRST_Contract.decimals());
-        uint256 toPay;
-
-        if (whiteList[msg.sender]) {
-            toPay = TRON_PAY_BALANCE_WHITE();
-            retirarDisponible(pago);
-        } else {
-            pago = pago.mul(precision - descuentoRapido).div(100);
-            toPay = TRON_PAY_BALANCE_FAST();
-        }
-
-        if (toPay >= pago) {
-            if (!BRST_Contract.transferFrom(msg.sender, address(this), _value))
-                revert();
-            BRST_Contract.redeem(_value);
-            payable(msg.sender).transfer(pago);
-            _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
-            return true;
-        } else {
-            return false;
-        }
-        */
-        return false;
-
-    }
-
     function esperaRetiro(uint256 _value) public returns (uint256 order) {
         if (!BRST_Contract.transferFrom(msg.sender, address(this), _value))
             revert();
@@ -290,15 +257,12 @@ contract PoolBRST_v4_1 {
     function retirarFrom(address _user) public returns (bool exitoso) {
         uint256 pago;
         uint256[] memory arr = todasSolicitudes(_user);
-        uint256[] memory salidaGlob;
         uint256[] memory nuevo;
         uint256 totalBRST;
 
         for (uint256 i = 0; i < arr.length; i++) {
             if (
-                msg.sender == owner() ||
-                whiteList[_user] ||
-                peticiones[arr[i]].tiempo.add(TIEMPO) >= block.timestamp
+                block.timestamp >= peticiones[arr[i]].tiempo.add(TIEMPO) 
             ) {
                 pago = pago.add(
                     peticiones[arr[i]].brst.mul(peticiones[arr[i]].precio).div(
@@ -306,7 +270,7 @@ contract PoolBRST_v4_1 {
                     )
                 );
                 totalBRST = totalBRST.add(peticiones[arr[i]].brst);
-                salidaGlob = salidaGlob.addArray(arr[i]);
+                completada[arr[i]] = true;
             } else {
                 nuevo = nuevo.addArray(arr[i]);
             }
@@ -315,14 +279,6 @@ contract PoolBRST_v4_1 {
         require(address(this).balance >= pago);
 
         misSolicitudes[_user] = nuevo;
-
-        for (uint256 i = 0; i < salidaGlob.length; i++) {
-            completada[salidaGlob[i]] = true;
-        }
-
-        if (whiteList[_user]) {
-            retirarDisponible(pago);
-        }
 
         payable(_user).transfer(pago);
         BRST_Contract.redeem(totalBRST);
@@ -336,10 +292,7 @@ contract PoolBRST_v4_1 {
     function retirar(uint256 _id) public returns (bool exitoso) {
         require(index > _id);
         if (msg.sender != owner()) {
-            if (!whiteList[peticiones[_id].wallet]) {
-                if (block.timestamp < peticiones[_id].tiempo.add(TIEMPO))
-                    revert();
-            }
+            if (block.timestamp < peticiones[_id].tiempo.add(TIEMPO))revert("no time to claim");
         }
 
         uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(
@@ -347,18 +300,13 @@ contract PoolBRST_v4_1 {
         );
         
         if (address(this).balance >= pago) {
-            (, uint256 i) = misSolicitudes[peticiones[_id].wallet].findIndexOf(
-                _id
-            );
+            (, uint256 i) = misSolicitudes[peticiones[_id].wallet].findIndexOf(_id);
 
             misSolicitudes[peticiones[_id].wallet][i] = misSolicitudes[
                 peticiones[_id].wallet
             ][misSolicitudes[peticiones[_id].wallet].length - 1];
             misSolicitudes[peticiones[_id].wallet].pop();
 
-            if (whiteList[peticiones[_id].wallet]) {
-                retirarDisponible(pago);
-            }
             payable(peticiones[_id].wallet).transfer(pago);
             BRST_Contract.redeem(peticiones[_id].brst);
 

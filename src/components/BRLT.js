@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import abi_SUNSAWPv2 from "../abi/sunswapV2.json";
 
+import cons from "../cons.js";
+
 const BigNumber = require('bignumber.js');
 
 let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
@@ -31,7 +33,9 @@ export default class nfts extends Component {
       comprarBRLT: 1,
       precioUnidad: 100,
       total: 100,
-      moneda: "trx"
+      moneda: "trx",
+
+      tikets: [],
 
     };
 
@@ -167,6 +171,65 @@ export default class nfts extends Component {
       prosort: prosort,
       price: price,
     });
+
+
+    let myTikets = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
+
+    /*
+    let inputs = [
+      {type: 'address', value: this.props.tronWeb.address.toHex("TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr")},
+      //{ type: 'uint256', value: amount }
+    ]
+
+    let funcion = "update_addressFAST(address)"
+    const options = {}
+    let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.loteria.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+    transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+    .catch((e) => { console.log(e)})
+    transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+    .catch((e) => { console.log(e)})
+
+    console.log(transaction)
+
+    */
+
+    let tikets = []
+
+    for (let index = 0; index < myTikets; index++) {
+
+      let globalId = parseInt((await this.props.contrato.BRLT.tokenOfOwnerByIndex(this.props.accountAddress, index).call())._hex)
+
+      let URI = await this.props.contrato.BRLT.tokenURI(globalId).call()
+      let metadata = JSON.parse( await (await fetch(cons.proxy+URI)).text());
+
+      console.log(metadata)
+
+      tikets[index]=(
+
+        <div className="col" key={"tiket-lottery-"+globalId}>
+        <div className="card">
+          <div className="card-body">
+            <div className="new-arrival-product">
+              <div className="new-arrivals-img-contnent">
+                <img src={metadata.image} alt={metadata.name +" # "+metadata.number} width="100%" className="img-thumbnail"></img>
+              </div>
+              <div className="new-arrival-content text-center mt-3">
+                <h4>Tiket #{globalId}
+                  
+                </h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+        )
+      
+    }
+
+    this.setState({
+      tikets: tikets
+    })
 
   }
 
@@ -490,6 +553,29 @@ export default class nfts extends Component {
             </div>
           </div>
           <div className="col-xl-12">
+
+          <div className="row">
+              <div className="col-xl-12">
+                <div className="card">
+
+                  <div className="card-body ">
+
+                    <h2 className="heading">Your Tikets</h2>
+                    <p>
+                    the probability of winning is based on how many tickets you have, the more tickets you have, the greater the probability of winning.
+                      <br /><br />
+
+                    </p>
+
+                  </div>
+                </div>
+              </div>
+              <div className="col-xl-12">
+                <div className="col-xl-3 col-lg-6 col-sm-6" key={"robbrutN"}>
+                 {this.state.tikets}
+                </div>
+              </div>
+            </div>
             <div className="row">
               <div className="col-xl-12">
                 <div className="card">
@@ -549,6 +635,23 @@ export default class nfts extends Component {
                       <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf">{"--> "}Read all Terms and Conditions {" <--"}</a>
                     </p>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-lg-12">
+              <div className="card">
+                <div className="card-header">
+                  <h4 className="card-title">Smart Contracts </h4>
+                </div>
+                <div className="card-body">
+                  <p>
+                  <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+this.props.contrato.loteria.address+"/code"}>{this.props.contrato.loteria.address}</a>
+                  <br />
+                  <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+this.props.tronWeb.address.fromHex(this.props.contrato.BRLT.address)+"/code"}>{this.props.tronWeb.address.fromHex(this.props.contrato.BRLT.address)}</a>
+                  </p>
                 </div>
               </div>
             </div>

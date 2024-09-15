@@ -238,33 +238,20 @@ contract LotteryV2 {
         return vaul[_nft];
     }
 
-    function allValueNFTs(address _user) public view returns (uint256 tron) {
-        uint array = TRC721_Contract.balanceOf(_user);
-        for (uint256 index = 0; index < array; index++) {
-            tron = tron.add(
-                vaul[TRC721_Contract.tokenOfOwnerByIndex(_user, index)]
-            );
-        }
-    }
-
-    function reclamarPremio(address _user) public {
-        uint256 pago = allValueNFTs(_user);
-        require(pago > 0 && address(this).balance >= pago + toTeam);
-        payable(_user).transfer(pago);
-        if (toTeam > 0) {
-            payable(walletTeam).transfer(toTeam);
-            delete toTeam;
-        }
-    }
-
     function reclamarValueNFT(uint256 _nft) public {
         uint256 pago = vaul[_nft];
-        require(pago > 0 && address(this).balance >= pago + toTeam);
+        require(pago > 0 && address(this).balance >= pago );
         payable(TRC721_Contract.ownerOf(_nft)).transfer(pago);
-        if (toTeam > 0) {
+        vaul[_nft] = 0;
+        if (toTeam > 0 && address(this).balance >= toTeam ) {
             payable(walletTeam).transfer(toTeam);
             delete toTeam;
         }
+    }
+
+    function deleteVaul(uint256 _nft) public {
+        onlyOwner();
+        vaul[_nft] = 0;
     }
 
     function random() public view returns (uint256 myNumber) {
@@ -273,9 +260,9 @@ contract LotteryV2 {
             uint256(
                 keccak256(
                     abi.encode(
-                        lastWiner,
+                        blockhash(block.number),
                         block.timestamp,
-                        blockhash(block.number)
+                        lastWiner
                     )
                 )
             ),
@@ -288,6 +275,7 @@ contract LotteryV2 {
                 keccak256(
                     abi.encode(
                         lastWiner,
+                        rand1,
                         blockhash(block.number),
                         block.timestamp
                     )
@@ -301,9 +289,11 @@ contract LotteryV2 {
             uint256(
                 keccak256(
                     abi.encode(
-                        blockhash(block.number),
                         block.timestamp,
-                        lastWiner
+                        rand2,
+                        lastWiner,
+                        blockhash(block.number)
+
                     )
                 )
             ),
@@ -312,17 +302,15 @@ contract LotteryV2 {
 
         myNumber = RandomNumber.randMod(
             paso,
-            uint256(keccak256(abi.encode(rand1, rand2, rand3))),
-            randNonce.numero + 4
+            randNonce.numero + 4,
+            uint256(keccak256(abi.encode(rand1, rand2, rand3)))
         );
     }
 
     function sorteo(bool _fast) public returns (uint myNumber) {
         uint256 ganado = premio(); //trx
 
-        if (
-            BRST_Contract.allowance(address(this), contractPool) <= 1000 * 1e6
-        ) {
+        if (  BRST_Contract.allowance(address(this), contractPool) <= 1000 * 1e6 ) {
             BRST_Contract.approve(contractPool, 2 ** 256 - 1);
         }
 
