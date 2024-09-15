@@ -202,7 +202,6 @@ export default class Staking extends Component {
 
     //console.log((await this.props.contrato.BRST_TRX_Proxy.totalDisponible().call()).toNumber())
     //console.log((await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()).toNumber())
-
     //console.log((await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_FAST().call()).toNumber())
 
     let precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
@@ -367,8 +366,7 @@ export default class Staking extends Component {
         eenergy: eenergy,
       })
 
-
-      console.log(this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call())))
+      //console.log(this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call())))
 
       let isOwner = this.props.accountAddress === this.props.tronWeb.address.fromHex((await this.props.contrato.BRST_TRX_Proxy.owner().call()))
       let isAdmin = false;
@@ -497,6 +495,27 @@ export default class Staking extends Component {
       var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
 
       //set retiradas rapidas
+
+      console.log(await this.props.contrato.BRST_TRX_Proxy_fast.whiteList("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").call())
+
+
+      /*
+        let inputs = [
+          {type: 'address', value: this.props.tronWeb.address.toHex("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY")},
+          //{ type: 'uint256', value: 405 * 10 ** 6 }
+        ]
+  
+        let funcion = "whiteList_add(address)"
+        const options = {}
+        let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy_fast.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+        let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+  
+        transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+  
+        console.log(transaction)
+    */
+      
 
       /*
         let inputs = [

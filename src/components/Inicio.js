@@ -293,8 +293,8 @@ export default class Inicio extends Component {
 														<td>{this.state.misBRLT}</td>
 														<td>100 TRX</td>
 														<td>-0-</td>
-														<td>-0-</td>
-														<td>-0-</td>
+														<td>{this.state.misBRLT*100} TRX</td>
+														<td>{this.state.misBRLT*100*0.149} USD</td>
 													</tr>
 												</tbody>
 											</table>

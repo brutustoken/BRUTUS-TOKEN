@@ -173,11 +173,11 @@ export default class nfts extends Component {
 
     /*
     let inputs = [
-      {type: 'address', value: this.props.tronWeb.address.toHex("TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr")},
-      //{ type: 'uint256', value: amount }
+      //{type: 'address', value: this.props.tronWeb.address.toHex("TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr")},
+      { type: 'uint256', value: "72" }
     ]
 
-    let funcion = "update_addressFAST(address)"
+    let funcion = "deleteVaul(uint256)"
     const options = {}
     let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.loteria.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
     let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
