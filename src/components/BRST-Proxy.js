@@ -496,7 +496,7 @@ export default class Staking extends Component {
 
       //set retiradas rapidas
 
-      console.log(await this.props.contrato.BRST_TRX_Proxy_fast.whiteList("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").call())
+      //console.log(await this.props.contrato.BRST_TRX_Proxy_fast.whiteList("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").call())
 
 
       /*
