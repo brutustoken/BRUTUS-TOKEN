@@ -7,6 +7,15 @@ const BigNumber = require('bignumber.js');
 
 let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
 
+let intervalId = [];
+
+const expirationDate = 'May 28, 2025 23:59:59'; // Define or get your date
+let deadlineTime = new Date(expirationDate);
+
+deadlineTime.setDate(deadlineTime.getDate());
+let deadline = deadlineTime.getTime();
+
+console.log(deadline)
 
 export default class nfts extends Component {
 
@@ -37,6 +46,13 @@ export default class nfts extends Component {
 
       tikets: [],
 
+      days: "",
+      hours: "00",
+      minutes: "00",
+      seconds: "00",
+
+      deadline:1
+
     };
 
     this.estado = this.estado.bind(this);
@@ -52,6 +68,8 @@ export default class nfts extends Component {
     this.handleChange = this.handleChange.bind(this);
     this.handleChangeSelect = this.handleChangeSelect.bind(this);
 
+    this.updateCountdown = this.updateCountdown.bind(this);
+
 
   }
 
@@ -59,9 +77,11 @@ export default class nfts extends Component {
 
     setTimeout(async () => {
       this.estado();
-    }, 3 * 1000);
+    }, 3 * 1000)
 
-    setInterval(() => {
+    intervalId.push(setInterval(()=>this.updateCountdown(), 1000))
+
+    intervalId.push(setInterval(() => {
 
       let restanteSegundos = parseInt(this.state.contarSegundos - (Date.now() / 1000))
 
@@ -70,11 +90,11 @@ export default class nfts extends Component {
         porcentaje: 100 - (restanteSegundos / 1296000 * 100)
       })
 
-    }, 1 * 1000)
+    }, 1 * 1000))
 
-    setInterval(async () => {
+    intervalId.push(setInterval(async () => {
       this.estado();
-    }, 60 * 1000);
+    }, 60 * 1000))
 
     window.addEventListener('message', (e) => {
 
@@ -85,6 +105,15 @@ export default class nfts extends Component {
       }
     })
   };
+
+  componentWillUnmount(){
+
+    for (let index = 0; index < intervalId.length; index++) {
+      clearInterval(intervalId[index])
+      
+    }
+
+  }
 
   handleChange(e) {
     let value = parseInt(e.target.value);
@@ -100,6 +129,53 @@ export default class nfts extends Component {
     this.setState({
       moneda: value
     });
+  }
+
+  updateCountdown() {
+    if (intervalId.length >= 1) {
+      // Getting current time in required format
+      let now = new Date().getTime();    
+      let timeToLive = this.state.deadline - now;
+    
+      // Getting value of days, hours, minutes, seconds
+      let days = Math.floor(timeToLive / (1000 * 60 * 60 * 24));
+      let hours = Math.floor((timeToLive % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      let minutes = Math.floor((timeToLive % (1000 * 60 * 60)) / (1000 * 60));
+      let seconds = Math.floor((timeToLive % (1000 * 60)) / 1000);
+    
+      if (days <= 1 ) {
+        days = days + " Day - "
+      }else{
+        days = days + " Days - "
+      }
+
+      if (hours <= 9) {
+        hours = "0"+hours
+      }
+
+      if (minutes <= 9) {
+        minutes = "0"+minutes
+      }
+
+      if (seconds <= 9) {
+        seconds = "0"+seconds
+      }
+    
+      // Output for over time
+      if (timeToLive < 0) {
+         days = ""
+         hours = "00"
+         minutes = "00"
+         seconds = "00"
+      }
+
+      this.setState({
+        days,
+        hours,
+        minutes,
+        seconds,
+      })
+    }
   }
 
   async estado() {
@@ -124,18 +200,20 @@ export default class nfts extends Component {
     //await this.props.contrato.ProxyLoteria.upgradeTo("TV5WezZcBPA3v3HJEkM47BBp29dYNmPdj4").send()
 
 
-    var cantidad = 0
+    let cantidad = 0
     if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
       cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
     }
-    var totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
-    var premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6
-    var LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
+    let totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
+    let premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6
+    let LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
 
-    var proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
+    let proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
     this.setState({ contarSegundos: proximoSorteo })
-    var prosort = proximoSorteo;
+    let prosort = proximoSorteo;
     proximoSorteo = new Date(proximoSorteo * 1000)
+
+    this.setState({deadline: proximoSorteo})
 
     var minutos = proximoSorteo.getMinutes()
 
@@ -470,7 +548,7 @@ export default class nfts extends Component {
                   <div className="card-body py-0">
                     <div className="d-flex align-items-center justify-content-between">
                       <div className="me-3">
-                        <h2 className=" count-num mb-0">Next round in {this.state.restanteSegundos} seconds</h2>
+                        <h2 className=" count-num mb-0">Next round: {this.state.days} {this.state.hours}:{this.state.minutes}:{this.state.seconds}</h2>
                       </div>
                       <div id="ticketSold"></div>
                     </div>
