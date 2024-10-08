@@ -173,8 +173,8 @@ export default class nfts extends Component {
 
     /*
     let inputs = [
-      //{type: 'address', value: this.props.tronWeb.address.toHex("TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr")},
-      { type: 'uint256', value: "72" }
+      {type: 'address', value: this.props.tronWeb.address.toHex("TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr")},
+      //{ type: 'uint256', value: "72" }
     ]
 
     let funcion = "deleteVaul(uint256)"
@@ -187,8 +187,8 @@ export default class nfts extends Component {
     .catch((e) => { console.log(e)})
 
     console.log(transaction)
-
     */
+    
 
     let tikets = []
 
@@ -318,10 +318,8 @@ export default class nfts extends Component {
 
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
     let premio = await this.props.contrato.loteria._premio().call()
-    console.log(premio)
 
-    var salida = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
-    console.log(salida)
+    let salida = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
 
     if (Date.now() >= (this.state.prosort * 1000) && salida >= premio) {
       this.props.contrato.loteria.sorteo().send()//.send({shouldPollResponse:true})
@@ -383,14 +381,6 @@ export default class nfts extends Component {
 
         break;
 
-      case "dct":
-
-        token = "TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL"
-        swapContract = "TKscYLLy6Mn9Bz6MbemmZsM6dbpUVYvXNo"
-        trxAddress = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR"
-
-        break;
-
       default:
         break;
     }
@@ -430,13 +420,13 @@ export default class nfts extends Component {
       await contract_base_token.approve(sunswapRouter, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
     }
 
-    var cantidadTrx = parseInt(this.state.comprarBRLT * this.state.precioUnidad * 10 ** 6)
+    let cantidadTrx = parseInt(this.state.comprarBRLT * this.state.precioUnidad * 10 ** 6)
 
-    var tokenMax = new BigNumber(this.state.balanceDCT).shiftedBy((this.state.decimalesDCT)).toString(10)
+    let tokenMax = new BigNumber(this.state.balanceDCT).shiftedBy((this.state.decimalesDCT)).toString(10)
 
     let intercam = await contrato["4a25d94a"](cantidadTrx, tokenMax, [this.props.tronWeb.address.toHex(token), this.props.tronWeb.address.toHex(trxAddress)], this.props.accountAddress, (parseInt(Date.now() / 1000)) + 100).send()
 
-    console.log(intercam)
+    //console.log(intercam)
 
 
   }
@@ -459,29 +449,14 @@ export default class nfts extends Component {
                   <div className="col-xl-12">
                     <hr></hr>
                     <div className="text-center mt-3 row align-items-center justify-content-center">
-                      <div className="col-xl-1 my-3">
-                        <input type="number" className="form-control " name="value" placeholder="1" onChange={this.handleChange} defaultValue={1} min={1} step={1} />
-
+                     
+                      <div className=" col-xl-12 my-3">
+                        <h4>
+                        Purchase ticket N° {this.state.totalNFT} {" "}
+                        <button className="btn btn-primary " onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
+                        </h4>
                       </div>
-                      <div className=" col-xl-1 my-3">
-                        <div className="equalto text-rigth">
-                          =
-                        </div>
-                      </div>
-                      <div className="col-sm-2 my-3">
-                        <b>{this.state.total + " "}TRX</b>
-                      </div>
-                      <div className="col-xl-3 my-3">
-                        <button className="btn btn-primary " onClick={() => this.preCompra()} >Purchase {this.state.comprarBRLT} BRLT wiht {"->"}</button>
-
-                      </div>
-                      <div className="col-xl-2 my-3">
-                        <select style={{ cursor: "pointer" }} className="default-select exchange-select form-control" name="state" onChange={this.handleChangeSelect} defaultValue={this.state.moneda}>
-                          <option value="trx">TRX</option>
-                          <option value="usdt">USDT</option>
-                          <option value="dct">DCT</option>
-                        </select>
-                      </div>
+                      
                     </div>
                   </div>
                 </div>

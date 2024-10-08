@@ -310,10 +310,6 @@ contract LotteryV2 {
     function sorteo(bool _fast) public returns (uint myNumber) {
         uint256 ganado = premio(); //trx
 
-        if (  BRST_Contract.allowance(address(this), contractPool) <= 1000 * 1e6 ) {
-            BRST_Contract.approve(contractPool, 2 ** 256 - 1);
-        }
-
         require(proximaRonda < block.timestamp);
 
         if (proximaRonda == 0) {
@@ -337,9 +333,15 @@ contract LotteryV2 {
                 bool insta;
 
                 if(_fast){
+                    if (  BRST_Contract.allowance(address(this), contractFastPool) <= 1000 * 1e6 ) {
+                        BRST_Contract.approve(contractFastPool, 2 ** 256 - 1);
+                    }
                     FAST_Contract.sell_token_2(toBRST(granPrix));
                     insta = true;
                 }else{
+                    if (  BRST_Contract.allowance(address(this), contractPool) <= 1000 * 1e6 ) {
+                        BRST_Contract.approve(contractPool, 2 ** 256 - 1);
+                    }
                     ( insta, ) = POOL_Contract.solicitudRetiro(toBRST(granPrix)); 
 
                 }

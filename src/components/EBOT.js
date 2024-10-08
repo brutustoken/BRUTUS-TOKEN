@@ -297,6 +297,8 @@ export default class EnergyRental extends Component {
     if (ok) {
       let body = { "resource": recurso, "amount": amount, "duration": time }
 
+      console.log(body)
+
       let consulta = await fetch(url, {
         method: "POST",
         headers: {
@@ -308,6 +310,8 @@ export default class EnergyRental extends Component {
       .catch((e) => {
         return e.toString()
       })
+
+      console.log(consulta)
 
       precio = consulta.price
 
@@ -498,6 +502,8 @@ export default class EnergyRental extends Component {
 
         let time = periodo
 
+        console.log(temporalidad, recurso)
+
         if (temporalidad === "h" || temporalidad === "hour" || temporalidad === "hora") {
           time = periodo + temporalidad
         }
@@ -638,7 +644,7 @@ export default class EnergyRental extends Component {
                               });
                               document.getElementById("amount").value = 32000
 
-                              await this.calcularRecurso(32000, "1h", "energy");
+                              await this.calcularRecurso(32000, "5m", "energy");
 
                             }}>Energy</button></li>
 
@@ -649,7 +655,7 @@ export default class EnergyRental extends Component {
                                 amounts: amountB
                               });
                               document.getElementById("amount").value = 1000                              
-                              await this.calcularRecurso(1000, "1h", "bandwidth");
+                              await this.calcularRecurso(1000, "5m", "bandwidth");
 
                             }}>Bandwidth</button>
                             </li>
@@ -678,7 +684,7 @@ export default class EnergyRental extends Component {
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Duration</p>
 
-                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5min (five minutes)"} defaultValue="5min" />
+                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5m (five minutes)"} defaultValue="5min" />
 
                       </div>
                       <div className="col-12 ">
