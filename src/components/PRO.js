@@ -26,6 +26,8 @@ export default class ProviderPanel extends Component {
       elegible: false,
       sellband: false,
       bandover: "0",
+      sellener:false,
+      enerover: "0",
       burn: false,
       noti: false,
       autofreeze: "off",
@@ -143,16 +145,19 @@ export default class ProviderPanel extends Component {
             over = parseInt(prompt("sell band over, leave ", this.state.bandover))
 
             console.log(over)
-            let body = { wallet: this.props.accountAddress, sellbandover: over }
+            if(!isNaN(over)){
+              let body = { wallet: this.props.accountAddress, sellbandover: over }
 
-            fetch(cons.apiProviders + "set/sellbandover", {
-              method: "POST",
-              headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            })
+              fetch(cons.apiProviders + "set/sellbandover", {
+                method: "POST",
+                headers: {
+                  'token-api': process.env.REACT_APP_TOKEN,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+              })
+            }
+           
 
           }
           // activar renta
@@ -173,6 +178,47 @@ export default class ProviderPanel extends Component {
             console.log(error.toString())
           }
 
+          let value = false
+          if (elemento.value === "true") {
+            value = true
+          }
+
+          this.setState({
+            sellband: value
+          })
+        }
+
+
+        break;
+
+      case "ener":
+
+        if (elemento.value !== this.state.sellener) {
+
+          let over = 0
+          if (!this.state.sellener) {
+            over = parseInt(prompt("sell energy over, leave ", 32000))
+
+          }
+
+          //console.log(over)
+
+          if(!isNaN(over)){
+            let body = { wallet: this.props.accountAddress, sellenergyover: over }
+
+            fetch(cons.apiProviders + "set/sellenergyover", {
+              method: "POST",
+              headers: {
+                'token-api': process.env.REACT_APP_TOKEN,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            })
+          }
+          
+
+
+      
           let value = false
           if (elemento.value === "true") {
             value = true
@@ -502,25 +548,33 @@ export default class ProviderPanel extends Component {
 
     if (provider.result && this.props.tronlink.adapter.connected) {
 
-      let firma = await cookies.get('firma-tron')
-      let messge = "brutus.finance 2024"
+      let auth = false
 
-      if (firma === undefined) {
+      let firma = await cookies.get('firma-tron')
+      let fecha = new Date(Date.now())
+      let messge = "https://brutus.finance - "+fecha.getFullYear()
+
+      if (firma === undefined || await window.tronWeb.trx.verifyMessageV2(messge, firma) !== this.props.tronlink.adapter.address) {
         firma = await this.props.tronlink.adapter.signMessage(messge);
         cookies.set('firma-tron', firma, { maxAge: 86400 });
       } else {
         firma = await cookies.get('firma-tron');
+
       }
 
-      let auth = false
       try {
-        if (await window.tronWeb.trx.verifyMessageV2(messge, firma) === this.props.tronlink.adapter.address || firma) {
+        if (await window.tronWeb.trx.verifyMessageV2(messge, firma) === this.props.tronlink.adapter.address ) {
           auth = true
+        }else{
+          auth = false
         }
 
       } catch (error) {
         console.log(error.toString())
+        auth = true
       }
+
+     
 
       if (firma !== undefined && auth) {
 
@@ -607,11 +661,21 @@ export default class ProviderPanel extends Component {
 
         }
 
+        let sellener = false
+
+        if(info.energyover > 0){
+          sellener = true
+        }
+
+        console.log(info)
+
         this.setState({
           rent: info.activo,
           elegible: info.elegible,
           sellband: info.sellband,
           bandover: info.bandover,
+          sellener: sellener,
+          enerover: info.energyover,
           burn: info.burn,
           noti: info.allow_notifications,
           autofreeze: info.freez,
@@ -1134,6 +1198,18 @@ export default class ProviderPanel extends Component {
                               this.setState({
                                 ModalTitulo: "Info",
                                 ModalBody: "Sell your staked bandwidth over the amount you establish"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
+                          </div>
+                          <div className="col-lg-6 col-sm-12 form-check form-switch">
+                            <input className="form-check-input" type="checkbox" id="ener" checked={this.state.sellener} onChange={this.handleChange} />
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Sell your staked energy over the amount you establish"
                               })
 
                               window.$("#alert").modal("show");

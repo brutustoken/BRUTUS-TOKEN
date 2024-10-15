@@ -9,14 +9,6 @@ let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
 
 let intervalId = [];
 
-const expirationDate = 'May 28, 2025 23:59:59'; // Define or get your date
-let deadlineTime = new Date(expirationDate);
-
-deadlineTime.setDate(deadlineTime.getDate());
-let deadline = deadlineTime.getTime();
-
-console.log(deadline)
-
 export default class nfts extends Component {
 
   constructor(props) {
@@ -321,8 +313,6 @@ export default class nfts extends Component {
     if (this.state.moneda !== "trx") {
       await this.sunSwap(this.state.moneda);
     }
-
-
     this.compra()
 
   }
@@ -354,18 +344,30 @@ export default class nfts extends Component {
         })
 
         window.$("#alerta").modal("show");
-      })
-    transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
-      .then(() => {
-        this.setState({
-          modalTitulo: "Purchased lottery ticket",
-          modalBody: "Thank you for collaborating with the activation of the giveaway"
-        })
-        window.$("#alerta").modal("show");
-        this.estado();
+        return false
       })
 
-    console.log(transaction.txid)
+      if(transaction){
+        transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+        .then(() => {
+          this.setState({
+            modalTitulo: "Purchased lottery ticket",
+            modalBody: "Thank you for collaborating with the activation of the giveaway"
+          })
+          window.$("#alerta").modal("show");
+          this.estado();
+        })
+        .catch((e) => {
+  
+          this.setState({
+            ModalTitulo: "Error",
+            ModalBody: e.toString()
+          })
+  
+          window.$("#alerta").modal("show");
+          return false
+        })
+      }
 
     //await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
 
@@ -504,7 +506,7 @@ export default class nfts extends Component {
 
     let intercam = await contrato["4a25d94a"](cantidadTrx, tokenMax, [this.props.tronWeb.address.toHex(token), this.props.tronWeb.address.toHex(trxAddress)], this.props.accountAddress, (parseInt(Date.now() / 1000)) + 100).send()
 
-    //console.log(intercam)
+    console.log(intercam)
 
 
   }
