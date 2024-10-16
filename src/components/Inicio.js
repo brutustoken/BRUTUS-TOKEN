@@ -7,6 +7,7 @@ export default class Inicio extends Component {
 		super(props);
 
 		this.state = {
+			precioTRX: 0.1594,
 
 			precioBrut: 0,
 			varBrut: 0,
@@ -135,8 +136,10 @@ export default class Inicio extends Component {
 		await fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
 			.then(async (r) => (await r.json()).Data)
 			.then((r) => {
+				console.log(r)
 
 				this.setState({
+					precioTRX: r.usd/r.trx,
 					varBrst: r.v24h,
 					precioBrstUSD: r.usd
 				})
@@ -294,7 +297,7 @@ export default class Inicio extends Component {
 														<td>100 TRX</td>
 														<td>-0-</td>
 														<td>{this.state.misBRLT*100} TRX</td>
-														<td>{this.state.misBRLT*100*0.149} USD</td>
+														<td>{(this.state.misBRLT*100*this.state.precioTRX).toFixed(1)} USD</td>
 													</tr>
 												</tbody>
 											</table>
