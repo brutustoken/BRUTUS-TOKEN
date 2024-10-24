@@ -43,7 +43,9 @@ export default class nfts extends Component {
       minutes: "00",
       seconds: "00",
 
-      deadline:1
+      deadline:1,
+
+      onSale: <>Loading NFT FOR SALE</>,
 
     };
 
@@ -191,7 +193,6 @@ export default class nfts extends Component {
 
     //await this.props.contrato.ProxyLoteria.upgradeTo("TV5WezZcBPA3v3HJEkM47BBp29dYNmPdj4").send()
 
-
     let cantidad = 0
     if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
       cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
@@ -199,6 +200,26 @@ export default class nfts extends Component {
     let totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
     let premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6
     let LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
+
+
+    let onSaleURI = "https://nft-metadata.brutusservices.com/v1/lottery?ticket="+totalNFT
+    let onSalemetadata = JSON.parse( await (await fetch(cons.proxy+onSaleURI)).text());
+
+    let onsale = <div className="col-3" key={"tiket-onsale-"+totalNFT}>
+    <div className="card">
+      <div className="card-body">
+        <div className="new-arrival-product">
+          <div className="new-arrival-content text-center mt-3">
+            <h4>Ticket #{totalNFT} FOR SALE</h4>
+          </div>
+          <div className="new-arrivals-img-contnent">
+            <img src={onSalemetadata.image} alt={onSalemetadata.name +" # "+onSalemetadata.number} className="img-thumbnail"></img>
+          </div>
+          <button className="btn btn-primary " onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
     let proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
     this.setState({ contarSegundos: proximoSorteo })
@@ -236,6 +257,7 @@ export default class nfts extends Component {
       LastWiner: LastWiner,
       proximoSorteo: "Day " + proximoSorteo.getDate() + " | " + proximoSorteo.getHours() + ":" + minutos + "Hrs",
       prosort: prosort,
+      onSale: onsale
     });
 
 
@@ -284,21 +306,21 @@ export default class nfts extends Component {
       tikets[index]=(
 
         <div className="col-3" key={"tiket-lottery-"+globalId}>
-        <div className="card">
-          <div className="card-body">
-            <div className="new-arrival-product">
-              <div className="new-arrival-content text-center mt-3">
-                <h4>Ticket #{globalId}</h4>
+          <div className="card">
+            <div className="card-body">
+              <div className="new-arrival-product">
+                <div className="new-arrival-content text-center mt-3">
+                  <h4>Ticket #{globalId}</h4>
+                </div>
+                <div className="new-arrivals-img-contnent">
+                  <img src={metadata.image} alt={metadata.name +" # "+metadata.number} className="img-thumbnail"></img>
+                </div>
+                {button}
               </div>
-              <div className="new-arrivals-img-contnent">
-                <img src={metadata.image} alt={metadata.name +" # "+metadata.number} className="img-thumbnail"></img>
-              </div>
-              {button}
             </div>
           </div>
         </div>
-      </div>
-        )
+      )
       
     }
 
@@ -529,13 +551,8 @@ export default class nfts extends Component {
                   <div className="col-xl-12">
                     <hr></hr>
                     <div className="text-center mt-3 row align-items-center justify-content-center">
-                     
-                      <div className=" col-xl-12 my-3">
-                        <h4>
-                        Purchase ticket N° {this.state.totalNFT} {" "}
-                        <button className="btn btn-primary " onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
-                        </h4>
-                      </div>
+
+                      {this.state.onSale}
                       
                     </div>
                   </div>
