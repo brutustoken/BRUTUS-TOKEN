@@ -225,7 +225,7 @@ export default class Staking extends Component {
       }
 
 
-      var misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
+      let misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
         .then((result) => { return result.toNumber() / 1e6 })
         .catch(() => { ; return 0 })
 
@@ -236,8 +236,8 @@ export default class Staking extends Component {
       })
 
       //var balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
-      var balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
-      var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
+      let balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
+      let cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
 
       await delay(1)
       var contractEnergy = 0
@@ -281,6 +281,8 @@ export default class Staking extends Component {
       let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
         .then(async (r) => (await r.json()).Data)
         .catch((e) => { return false })
+
+        console.log(consulta)
 
       if (consulta) {
         var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value)) * 100) / this.state.tiempoPromediado
@@ -1947,16 +1949,21 @@ export default class Staking extends Component {
                             <tr>
                               <th className="text-left">{this.props.i18n.t("token")}</th>
                               <th className="text-center">{this.props.i18n.t("amount")}</th>
+                              <th className="text-center">{this.props.i18n.t("value")}</th>
                             </tr>
                           </thead>
                           <tbody>
                             <tr style={{ cursor: "pointer" }} onClick={() => { this.llenarBRST() }}>
                               <td className="text-left">BRST</td>
                               <td>{this.state.balanceBRST}</td>
+                              <td>{(this.state.balanceBRST * this.state.precioBrst).toFixed(3)} TRX</td>
+
                             </tr>
                             <tr style={{ cursor: "pointer" }} onClick={() => { this.llenarTRX() }}>
                               <td className="text-left">TRX</td>
                               <td>{this.state.balanceTRX}</td>
+                              <td>{new BigNumber(this.state.balanceTRX*0.16).dp(2).toString(10)} USD</td>
+
                             </tr>
 
                           </tbody>
