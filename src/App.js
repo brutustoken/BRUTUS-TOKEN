@@ -51,10 +51,12 @@ if (lenguaje !== lgSelector) {
 
 let ranNum = Math.floor((Math.random() * (process.env.REACT_APP_LIST_API_KEY).split(",").length));
 
+let API_KEY = (process.env.REACT_APP_LIST_API_KEY).split(",")[ranNum]
 
 const tronWeb = new TronWeb({
   fullHost: cons.RED,
-  headers: { "TRON-PRO-API-KEY": (process.env.REACT_APP_LIST_API_KEY).split(",")[ranNum] }
+  headers: { "TRON-PRO-API-KEY": API_KEY }
+
 })
 
 
@@ -224,8 +226,21 @@ class App extends Component {
   async loadContracts() {
     let tronlink = this.state.tronlink;
 
-    let web3Contracts = tronWeb;
-    //web3Contracts.setHeader({ "TRON-PRO-API-KEY": cons.KEYS[ranNum] })
+    let  web3Contracts = tronWeb;
+    let KEY = await fetch(process.env.REACT_APP_API_URL + 'api/v1/selector/apikey')
+			.then(response => { return response.json(); })
+			.then(data => {
+
+        if(data.ok){
+				  API_KEY = data.apikey
+
+        }
+
+			}).catch(err => {
+				console.log(err);
+
+			});
+    web3Contracts.setHeader({ "TRON-PRO-API-KEY": KEY })
     web3Contracts.setAddress(this.state.accountAddress)
 
     let contrato = {};

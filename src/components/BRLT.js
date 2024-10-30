@@ -205,17 +205,17 @@ export default class nfts extends Component {
     let onSaleURI = "https://nft-metadata.brutusservices.com/v1/lottery?ticket="+totalNFT
     let onSalemetadata = JSON.parse( await (await fetch(cons.proxy+onSaleURI)).text());
 
-    let onsale = <div className="col-3" key={"tiket-onsale-"+totalNFT}>
+    let onsale = <div className="col-md-6 col-sm-12" key={"tiket-onsale-"+totalNFT}>
     <div className="card">
       <div className="card-body">
         <div className="new-arrival-product">
-          <div className="new-arrival-content text-center mt-3">
+          <div className="new-arrival-content text-center">
             <h4>Ticket #{totalNFT} FOR SALE</h4>
           </div>
           <div className="new-arrivals-img-contnent">
             <img src={onSalemetadata.image} alt={onSalemetadata.name +" # "+onSalemetadata.number} className="img-thumbnail"></img>
           </div>
-          <button className="btn btn-primary " onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
+          <button className="btn btn-primary mt-1" onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
         </div>
       </div>
     </div>
@@ -548,87 +548,90 @@ export default class nfts extends Component {
                   </div>
                 </div>
                 <div className="row">
-                  <div className="col-xl-12">
+                  <div className="col-12">
                     <hr></hr>
-                    <div className="text-center mt-3 row align-items-center justify-content-center">
+                  </div>
+                  <div className="col-md-6">
+                    <div className="text-center row align-items-center justify-content-center">
 
                       {this.state.onSale}
                       
                     </div>
                   </div>
+                  <div className="col-md-6">
+                    <div className="row">
+                      <div className="col-md-12">
+                        <div className="card overflow-hidden">
+                          <div className="card-body">
+                            <div className="d-flex align-items-center justify-content-between">
+                              <div className="me-3">
+                                <h2 className=" count-num mb-0">Next round: {this.state.days} {this.state.hours}:{this.state.minutes}:{this.state.seconds}</h2>
+                              </div>
+                              <div id="ticketSold"></div>
+                            </div>
+                            <div className="progress mb-2" style={{ "height": "10px" }}>
+                              <div className="progress-bar bg-warning progress-animated" style={{ "width": this.state.porcentaje + "%", "height": "10px" }} role="progressbar">
+                              </div>
+                            </div>
+                            <p>{this.state.proximoSorteo}</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-12">
+                        <div className="card overflow-hidden">
+                          <div className="card-body py-4 pt-4">
+                            <div className="d-flex align-items-center justify-content-between">
+                              <h4 className="fs-18 font-w400">Award</h4>
+                              <div className="d-flex align-items-center">
+                                <h2 className="count-num">{this.state.premio} TRX</h2>
+                                <span className="fs-16 font-w500 text-success ps-2"><i className="bi bi-caret-up-fill pe-2"></i></span>
+                              </div>
+                            </div>
+                            <div id="barChart"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-12">
+                        <div className="card overflow-hidden">
+                          <div className="card-body py-4 pt-4">
+                            <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
+                              window.open("https://apenft.io/#/collection/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU", '_blank')
+                            }}>
+
+                              <h4 className="fs-18 font-w400">NFT Sold</h4>
+                              <div className="d-flex align-items-center">
+                                <h2 className="count-num">{this.state.totalNFT}</h2>
+                              </div>
+                            </div>
+                            <div id="totalInvoices"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="col-md-12">
+                        <div className="card overflow-hidden">
+                          <div className="card-body py-4 pt-4">
+                            <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
+                              window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + this.state.LastWiner, '_blank')
+                            }}>
+
+                              <h4 className="fs-18 font-w400">Last Winner</h4>
+                              <div className="d-flex align-items-center">
+                                <h2 className="count-num" >#{this.state.LastWiner}</h2>
+                              </div>
+
+                            </div>
+                            <div id="paidinvoices"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-          <div className="col-xl-12">
-            <div className="row">
-              <div className="col-md-12">
-                <div className="card overflow-hidden">
-                  <div className="card-body py-0">
-                    <div className="d-flex align-items-center justify-content-between">
-                      <div className="me-3">
-                        <h2 className=" count-num mb-0">Next round: {this.state.days} {this.state.hours}:{this.state.minutes}:{this.state.seconds}</h2>
-                      </div>
-                      <div id="ticketSold"></div>
-                    </div>
-                    <div className="progress mb-2" style={{ "height": "10px" }}>
-                      <div className="progress-bar bg-warning progress-animated" style={{ "width": this.state.porcentaje + "%", "height": "10px" }} role="progressbar">
-                      </div>
-                    </div>
-                    <p>{this.state.proximoSorteo}</p>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="card overflow-hidden">
-                  <div className="card-body py-4 pt-4">
-                    <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
-                      window.open("https://apenft.io/#/collection/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU", '_blank')
-                    }}>
 
-                      <h4 className="fs-18 font-w400">NFT Sold</h4>
-                      <div className="d-flex align-items-center">
-                        <h2 className="count-num">{this.state.totalNFT}</h2>
-                      </div>
-                    </div>
-                    <div id="totalInvoices"></div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="card overflow-hidden">
-                  <div className="card-body py-4 pt-4">
-                    <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
-                      window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + this.state.LastWiner, '_blank')
-                    }}>
-
-                      <h4 className="fs-18 font-w400">Last Winner</h4>
-                      <div className="d-flex align-items-center">
-                        <h2 className="count-num" >#{this.state.LastWiner}</h2>
-                      </div>
-
-                    </div>
-                    <div id="paidinvoices"></div>
-                  </div>
-                </div>
-              </div>
-              <div className="col-md-4">
-                <div className="card overflow-hidden">
-                  <div className="card-body py-4 pt-4">
-                    <div className="d-flex align-items-center justify-content-between">
-                      <h4 className="fs-18 font-w400">Award</h4>
-                      <div className="d-flex align-items-center">
-                        <h2 className="count-num">{this.state.premio} TRX</h2>
-                        <span className="fs-16 font-w500 text-success ps-2"><i className="bi bi-caret-up-fill pe-2"></i></span>
-                      </div>
-                    </div>
-                    <div id="barChart"></div>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          </div>
           <div className="col-xl-12">
 
           <div className="row">
@@ -637,22 +640,25 @@ export default class nfts extends Component {
 
                   <div className="card-body ">
 
-                    <h2 className="heading">Your Tickets</h2>
+                    <h2 className="heading">My Tickets</h2>
                     <p>
-                    the probability of winning is based on how many tickets you have, the more tickets you have, the greater the probability of winning.
+                    The probability of winning is based on how many tickets you have, the more tickets you have, the greater the probability of winning.
                       <br /><br />
 
                     </p>
 
+                    <div className="row">
+                      {this.state.tikets}
+
+                    </div>
+
+
                   </div>
                 </div>
               </div>
-              <div className="col-xl-12">
-                <div className="row">
-                 {this.state.tikets}
-                </div>
-              </div>
+
             </div>
+
             <div className="row">
               <div className="col-xl-12">
                 <div className="card">
