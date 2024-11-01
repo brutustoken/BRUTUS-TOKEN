@@ -186,6 +186,10 @@ contract TRC20 is Start {
         return _balances[account].mul(IPOOL(contract_pool).RATE()).div(10**6);
     }
 
+    function balanceOfBRST(address account) public view returns (uint256) {
+        return _balances[account];
+    }
+
     function transfer(address recipient, uint256 amount) public returns (bool) {
         require(amount>0);
         _transfer(msg.sender, recipient, amount);
@@ -221,17 +225,13 @@ contract TRC20 is Start {
     }
 
     function issue(uint amount) public {
-        if(msg.sender != address(this)){
-            onlyOwner();
-        }
+        onlyOwner();
         require(amount>0);
         _mint(msg.sender, amount);
     }
         
     function redeem(uint amount) public {
-        if(msg.sender != address(this)){
-            onlyOwner();
-        }
+        onlyOwner();
         require(amount>0);
         _burn(msg.sender, amount);
     }
@@ -287,16 +287,17 @@ contract TRC20 is Start {
         _approve(account, msg.sender, _allowances[account][msg.sender].sub(amount));
     }
 
-    // aditional funtons
+    // aditional functions
     function staking(uint256 amount) public payable{
-        //calcular monto en BRST para traer
-        //TRC20_Interface(token_brst).transferFrom(msg.sender, address(this), amount);
-        issue(amount); //monto en TRX
+        require(amount>0);
+        TRC20_Interface(token_brst).transferFrom(msg.sender, address(this), amount);
+        _mint(msg.sender, amount); 
     }
 
     function unStaking(uint256 amount) public payable{
-        redeem(amount);//monto en TRX
-        //TRC20_Interface(token_brst).transfer(msg.sender, amount);//monto en BRST
+        require(amount>0);
+        TRC20_Interface(token_brst).transfer(msg.sender, amount);
+        _burn(msg.sender, amount);
     }
 
 }
