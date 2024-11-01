@@ -112,6 +112,10 @@ contract Proxy {
         return _getAdmin();
     }
 
+    function swap() external view returns (address) {
+        return StorageSlot.getAddressSlot(SWAP_SLOT).value;
+    }
+
     // 0x5c60da1b
     function implementation() external view returns (address) {
         return _getImplementation();
