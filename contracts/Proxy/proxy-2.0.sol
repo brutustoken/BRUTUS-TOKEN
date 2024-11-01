@@ -35,6 +35,9 @@ contract Proxy {
     bytes32 private constant ADMIN_SLOT =
         bytes32(uint(keccak256("eip1967.proxy.admin")) - 1);
 
+    bytes32 private constant SWAP_SLOT =
+        bytes32(uint(keccak256("eip1967.proxy.swap")) - 1);
+
     bytes32 private constant VERSION_IMPLEMENTATION_SLOT =
         bytes32(uint(keccak256("eip1967.proxy.version")) - 1);
 
@@ -52,6 +55,10 @@ contract Proxy {
 
     function _getAdmin() private view returns (address) {
         return StorageSlot.getAddressSlot(ADMIN_SLOT).value;
+    }
+
+    function _getSwap() private view returns (address) {
+        return StorageSlot.getAddressSlot(SWAP_SLOT).value;
     }
 
     function _setAdmin(address _admin) private {
@@ -78,7 +85,15 @@ contract Proxy {
 
     // Admin interface //
     function changeAdmin(address _admin) external ifAdmin {
-        _setAdmin(_admin);
+        StorageSlot.getAddressSlot(SWAP_SLOT).value = _admin;
+    }
+
+    function agreeAdmin() external {
+        if(StorageSlot.getAddressSlot(SWAP_SLOT).value == msg.sender){
+            _setAdmin(msg.sender);
+        }else {
+            revert("admin no agree");
+        }
     }
 
     // 0x3659cfe6
@@ -86,6 +101,8 @@ contract Proxy {
         if(_getImplementation()!=_implementation){
             _setImplementation(_implementation);
             _updateImplementationVersion();
+        }else{
+            revert("no upgraded");
         }
         
     }
