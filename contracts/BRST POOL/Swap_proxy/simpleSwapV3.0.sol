@@ -147,7 +147,7 @@ contract SimpleSwapV3 is Storage_1{
         
     }
 
-    function  sell_token_2(uint256 _value_t2) public {
+    function  sell_token_2_to(uint256 _value_t2, address _to) public returns (bool result) {
 
         uint256 pago = _value_t2.mul(RATE()).div(10 ** Token_2_Contract.decimals());
 
@@ -158,13 +158,24 @@ contract SimpleSwapV3 is Storage_1{
             pago = pago.mul(precision.sub(descuentoRapido)).div(precision);
         }
 
-        if ( balance_token_1() < pago) revert("NAT 1");
+        if ( balance_token_1() >= pago) {
 
-        if (!Token_2_Contract.transferFrom(msg.sender, address(this), _value_t2)) revert("Token 2 no sended");
+            if (!Token_2_Contract.transferFrom(msg.sender, address(this), _value_t2)){
+                rate_contract.donate(_value_t2);
 
-        payable(msg.sender).transfer(pago);
+                payable(_to).transfer(pago);
 
-        rate_contract.donate(_value_t2);
+                result = true;
+            }
+
+        }
+        
+
+    }
+
+    function  sell_token_2(uint256 _value_t2) public {
+
+      sell_token_2_to(_value_t2, msg.sender);
         
     }
 

@@ -22,6 +22,7 @@ export default class ProviderPanel extends Component {
     this.state = {
 
       provider: false,
+      firma: false,
       rent: false,
       elegible: false,
       sellband: false,
@@ -543,12 +544,13 @@ export default class ProviderPanel extends Component {
       console.log(error.toString())
     }
 
-    //firmar mensaje brutus.finance->
     //console.log(this.props.tronlink.adapter)
+
+    let auth = false
 
     if (provider.result && this.props.tronlink.adapter.connected) {
 
-      let auth = false
+      
 
       let firma = await cookies.get('firma-tron')
       let fecha = new Date(Date.now())
@@ -666,8 +668,6 @@ export default class ProviderPanel extends Component {
         if(info.energyover > 0){
           sellener = true
         }
-
-        console.log(info)
 
         this.setState({
           rent: info.activo,
@@ -1033,11 +1033,13 @@ export default class ProviderPanel extends Component {
         })
 
       }
-    } else {
-      this.setState({
-        provider: false
-      })
-    }
+    } 
+
+    this.setState({
+      provider: provider.result,
+      firma: auth
+    })
+    
 
   }
 
@@ -1046,7 +1048,7 @@ export default class ProviderPanel extends Component {
   render() {
 
 
-    if (this.state.provider) {
+    if (this.state.provider && this.state.firma) {
 
 
       let estatus = <button className="btn btn-outline-danger btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
@@ -1448,31 +1450,62 @@ export default class ProviderPanel extends Component {
 
       </>);
     } else {
-      return (<>
+      if(this.state.firma){
 
-        <div className="container-fluid">
-          <div className="row">
-            <div className="col-12">
-              <div className="row">
-                <div className="col-12">
-                  <div className="card exchange">
-                    <div className="card-header d-block">
-                      <h2 className="heading">Status</h2>
+        return (<>
 
-                      <p>you are not a supplier, if you want to become one read the following <a className="btn btn-primary" href="https://brutus.finance/brutusprovider.html">article</a></p>
-
-
+          <div className="container-fluid">
+            <div className="row">
+              <div className="col-12">
+                <div className="row">
+                  <div className="col-12">
+                    <div className="card exchange">
+                      <div className="card-header d-block">
+                        <h2 className="heading">Status: you are a provider</h2>
+  
+                        <p>there seems to be problems when performing signature verification please contact support</p>
+  
+  
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+  
+  
+  
+        </>);
 
+      }else{
+        return (<>
 
-
-      </>);
+          <div className="container-fluid">
+            <div className="row">
+              <div className="col-12">
+                <div className="row">
+                  <div className="col-12">
+                    <div className="card exchange">
+                      <div className="card-header d-block">
+                        <h2 className="heading">Status</h2>
+  
+                        <p>you are not a supplier, if you want to become one read the following <a className="btn btn-primary" href="https://brutus.finance/brutusprovider.html">article</a></p>
+  
+  
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+  
+  
+  
+        </>);
+      }
+     
     }
 
 

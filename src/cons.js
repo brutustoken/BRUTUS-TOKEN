@@ -35,7 +35,7 @@ if (testnet) {
     SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
     SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
     ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox
-    ProxySC3 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox retiradas rapidas 
+    ProxySC3 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE----"; // Pool_BRST_TRX Prox retiradas rapidas 
 
     SC3 = "";//pool APENFT_NFT
     SC4 = "TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR";// Loteria Contract NFT_BRST_TRX PROXY

@@ -46,7 +46,8 @@ library SafeMath {
 
 interface TRC20_Interface {
 
-  function allowance(address _owner, address _spender) external view returns (uint remaining);
+  function allowance(address _owner, address _spender) external view returns (uint256);
+  function approve(address _spender, uint _value) external returns (bool);
   function transferFrom(address _from, address _to, uint _value) external returns (bool);
   function transfer(address direccion, uint cantidad) external returns (bool);
   function balanceOf(address who) external view returns (uint256);
@@ -63,28 +64,21 @@ interface IPOOL {
 }
 
 interface FASTPOOL {
-    function  sell_token_2(uint256 _value_t2) external payable;
-}
-
-interface Proxy_Interface{
-  function admin() external view returns(address);
-  function changeAdmin(address _admin) external;
+    function sell_token_2(uint256 _value_t2) external payable;
+    function sell_token_2_to(uint256 _value_t2, address _to) external payable returns(bool);
 }
 
 contract Storage {
-
-    Proxy_Interface Proxy_Contract = Proxy_Interface(address(this));
 
     mapping (address => bool) public isBlackListed;
     mapping (address => uint256) internal _balances;
     mapping (address => mapping (address => uint256)) internal _allowances;
 
     uint256 internal _totalSupply;
-    string internal _name;
-    string internal _symbol;
-    uint8 internal _decimals;
-    bool public iniciado = true;
 
+    bool public iniciado;
+
+    address public owner;
     address public token_brst;
     address public contract_pool;
     address public contract_fast_pool;
@@ -93,17 +87,19 @@ contract Storage {
 
 contract Owner is Storage {
 
+    event newOwner(address indexed _user);
+    event AddedBlackList(address indexed _user);
+    event RemovedBlackList(address indexed _user);
+
     function onlyOwner() internal view{
-        require(msg.sender == Proxy_Contract.admin());
+        require(msg.sender == owner);
     }
 
-    function adminProxy() public view returns(address){
-        return Proxy_Contract.admin();
+    function setOwner(address _newOwner) public{
+        onlyOwner();
+        owner = _newOwner;
+        emit newOwner(owner);
     }
-
-}
-
-contract BlackList is Owner {
 
     function addBlackList (address _evilUser) public  {
         onlyOwner();
@@ -117,65 +113,23 @@ contract BlackList is Owner {
         emit RemovedBlackList(_clearedUser);
     }
 
-    event AddedBlackList(address indexed _user);
-    event RemovedBlackList(address indexed _user);
-
 }
 
-contract Start is BlackList{
-    function inicializar (string memory __name, string memory __symbol, uint8 __decimals) public{
-
-        require(!iniciado);
-        Proxy_Contract = Proxy_Interface(address(this));
-        iniciado = true;
-        _name = __name;
-        _symbol = __symbol;
-        _decimals = __decimals;
-    
-    }
-
-    function updateName(string memory name) public{
-        _name = name;
-    }
-
-    function updateSymbol(string memory symbol) public{
-        _symbol = symbol;
-    }
-
-    function updateToken_brst(address token) public{
-        token_brst = token;
-    }
-
-    function updateContract_pool(address contrato)public{
-        contract_pool = contrato;
-    }
-
-    function updateContract_fast_pool(address contrato)public{
-        contract_fast_pool = contrato;
-    }
-
-}
-
-contract TRC20 is Start {
+contract TRC20 is Owner {
     using SafeMath for uint256;
+
+    string public name = "Freezed BRST";
+    string public symbol = "fBRST";
+    uint8 public decimals = 6;
 
     event DestroyedBlackFunds(address indexed _blackListedUser, uint _balance);
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(address indexed owner, address indexed spender, uint256 value);
 
-    event Staking(address indexed user, uint256 trx, uint256 date);
+    event Staking(address indexed user, uint256 tron, uint256 date);
 
+    constructor(){
 
-    function name() public view returns (string memory) {
-        return _name;
-    }
-
-    function symbol() public view returns (string memory) {
-        return _symbol;
-    }
-
-    function decimals() public view returns (uint8) {
-        return _decimals;
     }
 
     function totalSupply() public view returns (uint256) {
@@ -237,9 +191,7 @@ contract TRC20 is Start {
     }
 
     function destroyBlackFunds (address _blackListedUser) public {
-        if(msg.sender != address(this)){
-            onlyOwner();
-        }
+        onlyOwner();
         require(isBlackListed[_blackListedUser]);
         uint dirtyFunds = balanceOf(_blackListedUser);
         _burnFrom(_blackListedUser, dirtyFunds);
@@ -287,7 +239,39 @@ contract TRC20 is Start {
         _approve(account, msg.sender, _allowances[account][msg.sender].sub(amount));
     }
 
-    // aditional functions
+    // aditional personal functions
+
+    function inicializar (string memory __name, string memory __symbol, uint8 __decimals) public{
+
+        require(!iniciado);
+        owner = msg.sender;
+        iniciado = true;
+        name = __name;
+        symbol = __symbol;
+        decimals = __decimals;
+    
+    }
+
+    function updateName(string memory _name) public{
+        name = _name;
+    }
+
+    function updateSymbol(string memory _symbol) public{
+        symbol = _symbol;
+    }
+
+    function updateToken_brst(address token) public{
+        token_brst = token;
+    }
+
+    function updateContract_pool(address contrato)public{
+        contract_pool = contrato;
+    }
+
+    function updateContract_fast_pool(address contrato)public{
+        contract_fast_pool = contrato;
+    }
+
     function staking(uint256 amount) public payable{
         require(amount>0);
         TRC20_Interface(token_brst).transferFrom(msg.sender, address(this), amount);
@@ -298,6 +282,15 @@ contract TRC20 is Start {
         require(amount>0);
         TRC20_Interface(token_brst).transfer(msg.sender, amount);
         _burn(msg.sender, amount);
+    }
+
+    function claimReward(uint256 amount) public payable{
+        if(TRC20_Interface(token_brst).allowance(address(this), contract_fast_pool) < amount){
+            TRC20_Interface(token_brst).approve(contract_fast_pool, 2**256-1);
+        }
+        FASTPOOL(contract_fast_pool).sell_token_2_to(amount,msg.sender);
+        _burn(msg.sender, amount);
+
     }
 
 }
