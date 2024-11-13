@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import abi_SUNSAWPv2 from "../abi/sunswapV2.json";
+import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
 
 import cons from "../cons.js";
+import MyButton from "./boton";
 
 const BigNumber = require('bignumber.js');
 
@@ -722,6 +723,8 @@ export default class nfts extends Component {
               </div>
             </div>
           </div>
+
+          <MyButton text={"Hola mundo"}/>
 
           <div className="row">
             <div className="col-lg-12">

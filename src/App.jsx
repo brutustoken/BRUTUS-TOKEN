@@ -3,10 +3,10 @@ import React, { Component } from "react";
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 import TronWeb from "tronweb";
 
-import abi_PROXY from "./abi/Proxy";
-import abi_POOLBRST from "./abi/PoolBRSTv4";
-import abi_SimpleSwap from "./abi/SimpleSwapV2";
-import abi_LOTERIA from "./abi/Lottery";
+import abi_PROXY from "./assets/abi/Proxy";
+import abi_POOLBRST from "./assets/abi/PoolBRSTv4";
+import abi_SimpleSwap from "./assets/abi/SimpleSwapV2";
+import abi_LOTERIA from "./assets/abi/Lottery";
 import cons from "./cons.js";
 
 import Inicio from "./components/Inicio.js";
@@ -14,7 +14,7 @@ import Inicio from "./components/Inicio.js";
 import Home from "./components/BRUT.js";
 import StakingV2 from "./components/BRST-Proxy.js";
 import Nft from "./components/BRGY/index.js";
-import LOTERIA from "./components/BRLT.js";
+import LOTERIA from "./components/BRLT.jsx";
 import EBOT from "./components/EBOT.js";
 import PRO from "./components/PRO.js";
 import API from "./components/API.js";
