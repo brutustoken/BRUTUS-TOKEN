@@ -1,0 +1,93 @@
+import TronWeb from "tronweb";
+
+
+let constantes = {}
+constantes.proxy = "https://cors.brutusservices.com/";
+
+constantes.testnet = false; // revisar si está tesnet activada
+
+constantes.PRICE = constantes.proxy + process.env.REACT_APP_API_URL + "api/v1/precio/BRUT"; //API de precio
+constantes.market_brut = constantes.proxy + process.env.REACT_APP_API_URL + "api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
+
+constantes.apiProviders = constantes.proxy + "https://api-providers.brutusservices.com/main/"
+
+constantes.RED = "https://iujetrtxbxoskh9l1cidv7clngnjnm.mainnet.tron.tronql.com/"//"https://api.trongrid.io";// shasta para habilitar red de pruebas
+
+constantes.SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
+constantes.SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking  BRST/TRX
+constantes.ProxySC2 = "TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55";// POOL Staking  BRST/TRX Proxy
+constantes.ProxySC3 = "TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr";// Pool brst/trx retiradas rapidas
+constantes.SC3 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk";//contrato Mixtery box
+constantes.SC4 = "TKghr3aZvCbo41c8y5vUXofChF1gMmjTHr";//contrato sorteo de loteria 15 dias Proxy
+
+constantes.USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";//token USDT
+constantes.BRUT = "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU";//token trc20 BRUT
+constantes.BRST = "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3";//token trc20 BRST
+constantes.APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery box
+constantes.BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY 
+constantes.BRLT = "TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU";//token NFT LOTERIA 
+
+
+if (constantes.testnet) {
+
+    constantes.RED = "https://nile.trongrid.io"
+
+    constantes.SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
+    constantes.SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
+    constantes.ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox
+    constantes.ProxySC3 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE----"; // Pool_BRST_TRX Prox retiradas rapidas 
+
+    constantes.SC3 = "";//pool APENFT_NFT
+    constantes.SC4 = "TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR";// Loteria Contract NFT_BRST_TRX PROXY
+
+    constantes.USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";//token USDT
+    constantes.BRUT = "TTBZHmxP5H2FW8zaJgCR2x2WeB82rJo3xb";//token trc20 BRUT
+    constantes.BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";//token trc20 BRST
+    constantes.APENFT = "TMaG566bcktJkjxQpQxshewfTqATzxmtPX";//token de venta de mixtery box
+    constantes.BRGY = "TMEmo4xexAEu3zSmSrzPJoA1FE6AEfgVyW";//token NFT  BRGY 
+    constantes.BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
+
+}
+
+
+async function keyQuery() {
+
+    let KEY = await fetch(process.env.REACT_APP_API_URL + 'api/v1/selector/apikey')
+        .then(response => { return response.json(); })
+        .then(data => {
+            let API_KEY = ""
+
+            if(data.ok){
+                if(data.apikey){
+                    API_KEY = data.apikey
+                }
+
+            }
+            return API_KEY
+
+        }).catch(err => {
+            console.log(err);
+            return ""
+        });
+
+    return KEY
+    
+}
+
+async function getTronweb(wallet){
+
+    const tronWeb = new TronWeb({
+        fullHost: constantes.RED,
+        //headers: { "TRON-PRO-API-KEY": await keyQuery() }
+      
+    })
+
+    tronWeb.setAddress(wallet)
+
+    return tronWeb
+
+}
+
+function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
+
+export default {constantes, keyQuery, getTronweb, delay};

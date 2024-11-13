@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
 
 import cons from "../cons.js";
-import MyButton from "./boton";
 
 const BigNumber = require('bignumber.js');
 
@@ -344,7 +343,9 @@ export default class nfts extends Component {
   async compra() {
 
 
-    var feelimit = 200 * 10 ** 6;
+    let feelimit = 200 * 10 ** 6;
+
+    // comprobar si tiene 100 trx para hacer la compra
 
     if (this.state.comprarBRLT > 1) feelimit = 1000 * 10 ** 6;
     if (this.state.comprarBRLT > 20) feelimit = 2000 * 10 ** 6;
@@ -362,9 +363,11 @@ export default class nfts extends Component {
       .catch((e) => {
 
         this.setState({
-          ModalTitulo: "Error",
-          ModalBody: e.toString()
+          modalTitulo: "Error",
+          modalBody: e.toString()
         })
+
+        console.error(e)
 
         window.$("#alerta").modal("show");
         return false
@@ -723,8 +726,6 @@ export default class nfts extends Component {
               </div>
             </div>
           </div>
-
-          <MyButton text={"Hola mundo"}/>
 
           <div className="row">
             <div className="col-lg-12">

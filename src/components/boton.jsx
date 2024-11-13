@@ -1,9 +1,9 @@
 import React  from 'react';
 
-  function MyButton({text}) {
-    return (
-      <button>text</button>
-    );
-  }
+function MyButton({text}) {
+  return (
+    <button className="btn btn-success">{text}</button>
+  );
+}
 
-  export default MyButton
+export default MyButton

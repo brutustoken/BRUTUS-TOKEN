@@ -4,9 +4,10 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
+import utils from "../utils";
+
 const BigNumber = require('bignumber.js');
 
-function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
 const options = [
   {
@@ -239,7 +240,7 @@ export default class Staking extends Component {
       let balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
       let cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
 
-      await delay(1)
+      await utils.delay(1)
       var contractEnergy = 0
 
       if (cuenta.EnergyLimit) {
@@ -270,7 +271,7 @@ export default class Staking extends Component {
         eenergy = 65000
       }
 
-      var useTrx = parseInt(contractEnergy / eenergy)
+      let useTrx = parseInt(contractEnergy / eenergy)
       if (useTrx >= 1) {
         useTrx = 1
       } else {
@@ -282,7 +283,7 @@ export default class Staking extends Component {
         .then(async (r) => (await r.json()).Data)
         .catch((e) => { return false })
 
-        console.log(consulta)
+        //console.log(consulta)
 
       if (consulta) {
         var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value)) * 100) / this.state.tiempoPromediado
@@ -328,7 +329,7 @@ export default class Staking extends Component {
       var aprovadoBRUT = await this.props.contrato.BRST.allowance(this.props.accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
       aprovadoBRUT = parseInt(aprovadoBRUT._hex);
 
-      await delay(1)
+      await utils.delay(1)
 
       var balanceBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
       balanceBRST = parseInt(balanceBRST._hex) / 10 ** 6;
@@ -489,7 +490,7 @@ export default class Staking extends Component {
 
       })
 
-      await delay(1)
+      await utils.delay(1)
 
       var enBrutus = await this.props.contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
       var enPool = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
@@ -907,7 +908,7 @@ export default class Staking extends Component {
 
     window.$("#mensaje-brst").modal("show");
 
-    await delay(3);
+    await utils.delay(3);
 
     var envio = hash.transaction.raw_data.contract[0].parameter.value
 
@@ -1179,7 +1180,7 @@ export default class Staking extends Component {
     }
 
 
-    await delay(5);
+    await utils.delay(5);
     this.estado();
 
 

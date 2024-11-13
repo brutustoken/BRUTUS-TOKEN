@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
-import TronWeb from "tronweb";
 
 import abi_PROXY from "./assets/abi/Proxy";
 import abi_POOLBRST from "./assets/abi/PoolBRSTv4";
@@ -12,7 +11,7 @@ import cons from "./cons.js";
 import Inicio from "./components/Inicio.js";
 
 import Home from "./components/BRUT.js";
-import StakingV2 from "./components/BRST-Proxy.js";
+import StakingV2 from "./components/BRST-Proxy.jsx";
 import Nft from "./components/BRGY/index.js";
 import LOTERIA from "./components/BRLT.jsx";
 import EBOT from "./components/EBOT.js";
@@ -22,8 +21,7 @@ import API from "./components/API.js";
 
 import i18next from 'i18next';
 import lng from "./locales/langs.js"
-
-function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
+import utils from "./utils/index.jsx";
 
 let lenguaje = navigator.language || navigator.userLanguage
 
@@ -40,25 +38,17 @@ let lgSelector = "en";
 try {
   lgSelector = document.getElementById("selectLng").value
 } catch (error) {
+  console.log(error)
 
 }
 
-//console.log(lgSelector, i18nLenguaje)
 
 if (lenguaje !== lgSelector) {
   i18next.changeLanguage(lgSelector);
 }
 
-let ranNum = Math.floor((Math.random() * (process.env.REACT_APP_LIST_API_KEY).split(",").length));
 
-let API_KEY = (process.env.REACT_APP_LIST_API_KEY).split(",")[ranNum]
-
-const tronWeb = new TronWeb({
-  fullHost: cons.RED,
-  headers: { "TRON-PRO-API-KEY": API_KEY }
-
-})
-
+const tronWeb = {}
 
 const adapter = new TronLinkAdapter();
 
@@ -92,7 +82,6 @@ class App extends Component {
         BRST_TRX_Proxy: null
 
       },
-      web3Contracts: tronWeb,
       conexion: false,
       walletConect: "Conect Wallet"
     };
@@ -166,7 +155,7 @@ class App extends Component {
   async conectar(cambio) {
     let tronlink = this.state.tronlink;
     let wallet = adressDefault;
-    let web3Contracts = tronWeb;
+    let web3Contracts = await utils.getTronweb(this.state.accountAddress);
 
 
     if (!this.state.conexion && cambio) {
@@ -184,15 +173,14 @@ class App extends Component {
       //console.log(adapter)
 
       if (adapter.address) {
-        wallet = adapter.address
         tronlink['installed'] = true;
         tronlink['loggedIn'] = true;
         tronlink['adapter'] = adapter;
+        wallet = adapter.address
+
       }
 
     }
-
-    web3Contracts.setAddress(wallet)
 
     if (wallet !== adressDefault) {
 
@@ -218,7 +206,8 @@ class App extends Component {
     }
 
     this.setState({
-      conexion: false
+      conexion: false,
+      tronWeb: await utils.getTronweb(this.state.accountAddress)
     })
 
   }
@@ -226,22 +215,7 @@ class App extends Component {
   async loadContracts() {
     let tronlink = this.state.tronlink;
 
-    let  web3Contracts = tronWeb;
-    let KEY = await fetch(process.env.REACT_APP_API_URL + 'api/v1/selector/apikey')
-			.then(response => { return response.json(); })
-			.then(data => {
-
-        if(data.ok){
-				  API_KEY = data.apikey
-
-        }
-
-			}).catch(err => {
-				console.log(err);
-
-			});
-    web3Contracts.setHeader({ "TRON-PRO-API-KEY": KEY })
-    web3Contracts.setAddress(this.state.accountAddress)
+    let  web3Contracts = await utils.getTronweb(this.state.accountAddress);
 
     let contrato = {};
 
@@ -251,71 +225,71 @@ class App extends Component {
     if (url === window.location.href || url === "utm_source=tronlink") url = ""
 
     if (cons.BRUT !== "" && (url === "" || url === "brut")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRUT = await web3Contracts.contract().at(cons.BRUT);
-      await delay(1)
     }
     if (cons.USDT !== "" && (url === "brut")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.USDT = await web3Contracts.contract().at(cons.USDT);
-      await delay(1)
 
     }
     if (cons.SC !== "" && (url === "brut")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
-      await delay(1)
 
     }
 
     if (cons.SC2 !== "" && (url === "brst")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRST_TRX = await web3Contracts.contract().at(cons.SC2);
-      await delay(1)
 
     }
     if (cons.ProxySC2 !== "" && (url === "" || url === "brst")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.Proxy = await web3Contracts.contract(abi_PROXY, cons.ProxySC2);
-      await delay(1)
 
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST, cons.ProxySC2);
-      await delay(1)
 
     }
 
     if (cons.ProxySC3 !== "" && (url === "" || url === "brst")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.Proxy_fast = await web3Contracts.contract(abi_PROXY, cons.ProxySC3);
-      await delay(1)
 
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRST_TRX_Proxy_fast = await web3Contracts.contract(abi_SimpleSwap, cons.ProxySC3);
-      await delay(1)
 
     }
 
     if (cons.BRST !== "" && (url === "" || url === "brst")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRST = await web3Contracts.contract().at(cons.BRST);
-      await delay(1)
 
     }
 
     if (cons.BRGY !== "" && (url === "" || url === "brgy")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRGY = await web3Contracts.contract().at(cons.BRGY);
-      await delay(1)
 
     }
     if (cons.SC3 !== "" && (url === "brgy")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.MBOX = await web3Contracts.contract().at(cons.SC3);
-      await delay(1)
 
     }
 
     if (cons.BRLT !== "" && (url === "" || url === "brlt")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
-      await delay(1)
 
     }
     if (cons.SC4 !== "" && (url === "brlt")) {
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, cons.SC4);
-      await delay(1)
 
+      web3Contracts = await utils.getTronweb(this.state.accountAddress);
       contrato.loteria = await web3Contracts.contract(abi_LOTERIA, cons.SC4);
-      await delay(1)
 
     }
 
