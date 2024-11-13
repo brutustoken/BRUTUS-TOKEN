@@ -136,7 +136,7 @@ export default class Inicio extends Component {
 		await fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
 			.then(async (r) => (await r.json()).Data)
 			.then((r) => {
-				console.log(r)
+				//console.log(r)
 
 				this.setState({
 					precioTRX: r.usd/r.trx,
