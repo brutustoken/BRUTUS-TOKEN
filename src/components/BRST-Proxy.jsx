@@ -212,6 +212,20 @@ export default class Staking extends Component {
       precioBrst: precio
     });
 
+    let enBrutus = await this.props.contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
+    let enPool = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
+    let solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
+    let tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
+
+    this.setState({
+
+      enBrutus: enBrutus.toNumber() / 1e6,
+      enPool: enPool.toNumber() / 1e6,
+      solicitado: solicitado.toNumber() / 1e6,
+      tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
+
+    });
+
     if (!this.state.conexion) {
 
       this.setState({
@@ -322,20 +336,20 @@ export default class Staking extends Component {
         balanceTRX: balance,
       })
 
-      var MIN_DEPOSIT = await this.props.contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
+      let MIN_DEPOSIT = await this.props.contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
 
       MIN_DEPOSIT = parseInt(MIN_DEPOSIT._hex) / 10 ** 6;
 
-      var aprovadoBRUT = await this.props.contrato.BRST.allowance(this.props.accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+      let aprovadoBRUT = await this.props.contrato.BRST.allowance(this.props.accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
       aprovadoBRUT = parseInt(aprovadoBRUT._hex);
 
       await utils.delay(1)
 
-      var balanceBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
+      let balanceBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
       balanceBRST = parseInt(balanceBRST._hex) / 10 ** 6;
 
-      var deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(this.props.accountAddress).call();
-      var myids = []
+      let deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(this.props.accountAddress).call();
+      let myids = []
 
       for (let index = 0; index < deposito.length; index++) {
         myids.push(parseInt(deposito[index]._hex));
@@ -490,12 +504,7 @@ export default class Staking extends Component {
 
       })
 
-      await utils.delay(1)
-
-      var enBrutus = await this.props.contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
-      var enPool = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
-      var solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
-      var tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
+     
 
       //set retiradas rapidas
 
@@ -521,15 +530,7 @@ export default class Staking extends Component {
       //console.log(await this.props.contrato.BRST_TRX_Proxy_fast.whiteList("TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF").call())
 
 
-
-      this.setState({
-
-        enBrutus: enBrutus.toNumber() / 1e6,
-        enPool: enPool.toNumber() / 1e6,
-        solicitado: solicitado.toNumber() / 1e6,
-        tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
-
-      });
+      
 
       if (parseInt(this.state.resultCalc) === 0) {
         this.handleChangeCalc({ target: { value: misBRST } })
@@ -1620,7 +1621,7 @@ export default class Staking extends Component {
 
     let lastData = { date: Date.now(), value: lastPrice };
 
-    console.log(lastData)
+    //console.log(lastData)
 
     async function generateDatas(count) {
 

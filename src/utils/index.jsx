@@ -74,10 +74,22 @@ async function keyQuery() {
     
 }
 
-async function getTronweb(wallet){
+function getRed(index){
+    index = parseInt(index)
+    let tokenList = process.env.REACT_APP_LIST_TRONQL;
+    tokenList = tokenList.split(",")
+
+    if(index > tokenList.length)index = tokenList.length-1;
+
+    let url = "https://"+tokenList[index]+".mainnet.tron.tronql.com/"
+
+    return url;
+}
+
+async function getTronweb(wallet,red = 0){
 
     const tronWeb = new TronWeb({
-        fullHost: constantes.RED,
+        fullHost: getRed(red),
         //headers: { "TRON-PRO-API-KEY": await keyQuery() }
       
     })

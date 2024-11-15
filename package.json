@@ -79,7 +79,7 @@
     "style-loader": "0.23.1",
     "sweetalert2": "^8.19.0",
     "terser-webpack-plugin": "^4.2.3",
-    "tronweb": "^5.3.0",
+    "tronweb": "^5.3.2",
     "ts-pnp": "1.1.5",
     "universal-cookie": "^7.1.4",
     "url-loader": "2.3.0",
@@ -98,6 +98,7 @@
     "rimraf": "^2.7.1",
     "typescript": "^5.4.5"
   },
+  "resolutions": {},
   "browserslist": [
     ">0.2%",
     "not dead",

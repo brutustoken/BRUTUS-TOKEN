@@ -103,6 +103,7 @@ class App extends Component {
       this.conectar(true);
     }, 3 * 1000)
 
+    /*
     window.addEventListener('message', (e) => {
 
       if (e.data.message && (e.data.message.action === "accountsChanged" || e.data.message.action === "setAccount")) {
@@ -111,6 +112,7 @@ class App extends Component {
         }
       }
     })
+      */
 
   }
 
@@ -162,6 +164,8 @@ class App extends Component {
 
       this.setState({ conexion: true })
 
+      //console.log(await window.tronLink.request({method: 'tron_requestAccounts'}))
+
       await adapter.connect()
         .catch((e) => {
           console.log(e.toString())
@@ -184,7 +188,7 @@ class App extends Component {
 
     if (wallet !== adressDefault) {
 
-      let vierWallet = wallet.substring(0, 6) + "..." + wallet.substring(wallet.length - 6, wallet.length)
+      let vierWallet = wallet.substring(0, 6) + "***" + wallet.substring(wallet.length - 6, wallet.length)
 
       document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + wallet + '" >' + vierWallet + '</span>';
       //document.getElementById("login").innerHTML = '<div class="dropdown"><button class="btn  gradient-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + wallet + '</button><div class="dropdown-menu" aria-labelledby="dropdownMenuButton"><a href="https://tronscan.io/#/address/' + wallet + '" class="dropdown-item">View on TronScan</a><a class="dropdown-item" href="#">Log Out </a></div></div>'
@@ -225,16 +229,16 @@ class App extends Component {
     if (url === window.location.href || url === "utm_source=tronlink") url = ""
 
     if (cons.BRUT !== "" && (url === "" || url === "brut")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(this.state.accountAddress,1);
       contrato.BRUT = await web3Contracts.contract().at(cons.BRUT);
     }
     if (cons.USDT !== "" && (url === "brut")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(this.state.accountAddress,1);
       contrato.USDT = await web3Contracts.contract().at(cons.USDT);
 
     }
     if (cons.SC !== "" && (url === "brut")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(this.state.accountAddress,1);
       contrato.BRUT_USDT = await web3Contracts.contract().at(cons.SC);
 
     }
@@ -280,15 +284,15 @@ class App extends Component {
     }
 
     if (cons.BRLT !== "" && (url === "" || url === "brlt")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(this.state.accountAddress,2);
       contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
 
     }
     if (cons.SC4 !== "" && (url === "brlt")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(this.state.accountAddress,2);
       contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, cons.SC4);
 
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(this.state.accountAddress,2);
       contrato.loteria = await web3Contracts.contract(abi_LOTERIA, cons.SC4);
 
     }
