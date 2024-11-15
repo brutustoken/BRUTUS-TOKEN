@@ -6,7 +6,8 @@ Dapp construida en la red TRON para acercar el trading automatizado a todos quel
 + Maneja repositorios de [TronWeb](https://github.com/tronprotocol/tron-web)
 + Integrada con [TronLink](https://github.com/TronWatch/TronLink).
 
-**NOTA: Tienes que tener instalado TronLink para poder interactuar con la pagina, recomiendo instalar  [TronLink desde Chrome Webstore](https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec/).**
+> [!NOTE]  
+> Tienes que tener instalado TronLink para poder interactuar con la pagina, recomiendo instalar  [TronLink desde Chrome Webstore](https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec/).
 
 
 
@@ -22,7 +23,7 @@ Para hacer pruebas en **localhost:3000**
 
 ## Crear Build Final
 
-Para colocarlo en un servidor web, recuerda cambiar el **homepage** en **package.json** 
+Para colocarlo en un servidor web, recuerda cambiar el `homepage: "la-url-de-tu-web"` en **package.json** 
 
 `npm run build`
 
