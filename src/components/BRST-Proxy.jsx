@@ -217,6 +217,7 @@ export default class Staking extends Component {
     let solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
     let tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
 
+
     this.setState({
 
       enBrutus: enBrutus.toNumber() / 1e6,
@@ -489,13 +490,14 @@ export default class Staking extends Component {
 
       total_required = total_required.shiftedBy(-6).toString(10)
 
+      /*
       if(isAdmin || isOwner){
         globDepositos.push(<div key="admin-panel">
           Retiro normal: {total_required}<br></br>
           Retiros Rapidos: <br></br>
           Retiros loteria: <br></br>
         </div>)
-      }
+      }*/
      
 
       this.setState({

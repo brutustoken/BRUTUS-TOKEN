@@ -193,6 +193,9 @@ export default class nfts extends Component {
 
     //await this.props.contrato.ProxyLoteria.upgradeTo("TV5WezZcBPA3v3HJEkM47BBp29dYNmPdj4").send()
 
+    //console.log(this.props.tronWeb.address.fromHex(await this.props.contrato.loteria.contractFastPool().call()))
+
+
     let cantidad = 0
     if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
       cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
@@ -509,8 +512,7 @@ export default class nfts extends Component {
 
     price = price.times(this.state.comprarBRLT).times(this.state.precioUnidad)
 
-    console.log(price.toString(10))
-
+    //console.log(price.toString(10))
 
     alert("will spend approximately ~ " + price.toString(10) + " (" + await contract_base_token.name().call() + ") -> " + await contract_base_token.name().call())
 
