@@ -317,5 +317,5 @@ export default class Inicio extends Component {
 
 export const Head = () => <>
 
-    <meta property="og:image" content="butusimage" />
+    <meta property="og:image" content="brutusimage" />
 </>

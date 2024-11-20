@@ -1128,32 +1128,6 @@ export default class Staking extends Component {
             window.$("#mensaje-brst").modal("show");
           })
 
-        /*
-      await this.props.contrato.BRST_TRX_Proxy.staking().send({ callValue: amount })
-        .then(() => {
-          this.setState({
-            ModalTitulo: this.props.i18n.t("brst.alert.compra", { returnObjects: true })[0],
-            ModalBody: <>{this.props.i18n.t("brst.alert.compra", { returnObjects: true })[1]}
-              <br /><br />
-              <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
-            </>
-          })
-
-          window.$("#mensaje-brst").modal("show");
-        })
-        .catch(() => {
-
-          this.setState({
-            ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
-            ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1]
-          })
-
-          window.$("#mensaje-brst").modal("show");
-
-        })
-
-*/
-
         document.getElementById("amountTRX").value = "";
 
 
@@ -1178,10 +1152,7 @@ export default class Staking extends Component {
 
       window.$("#mensaje-brst").modal("show");
 
-
-
     }
-
 
     await utils.delay(5);
     this.estado();
@@ -1194,20 +1165,21 @@ export default class Staking extends Component {
     let amount = document.getElementById("amountTRX").value;
     let amountNorm = new BigNumber(amount)
 
-    let penalty = (await this.props.contrato.BRST_TRX_Proxy_fast.descuentoRapido().call()).toNumber()
+    let penalty  = (await this.props.contrato.BRST_TRX_Proxy_fast.descuentoRapido().call()).toNumber()
     let presicion = (await this.props.contrato.BRST_TRX_Proxy_fast.precision().call()).toNumber()
 
     penalty = (penalty/presicion)*100
 
     amount = new BigNumber(amount).multipliedBy(presicion-penalty).div(presicion);
 
+    let loteria = (await this.props.contrato.loteria._premio().call())[0].toNumber()
+    loteria = new BigNumber(loteria).shiftedBy(-6)
 
-    var retiroRapido = await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call()
-    retiroRapido = new BigNumber(retiroRapido._hex).shiftedBy(-6)
-    //console.log(amount.toNumber(), retiroRapido.toNumber())
+    let retiroRapido = (await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call()).toNumber()
+    retiroRapido = new BigNumber(retiroRapido).shiftedBy(-6).minus(loteria)
+
+    //console.log(amount.toNumber(), retiroRapido.toNumber(), loteria.toNumber())
     let primerBoton = <></>
-
-    
 
     if (amount.toNumber() > retiroRapido.toNumber()) {
       primerBoton = (<>
