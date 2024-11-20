@@ -103,17 +103,6 @@ class App extends Component {
       this.conectar(true);
     }, 3 * 1000)
 
-    /*
-    window.addEventListener('message', (e) => {
-
-      if (e.data.message && (e.data.message.action === "accountsChanged" || e.data.message.action === "setAccount")) {
-        if (e.data.message.data.address) {
-          //this.conectar(true);
-        }
-      }
-    })
-      */
-
   }
 
   async componentWillUnmount() {
@@ -127,7 +116,7 @@ class App extends Component {
       this.setState({ interval: null })
     }
 
-    var interval = setInterval(() => {
+    let interval = setInterval(() => {
 
       let lgSelector = "en";
 
@@ -163,8 +152,6 @@ class App extends Component {
     if (!this.state.conexion && cambio) {
 
       this.setState({ conexion: true })
-
-      //console.log(await window.tronLink.request({method: 'tron_requestAccounts'}))
 
       await adapter.connect()
         .catch((e) => {
@@ -288,7 +275,7 @@ class App extends Component {
       contrato.BRLT = await web3Contracts.contract().at(cons.BRLT);
 
     }
-    if (cons.SC4 !== "" && (url === "brlt")) {
+    if (cons.SC4 !== "" && (url === "brlt" || url === "brst")) {
       web3Contracts = await utils.getTronweb(this.state.accountAddress,2);
       contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, cons.SC4);
 
