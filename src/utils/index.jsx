@@ -1,17 +1,19 @@
 import TronWeb from "tronweb";
 
+const env = process.env
+
+const Cryptr = require('cryptr');
+const cryptr = new Cryptr(env.REACT_APP_SECRET);
 
 let constantes = {}
 constantes.proxy = "https://cors.brutusservices.com/";
-
-constantes.testnet = false; // revisar si está tesnet activada
-
-constantes.PRICE = constantes.proxy + process.env.REACT_APP_API_URL + "api/v1/precio/BRUT"; //API de precio
-constantes.market_brut = constantes.proxy + process.env.REACT_APP_API_URL + "api/v1/consulta/marketcap/brut"; //API de capitalizacion de mercado
-
+constantes.BRUTUS_API = constantes.proxy + process.env.REACT_APP_API_URL + "api/v1/"
 constantes.apiProviders = constantes.proxy + "https://api-providers.brutusservices.com/main/"
 
-constantes.RED = "https://iujetrtxbxoskh9l1cidv7clngnjnm.mainnet.tron.tronql.com/"//"https://api.trongrid.io";// shasta para habilitar red de pruebas
+constantes.PRICE = constantes.BRUTUS_API + "precio/BRUT"; //API de precio
+constantes.market_brut = constantes.BRUTUS_API +"consulta/marketcap/brut"; //API de capitalizacion de mercado
+
+constantes.RED = "https://iujetrtxbxoskh9l1cidv7clngnjnm.mainnet.tron.tronql.com/"
 
 constantes.SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
 constantes.SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking  BRST/TRX
@@ -49,10 +51,12 @@ if (constantes.testnet) {
 
 }
 
+function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
+
 
 async function keyQuery() {
 
-    let KEY = await fetch(process.env.REACT_APP_API_URL + 'api/v1/selector/apikey')
+    let KEY = await fetch(env.REACT_APP_API_URL + 'api/v1/selector/apikey')
         .then(response => { return response.json(); })
         .then(data => {
             let API_KEY = ""
@@ -76,7 +80,7 @@ async function keyQuery() {
 
 function getRed(index){
     index = parseInt(index)
-    let tokenList = process.env.REACT_APP_LIST_TRONQL;
+    let tokenList = env.REACT_APP_LIST_TRONQL;
     tokenList = tokenList.split(",")
 
     if(index > tokenList.length)index = tokenList.length-1;
@@ -100,6 +104,60 @@ async function getTronweb(wallet,red = 0){
 
 }
 
-function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
+async function renResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction ) {
+    
+if (recurso === "bandwidth"|| recurso === "band") {
+    recurso = "band"
+  }else{
+    recurso = "energy"
+  }
 
-export default {constantes, keyQuery, getTronweb, delay};
+  let time = periodo
+
+  if (temporalidad === "h" || temporalidad === "hour" || temporalidad === "hora") {
+    time = periodo + temporalidad
+  }
+
+  if (temporalidad === "m" || temporalidad === "min" || temporalidad === "minutes" || temporalidad === "minutos" ) {
+    time = periodo + "min"
+  }
+
+  let data = {
+    "wallet": wallet_orden,
+    "resource": recurso,
+    "amount": cantidad,
+    "duration": time,
+
+    "transaction": signedTransaction,
+    "to_address": env.REACT_APP_WALLET_API,
+    "precio": TronWeb.toSun(precio),
+
+    "expire": Date.now()+(500*1000),
+    
+    "id_api": env.REACT_APP_USER_ID,
+    "token": env.REACT_APP_TOKEN,
+  }
+
+  data = cryptr.encrypt(JSON.stringify(data));
+
+  let url =  env.REACT_APP_API_URL + "rent/energy"
+
+  let consulta = await fetch(url, {
+    method: "POST",
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({user:"9650f24d09200d8d0e1b31fd9eab8b55", data})
+  }).then((r)=>r.json())
+  .catch((e)=>{
+    console.log(e.toString());
+    return {result: false, hash: signedTransaction.txid, msg: "API-Error"}
+  })
+
+return consulta
+  
+}
+
+function getRandomInt(max) { return Math.floor(Math.random() * max); }
+
+export default {...constantes, keyQuery, getTronweb, delay, getRandomInt, renResource};

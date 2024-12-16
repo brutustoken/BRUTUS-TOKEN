@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import Cookies from 'universal-cookie';
+import utils from "../utils";
 
-import cons from "../cons.js";
 import TronWeb from "tronweb";
 
 import * as am5 from "@amcharts/amcharts5";
@@ -104,7 +104,7 @@ export default class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, active: activate }
-            fetch(cons.apiProviders + "set/active", {
+            fetch(utils.apiProviders + "set/active", {
               method: "POST",
               headers: {
                 'token-api': process.env.REACT_APP_TOKEN,
@@ -145,7 +145,7 @@ export default class ProviderPanel extends Component {
             console.log(over)
             let body = { wallet: this.props.accountAddress, sellbandover: over }
 
-            fetch(cons.apiProviders + "set/sellbandover", {
+            fetch(utils.apiProviders + "set/sellbandover", {
               method: "POST",
               headers: {
                 'token-api': process.env.REACT_APP_TOKEN,
@@ -159,7 +159,7 @@ export default class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, sellband: activate }
-            fetch(cons.apiProviders + "set/sellband", {
+            fetch(utils.apiProviders + "set/sellband", {
               method: "POST",
               headers: {
                 'token-api': process.env.REACT_APP_TOKEN,
@@ -200,7 +200,7 @@ export default class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, burn: activate }
-            fetch(cons.apiProviders + "set/burn", {
+            fetch(utils.apiProviders + "set/burn", {
               method: "POST",
               headers: {
                 'token-api': process.env.REACT_APP_TOKEN,
@@ -252,7 +252,7 @@ export default class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, allow_notifications: activate }
-            fetch(cons.apiProviders + "set/allow_notifications", {
+            fetch(utils.apiProviders + "set/allow_notifications", {
               method: "POST",
               headers: {
                 'token-api': process.env.REACT_APP_TOKEN,
@@ -393,7 +393,7 @@ export default class ProviderPanel extends Component {
   async setFreez(data) {
     try {
       let body = { wallet: this.props.accountAddress, autofreeze: data }
-      await fetch(cons.apiProviders + "set/autofreeze", {
+      await fetch(utils.apiProviders + "set/autofreeze", {
         method: "POST",
         headers: {
           'token-api': process.env.REACT_APP_TOKEN,
@@ -415,7 +415,7 @@ export default class ProviderPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, paymenthour: hour }
-      await fetch(cons.apiProviders + "set/paymenthour", {
+      await fetch(utils.apiProviders + "set/paymenthour", {
         method: "POST",
         headers: {
           'token-api': process.env.REACT_APP_TOKEN,
@@ -437,7 +437,7 @@ export default class ProviderPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, maxdays: days }
-      await fetch(cons.apiProviders + "set/maxdays", {
+      await fetch(utils.apiProviders + "set/maxdays", {
         method: "POST",
         headers: {
           'token-api': process.env.REACT_APP_TOKEN,
@@ -459,7 +459,7 @@ export default class ProviderPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, sr: wallet }
-      await fetch(cons.apiProviders + "set/sr", {
+      await fetch(utils.apiProviders + "set/sr", {
         method: "POST",
         headers: {
           'token-api': process.env.REACT_APP_TOKEN,
@@ -482,7 +482,7 @@ export default class ProviderPanel extends Component {
       tiempo: moment.tz.guess(true)
     })
 
-    var url = cons.apiProviders;
+    var url = utils.apiProviders;
 
     let provider = { result: false };
 
