@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
+import utils from "../utils";
 
-import cons from "../cons.js";
 
 const BigNumber = require('bignumber.js');
 
@@ -206,7 +206,7 @@ export default class nfts extends Component {
 
 
     let onSaleURI = "https://nft-metadata.brutusservices.com/v1/lottery?ticket="+totalNFT
-    let onSalemetadata = JSON.parse( await (await fetch(cons.proxy+onSaleURI)).text());
+    let onSalemetadata = JSON.parse( await (await fetch(utils.proxy+onSaleURI)).text());
 
     let onsale = <div className="col-md-6 col-sm-12" key={"tiket-onsale-"+totalNFT}>
     <div className="card">
@@ -292,7 +292,7 @@ export default class nfts extends Component {
       let globalId = parseInt((await this.props.contrato.BRLT.tokenOfOwnerByIndex(this.props.accountAddress, index).call())._hex)
 
       let URI = await this.props.contrato.BRLT.tokenURI(globalId).call()
-      let metadata = JSON.parse( await (await fetch(cons.proxy+URI)).text());
+      let metadata = JSON.parse( await (await fetch(utils.proxy+URI)).text());
 
       //console.log(metadata)
 
@@ -334,6 +334,8 @@ export default class nfts extends Component {
   }
 
   async preCompra() {
+
+    //alquiler de energia
 
     if (this.state.moneda !== "trx") {
       await this.sunSwap(this.state.moneda);

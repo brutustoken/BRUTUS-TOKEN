@@ -1,9 +1,10 @@
 import React, { Component } from "react";
+import utils from "../../utils";
 
 //import CrowdFunding from "./nftCrowdFunding";
 //import Oficina from "./nftOficina";
 
-import cons from "../../cons.js";
+
 
 export default class nfts extends Component {
   constructor(props) {
@@ -66,7 +67,7 @@ export default class nfts extends Component {
 
 			var URI = await this.props.contrato.BRGY.tokenURI(robots[index]).call()
 
-			var metadata = await fetch(cons.proxy + URI).then((res)=>{return res.json()}).catch(console.error);
+			var metadata = await fetch(utils.proxy + URI).then((res)=>{return res.json()}).catch(console.error);
 			metadata.numero = robots[index]
 			robots[index] = metadata;
 
