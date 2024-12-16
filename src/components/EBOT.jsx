@@ -534,7 +534,7 @@ export default class EnergyRental extends Component {
 
       this.setState({
         titulo: "Contact support",
-        body: "Please contact support for: " + consulta2.hash + " | " + consulta2.msg
+        body: "Support hash: " + consulta2.hash + " | " + consulta2.msg
       })
 
       window.$("#mensaje-ebot").modal("show");
