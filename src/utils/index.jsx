@@ -1,9 +1,9 @@
 import TronWeb from "tronweb";
+const Cryptr = require('cryptr');
 
 const env = process.env
-
-const Cryptr = require('cryptr');
 const cryptr = new Cryptr(env.REACT_APP_SECRET);
+
 
 let constantes = {}
 constantes.proxy = "https://cors.brutusservices.com/";
@@ -56,7 +56,7 @@ function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
 async function keyQuery() {
 
-    let KEY = await fetch(env.REACT_APP_API_URL + 'api/v1/selector/apikey')
+    let KEY = await fetch(constantes.BRUTUS_API + 'selector/apikey')
         .then(response => { return response.json(); })
         .then(data => {
             let API_KEY = ""
@@ -140,9 +140,7 @@ if (recurso === "bandwidth"|| recurso === "band") {
 
   data = cryptr.encrypt(JSON.stringify(data));
 
-  let url =  env.REACT_APP_API_URL + "rent/energy"
-
-  let consulta = await fetch(url, {
+  let consulta = await fetch(constantes.BRUTUS_API + "rent/energy", {
     method: "POST",
     headers: {
       'Content-Type': 'application/json'
