@@ -11,7 +11,7 @@ constantes.BRUTUS_API = constantes.proxy + process.env.REACT_APP_API_URL + "api/
 constantes.apiProviders = constantes.proxy + "https://api-providers.brutusservices.com/main/"
 
 constantes.PRICE = constantes.BRUTUS_API + "precio/BRUT"; //API de precio
-constantes.market_brut = constantes.BRUTUS_API +"consulta/marketcap/brut"; //API de capitalizacion de mercado
+constantes.market_brut = constantes.BRUTUS_API + "consulta/marketcap/brut"; //API de capitalizacion de mercado
 
 constantes.RED = "https://iujetrtxbxoskh9l1cidv7clngnjnm.mainnet.tron.tronql.com/"
 
@@ -32,22 +32,22 @@ constantes.BRLT = "TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU";//token NFT LOTERIA
 
 if (constantes.testnet) {
 
-    constantes.RED = "https://nile.trongrid.io"
+  constantes.RED = "https://nile.trongrid.io"
 
-    constantes.SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
-    constantes.SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
-    constantes.ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox
-    constantes.ProxySC3 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE----"; // Pool_BRST_TRX Prox retiradas rapidas 
+  constantes.SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
+  constantes.SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
+  constantes.ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox
+  constantes.ProxySC3 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE----"; // Pool_BRST_TRX Prox retiradas rapidas 
 
-    constantes.SC3 = "";//pool APENFT_NFT
-    constantes.SC4 = "TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR";// Loteria Contract NFT_BRST_TRX PROXY
+  constantes.SC3 = "";//pool APENFT_NFT
+  constantes.SC4 = "TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR";// Loteria Contract NFT_BRST_TRX PROXY
 
-    constantes.USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";//token USDT
-    constantes.BRUT = "TTBZHmxP5H2FW8zaJgCR2x2WeB82rJo3xb";//token trc20 BRUT
-    constantes.BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";//token trc20 BRST
-    constantes.APENFT = "TMaG566bcktJkjxQpQxshewfTqATzxmtPX";//token de venta de mixtery box
-    constantes.BRGY = "TMEmo4xexAEu3zSmSrzPJoA1FE6AEfgVyW";//token NFT  BRGY 
-    constantes.BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
+  constantes.USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";//token USDT
+  constantes.BRUT = "TTBZHmxP5H2FW8zaJgCR2x2WeB82rJo3xb";//token trc20 BRUT
+  constantes.BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";//token trc20 BRST
+  constantes.APENFT = "TMaG566bcktJkjxQpQxshewfTqATzxmtPX";//token de venta de mixtery box
+  constantes.BRGY = "TMEmo4xexAEu3zSmSrzPJoA1FE6AEfgVyW";//token NFT  BRGY 
+  constantes.BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
 
 }
 
@@ -56,59 +56,59 @@ function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
 
 async function keyQuery() {
 
-    let KEY = await fetch(constantes.BRUTUS_API + 'selector/apikey')
-        .then(response => { return response.json(); })
-        .then(data => {
-            let API_KEY = ""
+  let KEY = await fetch(constantes.BRUTUS_API + 'selector/apikey')
+    .then(response => { return response.json(); })
+    .then(data => {
+      let API_KEY = ""
 
-            if(data.ok){
-                if(data.apikey){
-                    API_KEY = data.apikey
-                }
+      if (data.ok) {
+        if (data.apikey) {
+          API_KEY = data.apikey
+        }
 
-            }
-            return API_KEY
+      }
+      return API_KEY
 
-        }).catch(err => {
-            console.log(err);
-            return ""
-        });
+    }).catch(err => {
+      console.log(err);
+      return ""
+    });
 
-    return KEY
-    
-}
-
-function getRed(index){
-    index = parseInt(index)
-    let tokenList = env.REACT_APP_LIST_TRONQL;
-    tokenList = tokenList.split(",")
-
-    if(index > tokenList.length)index = tokenList.length-1;
-
-    let url = "https://"+tokenList[index]+".mainnet.tron.tronql.com/"
-
-    return url;
-}
-
-async function getTronweb(wallet,red = 0){
-
-    const tronWeb = new TronWeb({
-        fullHost: getRed(red),
-        //headers: { "TRON-PRO-API-KEY": await keyQuery() }
-      
-    })
-
-    tronWeb.setAddress(wallet)
-
-    return tronWeb
+  return KEY
 
 }
 
-async function renResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction ) {
-    
-if (recurso === "bandwidth"|| recurso === "band") {
+function getRed(index) {
+  index = parseInt(index)
+  let tokenList = env.REACT_APP_LIST_TRONQL;
+  tokenList = tokenList.split(",")
+
+  if (index > tokenList.length) index = tokenList.length - 1;
+
+  let url = "https://" + tokenList[index] + ".mainnet.tron.tronql.com/"
+
+  return url;
+}
+
+async function getTronweb(wallet, red = 0) {
+
+  const tronWeb = new TronWeb({
+    fullHost: getRed(red),
+    //headers: { "TRON-PRO-API-KEY": await keyQuery() }
+
+  })
+
+  tronWeb.setAddress(wallet)
+
+  return tronWeb
+
+}
+
+async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction) {
+
+  if (recurso === "bandwidth" || recurso === "band") {
     recurso = "band"
-  }else{
+  } else {
     recurso = "energy"
   }
 
@@ -118,7 +118,7 @@ if (recurso === "bandwidth"|| recurso === "band") {
     time = periodo + temporalidad
   }
 
-  if (temporalidad === "m" || temporalidad === "min" || temporalidad === "minutes" || temporalidad === "minutos" ) {
+  if (temporalidad === "m" || temporalidad === "min" || temporalidad === "minutes" || temporalidad === "minutos") {
     time = periodo + "min"
   }
 
@@ -132,8 +132,8 @@ if (recurso === "bandwidth"|| recurso === "band") {
     "to_address": env.REACT_APP_WALLET_API,
     "precio": TronWeb.toSun(precio),
 
-    "expire": Date.now()+(500*1000),
-    
+    "expire": Date.now() + (500 * 1000),
+
     "id_api": env.REACT_APP_USER_ID,
     "token": env.REACT_APP_TOKEN,
   }
@@ -146,17 +146,17 @@ if (recurso === "bandwidth"|| recurso === "band") {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({user:'9650f24d09200d8d0e1b31fd9eab8b55', data})
-  }).then((r)=>r.json())
-  .catch((e)=>{
-    console.log(e.toString());
-    return {result: false, hash: signedTransaction.txid, msg: "API-Error"}
-  })
+    body: JSON.stringify({ user: '9650f24d09200d8d0e1b31fd9eab8b55', data })
+  }).then((r) => r.json())
+    .catch((e) => {
+      console.log(e.toString());
+      return { result: false, hash: signedTransaction.txID, msg: "API-Error" }
+    })
 
-return consulta
-  
+  return consulta
+
 }
 
 function getRandomInt(max) { return Math.floor(Math.random() * max); }
 
-export default {...constantes, keyQuery, getTronweb, delay, getRandomInt, renResource};
+export default { ...constantes, keyQuery, getTronweb, delay, getRandomInt, rentResource };

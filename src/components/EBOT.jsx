@@ -517,7 +517,7 @@ export default class EnergyRental extends Component {
       body: "Wait while one of our robots attends to your recharge, we try to be as fast as possible."
     })
 
-    let consulta2 = await utils.renResource(wallet_orden,recurso,cantidad,periodo,temporalidad,precio,signedTransaction) ;
+    let consulta2 = await utils.rentResource(wallet_orden,recurso,cantidad,periodo,temporalidad,precio,signedTransaction) ;
 
     if (consulta2.result) {
 
