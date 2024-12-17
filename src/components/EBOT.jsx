@@ -333,7 +333,7 @@ export default class EnergyRental extends Component {
 
       let body = { "resource": recurso, "amount": cantidad, "duration": time }
 
-      console.log(body)
+      //console.log(body)
 
       let consulta = await fetch(url, {
         method: "POST",
@@ -347,7 +347,7 @@ export default class EnergyRental extends Component {
         return e.toString()
       })
 
-      console.log(consulta)
+      //console.log(consulta)
 
       precio = consulta.price
 

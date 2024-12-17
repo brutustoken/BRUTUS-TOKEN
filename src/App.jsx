@@ -221,12 +221,8 @@ class App extends Component {
     let tronlink = this.state.tronlink;
 
     let  web3Contracts = await utils.getTronweb(this.state.accountAddress);
-
     let contrato = {};
-
     let url = this.route()
-
-    console.log(url)
 
     if (utils.BRUT !== "" && (url === "" || url === "brut")) {
       web3Contracts = await utils.getTronweb(this.state.accountAddress,1);
