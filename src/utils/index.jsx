@@ -138,6 +138,7 @@ if (recurso === "bandwidth"|| recurso === "band") {
     "token": env.REACT_APP_TOKEN,
   }
 
+
   data = cryptr.encrypt(JSON.stringify(data));
 
   let consulta = await fetch(constantes.BRUTUS_API + "rent/energy", {
@@ -145,7 +146,7 @@ if (recurso === "bandwidth"|| recurso === "band") {
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({user:"9650f24d09200d8d0e1b31fd9eab8b55", data})
+    body: JSON.stringify({user:'9650f24d09200d8d0e1b31fd9eab8b55', data})
   }).then((r)=>r.json())
   .catch((e)=>{
     console.log(e.toString());
