@@ -899,9 +899,9 @@ export default class Staking extends Component {
 
     if (!signedTransaction) { return false; }
 
-    let consulta2 = await utils.renResource(this.props.accountAddress, "energy", cantidad, "5", "min", precio, signedTransaction);
+    let consulta2 = await utils.rentResource(this.props.accountAddress, "energy", cantidad, "5", "min", precio, signedTransaction);
 
-    if (consulta2.response === 1) {
+    if (consulta2.result) {
 
       this.setState({
         ModalTitulo: this.props.i18n.t("brst.alert.done", { returnObjects: true })[0],
