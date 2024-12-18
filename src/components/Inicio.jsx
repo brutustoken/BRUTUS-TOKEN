@@ -159,7 +159,7 @@ export default class Inicio extends Component {
 		await this.consultaPrecios();
 
 		//console.log(this.props.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
-		if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb" && this.props.contrato) {
+		if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb" && this.props.contrato.BRST_TRX_Proxy !== null) {
 
 			this.props.contrato.BRST_TRX_Proxy.RATE().call()
 				.then((r)=>{ this.setState({precioBrst: new BigNumber(r.toNumber()).shiftedBy(-6).toNumber()}) })

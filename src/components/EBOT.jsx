@@ -54,6 +54,8 @@ export default class EnergyRental extends Component {
     this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
     this.handleChangeWallet = this.handleChangeWallet.bind(this);
 
+    this.updateAmount = this.updateAmount.bind(this);
+
     this.estado = this.estado.bind(this);
 
     this.recursos = this.recursos.bind(this);
@@ -107,9 +109,9 @@ export default class EnergyRental extends Component {
 
   }
 
-  async estado(){
+  updateAmount(amount){
 
-    let {recurso, cantidad, fromUrl} = this.state
+    let {recurso} = this.state
 
     let montoMin = 32000
     if (recurso === "bandwidth") {
@@ -118,10 +120,33 @@ export default class EnergyRental extends Component {
 
     this.setState({ montoMin })
 
-    if(cantidad < montoMin){
-      this.setState({ cantidad:montoMin })
-    }
+    let cantidad = 0;
+    if(amount){
+      cantidad = amount
+      document.getElementById("amount").value = amount
 
+    }else{
+      cantidad = document.getElementById("amount").value
+
+    }
+    
+    cantidad = parseInt(cantidad)
+
+    if (parseInt(cantidad) < montoMin || isNaN(cantidad)) {
+      cantidad = montoMin
+    }
+    
+    this.setState({ cantidad})
+  
+    return cantidad
+
+  }
+
+  async estado(){
+
+    let {fromUrl} = this.state
+
+    
     await this.recursos()
 
     let loc = document.location.href;
@@ -156,7 +181,7 @@ export default class EnergyRental extends Component {
           fromUrl: false
         })
 
-        document.getElementById("amount").value = cantidad
+        this.updateAmount(cantidad)
 
         this.preCompra()
       } 
@@ -254,16 +279,11 @@ export default class EnergyRental extends Component {
 
   async calcularRecurso() {
 
-    let { periodo , temporalidad , recurso, montoMin, minPrice} = this.state
+    let { periodo , temporalidad , recurso, montoMin} = this.state
 
     let precio = this.props.i18n.t("calculating") + "..."
 
-    let cantidad = document.getElementById("amount").value
-    cantidad = parseInt(cantidad)
-    if (parseInt(cantidad) <= montoMin || isNaN(cantidad)) {
-      cantidad = montoMin
-      precio = minPrice
-    }
+    let cantidad = this.updateAmount()
 
     this.setState({
       precio: precio
@@ -546,7 +566,7 @@ export default class EnergyRental extends Component {
   render() {
     let {unitEnergyPrice, amounts, recurso} = this.state
     const amountButtons = amounts.map(amounts => <button key={"Amb-" + amounts.text} id="ra1" type="button" className="btn btn-primary"
-      style={{ margin: "auto" }} onClick={() => { document.getElementById("amount").value = amounts.amount; this.setState({cantidad:amounts.amount}); this.estado()}}>{amounts.text}</button>)
+      style={{ margin: "auto" }} onClick={() => { this.updateAmount(amounts.amount); this.estado()}}>{amounts.text}</button>)
 
     let texto = <>Bandwidth Pool: {(this.state.available_bandwidth).toLocaleString('en-US')}</>
     let porcentaje = this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool
@@ -597,7 +617,8 @@ export default class EnergyRental extends Component {
                                 recurso: "energy", 
                                 amounts: amountsE 
                               });
-                              document.getElementById("amount").value = 32000
+                              
+                              this.updateAmount(32000)
 
                               await this.estado();
 
@@ -611,7 +632,7 @@ export default class EnergyRental extends Component {
                                 recurso: "bandwidth",
                                 amounts: amountB
                               });
-                              document.getElementById("amount").value = 1000                              
+                              this.updateAmount(1000);                       
                               await this.estado();
 
                             }}>
