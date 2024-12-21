@@ -28,7 +28,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
+          git remote set-url origin https://stevenstc:${{ secrets.FINE_GRAINED_PAT }}@github.com/SITESMART650/staking-v1.git
       - name: Create or update web branch
         run: |
           # Check out the web branch or create it if it doesn't exist
