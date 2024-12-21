@@ -30,20 +30,21 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://stevenstc:${{ secrets.FINE_GRAINED_PAT }}@github.com/brutustoken/BRUTUS-TOKEN.git
 
-      - name: Debug docs folder
-        run: |
-          echo "Listing docs folder contents:"
-          ls -la docs || echo "Docs folder does not exist"
       - name: Create or update web branch
         run: |
+
+          git checkout main
           # Check out the web branch or create it if it doesn't exist
           git fetch origin web || echo "web branch does not exist"
           git checkout web || git checkout --orphan web
 
           # Clear the branch and copy the docs folder content to root
-          git rm -rf src || true
+          git rm -rf . || true
 
-          cp -r docs/* ./
+          git checkout main -- docs
+          mv docs/* ./
+          rm -rf docs
+          
           git add .
           git commit -m "Sync docs folder to web branch"
         
