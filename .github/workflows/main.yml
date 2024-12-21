@@ -10,9 +10,9 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  pull-requests: write
+  issues: write
+  repository-projects: write
 
 jobs:
   deploy:
@@ -21,16 +21,17 @@ jobs:
     steps:
       - name: Checkout main branch
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Set up Git
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://stevenstc:${{ secrets.FINE_GRAINED_PAT }}@github.com/SITESMART650/staking-v1.git
+          git remote set-url origin https://stevenstc:${{ secrets.FINE_GRAINED_PAT }}@github.com/brutustoken/BRUTUS-TOKEN.git
+
       - name: Create or update web branch
         run: |
+
+          git checkout main
           # Check out the web branch or create it if it doesn't exist
           git fetch origin web || echo "web branch does not exist"
           git checkout web || git checkout --orphan web
@@ -38,11 +39,14 @@ jobs:
           # Clear the branch and copy the docs folder content to root
           git rm -rf . || true
 
-          cp -r docs/* ./ || echo "No docs folder content to copy"
+          git checkout main -- docs
+          mv docs/* ./
+          rm -rf docs
 
-          # Add, commit, and push changes
           git add .
-          git commit -m "Update web branch with docs content" || echo "No changes to commit"
+          git commit -m "Sync docs folder to web branch"
+        
+          # Empujar los cambios a la rama web
           git push origin web --force
 
           
