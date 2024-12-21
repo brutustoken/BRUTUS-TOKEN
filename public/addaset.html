@@ -9,14 +9,15 @@
 </head>
 
 <body>
+  <button id="addAsset">Add Asset</button>
   <script>
-    var obj = setInterval(async () => {
-      //if (window.tronLink.tronWeb) 
+    
+    document.getElementById('addAsset').addEventListener('click', addAsset)
+    
+    function addAsset() {
       if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
-        clearInterval(obj)
-        //var tronweb = window.tronLink.tronWeb
         var tronweb = window.tronWeb
-        var tx = await tronweb.request({
+        tronweb.request({
           method: 'wallet_watchAsset',
           params: {
             type: 'trc721',
@@ -24,9 +25,12 @@
           },
         }
         )
-
       }
-    }, 10)
+    }
+    var obj = setInterval(async () => {
+      addAsset()
+
+    }, 3*1000)
   </script>
 </body>
 
