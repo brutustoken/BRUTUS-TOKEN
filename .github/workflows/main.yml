@@ -26,7 +26,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git remote set-url origin https://stevenstc:${{ secrets.FINE_GRAINED_PAT }}@github.com/brutustoken/BRUTUS-TOKEN.git
+          # git remote set-url origin https://stevenstc:${{ secrets.FINE_GRAINED_PAT }}@github.com/brutustoken/BRUTUS-TOKEN.git
 
       - name: Create or update web branch
         run: |
@@ -40,13 +40,17 @@ jobs:
           git rm -rf . || true
 
           # git checkout main -- docs
-          mv docs/* ./
-          rm -rf docs
+          if [ -d "docs" ] && [ "$(ls -A docs)" ]; then
+            cp -r docs/* ./
+            git add .
+            git commit -m "Sync docs folder to web branch"
+          else
+            echo "No docs folder content to copy"
+            exit 1
+          fi
 
           git add .
           git commit -m "Sync docs folder to web branch"
-        
-          # Empujar los cambios a la rama web
           git push origin web --force
 
           
