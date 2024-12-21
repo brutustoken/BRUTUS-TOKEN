@@ -52,6 +52,3 @@ jobs:
             echo "No docs folder content to copy"
             exit 1
           fi
-
-
-          
