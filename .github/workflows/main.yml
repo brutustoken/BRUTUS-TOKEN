@@ -31,7 +31,7 @@ jobs:
       - name: Create or update web branch
         run: |
 
-          # git checkout main
+          git checkout main
           # Check out the web branch or create it if it doesn't exist
           git fetch origin web || echo "web branch does not exist"
           git checkout web || git checkout --orphan web
@@ -39,9 +39,10 @@ jobs:
           # Clear the branch and copy the docs folder content to root
           git rm -rf . || true
 
-          # git checkout main -- docs
+          git checkout main -- docs
           if [ -d "docs" ] && [ "$(ls -A docs)" ]; then
-            cp -r docs/* ./
+            mv docs/* ./  # Mueve los archivos al directorio raíz
+            rm -rf docs   # Elimina la carpeta vacía
             git add .
             git commit -m "Sync docs folder to web branch"
           else
