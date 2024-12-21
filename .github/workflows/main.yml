@@ -10,9 +10,11 @@ on:
   workflow_dispatch:
 
 permissions:
-  pull-requests: write
-  issues: write
-  repository-projects: write
+  deployments: write
+  contents: write
+  statuses: write
+  actions: write
+  checks: read
 
 jobs:
   deploy:
