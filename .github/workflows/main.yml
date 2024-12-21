@@ -45,13 +45,11 @@ jobs:
             rm -rf docs   # Elimina la carpeta vacía
             git add .
             git commit -m "Sync docs folder to web branch"
+            git push origin web --force
           else
             echo "No docs folder content to copy"
             exit 1
           fi
 
-          git add .
-          git commit -m "Sync docs folder to web branch"
-          git push origin web --force
 
           
