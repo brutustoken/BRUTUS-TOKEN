@@ -29,6 +29,11 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://stevenstc:${{ secrets.FINE_GRAINED_PAT }}@github.com/brutustoken/BRUTUS-TOKEN.git
+
+      - name: Debug docs folder
+        run: |
+          echo "Listing docs folder contents:"
+          ls -la docs || echo "Docs folder does not exist"
       - name: Create or update web branch
         run: |
           # Check out the web branch or create it if it doesn't exist
@@ -37,12 +42,17 @@ jobs:
 
           # Clear the branch and copy the docs folder content to root
           git rm -rf . || true
+          # Verificar si la carpeta docs existe y tiene contenido
+          if [ -d "docs" ] && [ "$(ls -A docs)" ]; then
+            cp -r docs/* ./
+            git add .
+            git commit -m "Sync docs folder to web branch"
+          else
+            echo "No docs folder content to copy"
+            exit 1
+          fi
 
-          cp -r docs/* ./ || echo "No docs folder content to copy"
-
-          # Add, commit, and push changes
-          git add .
-          git commit -m "Update web branch with docs content" || echo "No changes to commit"
+          # Empujar los cambios a la rama web
           git push origin web --force
 
           
