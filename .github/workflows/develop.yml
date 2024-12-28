@@ -46,7 +46,7 @@ jobs:
             mv docs/* ./  # Mueve los archivos al directorio raíz
             rm -rf docs   # Elimina la carpeta vacía
             git add .
-            git commit -m "Sync docs folder to web branch"
+            git commit -m "Sync docs folder to web-beta branch"
             git push origin web-beta --force
           else
             echo "No docs folder content to copy"
