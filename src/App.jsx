@@ -72,6 +72,7 @@ class App extends Component {
       },
       tronWeb: tronWeb,
       contrato: {
+        ready: false,
         BRUT_USDT: null,
         BRUT: null,
         MBOX: null,
@@ -294,7 +295,8 @@ class App extends Component {
     }
 
     tronlink['contratosReady'] = true;
-
+    contrato.ready = true;
+    
     this.setState({
       tronlink: tronlink,
       contrato: contrato,
