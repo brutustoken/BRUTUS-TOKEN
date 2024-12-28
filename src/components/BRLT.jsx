@@ -2,11 +2,9 @@ import React, { Component } from "react";
 import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
 import utils from "../utils";
 
-
 const BigNumber = require('bignumber.js');
 
 let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
-
 let intervalId = [];
 
 export default class nfts extends Component {
@@ -87,17 +85,14 @@ export default class nfts extends Component {
     }, 1 * 1000))
 
     intervalId.push(setInterval(async () => {
-      this.estado();
-    }, 60 * 1000))
-
-    window.addEventListener('message', (e) => {
-
-      if (e.data.message && e.data.message.action === "accountsChanged") {
-        if (e.data.message.data.address) {
-          this.estado();
-        }
+      if(this.props.contrato.ready){
+        clearInterval(intervalId[2])
+        intervalId.push(setInterval(()=>this.estado(), 60*1000))
       }
-    })
+      this.estado();
+    }, 6 * 1000))
+
+    
   };
 
   componentWillUnmount(){
@@ -173,6 +168,8 @@ export default class nfts extends Component {
   }
 
   async estado() {
+
+    if(!this.props.contrato.ready) return;
 
     //await this.props.contrato.loteria.inicializar().send();
 
@@ -324,12 +321,14 @@ export default class nfts extends Component {
           </div>
         </div>
       )
+
+      this.setState({
+        tikets: tikets
+      })
       
     }
 
-    this.setState({
-      tikets: tikets
-    })
+    
 
   }
 
@@ -739,9 +738,9 @@ export default class nfts extends Component {
                 </div>
                 <div className="card-body">
                   <p>
-                  <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+this.props.contrato.loteria.address+"/code"}>{this.props.contrato.loteria.address}</a>
+                  <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+utils.SC4+"/code"}>{utils.SC4}</a>
                   <br />
-                  <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+this.props.tronWeb.address.fromHex(this.props.contrato.BRLT.address)+"/code"}>{this.props.tronWeb.address.fromHex(this.props.contrato.BRLT.address)}</a>
+                  <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+utils.BRLT+"/code"}>{utils.BRLT}</a>
                   </p>
                 </div>
               </div>
