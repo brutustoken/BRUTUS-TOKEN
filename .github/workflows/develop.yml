@@ -1,9 +1,6 @@
-name: Sync docs to web
+name: Sync docs to web Develop
 
 on:
-  push:
-    branches:
-      - develop
   pull_request:
     branches:
       - develop
