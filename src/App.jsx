@@ -67,7 +67,6 @@ class App extends Component {
       tronlink: {
         installed: false,
         loggedIn: false,
-        contratosReady: false,
         adapter: {}
       },
       tronWeb: tronWeb,
@@ -82,7 +81,8 @@ class App extends Component {
         BRGY: null,
         BRST: null,
         BRST_TRX: null,
-        BRST_TRX_Proxy: null
+        BRST_TRX_Proxy: null,
+        BRST_TRX_Proxy_fast: null,
 
       },
       conexion: false,
@@ -149,12 +149,13 @@ class App extends Component {
 
 
   async conectar(cambio) {
-    let tronlink = this.state.tronlink;
+
+    let {tronlink, accountAddress, conexion} = this.state;
     let wallet = adressDefault;
-    let web3Contracts = await utils.getTronweb(this.state.accountAddress);
+    let web3Contracts = await utils.getTronweb(accountAddress);
 
 
-    if (!this.state.conexion && cambio) {
+    if (!conexion && cambio) {
 
       this.setState({ conexion: true })
 
@@ -196,13 +197,12 @@ class App extends Component {
 
     });
 
-    if (!tronlink['contratosReady'] || cambio) {
-      this.loadContracts()
-    }
+    this.loadContracts()
+    
 
     this.setState({
       conexion: false,
-      tronWeb: await utils.getTronweb(this.state.accountAddress)
+      tronWeb: await utils.getTronweb(accountAddress)
     })
 
   }
@@ -219,82 +219,75 @@ class App extends Component {
   }
 
   async loadContracts() {
-    let tronlink = this.state.tronlink;
+    let {tronlink, accountAddress, contrato} = this.state;
 
-    let  web3Contracts = await utils.getTronweb(this.state.accountAddress);
-    let contrato = {};
+    let  web3Contracts = await utils.getTronweb(accountAddress);
     let url = this.route()
 
-    if (utils.BRUT !== "" && (url === "" || url === "brut")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress,1);
+    if (contrato.BRUT === null && utils.BRUT !== "" && (url === "" || url === "brut")) {
+      web3Contracts = await utils.getTronweb(accountAddress,1);
       contrato.BRUT = await web3Contracts.contract().at(utils.BRUT);
     }
-    if (utils.USDT !== "" && (url === "brut")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress,1);
+
+    if (contrato.USDT === null && utils.USDT !== "" && (url === "brut")) {
+      web3Contracts = await utils.getTronweb(accountAddress,1);
       contrato.USDT = await web3Contracts.contract().at(utils.USDT);
-
     }
-    if (utils.SC !== "" && (url === "brut")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress,1);
+
+    if (contrato.BRUT_USDT === null && utils.SC !== "" && (url === "brut")) {
+      web3Contracts = await utils.getTronweb(accountAddress,1);
       contrato.BRUT_USDT = await web3Contracts.contract().at(utils.SC);
-
     }
 
-    if (utils.SC2 !== "" && (url === "brst")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+    if (contrato.BRST_TRX === null && utils.SC2 !== "" && (url === "brst")) {
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRST_TRX = await web3Contracts.contract().at(utils.SC2);
-
     }
-    if (utils.ProxySC2 !== "" && (url === "" || url === "brst")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+
+    if (contrato.BRST_TRX_Proxy === null && utils.ProxySC2 !== "" && (url === "" || url === "brst")) {
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.Proxy = await web3Contracts.contract(abi_PROXY, utils.ProxySC2);
 
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST, utils.ProxySC2);
-
     }
 
-    if (utils.ProxySC3 !== "" && (url === "" || url === "brst")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+    if (contrato.BRST_TRX_Proxy_fast === null && utils.ProxySC3 !== "" && (url === "" || url === "brst")) {
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.Proxy_fast = await web3Contracts.contract(abi_PROXY, utils.ProxySC3);
 
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRST_TRX_Proxy_fast = await web3Contracts.contract(abi_SimpleSwap, utils.ProxySC3);
-
     }
 
-    if (utils.BRST !== "" && (url === "" || url === "brst")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+    if (contrato.BRST === null && utils.BRST !== "" && (url === "" || url === "brst")) {
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRST = await web3Contracts.contract().at(utils.BRST);
-
     }
 
-    if (utils.BRGY !== "" && (url === "" || url === "brgy")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+    if (contrato.BRGY === null && utils.BRGY !== "" && (url === "" || url === "brgy")) {
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRGY = await web3Contracts.contract().at(utils.BRGY);
-
     }
-    if (utils.SC3 !== "" && (url === "brgy")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress);
+
+    if (contrato.MBOX === null && utils.SC3 !== "" && (url === "brgy")) {
+      web3Contracts = await utils.getTronweb(accountAddress);
       contrato.MBOX = await web3Contracts.contract().at(utils.SC3);
-
     }
 
-    if (utils.BRLT !== "" && (url === "" || url === "brlt")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress,2);
+    if (contrato.BRLT === null && utils.BRLT !== "" && (url === "" || url === "brlt")) {
+      web3Contracts = await utils.getTronweb(accountAddress,2);
       contrato.BRLT = await web3Contracts.contract().at(utils.BRLT);
-
     }
-    if (utils.SC4 !== "" && (url === "brlt" || url === "brst")) {
-      web3Contracts = await utils.getTronweb(this.state.accountAddress,2);
+
+    if (contrato.loteria === null && utils.SC4 !== "" && (url === "brlt" || url === "brst")) {
+      web3Contracts = await utils.getTronweb(accountAddress,2);
       contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, utils.SC4);
 
-      web3Contracts = await utils.getTronweb(this.state.accountAddress,2);
+      web3Contracts = await utils.getTronweb(accountAddress,2);
       contrato.loteria = await web3Contracts.contract(abi_LOTERIA, utils.SC4);
-
     }
 
-    tronlink['contratosReady'] = true;
     contrato.ready = true;
     
     this.setState({
@@ -307,12 +300,12 @@ class App extends Component {
 
   render() {
 
-    let {tronlink} = this.state
+    let {tronlink, contrato, accountAddress, tronWeb, msj} = this.state
 
     let Retorno = <></>
 
-    if (!tronlink.contratosReady) Retorno = (
-
+    if (!contrato.ready) {
+      Retorno = (
       <div className="container">
         <div className="row">
           <div className="col-xl-12">
@@ -329,39 +322,40 @@ class App extends Component {
           </div>
         </div>
       </div>
-    );
+      );
+    }else{
 
-    let url = this.route()
+      let url = this.route()
 
-    switch (url) {
+      switch (url) {
 
-      case "brut":
-        Retorno = <Brut accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
-      case "brst":
-        Retorno = <Brst accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
-      case "brgy":
-        Retorno = <Nft accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
-      case "brlt":
-        Retorno = <LOTERIA accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
-      case "ebot":
-        Retorno = <EBOT accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
-      case "pro":
-        Retorno = <PRO accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} tronlink={this.state.tronlink} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
-      case "api":
-        Retorno = <API accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} tronlink={this.state.tronlink} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
-      default:
-        Retorno = <Home accountAddress={this.state.accountAddress} contrato={this.state.contrato} tronWeb={this.state.tronWeb} ready={this.state.tronlink['contratosReady']} i18n={i18next} />
-        break;
+        case "brut":
+          Retorno = <Brut accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          break;
+        case "brst":
+          Retorno = <Brst accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          break;
+        case "brgy":
+          Retorno = <Nft accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          break;
+        case "brlt":
+          Retorno = <LOTERIA accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          break;
+        case "ebot":
+          Retorno = <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          break;
+        case "pro":
+          Retorno = <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} ready={contrato.ready} i18n={i18next} />
+          break;
+        case "api":
+          Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} ready={contrato.ready} i18n={i18next} />
+          break;
+        default:
+          Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          break;
+      }
     }
-
-    return <>{Retorno}<Alert {...this.state.msj}/></>
+    return <>{Retorno}<Alert {...msj}/></>
 
   }
 
