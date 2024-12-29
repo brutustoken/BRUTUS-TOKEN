@@ -10,8 +10,6 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
 
-//function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
-
 const cookies = new Cookies(null, { path: '/' });
 
 export default class ProviderPanel extends Component {
