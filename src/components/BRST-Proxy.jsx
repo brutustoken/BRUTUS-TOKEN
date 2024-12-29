@@ -9,8 +9,6 @@ import utils from "../utils";
 const BigNumber = require('bignumber.js');
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
-
-
 const options = [
   {
     label: "Hours",
@@ -84,11 +82,9 @@ const optionsHours = [
   },
 ];
 
-var earnings = [
+let earnings = []
 
-]
-
-var iniciado = 0;
+let iniciado = 0;
 
 export default class Staking extends Component {
   constructor(props) {
@@ -170,7 +166,7 @@ export default class Staking extends Component {
 
   componentDidMount() {
 
-    document.title = "B.F | BRST"
+    document.title = "BRST | Brutus.Finance"
     document.getElementById("tittle").innerText = this.props.i18n.t("brst.tittle")
 
     setTimeout(() => {
@@ -182,17 +178,6 @@ export default class Staking extends Component {
       this.estado();
     }, 60 * 1000);
 
-    window.addEventListener('message', (e) => {
-
-      if (e.data.message && e.data.message.action === "accountsChanged") {
-        if (e.data.message.data.address) {
-          this.estado();
-        }
-      }
-
-
-    })
-
   }
 
   componentWillUnmount() {
@@ -202,6 +187,8 @@ export default class Staking extends Component {
   }
 
   async estado() {
+
+    if(!this.props.contrato.ready) return;
 
     //console.log((await this.props.contrato.BRST_TRX_Proxy.totalDisponible().call()).toNumber())
     //console.log((await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()).toNumber())
@@ -253,12 +240,12 @@ export default class Staking extends Component {
         misBRST: misBRST
       })
 
-      //var balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
+      //let balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
       let balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
       let cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
 
       await utils.delay(1)
-      var contractEnergy = 0
+      let contractEnergy = 0
 
       if (cuenta.EnergyLimit) {
         contractEnergy = cuenta.EnergyLimit
@@ -268,7 +255,7 @@ export default class Staking extends Component {
         contractEnergy -= cuenta.EnergyUsed
       }
 
-      var eenergy = {};
+      let eenergy = {};
 
       if (balance >= 1) {
         let inputs = [
@@ -303,9 +290,9 @@ export default class Staking extends Component {
       //console.log(consulta)
 
       if (consulta) {
-        var promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value)) * 100) / this.state.tiempoPromediado
+        let promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value)) * 100) / this.state.tiempoPromediado
         this.setState({
-          promE7to1day: promE7to1day
+          promE7to1day
         })
       }
 
@@ -359,19 +346,18 @@ export default class Staking extends Component {
 
       }
 
-      var deposits = await this.props.contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
+      let deposits = await this.props.contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
       deposits = deposits[0];
 
-      var globDepositos = [];
+      let globDepositos = [];
 
-      var tiempo = parseInt((await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
+      let tiempo = parseInt((await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
 
-      var diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
+      let diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
 
       let adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY", "TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf", "TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
 
-      let balance_Pool = new BigNumber(await this.props.tronWeb.trx.getBalance("TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55")).shiftedBy(-6)
-
+      let balance_Pool = new BigNumber(await this.props.tronWeb.trx.getBalance(this.props.contrato.BRST_TRX_Proxy.address)).shiftedBy(-6)
 
       let total_required = new BigNumber(0)
 
@@ -492,14 +478,40 @@ export default class Staking extends Component {
 
       total_required = total_required.shiftedBy(-6).toString(10)
 
-      /*
+      /**
+       * 
+       * <input type="text" id="wallet"/> <button className="btn btn-warning" onClick={async()=>{
+            let inputs = [
+              {type: 'address', value: this.props.tronWeb.address.toHex(document.getElementById('wallet'))},
+              //{ type: 'uint256', value: 405 * 10 ** 6 }
+            ]
+
+            let funcion = "whiteList_add(address)"
+            try {
+
+              let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy_fast.address), funcion, {}, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+              let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+              transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+
+              transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+
+              console.log(transaction)
+              alert("Transaction "+transaction.result+" hash: "+transaction.txid)
+              
+            } catch (error) {
+              console.log(error)
+              alert(error.toString())
+            }
+            
+          }}>AW</button><br></br>
+
+        **/
       if(isAdmin || isOwner){
         globDepositos.push(<div key="admin-panel">
-          Retiro normal: {total_required}<br></br>
-          Retiros Rapidos: <br></br>
-          Retiros loteria: <br></br>
+          
+          Balance Pool: {balance_Pool.toString(10)}
         </div>)
-      }*/
+      }
 
 
       this.setState({
@@ -507,31 +519,6 @@ export default class Staking extends Component {
         total_required: total_required
 
       })
-
-
-
-      //set retiradas rapidas
-
-      /*
-      let inputs = [
-        {type: 'address', value: this.props.tronWeb.address.toHex("TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF")},
-        //{ type: 'uint256', value: 405 * 10 ** 6 }
-      ]
-
-      let funcion = "whiteList_add(address)"
-      const options = {}
-      let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy_fast.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-      let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
-
-      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
-
-      console.log(transaction)
-      
-      */
-
-      //console.log(await this.props.contrato.BRST_TRX_Proxy_fast.whiteList("TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY").call())
-
 
       if (parseInt(this.state.resultCalc) === 0) {
         this.handleChangeCalc({ target: { value: misBRST } })
@@ -560,13 +547,11 @@ export default class Staking extends Component {
 
       } catch (error) {
         console.log(error.toString())
+        energyOn = false;
       }
 
       this.setState({
-        energyOn: energyOn
-      })
-
-      this.setState({
+        energyOn,
         conexion: false
       })
 
@@ -1649,16 +1634,7 @@ export default class Staking extends Component {
 
   render() {
 
-    let {contrato} = this.props.contrato
     let { minCompra, minventa } = this.state;
-
-    if(!contrato){
-      contrato = {
-        BRST_TRX_Proxy:{address:""},
-        BRST_TRX_Proxy_fast:{address:""},
-
-      }
-    }
 
     minCompra = "Min. " + minCompra + " TRX";
     minventa = "Min. " + minventa + " BRST";
@@ -2010,9 +1986,9 @@ export default class Staking extends Component {
             </div>
             <div className="card-body">
               <p>
-                <b>Regular withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + contrato.BRST_TRX_Proxy.address + "/code"}>{contrato.BRST_TRX_Proxy.address}</a>
+                <b>Regular withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC2 + "/code"}>{utils.ProxySC2}</a>
                 <br />
-                <b>Fast withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + contrato.BRST_TRX_Proxy_fast.address + "/code"}>{contrato.BRST_TRX_Proxy_fast.address}</a>
+                <b>Fast withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC3 + "/code"}>{utils.ProxySC3}</a>
               </p>
             </div>
           </div>

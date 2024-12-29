@@ -32,10 +32,10 @@
             "brst": {
                 "tittle": "Staking TRX",
                 "description": "BRST es un token en la red de tron, que permite a sus poseedores generar rendimientos en TRX gracias al staking al alquiler de recursos, un 10% adicional de lo que generan todos los proveedores Brutus Energy Bot todo esto a interes compuesto automático. De esta forma conseguimos que los beneficios crezcan exponencialmente, de forma totalmente automática.",
-                "sale": "Venta N° {{number}} | {{days}} días restantes | {{wallet}}",
-                "price": "Precio por unidad: {{price}} TRX",
+                "sale": "Venta N° {{number}}",
+                "price": "Precio por unidad:",
                 "aStaking": "Staking automático",
-                "unStaking": "Pedido en proceso de UnStaking durante los próximos {{days}} días, una vez finalizado este período, vuelve y reclama el TRX correspondiente",
+                "unStaking": "Pedido en proceso de UnStaking durante los próximos {{days}} días, una vez finalizado este período, vuelve y reclama ",
                 "available": "Disponible en: ",
                 "alert": {
                     "energy": [
