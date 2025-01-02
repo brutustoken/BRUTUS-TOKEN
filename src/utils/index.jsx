@@ -1,9 +1,7 @@
 import TronWeb from "tronweb";
-const Cryptr = require('cryptr');
+const env = process.env;
 
-const env = process.env
-const cryptr = new Cryptr(env.REACT_APP_SECRET);
-
+const CryptoJS = require("crypto-js");
 
 let constantes = {}
 constantes.proxy = "https://cors.brutusservices.com/";
@@ -138,15 +136,16 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
     "token": env.REACT_APP_TOKEN,
   }
 
-
-  data = cryptr.encrypt(JSON.stringify(data));
+  // Encrypt
+  data = CryptoJS.AES.encrypt(JSON.stringify(data), env.REACT_APP_SECRET).toString();
 
   let consulta = await fetch(constantes.BRUTUS_API + "rent/energy", {
     method: "POST",
     headers: {
+      'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ user: '9650f24d09200d8d0e1b31fd9eab8b55', data })
+    body: JSON.stringify({ user: "9650f24d09200d8d0e1b31fd9eab8b55", data })
   }).then((r) => r.json())
     .catch((e) => {
       console.log(e.toString());

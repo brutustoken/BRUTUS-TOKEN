@@ -37,19 +37,6 @@ i18next.init({
 
 let lgSelector = "en";
 
-try {
-  lgSelector = document.getElementById("selectLng").value
-} catch (error) {
-  console.log(error)
-
-}
-
-
-if (lenguaje !== lgSelector) {
-  i18next.changeLanguage(lgSelector);
-}
-
-
 const tronWeb = {}
 
 const adapter = new TronLinkAdapter();
@@ -94,6 +81,7 @@ class App extends Component {
     this.conectar = this.conectar.bind(this);
     this.intervalo = this.intervalo.bind(this);
     this.loadContracts = this.loadContracts.bind(this);
+    this.selecionarIdioma = this.selecionarIdioma.bind(this);
 
   }
 
@@ -103,10 +91,6 @@ class App extends Component {
     document.getElementById("conectTL").onclick = () => { this.conectar(true); }
 
     this.intervalo(3);
-
-    setTimeout(() => {
-      this.conectar(true);
-    }, 3 * 1000)
 
   }
 
@@ -122,29 +106,25 @@ class App extends Component {
     }
 
     let interval = setInterval(() => {
-
-      let lgSelector = "en";
-
-      try {
-        lgSelector = document.getElementById("selectLng").value
-      } catch (error) {
-
-      }
-
-      let lenguaje = i18next.resolvedLanguage
-
-      if (lenguaje !== lgSelector) {
-        i18next.changeLanguage(lgSelector);
-      }
-
-      if (!this.state.conexion) {
-        //this.conectar(false);
-      }
-
+      this.selecionarIdioma();
+      this.conectar(true);
     }, s * 1000);
 
     this.setState({ interval })
 
+  }
+
+  async selecionarIdioma(){
+    try {
+      lgSelector = document.getElementById("selectLng").value
+    } catch (error) {
+      console.log(error)
+    }
+    
+    if (i18next.resolvedLanguage !== lgSelector) {
+      i18next.changeLanguage(lgSelector);
+    }
+    
   }
 
 

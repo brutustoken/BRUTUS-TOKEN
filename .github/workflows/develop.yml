@@ -1,7 +1,7 @@
 name: Sync docs to web Develop
 
 on:
-  pull_request:
+  push:
     branches:
       - develop
     paths:
