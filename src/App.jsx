@@ -45,6 +45,8 @@ const adressDefault = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
 
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
+const striptags = require('striptags');
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -87,7 +89,9 @@ class App extends Component {
 
   async componentDidMount() {
 
-    document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + this.state.walletConect + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+    let {walletConect} = this.state;
+
+    document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
     document.getElementById("conectTL").onclick = () => { this.conectar(true); }
 
     this.intervalo(3);
@@ -130,7 +134,7 @@ class App extends Component {
 
   async conectar(cambio) {
 
-    let {tronlink, accountAddress, conexion} = this.state;
+    let {tronlink, accountAddress, conexion, walletConect} = this.state;
     let wallet = adressDefault;
     let web3Contracts = await utils.getTronweb(accountAddress);
 
@@ -162,11 +166,10 @@ class App extends Component {
 
       let vierWallet = wallet.substring(0, 6) + "***" + wallet.substring(wallet.length - 6, wallet.length)
 
-      document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + wallet + '" >' + vierWallet + '</span>';
-      //document.getElementById("login").innerHTML = '<div class="dropdown"><button class="btn  gradient-btn dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' + wallet + '</button><div class="dropdown-menu" aria-labelledby="dropdownMenuButton"><a href="https://tronscan.io/#/address/' + wallet + '" class="dropdown-item">View on TronScan</a><a class="dropdown-item" href="#">Log Out </a></div></div>'
+      document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + striptags(wallet) + '" >' + striptags(vierWallet) + '</span>';
 
     } else {
-      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + this.state.walletConect + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
       document.getElementById("conectTL").onclick = () => { this.conectar(true); }
     }
 

@@ -840,8 +840,8 @@ export default class ProviderPanel extends Component {
           return (
             <tr key={index}>
               <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
-              <td>{item.customer}<br />
-                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
+              <td>{item.customer}<br ></br>
+                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br ></br>
 
               </td>
               <td>{item.payout} TRX</td>
@@ -908,8 +908,8 @@ export default class ProviderPanel extends Component {
           return (
             <tr key={index}>
               <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
-              <td>{item.customer}<br />
-                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br />
+              <td>{item.customer}<br ></br>
+                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br ></br>
 
               </td>
               <td>{item.payout} TRX</td>
@@ -1012,7 +1012,7 @@ export default class ProviderPanel extends Component {
               <td>{item.resource} </td>
               <td>{(item.trx).toLocaleString('en-US')} </td>
 
-              <td>{item.wallet}<br />
+              <td>{item.wallet}<br ></br>
                 {item.expire}
               </td>
 
@@ -1072,7 +1072,7 @@ export default class ProviderPanel extends Component {
           <div className="row mt-1">
             <div className="col-12">Wallet of SR to vote (default: Brutus)</div>
             <div className="col-11">
-              <input type="text" className="form-control" id="voteSR" style={{ borderColor: "#c3c3c3" }} placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} />
+              <input type="text" className="form-control" id="voteSR" style={{ borderColor: "#c3c3c3" }} placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} ></input>
             </div>
             <div className="col-1">
               <i className="bi bi-question-circle-fill" title="You can set by which super representative wallet the automatic votes will be made" onClick={() => {
@@ -1132,14 +1132,14 @@ export default class ProviderPanel extends Component {
                             <h2 className="heading">{estatus} </h2>
                           </div>
                           <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" /> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
+                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
                           </div>
                           <div className="col-lg-4 col-sm-12 mb-2">
                             <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
 
                           </div>
                           <div className="col-lg-6 col-sm-12 mb-2">
-                            Energy ({(this.state.proEnergy).toLocaleString('en-US')}/{(this.state.proEnergyTotal).toLocaleString("en-us")}) <img height="15px" src="images/energy.png" alt="" />
+                            Energy ({(this.state.proEnergy).toLocaleString('en-US')}/{(this.state.proEnergyTotal).toLocaleString("en-us")}) <img height="15px" src="images/energy.png" alt="" ></img>
                             <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
                               <div className="progress-bar bg-warning" role="progressbar" style={{ "width": ((this.state.proEnergy / this.state.proEnergyTotal) * 100) + "%" }}
                                 aria-valuenow={(this.state.proEnergy / this.state.proEnergyTotal) * 100} aria-valuemin="0" aria-valuemax="100">
@@ -1158,7 +1158,7 @@ export default class ProviderPanel extends Component {
 
 
                           <div className="col-lg-4 col-sm-6 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} />
+                            <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
 
                               this.setState({
@@ -1170,7 +1170,7 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
                           <div className="col-lg-4 col-sm-6 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} />
+                            <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
 
                               this.setState({
@@ -1182,7 +1182,7 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
                           <div className="col-lg-4 col-sm-6 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onChange={this.handleChange} />
+                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notifications <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
 
                               this.setState({
@@ -1194,7 +1194,7 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
                           <div className="col-lg-6 col-sm-12 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} />
+                            <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
 
                               this.setState({
@@ -1206,7 +1206,7 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
                           <div className="col-lg-6 col-sm-12 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="ener" checked={this.state.sellener} onChange={this.handleChange} />
+                            <input className="form-check-input" type="checkbox" id="ener" checked={this.state.sellener} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
 
                               this.setState({

@@ -156,6 +156,4 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
 
 }
 
-function getRandomInt(max) { return Math.floor(Math.random() * max); }
-
-export default { ...constantes, keyQuery, getTronweb, delay, getRandomInt, rentResource };
+export default { ...constantes, keyQuery, getTronweb, delay, rentResource };

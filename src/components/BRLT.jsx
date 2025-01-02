@@ -551,7 +551,7 @@ export default class nfts extends Component {
               <div className="card-body pb-2">
                 <div className="row">
                   <div className="col-xl-12">
-                    <img src="images/banner-brutuslottery.jpg" width="100%" alt="" style={{ borderRadius: "4px" }} />
+                    <img src="images/banner-brutuslottery.jpg" width="100%" alt="" style={{ borderRadius: "4px" }} ></img>
                   </div>
                 </div>
                 <div className="row">
@@ -650,7 +650,7 @@ export default class nfts extends Component {
                     <h2 className="heading">My Tickets</h2>
                     <p>
                     The probability of winning is based on how many tickets you have, the more tickets you have, the greater the probability of winning.
-                      <br /><br />
+                      <br></br><br></br>
 
                     </p>
 
@@ -677,11 +677,11 @@ export default class nfts extends Component {
 
                     <p>
                       Where the thrill of acquiring unique NFTs meets the chance to win substantial prizes. Discover a collection of 9999 exclusive NFTs, each representing a digital masterpiece priced at 100 TRX. Engage in bi-weekly automated draws, with 80% of the proceeds going to the winner and 20% to the Brutus Lottery team.
-                      <br /><br />
+                      <br ></br><br ></br>
 
                     </p>
 
-                    <h4>What We Offer:</h4><br />
+                    <h4>What We Offer:</h4><br></br>
                     <ol>
                       <li>
                         <b>Exclusive NFTs:</b> Explore a collection of 9999 unique NFTs, each a digital artwork priced at 100 TRX.
@@ -717,7 +717,7 @@ export default class nfts extends Component {
                       </li>
                     </ol>
                     <p>
-                      <br /><br />
+                      <br></br><br></br>
                       Join Brutus Lottery and experience the thrill of the unique, where every NFT unlocks endless opportunities.
                     </p>
 
@@ -739,7 +739,7 @@ export default class nfts extends Component {
                 <div className="card-body">
                   <p>
                   <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+utils.SC4+"/code"}>{utils.SC4}</a>
-                  <br />
+                  <br></br>
                   <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+utils.BRLT+"/code"}>{utils.BRLT}</a>
                   </p>
                 </div>

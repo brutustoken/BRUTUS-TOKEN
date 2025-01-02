@@ -449,7 +449,7 @@ export default class EnergyRental extends Component {
         titulo: i18n.t("ebot.alert.eTronlink", { returnObjects: true })[0],
         body: (<span>
           {i18n.t("ebot.alert.eTronlink", { returnObjects: true })[1]}
-          <br />
+          <br ></br>
           <button className="btn btn-danger" data-bs-dismiss="modal">Ok</button>
         </span>)
       })
@@ -489,7 +489,7 @@ export default class EnergyRental extends Component {
         <b>Buy: </b> {cantidad + " " + recurso + " " + periodo + temporalidad}<br></br>
         <b>For: </b> {pagas} TRX<br></br>
         <b>To: </b> {this.state.wallet_orden}<br></br>
-        <br /><br />
+        <br ></br><br ></br>
         <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-ebot").modal("hide") }}>Cancel <i className="bi bi-x-circle"></i></button>
         {" "}
         <button type="button" className="btn btn-success" onClick={() => { this.compra(cantidad, periodo, temporalidad, recurso, wallet_orden, pagas) }}>Confirm <i className="bi bi-bag-check"></i></button>
@@ -505,7 +505,7 @@ export default class EnergyRental extends Component {
 
     let {cantidad, periodo, temporalidad, recurso, wallet_orden, precio} = this.state
 
-    const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
+    const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." ></img>
 
     this.setState({
       titulo: <>Confirm transaction {imgLoading}</>,
@@ -521,7 +521,7 @@ export default class EnergyRental extends Component {
         this.setState({
           ModalTitulo: "Transaction failed",
           ModalBody: <>{e.toString()}
-            <br /><br />
+            <br ></br><br ></br>
             <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
           </>
         })
@@ -543,7 +543,7 @@ export default class EnergyRental extends Component {
 
       this.setState({
         titulo: "Completed successfully",
-        body: <>Energy rental completed successfully.<br /><br /> <button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
+        body: <>Energy rental completed successfully.<br ></br><br ></br> <button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
       })
 
       window.$("#mensaje-ebot").modal("show");
@@ -646,12 +646,12 @@ export default class EnergyRental extends Component {
 
                     <form className="dzForm" method="" action="">
                       <div className="dzFormMsg"></div>
-                      <input type="hidden" className="form-control" name="dzToDo" value="Contact" />
+                      <input type="hidden" className="form-control" name="dzToDo" value="Contact" ></input>
                       {medidor}
 
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Amount</p>
-                        <input style={{ "textAlign": "end" }} id="amount" name="dzLastName" type="text" onChange={()=>this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} />
+                        <input style={{ "textAlign": "end" }} id="amount" name="dzLastName" type="text" onChange={()=>this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} ></input>
 
                       </div>
 
@@ -663,7 +663,7 @@ export default class EnergyRental extends Component {
                       <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Duration</p>
 
-                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5m (five minutes)"} defaultValue="5min" />
+                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5m (five minutes)"} defaultValue="5min" ></input>
 
                       </div>
                       <div className="col-12 ">
@@ -696,7 +696,7 @@ export default class EnergyRental extends Component {
                         <p className="font-14">Send resources for another wallet</p>
 
                         <input name="dzFirstName" required type="text"
-                          className="form-control" placeholder={this.props.accountAddress}  onChange={this.handleChangeWallet} />
+                          className="form-control" placeholder={this.props.accountAddress}  onChange={this.handleChangeWallet} ></input>
                       </div>
 
                       <div className="col-xl-12 mb-3 mb-md-4">
@@ -714,7 +714,7 @@ export default class EnergyRental extends Component {
 
         <div className="col-lg-6 pt-4 mt-5 col-sm-12 m-b30">
           <div className="info-box text-center">
-            <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" />
+            <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" ></img>
 
             <div className="info">
               <p className="font-20">In Brutus Energy Bot, we've developed a app for a faster and secure resource rental experience on the Tron network. <br></br> <br></br> Innovatively simplifying the process, we ensure efficient management at competitive prices. Explore further through our <a href="https://t.me/BRUTUS_energy_bot">Telegram bot</a> or API for added accessibility. <br></br> <br></br>For additional information, reach out to us at <a href="mailto:support@brutus.finance">support@brutus.finance</a></p>

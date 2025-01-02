@@ -198,8 +198,8 @@ export default class Inicio extends Component {
 							<div className="profile-head">
 								<div className="photo-content">
 									<a href="?ebot" title={this.props.i18n.t('inicio.try')}>
-										<div className="rounded"><img style={{ borderRadius: "1%" }}
-											src="images/banner.jpg" alt="tron energy rental" width="100%" />
+										<div className="rounded">
+											<img style={{ borderRadius: "1%" }}src="images/banner.jpg" alt="tron energy rental" width="100%" ></img>
 										</div>
 									</a>
 								</div>
@@ -245,7 +245,7 @@ export default class Inicio extends Component {
 														<td>
 															<a className="market-title d-flex align-items-center"
 																href="?brut">
-																<img src="images/brut.png" width="50px" alt="brutus token" />
+																<img src="images/brut.png" width="50px" alt="brutus token" ></img>
 																<h5 className="mb-0 ms-2">BRUT</h5>
 																<span className="text-muted ms-2">Brutus Token</span>
 															</a>
@@ -261,7 +261,7 @@ export default class Inicio extends Component {
 														<td>
 															<a className="market-title d-flex align-items-center"
 																href="?brst">
-																<img src="images/brst.png" width="50px" alt="brutus tron staking" />
+																<img src="images/brst.png" width="50px" alt="brutus tron staking" ></img>
 																<h5 className="mb-0 ms-2">BRST</h5>
 																<span className="text-muted ms-2">Brutus Tron Staking</span>
 															</a>
@@ -276,7 +276,7 @@ export default class Inicio extends Component {
 														<td>
 															<a className="market-title d-flex align-items-center"
 																href="?brgy">
-																<img src="images/brgy.png" width="50px" alt="brutus gallery" />
+																<img src="images/brgy.png" width="50px" alt="brutus gallery" ></img>
 																<h5 className="mb-0 ms-2">BRGY</h5>
 																<span className="text-muted ms-2">Brutus {this.props.i18n.t("gallery")}</span>
 															</a>
@@ -291,7 +291,7 @@ export default class Inicio extends Component {
 														<td>
 															<a className="market-title d-flex align-items-center"
 																href="?brlt">
-																<img src="images/brlt.png" width="50px" alt="brutus lottery" />
+																<img src="images/brlt.png" width="50px" alt="brutus lottery" ></img>
 																<h5 className="mb-0 ms-2">BRLT</h5>
 																<span className="text-muted ms-2">Brutus {this.props.i18n.t("lottery")}</span>
 															</a>
