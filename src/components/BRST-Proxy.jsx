@@ -7,7 +7,7 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import utils from "../utils";
 
 const BigNumber = require('bignumber.js');
-const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
+const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." ></img>
 
 const options = [
   {
@@ -606,7 +606,7 @@ export default class Staking extends Component {
       this.setState({
         ModalTitulo: textoModal[0],
         ModalBody: <>{textoModal[1]} <b>{eenergy} {textoModal[2]}</b>{textoModal[3]}<b>{this.state.contractEnergy} {textoModal[2]}</b> {textoModal[4]} <b>{requerido} {textoModal[2]}</b>{textoModal[5]}<b>{precio.toString(10)} TRX</b>{textoModal[6]}
-          <br /><br />
+          <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
 
@@ -634,7 +634,7 @@ export default class Staking extends Component {
                   this.setState({
                     ModalTitulo: "Result",
                     ModalBody: <>Retiro is Done {transaction.txid}
-                      <br /><br />
+                      <br ></br><br ></br>
                       <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
                     </>
                   })
@@ -677,7 +677,7 @@ export default class Staking extends Component {
           this.setState({
             ModalTitulo: "Result",
             ModalBody: <>Retiro is Done {transaction.txid}
-              <br /><br />
+              <br ></br><br ></br>
               <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
             </>
           })
@@ -694,7 +694,7 @@ export default class Staking extends Component {
       xmlns="http://www.w3.org/2000/svg">
       <g filter="url(#filter0_d2)">
         <path d="M5 16C5.91797 14.9157 8.89728 11.7277 10.5 10L16.5 13L23.5 4"
-          stroke="#2BC155" strokeWidth="2" strokeLinecap="round" />
+          stroke="#2BC155" strokeWidth="2" strokeLinecap="round" ></path>
       </g>
       <defs>
         <filter id="filter0_d2" x="-3.05176e-05" y="-6.10352e-05" width="28.5001"
@@ -716,7 +716,7 @@ export default class Staking extends Component {
     </svg>);
     var imgNegativo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none" xmlns="http://www.w3.org/2000/svg">
       <g filter="url(#filter0_d)">
-        <path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" />
+        <path d="M5 4C5.91797 5.08433 8.89728 8.27228 10.5 10L16.5 7L23.5 16" stroke="#FF2E2E" strokeWidth="2" strokeLinecap="round" ></path>
       </g>
       <defs>
         <filter id="filter0_d" x="0" y="0" width="28.5001" height="22.0001" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
@@ -807,7 +807,7 @@ export default class Staking extends Component {
 
   handleChangeBRST(event) {
     let dato = event.target.value;
-    dato = parseFloat(("" + dato).replace(",", "."))
+    dato = parseFloat(("" + dato).replace(/,/g, "."))
     let oper = dato * this.state.precioBrst;
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
@@ -819,7 +819,7 @@ export default class Staking extends Component {
 
   handleChangeTRX(event) {
     let dato = event.target.value;
-    dato = parseFloat(dato.replace(",", "."))
+    dato = parseFloat(dato.replace(/,/g, "."))
     let oper = dato / this.state.precioBrst
     oper = parseInt(oper * 1e6) / 1e6;
     this.setState({
@@ -872,7 +872,7 @@ export default class Staking extends Component {
         this.setState({
           ModalTitulo: "Transaction failed",
           ModalBody: <>{e.toString()}
-            <br /><br />
+            <br></br><br></br>
             <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>Close</button>
           </>
         })
@@ -890,7 +890,7 @@ export default class Staking extends Component {
 
       this.setState({
         ModalTitulo: this.props.i18n.t("brst.alert.done", { returnObjects: true })[0],
-        ModalBody: <>{this.props.i18n.t("brst.alert.done", { returnObjects: true })[1]}<br /><button type="button" data-bs-dismiss="modal" className="btn btn-success">{this.props.i18n.t("brst.alert.done", { returnObjects: true })[2]}</button></>
+        ModalBody: <>{this.props.i18n.t("brst.alert.done", { returnObjects: true })[1]}<br></br><button type="button" data-bs-dismiss="modal" className="btn btn-success">{this.props.i18n.t("brst.alert.done", { returnObjects: true })[2]}</button></>
       })
 
       window.$("#mensaje-brst").modal("show");
@@ -924,7 +924,7 @@ export default class Staking extends Component {
       this.setState({
         ModalTitulo: this.props.i18n.t("brst.alert.errorInput", { returnObjects: true })[0],
         ModalBody: <>{this.props.i18n.t("brst.alert.errorInput", { returnObjects: true })[1]}
-          <br /><br />
+          <br></br><br ></br>
           <button type="button" className="btn btn-danger" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("close")}</button>
         </>
 
@@ -978,7 +978,7 @@ export default class Staking extends Component {
       this.setState({
         ModalTitulo: alerta[0],
         ModalBody: <>{alerta[1]}<b>{eenergy} {alerta[2]}</b>, {alerta[3]}<b>{this.state.contractEnergy} {alerta[2]} </b>{alerta[4]} <b>{requerido} {alerta[2]}</b>{alerta[5]} <b>{precio.toString(10)} TRX</b> {alerta[6]}
-          <br /><br />
+          <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
               this.compra()
@@ -1030,7 +1030,7 @@ export default class Staking extends Component {
             this.setState({
               ModalTitulo: this.props.i18n.t("brst.alert.compra", { returnObjects: true })[0],
               ModalBody: <>{this.props.i18n.t("brst.alert.compra", { returnObjects: true })[1]}
-                <br /><br />
+                <br ></br><br ></br>
                 <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
               </>
             })
@@ -1093,25 +1093,25 @@ export default class Staking extends Component {
 
     if (amount.toNumber() > retiroRapido.toNumber()) {
       primerBoton = (<>
-        <button type="button" id="fastw" className="btn btn-secondary" disabled >Fast Withdrawal {amount.toNumber()} TRX</button><br />
+        <button type="button" id="fastw" className="btn btn-secondary" disabled >Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
         you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
-        <br /><br />
+        <br ></br><br ></br>
 
       </>)
     } else {
       primerBoton = (<>
-        <button type="button" id="fastw" className="btn btn-warning" onClick={() => { this.preVenta(true) }}>Fast Withdrawal {amount.toNumber()} TRX</button><br />
+        <button type="button" id="fastw" className="btn btn-warning" onClick={() => { this.preVenta(true) }}>Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
         you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
-        <br /><br />
+        <br ></br><br ></br>
 
       </>)
     }
 
     this.setState({
       ModalTitulo: "Select Your Method",
-      ModalBody: <>We now have two withdrawal methods:<br />
+      ModalBody: <>We now have two withdrawal methods:<br ></br>
         {primerBoton}
-        <button type="button" className="btn btn-success" onClick={() => { this.preVenta(false) }}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br />
+        <button type="button" className="btn btn-success" onClick={() => { this.preVenta(false) }}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br ></br>
         you can make a withdrawal request that you can claim from the contract in its entirety in 17 days.
       </>
     })
@@ -1202,7 +1202,7 @@ export default class Staking extends Component {
       this.setState({
         ModalTitulo: "Energy Notice",
         ModalBody: <>This operation usually requires <b>{eenergy} energy</b>, and you have <b>{this.state.contractEnergy} energy</b> and need at least <b>{requerido} energy</b>, rent them for <b>{precio.toString(10)} TRX</b> to perform this operation.
-          <br /><br />
+          <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
               this.venta(rapida)
@@ -1316,7 +1316,7 @@ export default class Staking extends Component {
               this.setState({
                 ModalTitulo: "Result",
                 ModalBody: <>Your fast withdrawal was successfully processed {transaction.txid}
-                  <br /><br />
+                  <br ></br><br ></br>
                   <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
                 </>
               })
@@ -1351,7 +1351,7 @@ export default class Staking extends Component {
               this.setState({
                 ModalTitulo: "Result",
                 ModalBody: <>Normal retiro Done {transaction.txid}
-                  <br /><br />
+                  <br ></br><br ></br>
                   <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
                 </>
               })
@@ -1717,7 +1717,7 @@ export default class Staking extends Component {
                               ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[0],
                               ModalBody: <>
                                 <input type="number" id="trxD"></input> TRX
-                                <br />
+                                <br ></br>
                                 <button type="button" className="btn btn-success" onClick={() => {
                                   let donacion = document.getElementById('trxD').value
                                   donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
@@ -1732,9 +1732,9 @@ export default class Staking extends Component {
                                     })
 
                                 }}>{this.props.i18n.t("brst.alert.donate", { returnObjects: true })[3]}</button>
-                                <br /><br />
+                                <br ></br><br ></br>
                                 <input type="number" id="brstD"></input> BRST
-                                <br />
+                                <br ></br>
                                 <button type="button" className="btn btn-success" onClick={() => {
                                   let donacion = document.getElementById('brstD').value
                                   donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
@@ -1757,7 +1757,7 @@ export default class Staking extends Component {
 
                             window.$("#mensaje-brst").modal("show");
 
-                          }} src="images/brst.png" width="100%" alt="brutus tron staking" />
+                          }} src="images/brst.png" width="100%" alt="brutus tron staking" ></img>
                           <div className="media-content">
                             <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">{this.props.i18n.t("brst.aStaking")}</h4>
                             <span className="font-w600 text-black">Brutus</span>
@@ -1785,11 +1785,11 @@ export default class Staking extends Component {
                         <form className="form-wrapper trade-form">
                           <div className="input-group mb-3 ">
                             <span className="input-group-text">BRST</span>
-                            <input className="form-control form-control text-end" type="number" id="amountBRST" onChange={this.handleChangeBRST} placeholder={minventa} min={this.state.minventa} value={this.state.valueBRST} step={1} />
+                            <input className="form-control form-control text-end" type="number" id="amountBRST" onChange={this.handleChangeBRST} placeholder={minventa} min={this.state.minventa} value={this.state.valueBRST} step={1} ></input>
                           </div>
                           <div className="input-group mb-3 ">
                             <span className="input-group-text">TRX</span>
-                            <input className="form-control form-control text-end" type="number" id="amountTRX" onChange={this.handleChangeTRX} placeholder={minCompra} min={this.state.minCompra} value={this.state.valueTRX} step={1} />
+                            <input className="form-control form-control text-end" type="number" id="amountTRX" onChange={this.handleChangeTRX} placeholder={minCompra} min={this.state.minCompra} value={this.state.valueTRX} step={1} ></input>
                           </div>
                         </form>
                       </div>
@@ -1800,7 +1800,7 @@ export default class Staking extends Component {
                         <div className="col-6">
                           <button className="btn d-flex  btn-danger justify-content-between w-100" onClick={() => this.sell()}>
                             {this.props.i18n.t("sell")}
-                            <img src="/images/svg/up.svg" style={{ transform: "rotate(180deg)" }} height="16px" alt="" />
+                            <img src="/images/svg/up.svg" style={{ transform: "rotate(180deg)" }} height="16px" alt="" ></img>
                           </button>
                         </div>
 
@@ -1808,7 +1808,7 @@ export default class Staking extends Component {
                           <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.preCompra()}>
                             {this.props.i18n.t("buy")}
 
-                            <img src="/images/svg/up.svg" height="16px" alt="" />
+                            <img src="/images/svg/up.svg" height="16px" alt="" ></img>
                           </button>
                         </div>
                       </div>
@@ -1948,8 +1948,8 @@ export default class Staking extends Component {
                   </thead>
                   <tbody>
                     <tr>
-                      <th><input type="number" id="days" defaultValue={1} onChange={this.handleChangeDias} /></th>
-                      <td><input type="number" id="hold" defaultValue={0} onChange={this.handleChangeCalc} /> BRST</td>
+                      <th><input type="number" id="days" defaultValue={1} onChange={this.handleChangeDias} ></input></th>
+                      <td><input type="number" id="hold" defaultValue={0} onChange={this.handleChangeCalc} ></input> BRST</td>
                       <td><span className="badge badge-primary light">{this.props.i18n.t("brst.calculated")}</span>
                       </td>
                       <td>{(this.state.resultCalc).toFixed(6)} TRX</td>
@@ -1987,7 +1987,7 @@ export default class Staking extends Component {
             <div className="card-body">
               <p>
                 <b>Regular withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC2 + "/code"}>{utils.ProxySC2}</a>
-                <br />
+                <br ></br>
                 <b>Fast withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC3 + "/code"}>{utils.ProxySC3}</a>
               </p>
             </div>

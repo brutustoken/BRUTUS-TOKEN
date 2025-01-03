@@ -623,7 +623,7 @@ export default class Home extends Component {
                     <div className="card-body ">
                       <div className="text-center">
                         <div className="media d-block">
-                          <img src="images/brut.png" width="100%" alt="brutus token" />
+                          <img src="images/brut.png" width="100%" alt="brutus token" ></img>
                           <div className="media-content">
                             <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">Automated Trading</h4>
                             <span className="font-w600 text-black">Brutus</span>
@@ -651,11 +651,11 @@ export default class Home extends Component {
                         <form className="form-wrapper trade-form">
                           <div className="input-group mb-3 ">
                             <span className="input-group-text">BRUT</span>
-                            <input className="form-control form-control text-end" type="number" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5} />
+                            <input className="form-control form-control text-end" type="number" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5} ></input>
                           </div>
                           <div className="input-group mb-3 ">
                             <span className="input-group-text">USDT</span>
-                            <input className="form-control form-control text-end" type="number" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} />
+                            <input className="form-control form-control text-end" type="number" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} ></input>
                           </div>
                         </form>
                       </div>
