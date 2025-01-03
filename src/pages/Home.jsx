@@ -186,10 +186,9 @@ export default class Inicio extends Component {
 
 	render() {
 
-		return (
-			<>
-
-				<div className="row">
+		/**
+		 *
+		 * <div className="row">
 					<div className="col-lg-12">
 						<div className="profile card card-body px-3 pt-3">
 							<div className="profile-head">
@@ -204,21 +203,16 @@ export default class Inicio extends Component {
 							</div>
 						</div>
 					</div>
-				</div>
+				</div> 
+		 * 
+		 */
 
+		return (
+			<>
 
 				<div className="row">
 					<div className="col-xl-12">
 						<div className="card">
-							<div className="card-header border-0">
-								<ul className="order nav nav-tabs" id="pills-tab" role="tablist">
-									<li className="nav-item my-1" role="presentation">
-										<button className="nav-link active" id="pills-crypto-tab" data-bs-toggle="pill"
-											data-bs-target="#pills-crypto" type="button" role="tab"
-											aria-controls="pills-crypto" aria-selected="true">{this.props.i18n.t('inicio.position')}</button>
-									</li>
-								</ul>
-							</div>
 							<div className="card-body pt-0">
 								<div className="tab-content" id="pills-tabContent">
 									<div className="tab-pane fade show active" id="pills-crypto" role="tabpanel"

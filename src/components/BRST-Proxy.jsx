@@ -1647,6 +1647,19 @@ export default class Staking extends Component {
       opciones = options2
     }
 
+    let days = [7,15,30,60,90,180,365]
+
+    const ListProspect = days.map((day) => (<tr>
+      <th>{day}</th>
+      <td>{this.state.misBRST} BRST</td>
+      <td><span className="badge badge-success">{this.props.i18n.t("brst.likely")}</span>
+      </td>
+      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * day) / 100))).toFixed(6)} TRX</td>
+      <td className="color-success">{(this.state.varBrst * day).toFixed(4)} % {this.props.i18n.t("brst.monthly")}</td>
+    </tr>
+
+    ))
+
     return (<>
 
       <div className="row">
@@ -1955,14 +1968,7 @@ export default class Staking extends Component {
                       <td>{(this.state.resultCalc).toFixed(6)} TRX</td>
                       <td className="color-primary">{(this.state.promE7to1day).toFixed(4)} % {this.props.i18n.t("brst.daily")} </td>
                     </tr>
-                    <tr>
-                      <th>30</th>
-                      <td>{this.state.misBRST} BRST</td>
-                      <td><span className="badge badge-success">{this.props.i18n.t("brst.likely")}</span>
-                      </td>
-                      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * 30) / 100))).toFixed(6)} TRX</td>
-                      <td className="color-success">{(this.state.varBrst * 30).toFixed(4)} % {this.props.i18n.t("brst.monthly")}</td>
-                    </tr>
+                    {ListProspect}
                     <tr>
                       <th>365</th>
                       <td>{this.state.misBRST} BRST</td>
