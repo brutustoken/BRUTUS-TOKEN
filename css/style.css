@@ -33875,4 +33875,46 @@ html[dir="rtl"] [direction="rtl"][data-sidebar-style="compact"]:not([data-layout
     [data-theme-version="dark"] .footer .copyright p {
       color: #fff; }
 
+#theme-switch{
+  z-index: 9999;
+  height: 30px;
+  width: 30px;
+  padding: 0;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  bottom: 38px;
+  right: 20px;
+}
+#theme-switch svg{
+  fill: var(--primary-color);
+}
+#theme-switch svg:last-child{
+  display: none;
+}
+[data-theme-version="dark"] #theme-switch svg:first-child{
+  display: none;
+}
+[data-theme-version="dark"] #theme-switch svg:last-child{
+  display: block;
+  filter: invert(1);
+}
+
+.form-wrapper .input-group span{
+  border-top-left-radius:0px;
+  border-top-right-radius:8px !important;
+  border-bottom-left-radius:0px;
+  border-bottom-right-radius:8px !important;
+ }
+
+.form-wrapper .input-group input{
+  border-top-left-radius:8px !important;
+  border-top-right-radius:0px;
+  border-bottom-left-radius:8px !important;
+  border-bottom-right-radius:0px;
+ }
+
 /*# sourceMappingURL=style.css.map */
