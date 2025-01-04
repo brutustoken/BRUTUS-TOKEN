@@ -49,10 +49,15 @@ class Alert extends Component {
 
         let {title, message} = this.state
 
-        return(<>
-            <button type="button" className="btn btn-primary" onClick={() => {
+        let verMensaje = <></>
+        if(message !== "") {
+            verMensaje = (<button type="button" className="btn btn-primary" onClick={() => {
                 window.$("#alert").modal("show");
-            }}>See last Message</button>
+            }}>See last Message</button>)
+        }
+
+        return(<>
+            {verMensaje}
     
             <div className="modal fade" id="alert">
                 <div className="modal-dialog" role="document">

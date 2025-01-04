@@ -5,6 +5,7 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
+const BigNumber = require("bignumber.js");
 
 const options = [
   {
@@ -92,7 +93,7 @@ export default class Home extends Component {
   }
 
   componentDidMount() {
-    document.title = "B.F | BRUT"
+    document.title = "BRUT | Brutus Token";
     this.grafico(1000, "day", 30);
     this.consultarPrecio();
 
@@ -178,14 +179,13 @@ export default class Home extends Component {
     }
 
     this.setState({
-      cambio24h: cambio,
-      precioBRUT: precio,
+      cambio24h: new BigNumber(cambio).dp(3).toString(10),
+      precioBRUT: new BigNumber(precio).dp(2).toString(10),
       enBrutus: market,
       tokensEmitidos: tokens
 
     })
 
-    //console.log(response)
 
     return response;
 
@@ -603,13 +603,13 @@ export default class Home extends Component {
                       </div>
                       <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
 
-                      <select className="btn-secondary style-1 default-select" value={this.state.cantidadDatos} onChange={this.handleChange2}>
+                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: "white"}} value={this.state.cantidadDatos} onChange={this.handleChange2}>
                         {options2.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                       {" | "}
-                      <select className="btn-secondary style-1 default-select" value={this.state.temporalidad} onChange={this.handleChange}>
+                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: "white"}} value={this.state.temporalidad} onChange={this.handleChange}>
                         {options.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}

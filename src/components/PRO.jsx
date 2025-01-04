@@ -71,7 +71,7 @@ export default class ProviderPanel extends Component {
 
 
   componentDidMount() {
-    document.title = "B.F | Provider Panel"
+    document.title = "Provider Panel | Brutus.Finance"
     document.getElementById("tittle").innerText = this.props.i18n.t("Provider Panel")
 
     setTimeout(() => {
@@ -1418,8 +1418,6 @@ export default class ProviderPanel extends Component {
                           </thead>
                           <tbody>
                             {this.state.noregist}
-
-
 
                           </tbody>
                         </table>
