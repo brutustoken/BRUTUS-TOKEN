@@ -7,6 +7,8 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import utils from "../utils";
 
 const BigNumber = require('bignumber.js');
+BigNumber.config({ DECIMAL_PLACES: 6, ROUNDING_MODE: BigNumber.ROUND_DOWN });
+
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." ></img>
 
 const options = [
@@ -109,6 +111,7 @@ export default class Staking extends Component {
       temporalidad: props.i18n.t("day"),
       cantidadDatos: 30,
       dias: props.i18n.t("loading") + "...",
+      days: [{days:7, amount: 0, time: 0}, {days:15, amount: 0, time: 0}, {days:30, amount: 0, time: 0}, {days:90, amount: 0, time: 0}, {days:180, amount: 0, time: 0}, {days:360, amount: 0, time: 0}],
       varBrut: 0,
       precioBrst: 0,
       varBrst: 0,
@@ -127,7 +130,6 @@ export default class Staking extends Component {
       globDepositos: [],
       eenergy: 62000,
       energyOn: false,
-      conexion: false,
       total_required: 0
 
     };
@@ -186,41 +188,96 @@ export default class Staking extends Component {
     }
   }
 
+  handleChange(e) {
+    let evento = e.target.value;
+    this.grafico(500, evento, this.state.cantidadDatos, this.state.precioBrst);
+    this.setState({ temporalidad: evento });
+  }
+
+  handleChange2(e) {
+    let evento = parseInt(e.target.value);
+    this.grafico(500, this.state.temporalidad, evento, this.state.precioBrst);
+    this.setState({ cantidadDatos: evento });
+  }
+
+  handleChangeDias(event) {
+    let dato = event.target.value;
+
+    let oper = ((this.state.brutCalc * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
+    oper = oper * parseInt(dato)
+    this.setState({
+      diasCalc: parseInt(dato),
+      resultCalc: oper
+    });
+  }
+
+  handleChangeCalc(event) {
+    let dato = event.target.value;
+    let oper = ((dato * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
+    oper = oper * parseInt(this.state.diasCalc)
+
+    this.setState({
+      brutCalc: dato,
+      resultCalc: oper
+    });
+  }
+
+  handleChangeBRST(event) {
+    let dato = event.target.value;
+    let {precioBrst} = this.state;
+    dato = parseFloat(("" + dato).replace(/,/g, "."))
+    let oper = new BigNumber(dato).times(precioBrst)
+    this.setState({
+      valueBRST: oper.div(precioBrst).toString(10),
+      valueTRX: oper.toString(10),
+    });
+    document.getElementById('amountTRX').value = oper;
+  }
+
+  handleChangeTRX(event) {
+    let dato = event.target.value;
+    let {precioBrst} = this.state;
+    dato = parseFloat(dato.replace(/,/g, "."))
+    let oper = new BigNumber(dato).div(precioBrst)
+    this.setState({
+      valueTRX: oper.times(precioBrst).toString(10),
+      valueBRST: oper.toString(10),
+    });
+    document.getElementById('amountBRST').value = oper.toString(10);
+
+  }
+
   async estado() {
 
-    if(!this.props.contrato.ready) return;
+    let {tiempoPromediado} = this.state;
+    let {contrato, accountAddress} = this.props;
+
+
+    if(!contrato.ready) return;
 
     //console.log((await this.props.contrato.BRST_TRX_Proxy.totalDisponible().call()).toNumber())
     //console.log((await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()).toNumber())
     //console.log((await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_FAST().call()).toNumber())
 
-    let precio = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
+    let precio = await contrato.BRST_TRX_Proxy.RATE().call();
     precio = new BigNumber(precio.toNumber()).shiftedBy(-6).toNumber();
 
     this.setState({
       precioBrst: precio
     });
 
-    let enBrutus = await this.props.contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
-    let enPool = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
-    let solicitado = await this.props.contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
-    let tokensEmitidos = await this.props.contrato.BRST.totalSupply().call();
-
+    let enBrutus = await contrato.BRST_TRX_Proxy.TRON_BALANCE().call();
+    let enPool = await contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE().call();
+    let solicitado = await contrato.BRST_TRX_Proxy.TRON_SOLICITADO().call();
+    let tokensEmitidos = await contrato.BRST.totalSupply().call();
 
     this.setState({
-
       enBrutus: enBrutus.toNumber() / 1e6,
       enPool: enPool.toNumber() / 1e6,
       solicitado: solicitado.toNumber() / 1e6,
       tokensEmitidos: tokensEmitidos.toNumber() / 1e6,
-
     });
 
-    if (!this.state.conexion) {
-
-      this.setState({
-        conexion: true
-      })
 
       this.consultaPrecio();
 
@@ -230,21 +287,20 @@ export default class Staking extends Component {
       }
 
 
-      let misBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-        .then((result) => { return result.toNumber() / 1e6 })
-        .catch(() => { ; return 0 })
+      let misBRST = (await contrato.BRST.balanceOf(accountAddress).call()).toNumber() / 1e6;
+      this.setState({misBRST})
+
+      if (parseInt(this.state.resultCalc) === 1000) {
+        this.handleChangeCalc({ target: { value: misBRST } })
+      }
 
       document.getElementById("hold").value = misBRST
 
-      this.setState({
-        misBRST: misBRST
-      })
 
       //let balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
-      let balance = await this.props.tronWeb.trx.getUnconfirmedBalance(this.props.accountAddress) / 10 ** 6;
-      let cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
+      let balance = await this.props.tronWeb.trx.getUnconfirmedBalance(accountAddress) / 10 ** 6;
+      let cuenta = await this.props.tronWeb.trx.getAccountResources(accountAddress);
 
-      await utils.delay(1)
       let contractEnergy = 0
 
       if (cuenta.EnergyLimit) {
@@ -283,16 +339,26 @@ export default class Staking extends Component {
       }
 
 
-      let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=hour&limite=72")
+      let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite="+tiempoPromediado)
         .then(async (r) => (await r.json()).Data)
         .catch((e) => { return false })
 
-      //console.log(consulta)
+      if (consulta.length > 0) {
+     
+        let promE7to1day = consulta.reduce((acc, item) => acc + item.value, 0);
+        promE7to1day = new BigNumber(promE7to1day / consulta.length).toNumber();
 
-      if (consulta) {
-        let promE7to1day = (((consulta[0].value - consulta[71].value) / (consulta[71].value)) * 100) / this.state.tiempoPromediado
+        let crecimientoPorcentual = this.state.varBrst;
+
+        if (consulta.length >= 2) {
+          const valorInicial = consulta[0].value; // Primer valor del rango
+          const valorFinal = consulta[consulta.length - 1].value; // Último valor del rango
+        
+          crecimientoPorcentual = ((valorFinal - valorInicial) / valorInicial) * 100;
+        }
         this.setState({
-          promE7to1day
+          promE7to1day,
+          crecimientoPorcentual,
         })
       }
 
@@ -326,19 +392,16 @@ export default class Staking extends Component {
         balanceTRX: balance,
       })
 
-      let MIN_DEPOSIT = await this.props.contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
-
+      let MIN_DEPOSIT = await contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call();
       MIN_DEPOSIT = parseInt(MIN_DEPOSIT._hex) / 10 ** 6;
 
-      let aprovadoBRUT = await this.props.contrato.BRST.allowance(this.props.accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
+      let aprovadoBRUT = await contrato.BRST.allowance(accountAddress, contrato.BRST_TRX_Proxy.address).call();
       aprovadoBRUT = parseInt(aprovadoBRUT._hex);
 
-      await utils.delay(1)
-
-      let balanceBRST = await this.props.contrato.BRST.balanceOf(this.props.accountAddress).call();
+      let balanceBRST = await contrato.BRST.balanceOf(accountAddress).call();
       balanceBRST = parseInt(balanceBRST._hex) / 10 ** 6;
 
-      let deposito = await this.props.contrato.BRST_TRX_Proxy.todasSolicitudes(this.props.accountAddress).call();
+      let deposito = await contrato.BRST_TRX_Proxy.todasSolicitudes(accountAddress).call();
       let myids = []
 
       for (let index = 0; index < deposito.length; index++) {
@@ -346,18 +409,18 @@ export default class Staking extends Component {
 
       }
 
-      let deposits = await this.props.contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
+      let deposits = await contrato.BRST_TRX_Proxy.solicitudesPendientesGlobales().call();
       deposits = deposits[0];
 
       let globDepositos = [];
 
-      let tiempo = parseInt((await this.props.contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
+      let tiempo = parseInt((await contrato.BRST_TRX_Proxy.TIEMPO().call())._hex) * 1000;
 
       let diasDeEspera = (tiempo / (86400 * 1000)).toPrecision(2)
 
       let adminsBrst = ["TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY", "TWqsREyZUtPkBNrzSSCZ9tbzP3U5YUxppf", "TB7RTxBPY4eMvKjceXj8SWjVnZCrWr4XvF"]
 
-      let balance_Pool = new BigNumber(await this.props.tronWeb.trx.getBalance(this.props.contrato.BRST_TRX_Proxy.address)).shiftedBy(-6)
+      let balance_Pool = new BigNumber(await this.props.tronWeb.trx.getBalance(contrato.BRST_TRX_Proxy.address)).shiftedBy(-6)
 
       let total_required = new BigNumber(0)
 
@@ -380,7 +443,6 @@ export default class Staking extends Component {
       if (adminsBrst.indexOf(this.props.accountAddress) >= 0) {
         isAdmin = true;
       }
-
 
       for (let index = 0; index < deposits.length; index++) {
 
@@ -520,9 +582,7 @@ export default class Staking extends Component {
 
       })
 
-      if (parseInt(this.state.resultCalc) === 0) {
-        this.handleChangeCalc({ target: { value: misBRST } })
-      }
+      
 
       let energyOn = false;
 
@@ -552,10 +612,9 @@ export default class Staking extends Component {
 
       this.setState({
         energyOn,
-        conexion: false
       })
 
-    }
+    
 
 
   }
@@ -688,7 +747,6 @@ export default class Staking extends Component {
     }
   }
 
-
   subeobaja(valor) {
     var imgNPositivo = (<svg width="29" height="22" viewBox="0 0 29 22" fill="none"
       xmlns="http://www.w3.org/2000/svg">
@@ -766,67 +824,6 @@ export default class Staking extends Component {
 
       })
       .catch(err => { console.log(err); return 0; });
-
-  }
-
-  handleChange(e) {
-    let evento = e.target.value;
-    this.grafico(500, evento, this.state.cantidadDatos, this.state.precioBrst);
-    this.setState({ temporalidad: evento });
-  }
-
-  handleChange2(e) {
-    let evento = parseInt(e.target.value);
-    this.grafico(500, this.state.temporalidad, evento, this.state.precioBrst);
-    this.setState({ cantidadDatos: evento });
-  }
-
-  handleChangeDias(event) {
-    let dato = event.target.value;
-
-    let oper = ((this.state.brutCalc * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
-    oper = oper * parseInt(dato)
-    this.setState({
-      diasCalc: parseInt(dato),
-      resultCalc: oper
-    });
-  }
-
-  handleChangeCalc(event) {
-    let dato = event.target.value;
-    let oper = ((dato * this.state.precioBrst * ((this.state.promE7to1day) / 100))).toFixed(6)
-    oper = oper * parseInt(this.state.diasCalc)
-
-    this.setState({
-      brutCalc: dato,
-      resultCalc: oper
-    });
-  }
-
-  //calculo del exchange 
-
-  handleChangeBRST(event) {
-    let dato = event.target.value;
-    dato = parseFloat(("" + dato).replace(/,/g, "."))
-    let oper = dato * this.state.precioBrst;
-    oper = parseInt(oper * 1e6) / 1e6;
-    this.setState({
-      valueBRST: dato,
-      valueTRX: oper
-    });
-    document.getElementById('amountTRX').value = oper;
-  }
-
-  handleChangeTRX(event) {
-    let dato = event.target.value;
-    dato = parseFloat(dato.replace(/,/g, "."))
-    let oper = dato / this.state.precioBrst
-    oper = parseInt(oper * 1e6) / 1e6;
-    this.setState({
-      valueTRX: dato,
-      valueBRST: oper,
-    });
-    document.getElementById('amountBRST').value = oper;
 
   }
 
@@ -1225,29 +1222,29 @@ export default class Staking extends Component {
     amount = parseFloat(amount);
     amount = parseInt(amount * 10 ** 6);
 
-    let accountAddress = this.props.accountAddress;
+    let {accountAddress,contrato, tronWeb} = this.props;
 
-    let contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address)
+    let AddressContract = tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address)
 
     if (rapida) {
-      contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy_fast.address);
+      AddressContract = tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address);
     }
 
-    let aprovado = await this.props.contrato.BRST.allowance(accountAddress, contrato).call();
+    let aprovado = await contrato.BRST.allowance(accountAddress, AddressContract).call();
 
     aprovado = parseInt(aprovado._hex);
 
     if (aprovado <= amount) {
 
       let inputs = [
-        { type: 'address', value: contrato },
+        { type: 'address', value: AddressContract },
         { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" }
       ]
 
       let funcion = "approve(address,uint256)"
       const options = {}
-      let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-      let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+      let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+      let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
       transaction = await window.tronLink.tronWeb.trx.sign(transaction)
         .catch((e) => {
 
@@ -1258,7 +1255,7 @@ export default class Staking extends Component {
 
           window.$("#mensaje-brst").modal("show");
         })
-      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+      transaction = await tronWeb.trx.sendRawTransaction(transaction)
         .then(() => {
           this.setState({
             ModalTitulo: <>Result</>,
@@ -1270,7 +1267,7 @@ export default class Staking extends Component {
 
       //await this.props.contrato.BRST.approve(this.props.contrato.BRST_TRX_Proxy.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
 
-      aprovado = await this.props.contrato.BRST.allowance(accountAddress, contrato).call();
+      aprovado = await contrato.BRST.allowance(accountAddress, contrato).call();
     }
 
     if (aprovado >= amount) {
@@ -1634,31 +1631,18 @@ export default class Staking extends Component {
 
   render() {
 
-    let { minCompra, minventa } = this.state;
+    let { minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, varBrst } = this.state;
 
     minCompra = "Min. " + minCompra + " TRX";
     minventa = "Min. " + minventa + " BRST";
 
     let opciones;
 
-    if (this.state.temporalidad === "hour") {
+    if (temporalidad === "hour") {
       opciones = optionsHours
     } else {
       opciones = options2
     }
-
-    let days = [7,15,30,60,90,180,365]
-
-    const ListProspect = days.map((day) => (<tr>
-      <th>{day}</th>
-      <td>{this.state.misBRST} BRST</td>
-      <td><span className="badge badge-success">{this.props.i18n.t("brst.likely")}</span>
-      </td>
-      <td>{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * day) / 100))).toFixed(6)} TRX</td>
-      <td className="color-success">{(this.state.varBrst * day).toFixed(4)} % {this.props.i18n.t("brst.monthly")}</td>
-    </tr>
-
-    ))
 
     return (<>
 
@@ -1705,13 +1689,13 @@ export default class Staking extends Component {
                       <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
 
 
-                      <select className="btn-secondary style-1 default-select" value={this.state.cantidadDatos} onChange={this.handleChange2}>
+                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: 'white'}} value={this.state.cantidadDatos} onChange={this.handleChange2}>
                         {opciones.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                       {" | "}
-                      <select className="btn-secondary style-1 default-select" value={this.state.temporalidad} onChange={this.handleChange}>
+                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: 'white'}} value={this.state.temporalidad} onChange={this.handleChange}>
                         {options.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
@@ -1798,11 +1782,14 @@ export default class Staking extends Component {
                         <form className="form-wrapper trade-form">
                           <div className="input-group mb-3 ">
                             <span className="input-group-text">BRST</span>
-                            <input className="form-control form-control text-end" type="number" id="amountBRST" onChange={this.handleChangeBRST} placeholder={minventa} min={this.state.minventa} value={this.state.valueBRST} step={1} ></input>
+                            
+                            <input className="form-control form-control text-end" type="number" id="amountBRST" onInput={this.handleChangeBRST} placeholder={minventa} min={this.state.minventa} value={this.state.valueBRST} step={0.5} ></input>
+
                           </div>
                           <div className="input-group mb-3 ">
                             <span className="input-group-text">TRX</span>
-                            <input className="form-control form-control text-end" type="number" id="amountTRX" onChange={this.handleChangeTRX} placeholder={minCompra} min={this.state.minCompra} value={this.state.valueTRX} step={1} ></input>
+                            <input className="form-control form-control text-end" type="number" id="amountTRX" onInput={this.handleChangeTRX} placeholder={minCompra} min={this.state.minCompra} value={this.state.valueTRX} step={10} ></input>
+
                           </div>
                         </form>
                       </div>
@@ -1903,7 +1890,6 @@ export default class Staking extends Component {
                     {earnings.map((objeto) => (
                       <tr key={objeto.dias.toString()}>
                         <th>{this.props.i18n.t("brst.daysAgo", { days: objeto.dias })}</th>
-
                         <td>{(objeto.trx).toFixed(6)} TRX</td>
                         <td className="color-primary">{(objeto.diario).toFixed(6)} TRX/{this.props.i18n.t("day")} </td>
                       </tr>))}
@@ -1920,7 +1906,7 @@ export default class Staking extends Component {
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
                 <h4 className="fs-20 text-black">{this.props.i18n.t("brst.request", { returnObjects: true, number: this.state.globDepositos.length })[0]}
-                  <button className="btn  btn-success text-white" onClick={async () => await this.estado()}>
+                  <button className="btn  btn-success text-white" onClick={()=> this.estado()}>
                     {this.props.i18n.t("brst.request", { returnObjects: true })[1]} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>
                 <p className="mb-0 fs-12">{this.props.i18n.t("brst.request", { returnObjects: true })[2]}</p>
@@ -1928,12 +1914,7 @@ export default class Staking extends Component {
 
             </div>
             <div className="card-body">
-
               {this.state.globDepositos}
-
-
-
-
             </div>
 
           </div>
@@ -1948,38 +1929,59 @@ export default class Staking extends Component {
               </h6>
             </div>
             <div className="card-body">
-              <div className="table-responsive">
+              <div className="table-responsive overflow-scroll" style={{ height: "350px" }}>
+              <table className="table table-hover table-responsive-sm">
+
+                  <tbody>
+                    <tr>
+                      <th>  
+                        Days Hold<br></br>
+                        <input type="number" id="days" defaultValue={1} onChange={this.handleChangeDias} ></input>
+                      </th>
+                      <td>
+                        Your BRST<br></br>
+                        <input type="number" id="hold" defaultValue={0} onChange={this.handleChangeCalc} ></input> 
+                      </td>
+                      <th>
+                        Days Average<br></br>
+                        <input type="number" id="daysProm" defaultValue={tiempoPromediado} placeholder={tiempoPromediado+" days"} min="1" onChange={()=>{
+                          let daysProm = parseInt(document.getElementById('daysProm').value);
+                          this.setState({tiempoPromediado: isNaN(daysProm) ? 1 : daysProm}); 
+                          this.estado();
+                          }} ></input>
+                      </th>
+                      <td className="color-primary"><button className="btn btn-primary" onClick={()=>{days = days.unshift({days: diasCalc, amount: parseFloat((document.getElementById('hold').value).replace(/,/g,".")), time:Date.now()})}}>Calculate</button></td>
+                    </tr>
+                  </tbody>
+                </table>
                 <table className="table table-hover table-responsive-sm">
                   <thead>
                     <tr>
                       <th>{this.props.i18n.t("day", { count: 10 })}</th>
                       <th>{this.props.i18n.t("brst.hold")}</th>
-                      <th>{this.props.i18n.t("brst.status")}</th>
                       <th>{this.props.i18n.t("brst.estimateIn")}</th>
                       <th>{this.props.i18n.t("brst.growthR")}</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <th><input type="number" id="days" defaultValue={1} onChange={this.handleChangeDias} ></input></th>
-                      <td><input type="number" id="hold" defaultValue={0} onChange={this.handleChangeCalc} ></input> BRST</td>
-                      <td><span className="badge badge-primary light">{this.props.i18n.t("brst.calculated")}</span>
-                      </td>
-                      <td>{(this.state.resultCalc).toFixed(6)} TRX</td>
-                      <td className="color-primary">{(this.state.promE7to1day).toFixed(4)} % {this.props.i18n.t("brst.daily")} </td>
+                    {days.map((obj) => {
+
+                      obj.amount = parseFloat(obj.amount);
+                      obj.amount = isNaN(obj.amount) || obj.amount <= 0 ? this.state.misBRST : obj.amount;
+                      obj.days = isNaN(obj.days) ? 1 : obj.days;
+                      obj.time = isNaN(obj.time) ? Date.now() : obj.time;
+                      
+                      return (
+                    <tr key={"prospect-days-"+obj.days+"-"+obj.amount+"-"+obj.time}>
+                      <th>{obj.days}</th>
+                      <td>{obj.amount} BRST</td>
+                      <td>{((obj.amount * this.state.precioBrst * ((varBrst * obj.days) / 100))).toFixed(6)} TRX</td>
+                      <td className="color-success">{(varBrst * obj.days).toFixed(4)} % </td>
                     </tr>
-                    {ListProspect}
-                    <tr>
-                      <th>365</th>
-                      <td>{this.state.misBRST} BRST</td>
-                      <td><span className="badge badge-danger light">{this.props.i18n.t("brst.estimated")}</span>
-                      </td>
-                      <td className="text-danger">{((this.state.misBRST * this.state.precioBrst * ((this.state.varBrst * 365) / 100))).toFixed(6)} TRX</td>
-                      <td className="text-danger">{(this.state.varBrst * 365).toFixed(4)} % {this.props.i18n.t("brst.yearly")}</td>
-                    </tr>
+                    )
+                    })}
                   </tbody>
                 </table>
-                <p>{this.props.i18n.t("brst.calcullatorText", { days: this.state.tiempoPromediado })}</p>
               </div>
             </div>
           </div>

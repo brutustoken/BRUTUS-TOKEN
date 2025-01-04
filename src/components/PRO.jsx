@@ -1419,8 +1419,6 @@ export default class ProviderPanel extends Component {
                           <tbody>
                             {this.state.noregist}
 
-
-
                           </tbody>
                         </table>
                       </div>

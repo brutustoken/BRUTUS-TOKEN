@@ -51,21 +51,20 @@ const striptags = require('striptags');
 const cookies = new Cookies(null, { path: '/' , maxAge: 60*60*24*30});
 
 let theme = cookies.get('theme') || "light";
-document.body.setAttribute("data-theme-version", theme);
+document.documentElement.setAttribute("data-theme-version", theme);
 
 
 function setDarkTheme() {
+  alert("setDarkTheme")
   if(theme === "light"){
     theme = "dark";
-
   }else{
     theme = "light";
   }
 
-  document.body.setAttribute("data-theme-version", theme);
-  cookies.set('theme', theme );
-
-
+    document.documentElement.setAttribute("data-theme-version", theme);
+    cookies.set('theme', theme );
+  
 }
 
 
@@ -110,6 +109,8 @@ class App extends Component {
   }
 
   async componentDidMount() {
+
+    document.documentElement.setAttribute("data-theme-version", theme);
 
     let {walletConect} = this.state;
 
@@ -157,7 +158,6 @@ class App extends Component {
   async conectar(cambio) {
 
     let {tronlink, accountAddress, conexion, walletConect} = this.state;
-    let wallet = adressDefault;
     let web3Contracts = await utils.getTronweb(accountAddress);
 
 
@@ -165,26 +165,28 @@ class App extends Component {
 
       this.setState({ conexion: true })
 
-      await adapter.connect()
-        .catch((e) => {
-          console.log(e.toString())
-          this.setState({msj: {title: "Wallet connection error", message: e.toString()}})
-
-        })
-
-      if (adapter.address) {
+      if(window.tronLink !== undefined){
         tronlink['installed'] = true;
-        tronlink['loggedIn'] = true;
-        tronlink['adapter'] = adapter;
-        wallet = adapter.address
+        await adapter.connect()
+          .catch((e) => {
+            console.log(e.toString())
+            this.setState({msj: {title: "Wallet connection error", message: e.toString()}})
 
+          })
+
+        if (adapter.address) {
+          tronlink['loggedIn'] = true;
+          tronlink['adapter'] = adapter;
+          accountAddress = adapter.address
+
+        }
       }
 
     }
 
-    if (wallet !== adressDefault) {
-      let vierWallet = wallet.substring(0, 6) + "***" + wallet.substring(wallet.length - 6, wallet.length)
-      document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + striptags(wallet) + '" >' + striptags(vierWallet) + '</span>';
+    if (accountAddress !== adressDefault) {
+      let vierWallet = accountAddress.substring(0, 6) + "***" + accountAddress.substring(accountAddress.length - 6, accountAddress.length)
+      document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + striptags(accountAddress) + '" >' + striptags(vierWallet) + '</span>';
 
     } else {
       document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
@@ -192,7 +194,7 @@ class App extends Component {
     }
 
     this.setState({
-      accountAddress: wallet,
+      accountAddress,
       tronlink: tronlink,
       web3Contracts: web3Contracts,
 
@@ -305,7 +307,13 @@ class App extends Component {
 
     let Retorno = <></>
 
-    if (!contrato.ready) {
+    if(!tronlink.installed){
+      tronlink.loggedIn = true
+    }else{
+      tronlink.loggedIn = false
+    }
+
+    if (!contrato.ready && !tronlink.loggedIn ) {
       Retorno = (
       <div className="container">
         <div className="row">

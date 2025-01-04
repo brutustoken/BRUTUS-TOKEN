@@ -603,13 +603,13 @@ export default class Home extends Component {
                       </div>
                       <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
 
-                      <select className="btn-secondary style-1 default-select" value={this.state.cantidadDatos} onChange={this.handleChange2}>
+                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: "white"}} value={this.state.cantidadDatos} onChange={this.handleChange2}>
                         {options2.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                       {" | "}
-                      <select className="btn-secondary style-1 default-select" value={this.state.temporalidad} onChange={this.handleChange}>
+                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: "white"}} value={this.state.temporalidad} onChange={this.handleChange}>
                         {options.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}

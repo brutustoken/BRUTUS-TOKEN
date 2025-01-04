@@ -33903,4 +33903,18 @@ html[dir="rtl"] [direction="rtl"][data-sidebar-style="compact"]:not([data-layout
   filter: invert(1);
 }
 
+.form-wrapper .input-group span{
+  border-top-left-radius:0px;
+  border-top-right-radius:8px !important;
+  border-bottom-left-radius:0px;
+  border-bottom-right-radius:8px !important;
+ }
+
+.form-wrapper .input-group input{
+  border-top-left-radius:8px !important;
+  border-top-right-radius:0px;
+  border-bottom-left-radius:8px !important;
+  border-bottom-right-radius:0px;
+ }
+
 /*# sourceMappingURL=style.css.map */
