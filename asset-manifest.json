@@ -1,30 +1,19 @@
 {
   "files": {
-    "main.js": "/static/js/main.227dc4b6.chunk.js",
-    "main.js.map": "/static/js/main.227dc4b6.chunk.js.map",
+    "main.js": "/static/js/main.e7ced39a.chunk.js",
+    "main.js.map": "/static/js/main.e7ced39a.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.5ef5388b.js",
     "runtime-main.js.map": "/static/js/runtime-main.5ef5388b.js.map",
-    "static/js/2.96843ce5.chunk.js": "/static/js/2.96843ce5.chunk.js",
-    "static/js/2.96843ce5.chunk.js.map": "/static/js/2.96843ce5.chunk.js.map",
+    "static/js/2.90e4430e.chunk.js": "/static/js/2.90e4430e.chunk.js",
+    "static/js/2.90e4430e.chunk.js.map": "/static/js/2.90e4430e.chunk.js.map",
     "index.html": "/index.html",
-    "precache-manifest.b70789d502f038be90d4d943f8fbf4af.js": "/precache-manifest.b70789d502f038be90d4d943f8fbf4af.js",
+    "precache-manifest.3fdbb48f9356249d708a94830003a9fb.js": "/precache-manifest.3fdbb48f9356249d708a94830003a9fb.js",
     "service-worker.js": "/service-worker.js",
-    "static/js/2.96843ce5.chunk.js.LICENSE.txt": "/static/js/2.96843ce5.chunk.js.LICENSE.txt",
-    "static/media/Tron_pb.cjs": "/static/media/Tron_pb.86ed69ae.cjs",
-    "static/media/account_contract_pb.cjs": "/static/media/account_contract_pb.5c7e03a0.cjs",
-    "static/media/asset_issue_contract_pb.cjs": "/static/media/asset_issue_contract_pb.ee57798d.cjs",
-    "static/media/balance_contract_pb.cjs": "/static/media/balance_contract_pb.e38ce56c.cjs",
-    "static/media/common_pb.cjs": "/static/media/common_pb.ab3724cf.cjs",
-    "static/media/exchange_contract_pb.cjs": "/static/media/exchange_contract_pb.22d3bfa4.cjs",
-    "static/media/index.cjs": "/static/media/index.357e90b2.cjs",
-    "static/media/proposal_contract_pb.cjs": "/static/media/proposal_contract_pb.1986a476.cjs",
-    "static/media/smart_contract_pb.cjs": "/static/media/smart_contract_pb.f433c02d.cjs",
-    "static/media/storage_contract_pb.cjs": "/static/media/storage_contract_pb.2963e92b.cjs",
-    "static/media/witness_contract_pb.cjs": "/static/media/witness_contract_pb.c35910b4.cjs"
+    "static/js/2.90e4430e.chunk.js.LICENSE.txt": "/static/js/2.90e4430e.chunk.js.LICENSE.txt"
   },
   "entrypoints": [
     "static/js/runtime-main.5ef5388b.js",
-    "static/js/2.96843ce5.chunk.js",
-    "static/js/main.227dc4b6.chunk.js"
+    "static/js/2.90e4430e.chunk.js",
+    "static/js/main.e7ced39a.chunk.js"
   ]
 }
