@@ -1090,54 +1090,6 @@ export default class Staking extends Component {
 
   };
 
-  async sell() {
-
-    let amount = document.getElementById("amountTRX").value;
-    let amountNorm = new BigNumber(amount)
-
-    let penalty = utils.normalizarNumero(await this.props.contrato.BRST_TRX_Proxy_fast.descuentoRapido().call())
-    let presicion = utils.normalizarNumero(await this.props.contrato.BRST_TRX_Proxy_fast.precision().call())
-
-    penalty = (penalty / presicion) * 100
-
-    amount = new BigNumber(amount).multipliedBy(presicion - penalty).div(presicion);
-
-    let loteria = utils.normalizarNumero((await this.props.contrato.loteria._premio().call())[0])
-
-    let retiroRapido = utils.normalizarNumero(await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call())
-    retiroRapido = new BigNumber(retiroRapido).shiftedBy(-6).minus(loteria)
-
-    let primerBoton = <></>
-
-    if (amount.toNumber() > retiroRapido.toNumber()) {
-      primerBoton = (<>
-        <button type="button" id="fastw" className="btn btn-secondary" disabled >Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
-        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
-        <br ></br><br ></br>
-
-      </>)
-    } else {
-      primerBoton = (<>
-        <button type="button" id="fastw" className="btn btn-warning" onClick={() => { this.preVenta(true) }}>Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
-        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
-        <br ></br><br ></br>
-
-      </>)
-    }
-
-    this.setState({
-      ModalTitulo: "Select Your Method",
-      ModalBody: <>We now have two withdrawal methods:<br ></br>
-        {primerBoton}
-        <button type="button" className="btn btn-success" onClick={() => { this.preVenta(false) }}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br ></br>
-        you can make a withdrawal request that you can claim from the contract in its entirety in 17 days.
-      </>
-    })
-
-    window.$("#mensaje-brst").modal("show");
-
-  }
-
   async preVenta(rapida) {
 
     let eenergy = 0;
@@ -1159,7 +1111,7 @@ export default class Staking extends Component {
 
       let funcion1 = "approve(address,uint256)"
       const options1 = { callValue: amount }
-      var transaccion1 = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST.address), funcion1, options1, inputs1, this.props.tronWeb.address.toHex(this.props.accountAddress))
+      let transaccion1 = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST.address), funcion1, options1, inputs1, this.props.tronWeb.address.toHex(this.props.accountAddress))
         .catch(() => { return {} })
 
       if (transaccion1.energy_used) {
@@ -1184,7 +1136,7 @@ export default class Staking extends Component {
     }
 
     const options = {}
-    var transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(contrato, funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    let transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(contrato, funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
       .catch(() => { return {} })
 
 
@@ -1233,6 +1185,55 @@ export default class Staking extends Component {
     } else {
       this.venta(rapida)
     }
+  }
+
+  async sell() {
+
+    let amount = document.getElementById("amountTRX").value;
+    let amountNorm = new BigNumber(amount)
+
+    let penalty = parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.descuentoRapido().call())
+    let presicion = parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.precision().call())
+
+    penalty = (penalty / presicion) * 100
+    amount = new BigNumber(amount).multipliedBy(presicion - penalty).div(presicion);
+
+    let loteria = utils.normalizarNumero((await this.props.contrato.loteria._premio().call())[0])
+
+    let retiroRapido = parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call())
+    retiroRapido = new BigNumber(retiroRapido).shiftedBy(-6).minus(loteria)
+
+    if (retiroRapido < 0) retiroRapido = new BigNumber(0)
+
+    let primerBoton = <></>
+
+    if (amount.toNumber() > 0 && amount.toNumber() > retiroRapido.toNumber()) {
+      primerBoton = (<>
+        <button type="button" id="fastw" className="btn btn-secondary" disabled >Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
+        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
+        <br ></br><br ></br>
+
+      </>)
+    } else {
+      primerBoton = (<>
+        <button type="button" id="fastw" className="btn btn-warning" onClick={() => { this.preVenta(true) }}>Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
+        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
+        <br ></br><br ></br>
+
+      </>)
+    }
+
+    this.setState({
+      ModalTitulo: "Select Your Method",
+      ModalBody: <>We now have two withdrawal methods:<br ></br>
+        {primerBoton}
+        <button type="button" className="btn btn-success" onClick={() => { this.preVenta(false) }}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br ></br>
+        you can make a withdrawal request that you can claim from the contract in its entirety in 17 days.
+      </>
+    })
+
+    window.$("#mensaje-brst").modal("show");
+
   }
 
   async venta(rapida) {
