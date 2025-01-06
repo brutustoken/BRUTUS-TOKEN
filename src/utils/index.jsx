@@ -1,4 +1,4 @@
-import {TronWeb} from 'tronweb';
+import { TronWeb } from 'tronweb';
 
 const BigNumber = require('bignumber.js');
 
@@ -96,7 +96,6 @@ async function getTronweb(wallet, red = 0) {
   const tronWeb = new TronWeb({
     fullHost: getRed(red),
     //headers: { "TRON-PRO-API-KEY": await keyQuery() }
-
   })
 
   tronWeb.setAddress(wallet)
@@ -159,11 +158,11 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
 
 }
 
-function normalizarNumero(n, s=6){
+function normalizarNumero(n, s = 6) {
   return new BigNumber(n).shiftedBy(-s).toNumber();
 }
 
-function numberToStringCero(n, s=6){
+function numberToStringCero(n, s = 6) {
   return new BigNumber(n).shiftedBy(s).dp(0).toString(10);
 }
 
