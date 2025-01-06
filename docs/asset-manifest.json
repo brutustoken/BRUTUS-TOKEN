@@ -1,21 +1,22 @@
 {
   "files": {
-    "main.js": "/static/js/main.4d4ac668.chunk.js",
-    "main.js.map": "/static/js/main.4d4ac668.chunk.js.map",
+    "main.js": "/static/js/main.e67850e7.chunk.js",
+    "main.js.map": "/static/js/main.e67850e7.chunk.js.map",
     "runtime-main.js": "/static/js/runtime-main.5ef5388b.js",
     "runtime-main.js.map": "/static/js/runtime-main.5ef5388b.js.map",
-    "static/js/2.e05baf6d.chunk.js": "/static/js/2.e05baf6d.chunk.js",
-    "static/js/2.e05baf6d.chunk.js.map": "/static/js/2.e05baf6d.chunk.js.map",
+    "static/js/2.96843ce5.chunk.js": "/static/js/2.96843ce5.chunk.js",
+    "static/js/2.96843ce5.chunk.js.map": "/static/js/2.96843ce5.chunk.js.map",
     "index.html": "/index.html",
-    "precache-manifest.233efd8b6cf843a4ce60c79afdeac4de.js": "/precache-manifest.233efd8b6cf843a4ce60c79afdeac4de.js",
+    "precache-manifest.faf7a5279757713a4781e2395dd3f55f.js": "/precache-manifest.faf7a5279757713a4781e2395dd3f55f.js",
     "service-worker.js": "/service-worker.js",
-    "static/js/2.e05baf6d.chunk.js.LICENSE.txt": "/static/js/2.e05baf6d.chunk.js.LICENSE.txt",
+    "static/js/2.96843ce5.chunk.js.LICENSE.txt": "/static/js/2.96843ce5.chunk.js.LICENSE.txt",
     "static/media/Tron_pb.cjs": "/static/media/Tron_pb.86ed69ae.cjs",
     "static/media/account_contract_pb.cjs": "/static/media/account_contract_pb.5c7e03a0.cjs",
     "static/media/asset_issue_contract_pb.cjs": "/static/media/asset_issue_contract_pb.ee57798d.cjs",
     "static/media/balance_contract_pb.cjs": "/static/media/balance_contract_pb.e38ce56c.cjs",
     "static/media/common_pb.cjs": "/static/media/common_pb.ab3724cf.cjs",
     "static/media/exchange_contract_pb.cjs": "/static/media/exchange_contract_pb.22d3bfa4.cjs",
+    "static/media/index.cjs": "/static/media/index.357e90b2.cjs",
     "static/media/proposal_contract_pb.cjs": "/static/media/proposal_contract_pb.1986a476.cjs",
     "static/media/smart_contract_pb.cjs": "/static/media/smart_contract_pb.f433c02d.cjs",
     "static/media/storage_contract_pb.cjs": "/static/media/storage_contract_pb.2963e92b.cjs",
@@ -23,7 +24,7 @@
   },
   "entrypoints": [
     "static/js/runtime-main.5ef5388b.js",
-    "static/js/2.e05baf6d.chunk.js",
-    "static/js/main.4d4ac668.chunk.js"
+    "static/js/2.96843ce5.chunk.js",
+    "static/js/main.e67850e7.chunk.js"
   ]
 }
