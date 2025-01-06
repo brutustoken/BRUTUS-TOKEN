@@ -2,7 +2,6 @@ import React, { Component } from "react";
 import Cookies from 'universal-cookie';
 
 import utils from "./utils/index.jsx";
-
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapter-tronlink';
 
 import abi_PROXY from "./assets/abi/Proxy";
@@ -55,15 +54,15 @@ document.documentElement.setAttribute("data-theme-version", theme);
 
 
 function setDarkTheme() {
-  alert("setDarkTheme")
+  
   if(theme === "light"){
     theme = "dark";
   }else{
     theme = "light";
   }
 
-    document.documentElement.setAttribute("data-theme-version", theme);
-    cookies.set('theme', theme );
+  document.documentElement.setAttribute("data-theme-version", theme);
+  cookies.set('theme', theme );
   
 }
 
@@ -222,7 +221,7 @@ class App extends Component {
   }
 
   async loadContracts() {
-    let {tronlink, accountAddress, contrato} = this.state;
+    let {accountAddress, contrato} = this.state;
 
     let  web3Contracts = await utils.getTronweb(accountAddress);
     let url = this.route()
@@ -294,10 +293,11 @@ class App extends Component {
     contrato.ready = true;
     
     this.setState({
-      tronlink: tronlink,
       contrato: contrato,
       conexion: true
     })
+    
+    return contrato
 
   }
 
@@ -307,10 +307,8 @@ class App extends Component {
 
     let Retorno = <></>
 
-    if(!tronlink.installed){
+    if(window.tronLink === undefined){
       tronlink.loggedIn = true
-    }else{
-      tronlink.loggedIn = false
     }
 
     if (!contrato.ready && !tronlink.loggedIn ) {
@@ -339,28 +337,28 @@ class App extends Component {
       switch (url) {
 
         case "brut":
-          Retorno = <Brut accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          Retorno = <Brut accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
           break;
         case "brst":
-          Retorno = <Brst accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          Retorno = <Brst accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  i18n={i18next} />
           break;
         case "brgy":
-          Retorno = <Nft accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          Retorno = <Nft accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  i18n={i18next} />
           break;
         case "brlt":
-          Retorno = <LOTERIA accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          Retorno = <LOTERIA accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  i18n={i18next} />
           break;
         case "ebot":
-          Retorno = <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          Retorno = <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  i18n={i18next} />
           break;
         case "pro":
-          Retorno = <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} ready={contrato.ready} i18n={i18next} />
+          Retorno = <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink}  i18n={i18next} />
           break;
         case "api":
-          Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} ready={contrato.ready} i18n={i18next} />
+          Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink}  i18n={i18next} />
           break;
         default:
-          Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} ready={contrato.ready} i18n={i18next} />
+          Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  i18n={i18next} />
           break;
       }
     }

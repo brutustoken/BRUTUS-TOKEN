@@ -28,7 +28,7 @@ class nftOficina extends Component {
 	async consultarPrecio() {
 
 		var precio = await utils.contract.RATE().call();
-		precio = parseInt(precio._hex) / 10 ** 6;
+		precio = parseInt(precio) / 10 ** 6;
 
 		this.setState({
 			precioBRUT: precio
@@ -49,8 +49,8 @@ class nftOficina extends Component {
 		for (let index = 0; index < 25; index++) {
 			var conteo = await contractMistery.entregaNFT(this.props.accountAddress, index).call()
 				.then((conteo) => {
-					if (conteo._hex) {
-						robots.push(parseInt(conteo._hex)); return 1;
+					if (conteo) {
+						robots.push(parseInt(conteo)); return 1;
 					}
 				})
 				.catch(() => {
@@ -198,10 +198,10 @@ class nftCrowdFunding extends Component {
 		for (let index = 0; index < 25; index++) {
 			var conteo = await contractMistery.entregaNFT(this.props.accountAddress, index).call().catch(() => { return 0; });
 
-			if (conteo._hex) {
+			if (conteo) {
 				mc++;
 				let nft = await contractMistery.entregaNFT(this.props.accountAddress, index).call();
-				let ownerNft = await contractNFT.ownerOf(parseInt(nft._hex)).call();
+				let ownerNft = await contractNFT.ownerOf(parseInt(nft)).call();
 				ownerNft = window.tronWeb.address.fromHex(ownerNft);
 
 				if (ownerNft !== this.props.accountAddress) {
@@ -237,7 +237,7 @@ class nftCrowdFunding extends Component {
 			aprovado = aprovado.remaining;
 		}
 
-		aprovado = parseInt(aprovado._hex);
+		aprovado = parseInt(aprovado);
 		aprovado = aprovado / 10 ** 6;
 
 
@@ -316,6 +316,10 @@ class nftCrowdFunding extends Component {
 	}
 }
  */
+
+let nextUpdate = 0
+let intervalId = null
+
 export default class nfts extends Component {
 	constructor(props) {
 		super(props);
@@ -333,24 +337,39 @@ export default class nfts extends Component {
 	componentDidMount() {
 		document.title = "BRGY | Brutus.Finance"
 
-		setTimeout(() => {
-			this.estado();
-		}, 3 * 1000)
+		intervalId = setInterval(() => {
 
-		setInterval(() => { this.estado(); }, 180 * 1000);
+			if (Date.now() >= nextUpdate) {
 
+				if (!this.props.contrato.ready) {
+					nextUpdate = Date.now() + 3 * 1000;
+				} else {
+					nextUpdate = Date.now() + 60 * 1000;
+				}
+				this.estado();
+			}
+
+		}, 3 * 1000);
+	}
+
+	componentWillUnmount() {
+		clearInterval(intervalId)
 	}
 
 
 	async estado() {
 
-		var robots = [];
+		let { contrato } = this.props
+
+		if (!contrato.ready) return;
+
+		let robots = [];
 
 		for (let index = 0; index < 25; index++) {
 			var conteo = await this.props.contrato.MBOX.entregaNFT(this.props.accountAddress, index).call()
 				.then((conteo) => {
-					if (conteo._hex) {
-						robots.push(parseInt(conteo._hex)); return 1;
+					if (conteo) {
+						robots.push(parseInt(conteo)); return 1;
 					}
 				})
 				.catch(() => {

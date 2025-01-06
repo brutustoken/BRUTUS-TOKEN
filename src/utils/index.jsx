@@ -1,11 +1,14 @@
-import TronWeb from "tronweb";
+import {TronWeb} from 'tronweb';
+
+const BigNumber = require('bignumber.js');
+
 const env = process.env;
 
 const CryptoJS = require("crypto-js");
 
 let constantes = {}
 constantes.proxy = "https://cors.brutusservices.com/";
-constantes.BRUTUS_API = constantes.proxy + process.env.REACT_APP_API_URL + "api/v1/"
+constantes.BRUTUS_API = constantes.proxy + env.REACT_APP_API_URL + "api/v1/"
 constantes.apiProviders = constantes.proxy + "https://api-providers.brutusservices.com/main/"
 
 constantes.PRICE = constantes.BRUTUS_API + "precio/BRUT"; //API de precio
@@ -156,4 +159,12 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
 
 }
 
-export default { ...constantes, keyQuery, getTronweb, delay, rentResource };
+function normalizarNumero(n, s=6){
+  return new BigNumber(n).shiftedBy(-s).toNumber();
+}
+
+function numberToStringCero(n, s=6){
+  return new BigNumber(n).shiftedBy(s).dp(0).toString(10);
+}
+
+export default { ...constantes, keyQuery, getTronweb, delay, rentResource, normalizarNumero, numberToStringCero };
