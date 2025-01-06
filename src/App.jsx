@@ -52,7 +52,7 @@ const cookies = new Cookies(null, { path: '/', maxAge: 60 * 60 * 24 * 30 });
 let theme = cookies.get('theme') || "light";
 document.documentElement.setAttribute("data-theme-version", theme);
 
-
+let tryes = 2
 function setDarkTheme() {
 
   if (theme === "light") {
@@ -159,14 +159,14 @@ class App extends Component {
   async conectar(billetera) {
 
 
-    if (!this.state.conexion && !adapter.connected) {
-
+    if (!this.state.conexion && !adapter.connected && tryes > 0) {
       this.setState({ conexion: true })
 
       await adapter.connect()
         .catch((e) => {
           console.log(e.toString())
           this.setState({ msj: { title: "Wallet connection error", message: e.toString() } })
+          tryes--;
 
         })
 
