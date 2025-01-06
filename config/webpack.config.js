@@ -489,6 +489,12 @@ module.exports = function (webpackEnv) {
             // This loader doesn't use a "test" so it will catch all modules
             // that fall through the other loaders.
             {
+              // Regla para manejar archivos `.cjs`
+              test: /\.cjs$/,
+              type: 'javascript/auto',
+            },
+
+            {
               loader: require.resolve('file-loader'),
               // Exclude `js` files to keep "css" loader working as it injects
               // its runtime that would otherwise be processed through "file" loader.
@@ -502,7 +508,7 @@ module.exports = function (webpackEnv) {
             // ** STOP ** Are you adding a new loader?
             // Make sure to add the new loader(s) before the "file" loader.
           ],
-        },
+        }
       ],
     },
     plugins: [

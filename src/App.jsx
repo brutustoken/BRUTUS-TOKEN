@@ -118,7 +118,7 @@ class App extends Component {
     document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
     document.getElementById("conectTL").onclick = () => { this.conectar(true); }
 
-    this.intervalo(3);
+    this.intervalo(5);
 
   }
 
@@ -158,9 +158,11 @@ class App extends Component {
 
   async conectar(billetera) {
 
-    this.setState({ conexion: true })
 
-    if (this.state.conexion) {
+    if (!this.state.conexion && !adapter.connected) {
+
+      this.setState({ conexion: true })
+
       await adapter.connect()
         .catch((e) => {
           console.log(e.toString())
@@ -168,37 +170,35 @@ class App extends Component {
 
         })
 
+      if (adapter.connected) this.estado();
+
+      this.setState({ conexion: false })
+
+
     }
 
-    this.setState({ conexion: false })
 
-    return true;
+    return adapter.connected;
 
 
   }
 
-  async estado(cambio) {
+  async estado() {
 
     let { tronlink, accountAddress, walletConect } = this.state;
-    let web3Contracts = await utils.getTronweb(accountAddress);
 
+    if (window.tronWeb) {
+      tronlink['installed'] = true;
+    }
 
-    if (cambio) {
-
-
-      if (window.tronLink || window.tronWeb) {
-        tronlink['installed'] = true;
-      }
-
+    if (!adapter.address) {
       await this.conectar(true)
+    }
 
-      if (adapter.address) {
-        tronlink['installed'] = true;
-        tronlink['loggedIn'] = true;
-        tronlink['adapter'] = adapter;
-        accountAddress = adapter.address
-
-      }
+    if (adapter.address) {
+      tronlink['loggedIn'] = true;
+      tronlink['adapter'] = adapter;
+      accountAddress = adapter.address
 
     }
 
@@ -214,15 +214,12 @@ class App extends Component {
     this.setState({
       accountAddress,
       tronlink: tronlink,
-      web3Contracts: web3Contracts,
+      tronWeb: await utils.getTronweb(accountAddress)
 
     });
 
     this.loadContracts()
 
-    this.setState({
-      tronWeb: await utils.getTronweb(accountAddress)
-    })
 
   }
 
@@ -265,18 +262,18 @@ class App extends Component {
 
     if (contrato.BRST_TRX_Proxy === null && utils.ProxySC2 !== "" && (url === "" || url === "brst")) {
       web3Contracts = await utils.getTronweb(accountAddress);
-      contrato.Proxy = await web3Contracts.contract(abi_PROXY, utils.ProxySC2);
+      contrato.Proxy = web3Contracts.contract(abi_PROXY, utils.ProxySC2);
 
       web3Contracts = await utils.getTronweb(accountAddress);
-      contrato.BRST_TRX_Proxy = await web3Contracts.contract(abi_POOLBRST, utils.ProxySC2);
+      contrato.BRST_TRX_Proxy = web3Contracts.contract(abi_POOLBRST, utils.ProxySC2);
     }
 
     if (contrato.BRST_TRX_Proxy_fast === null && utils.ProxySC3 !== "" && (url === "" || url === "brst")) {
       web3Contracts = await utils.getTronweb(accountAddress);
-      contrato.Proxy_fast = await web3Contracts.contract(abi_PROXY, utils.ProxySC3);
+      contrato.Proxy_fast = web3Contracts.contract(abi_PROXY, utils.ProxySC3);
 
       web3Contracts = await utils.getTronweb(accountAddress);
-      contrato.BRST_TRX_Proxy_fast = await web3Contracts.contract(abi_SimpleSwap, utils.ProxySC3);
+      contrato.BRST_TRX_Proxy_fast = web3Contracts.contract(abi_SimpleSwap, utils.ProxySC3);
     }
 
     if (contrato.BRST === null && utils.BRST !== "" && (url === "" || url === "brst")) {
@@ -301,17 +298,16 @@ class App extends Component {
 
     if (contrato.loteria === null && utils.SC4 !== "" && (url === "brlt" || url === "brst")) {
       web3Contracts = await utils.getTronweb(accountAddress, 2);
-      contrato.ProxyLoteria = await web3Contracts.contract(abi_PROXY, utils.SC4);
+      contrato.ProxyLoteria = web3Contracts.contract(abi_PROXY, utils.SC4);
 
       web3Contracts = await utils.getTronweb(accountAddress, 2);
-      contrato.loteria = await web3Contracts.contract(abi_LOTERIA, utils.SC4);
+      contrato.loteria = web3Contracts.contract(abi_LOTERIA, utils.SC4);
     }
 
     contrato.ready = true;
 
     this.setState({
       contrato: contrato,
-      conexion: true
     })
 
     return contrato
