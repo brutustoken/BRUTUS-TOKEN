@@ -158,12 +158,19 @@ class App extends Component {
 
   async conectar(billetera) {
 
-    await adapter.connect()
-      .catch((e) => {
-        console.log(e.toString())
-        this.setState({ msj: { title: "Wallet connection error", message: e.toString() } })
+    this.setState({ conexion: true })
 
-      })
+    if (this.state.conexion) {
+      await adapter.connect()
+        .catch((e) => {
+          console.log(e.toString())
+          this.setState({ msj: { title: "Wallet connection error", message: e.toString() } })
+
+        })
+
+    }
+
+    this.setState({ conexion: false })
 
     return true;
 
@@ -172,13 +179,12 @@ class App extends Component {
 
   async estado(cambio) {
 
-    let { tronlink, accountAddress, conexion, walletConect } = this.state;
+    let { tronlink, accountAddress, walletConect } = this.state;
     let web3Contracts = await utils.getTronweb(accountAddress);
 
 
-    if (!conexion && cambio) {
+    if (cambio) {
 
-      this.setState({ conexion: true })
 
       if (window.tronLink || window.tronWeb) {
         tronlink['installed'] = true;
@@ -214,9 +220,7 @@ class App extends Component {
 
     this.loadContracts()
 
-
     this.setState({
-      conexion: false,
       tronWeb: await utils.getTronweb(accountAddress)
     })
 
@@ -229,7 +233,7 @@ class App extends Component {
     if (url.indexOf("&") >= 0) url = (url.split("&"))[0];
     if (url.indexOf("=") >= 0) url = (url.split("="))[0];
 
-    if (url === window.location.origin + "/") url = ""
+    if (url === window.location.origin + "/" || url === "utum_source") url = ""
     return url
   }
 
