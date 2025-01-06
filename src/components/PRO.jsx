@@ -27,7 +27,7 @@ export default class ProviderPanel extends Component {
       elegible: false,
       sellband: false,
       bandover: "0",
-      sellener:false,
+      sellener: false,
       enerover: "0",
       burn: false,
       noti: false,
@@ -80,8 +80,7 @@ export default class ProviderPanel extends Component {
 
     setInterval(() => {
       this.estado()
-    }, 30 * 1000)
-
+    }, 20 * 1000)
 
   }
 
@@ -146,7 +145,7 @@ export default class ProviderPanel extends Component {
             over = parseInt(prompt("sell band over, leave ", this.state.bandover))
 
             console.log(over)
-            if(!isNaN(over)){
+            if (!isNaN(over)) {
               let body = { wallet: this.props.accountAddress, sellbandover: over }
 
               fetch(utils.apiProviders + "set/sellbandover", {
@@ -158,7 +157,7 @@ export default class ProviderPanel extends Component {
                 body: JSON.stringify(body)
               })
             }
-           
+
 
           }
           // activar renta
@@ -204,7 +203,7 @@ export default class ProviderPanel extends Component {
 
           //console.log(over)
 
-          if(!isNaN(over)){
+          if (!isNaN(over)) {
             let body = { wallet: this.props.accountAddress, sellenergyover: over }
 
             fetch(utils.apiProviders + "set/sellenergyover", {
@@ -216,10 +215,10 @@ export default class ProviderPanel extends Component {
               body: JSON.stringify(body)
             })
           }
-          
 
 
-      
+
+
           let value = false
           if (elemento.value === "true") {
             value = true
@@ -529,7 +528,7 @@ export default class ProviderPanel extends Component {
       tiempo: moment.tz.guess(true)
     })
 
-    var url = utils.apiProviders;
+    let url = utils.apiProviders;
 
     let provider = { result: false };
 
@@ -550,11 +549,9 @@ export default class ProviderPanel extends Component {
 
     if (provider.result && this.props.tronlink.adapter.connected) {
 
-      
-
       let firma = await cookies.get('firma-tron')
       let fecha = new Date(Date.now())
-      let messge = "https://brutus.finance - "+fecha.getFullYear()
+      let messge = "https://brutus.finance - " + fecha.getFullYear()
 
       if (firma === undefined || await window.tronWeb.trx.verifyMessageV2(messge, firma) !== this.props.tronlink.adapter.address) {
         firma = await this.props.tronlink.adapter.signMessage(messge);
@@ -565,9 +562,9 @@ export default class ProviderPanel extends Component {
       }
 
       try {
-        if (await window.tronWeb.trx.verifyMessageV2(messge, firma) === this.props.tronlink.adapter.address ) {
+        if (await window.tronWeb.trx.verifyMessageV2(messge, firma) === this.props.tronlink.adapter.address) {
           auth = true
-        }else{
+        } else {
           auth = false
         }
 
@@ -575,8 +572,6 @@ export default class ProviderPanel extends Component {
         console.log(error.toString())
         auth = true
       }
-
-     
 
       if (firma !== undefined && auth) {
 
@@ -618,11 +613,10 @@ export default class ProviderPanel extends Component {
         }
 
 
-        var cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
+        let cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
 
-
-        var providerEnergy = 0
-        var providerEnergyTotal = 0
+        let providerEnergy = 0
+        let providerEnergyTotal = 0
 
         var providerBand = 0
         var providerBandTotal = 0
@@ -665,7 +659,7 @@ export default class ProviderPanel extends Component {
 
         let sellener = false
 
-        if(info.energyover > 0){
+        if (info.energyover > 0) {
           sellener = true
         }
 
@@ -991,19 +985,20 @@ export default class ProviderPanel extends Component {
                     <i className="bi bi-three-dots-vertical"></i>
                   </div>
                   <div className="dropdown-menu dropdown-menu-end">
-                    <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" >View on TronScan</a>
+                    <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" target="_blank" rel="noopener noreferrer">View on TronScan</a>
 
                     <button className="dropdown-item text-danger" onClick={async () => {
                       let transaction = await this.props.tronWeb.transactionBuilder.undelegateResource(amount, receiverAddress, resource, ownerAddress);
-                      transaction = await this.props.tronWeb.trx.sign(transaction)
+                      transaction = await window.tronWeb.trx.sign(transaction)
                       transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
 
                       this.setState({
                         ModalTitulo: "Result: " + transaction.result,
-                        ModalBody: <a href={"https://tronscan.org/#/transaction/" + transaction.txid}>see result in TronScan</a>
+                        ModalBody: <a className="btn btn-primary" href={"https://tronscan.org/#/transaction/" + transaction.txid} target="_blank" rel="noopener noreferrer">see result in TronScan</a>
                       })
 
                       window.$("#alert").modal("show");
+                      this.estado();
 
                     }}>Reclaim Resource</button>
                   </div>
@@ -1033,13 +1028,13 @@ export default class ProviderPanel extends Component {
         })
 
       }
-    } 
+    }
 
     this.setState({
       provider: provider.result,
       firma: auth
     })
-    
+
 
   }
 
@@ -1119,25 +1114,11 @@ export default class ProviderPanel extends Component {
               <div className="row">
                 <div className="col-lg-8 col-sm-12">
                   <div className="card exchange">
-                    <div className="card-header d-block">
+                    <div className="card-header d-block" style={{ border: "none" }}>
 
 
                       <div className="container-fluid">
                         <div className="row">
-                          <div className="col-lg-12 col-sm-12 mb-2">
-                            <h2 className="heading">Status </h2>
-
-                          </div>
-                          <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading">{estatus} </h2>
-                          </div>
-                          <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
-                          </div>
-                          <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
-
-                          </div>
                           <div className="col-lg-6 col-sm-12 mb-2">
                             Energy ({(this.state.proEnergy).toLocaleString('en-US')}/{(this.state.proEnergyTotal).toLocaleString("en-us")}) <img height="15px" src="images/energy.png" alt="" ></img>
                             <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
@@ -1154,74 +1135,15 @@ export default class ProviderPanel extends Component {
                               </div>
                             </div>
                           </div>
-
-
-
-                          <div className="col-lg-4 col-sm-6 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Pause/Resume the bot"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
+                          <div className="col-lg-4 col-sm-12 mb-2">
+                            <h2 className="heading">{estatus} </h2>
                           </div>
-                          <div className="col-lg-4 col-sm-6 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Allow TRX burn to accept new orders when you run out of bandwidth"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
+                          <div className="col-lg-4 col-sm-12 mb-2">
+                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
                           </div>
-                          <div className="col-lg-4 col-sm-6 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notifications <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Pause/Resume notifications from the telegram bot"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
+                          <div className="col-lg-4 col-sm-12 mb-2">
+                            <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
                           </div>
-                          <div className="col-lg-6 col-sm-12 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Sell your staked bandwidth over the amount you establish"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
-                          </div>
-                          <div className="col-lg-6 col-sm-12 form-check form-switch">
-                            <input className="form-check-input" type="checkbox" id="ener" checked={this.state.sellener} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Sell your staked energy over the amount you establish"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
-                          </div>
-
-
-                        </div>
-
-                        <div className="row mt-3">
 
                           <div className="col-lg-6 col-md-12 mb-2">
                             <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
@@ -1279,6 +1201,72 @@ export default class ProviderPanel extends Component {
                           <div className="col-lg-12 col-sm-12 mb-2">
                             {campoFreeze}
                           </div>
+
+                          <div className="col-lg-4 col-sm-6 ">
+                            <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onInput={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Pause/Resume the bot"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
+                          </div>
+
+                          <div className="col-lg-4 col-sm-6 " style={{ textAlign: "center" }}>
+                            <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onInput={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Allow TRX burn to accept new orders when you run out of bandwidth"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
+                          </div>
+
+                          <div className="col-lg-4 col-sm-6 " style={{ textAlign: "right" }}>
+                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onInput={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notifications <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Pause/Resume notifications from the telegram bot"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
+                          </div>
+
+                          <div className="col-lg-6 col-sm-12 ">
+                            <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Sell your staked bandwidth over the amount you establish"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
+                          </div>
+
+                          <div className="col-lg-6 col-sm-12 " style={{ textAlign: "right" }}>
+                            <input className="form-check-input" type="checkbox" id="ener" checked={this.state.sellener} onChange={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
+
+                              this.setState({
+                                ModalTitulo: "Info",
+                                ModalBody: "Sell your staked energy over the amount you establish"
+                              })
+
+                              window.$("#alert").modal("show");
+                            }}></i></label>
+                          </div>
+
 
                         </div>
                       </div>
@@ -1448,7 +1436,7 @@ export default class ProviderPanel extends Component {
 
       </>);
     } else {
-      if(this.state.firma){
+      if (this.state.firma) {
 
         return (<>
 
@@ -1458,12 +1446,12 @@ export default class ProviderPanel extends Component {
                 <div className="row">
                   <div className="col-12">
                     <div className="card exchange">
-                      <div className="card-header d-block">
+                      <div className="card-header d-block" style={{ border: "none" }}>
                         <h2 className="heading">Status: you are a provider</h2>
-  
+
                         <p>there seems to be problems when performing signature verification please contact support</p>
-  
-  
+
+
                       </div>
                     </div>
                   </div>
@@ -1471,12 +1459,12 @@ export default class ProviderPanel extends Component {
               </div>
             </div>
           </div>
-  
-  
-  
+
+
+
         </>);
 
-      }else{
+      } else {
         return (<>
 
           <div className="container-fluid">
@@ -1485,12 +1473,19 @@ export default class ProviderPanel extends Component {
                 <div className="row">
                   <div className="col-12">
                     <div className="card exchange">
-                      <div className="card-header d-block">
-                        <h2 className="heading">Status</h2>
-  
-                        <p>you are not a supplier, if you want to become one read the following <a className="btn btn-primary" href="https://brutus.finance/brutusprovider.html">article</a></p>
-  
-  
+                      <div className="card-header d-block" style={{ border: "none" }}>
+                        <h2 className="heading">Ready for rent your energy</h2>
+
+                        <p>
+                          <button className="btn btn-warning">Login</button>
+                        </p>
+
+                        <p>
+                          You are not a supplier? if you want to become one read the following article <br></br>
+                          <a className="btn btn-primary" href="https://brutus.finance/brutusprovider.html">Become a supplier</a>
+                        </p>
+
+
                       </div>
                     </div>
                   </div>
@@ -1498,12 +1493,12 @@ export default class ProviderPanel extends Component {
               </div>
             </div>
           </div>
-  
-  
-  
+
+
+
         </>);
       }
-     
+
     }
 
 

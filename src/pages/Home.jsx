@@ -1,7 +1,8 @@
 import React, { Component } from "react";
+import utils from "../utils";
 
-const BigNumber = require('bignumber.js');
-
+let nextUpdate = 0
+let intervalId = null
 export default class Inicio extends Component {
 	constructor(props) {
 		super(props);
@@ -33,26 +34,25 @@ export default class Inicio extends Component {
 
 	componentDidMount() {
 		document.getElementById("tittle").innerText = this.props.i18n.t("inicio.tittle")
-		setTimeout(() => {
-			this.estado();
 
-		}, 4 * 1000);
+		intervalId = setInterval(() => {
 
+			if(Date.now() >= nextUpdate){
 
-		setInterval(() => {
-			this.estado();
-		}, 120 * 1000);
-
-		window.addEventListener('message', (e) => {
-
-			if (e.data.message && e.data.message.action === "accountsChanged") {
-				if (e.data.message.data.address) {
-					this.estado();
+				if(!this.props.contrato.ready){
+					nextUpdate = Date.now()+ 3 * 1000;
+				}else{
+					nextUpdate = Date.now()+ 60 * 1000;
 				}
+				this.estado();
 			}
 
+		}, 3 * 1000);
 
-		})
+	}
+
+	componentWillUnmount(){
+		clearInterval(intervalId)
 	}
 
 	subeobaja(valor) {
@@ -155,29 +155,31 @@ export default class Inicio extends Component {
 
 		await this.consultaPrecios();
 
+		let {contrato, accountAddress} = this.props
+
+		if(!contrato.ready)return;
+
 		//console.log(this.props.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
-		var precioBrst = await this.props.contrato.BRST_TRX_Proxy.RATE().call();
-		precioBrst = new BigNumber(precioBrst.toNumber()).shiftedBy(-6).toNumber();
+		let precioBrst = utils.normalizarNumero(await contrato.BRST_TRX_Proxy.RATE().call());
 		this.setState({
 			precioBrst: precioBrst,
 		})
 
-
-		this.props.contrato.BRST.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRST: result.toNumber() / 1e6 }) })
+		contrato.BRST.balanceOf(accountAddress).call()
+			.then((result) => { this.setState({ misBRST: utils.normalizarNumero(result) }) })
 			.catch(console.error)
 
-		this.props.contrato.BRUT.balanceOf(this.props.accountAddress).call()
-			.then((result) => { this.setState({ misBRUT: result.toNumber() / 1e6 }) })
+		contrato.BRUT.balanceOf(accountAddress).call()
+			.then((result) => { this.setState({ misBRUT: utils.normalizarNumero(result) }) })
 			.catch(console.error)
 
-		if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
-			this.props.contrato.BRGY.balanceOf(this.props.accountAddress).call()
-				.then((result) => { this.setState({ misBRGY: result.toNumber() }) })
+		if (accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
+			contrato.BRGY.balanceOf(accountAddress).call()
+				.then((result) => { this.setState({ misBRGY: utils.normalizarNumero(result,0) }) })
 				.catch(console.error)
 
-			this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()
-				.then((result) => { this.setState({ misBRLT: result.toNumber() }) })
+			contrato.BRLT.balanceOf(accountAddress).call()
+				.then((result) => { this.setState({ misBRLT: utils.normalizarNumero(result,0) }) })
 				.catch(console.error)
 		}
 

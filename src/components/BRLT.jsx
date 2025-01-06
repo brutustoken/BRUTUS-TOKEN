@@ -41,7 +41,7 @@ export default class nfts extends Component {
       minutes: "00",
       seconds: "00",
 
-      deadline:1,
+      deadline: 1,
 
       onSale: <>Loading NFT FOR SALE</>,
 
@@ -71,7 +71,7 @@ export default class nfts extends Component {
       this.estado();
     }, 3 * 1000)
 
-    intervalId.push(setInterval(()=>this.updateCountdown(), 1000))
+    intervalId.push(setInterval(() => this.updateCountdown(), 1000))
 
     intervalId.push(setInterval(() => {
 
@@ -85,21 +85,21 @@ export default class nfts extends Component {
     }, 1 * 1000))
 
     intervalId.push(setInterval(async () => {
-      if(this.props.contrato.ready){
+      if (this.props.contrato.ready) {
         clearInterval(intervalId[2])
-        intervalId.push(setInterval(()=>this.estado(), 60*1000))
+        intervalId.push(setInterval(() => this.estado(), 60 * 1000))
       }
       this.estado();
     }, 6 * 1000))
 
-    
+
   };
 
-  componentWillUnmount(){
+  componentWillUnmount() {
 
     for (let index = 0; index < intervalId.length; index++) {
       clearInterval(intervalId[index])
-      
+
     }
 
   }
@@ -123,39 +123,39 @@ export default class nfts extends Component {
   updateCountdown() {
     if (intervalId.length >= 1) {
       // Getting current time in required format
-      let now = new Date().getTime();    
+      let now = new Date().getTime();
       let timeToLive = this.state.deadline - now;
-    
+
       // Getting value of days, hours, minutes, seconds
       let days = Math.floor(timeToLive / (1000 * 60 * 60 * 24));
       let hours = Math.floor((timeToLive % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
       let minutes = Math.floor((timeToLive % (1000 * 60 * 60)) / (1000 * 60));
       let seconds = Math.floor((timeToLive % (1000 * 60)) / 1000);
-    
-      if (days <= 1 ) {
+
+      if (days <= 1) {
         days = days + " Day - "
-      }else{
+      } else {
         days = days + " Days - "
       }
 
       if (hours <= 9) {
-        hours = "0"+hours
+        hours = "0" + hours
       }
 
       if (minutes <= 9) {
-        minutes = "0"+minutes
+        minutes = "0" + minutes
       }
 
       if (seconds <= 9) {
-        seconds = "0"+seconds
+        seconds = "0" + seconds
       }
-    
+
       // Output for over time
       if (timeToLive < 0) {
-         days = ""
-         hours = "00"
-         minutes = "00"
-         seconds = "00"
+        days = ""
+        hours = "00"
+        minutes = "00"
+        seconds = "00"
       }
 
       this.setState({
@@ -169,19 +169,19 @@ export default class nfts extends Component {
 
   async estado() {
 
-    if(!this.props.contrato.ready) return;
+    if (!this.props.contrato.ready) return;
 
     //await this.props.contrato.loteria.inicializar().send();
 
     //await this.props.contrato.loteria.update_addressPOOL("TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE").send();
 
     /*var cosa = await this.props.contrato.loteria.toTRX("1000000").call()
-    cosa = cosa[0].toNumber()
+    cosa = cosa[0]
     console.log(cosa)
     window.alert(cosa);
 
     cosa = await this.props.contrato.loteria.toBRST(cosa.toString()).call()
-    cosa = cosa[0].toNumber()
+    cosa = cosa[0]
     console.log(cosa)
     window.alert(cosa);*/
 
@@ -195,38 +195,45 @@ export default class nfts extends Component {
 
     let cantidad = 0
     if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
-      cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
+      cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()))
     }
-    let totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call())._hex)
+    let totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call()))
     let premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6
     let LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
 
+    this.setState({
+      totalNFT,
+      premio,
+      LastWiner,
+    })
 
-    let onSaleURI = "https://nft-metadata.brutusservices.com/v1/lottery?ticket="+totalNFT
-    let onSalemetadata = JSON.parse( await (await fetch(utils.proxy+onSaleURI)).text());
+    let onSaleURI = "https://nft-metadata.brutusservices.com/v1/lottery?ticket=" + totalNFT
+    let onSalemetadata = JSON.parse(await (await fetch(utils.proxy + onSaleURI)).text());
 
-    let onsale = <div className="col-md-6 col-sm-12" key={"tiket-onsale-"+totalNFT}>
-    <div className="card">
-      <div className="card-body">
-        <div className="new-arrival-product">
-          <div className="new-arrival-content text-center">
-            <h4>Ticket #{totalNFT} FOR SALE</h4>
+    let onSale = <div className="col-md-6 col-sm-12" key={"tiket-onsale-" + totalNFT}>
+      <div className="card">
+        <div className="card-body">
+          <div className="new-arrival-product">
+            <div className="new-arrival-content text-center">
+              <h4>Ticket #{totalNFT} FOR SALE</h4>
+            </div>
+            <div className="new-arrivals-img-contnent">
+              <img src={onSalemetadata.image} alt={onSalemetadata.name + " # " + onSalemetadata.number} className="img-thumbnail"></img>
+            </div>
+            <button className="btn btn-primary mt-1" onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
           </div>
-          <div className="new-arrivals-img-contnent">
-            <img src={onSalemetadata.image} alt={onSalemetadata.name +" # "+onSalemetadata.number} className="img-thumbnail"></img>
-          </div>
-          <button className="btn btn-primary mt-1" onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
         </div>
       </div>
     </div>
-  </div>
+
+    this.setState({ onSale })
 
     let proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
     this.setState({ contarSegundos: proximoSorteo })
     let prosort = proximoSorteo;
     proximoSorteo = new Date(proximoSorteo * 1000)
 
-    this.setState({deadline: proximoSorteo})
+    this.setState({ deadline: proximoSorteo })
 
     var minutos = proximoSorteo.getMinutes()
 
@@ -234,34 +241,14 @@ export default class nfts extends Component {
       minutos = "0" + minutos;
     }
 
-
-    let contract_token = await this.props.tronWeb.contract().at("TRwptGFfX3fuffAMbWDDLJZAZFmP6bGfqL")
-    let balanceDCT = await contract_token.balanceOf(this.props.accountAddress).call()
-    let decimalesDCT = await contract_token.decimals().call()
-    balanceDCT = new BigNumber(balanceDCT._hex).shiftedBy(-decimalesDCT).toNumber()
-
-
-    contract_token = await this.props.tronWeb.contract().at("TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
-    let decimales = await contract_token.decimals().call()
-    let balanceUSDT = await contract_token.balanceOf(this.props.accountAddress).call()
-    balanceUSDT = new BigNumber(balanceUSDT._hex).shiftedBy(-decimales).dp(6).toNumber()
-
-
     this.setState({
-      balanceDCT: balanceDCT,
-      decimalesDCT: decimalesDCT,
-      balanceUSDT: balanceUSDT,
       mc: cantidad,
-      totalNFT: totalNFT,
-      premio: premio,
-      LastWiner: LastWiner,
       proximoSorteo: "Day " + proximoSorteo.getDate() + " | " + proximoSorteo.getHours() + ":" + minutos + "Hrs",
-      prosort: prosort,
-      onSale: onsale
+      prosort,
     });
 
 
-    let myTikets = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call())._hex)
+    let myTikets = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()))
 
     /*
     let inputs = [
@@ -280,32 +267,32 @@ export default class nfts extends Component {
 
     console.log(transaction)
     */
-    
 
-    let tikets = []
+
+    let { tikets } = this.state
 
     for (let index = 0; index < myTikets; index++) {
 
-      let globalId = parseInt((await this.props.contrato.BRLT.tokenOfOwnerByIndex(this.props.accountAddress, index).call())._hex)
+      let globalId = parseInt((await this.props.contrato.BRLT.tokenOfOwnerByIndex(this.props.accountAddress, index).call()))
 
       let URI = await this.props.contrato.BRLT.tokenURI(globalId).call()
-      let metadata = JSON.parse( await (await fetch(utils.proxy+URI)).text());
+      let metadata = JSON.parse(await (await fetch(utils.proxy + URI)).text());
 
       //console.log(metadata)
 
       let button = <></>
 
-      let value = new BigNumber((await this.props.contrato.loteria.valueNFT(globalId).call())._hex).shiftedBy(-6).dp(2).toString(10)
+      let value = new BigNumber(parseInt(await this.props.contrato.loteria.valueNFT(globalId).call())).shiftedBy(-6).dp(2).toString(10)
 
-      if(value > 0){
+      if (value > 0) {
         button = (<div className="new-arrival-content text-center mt-3">
-        <button className="btn btn-success" >Prize {value} TRX</button>
-      </div>)
+          <button className="btn btn-success" >Prize {value} TRX</button>
+        </div>)
       }
 
-      tikets[index]=(
+      tikets[index] = (
 
-        <div className="col-3" key={"tiket-lottery-"+globalId}>
+        <div className="col-3" key={"tiket-lottery-" + globalId}>
           <div className="card">
             <div className="card-body">
               <div className="new-arrival-product">
@@ -313,7 +300,7 @@ export default class nfts extends Component {
                   <h4>Ticket #{globalId}</h4>
                 </div>
                 <div className="new-arrivals-img-contnent">
-                  <img src={metadata.image} alt={metadata.name +" # "+metadata.number} className="img-thumbnail"></img>
+                  <img src={metadata.image} alt={metadata.name + " # " + metadata.number} className="img-thumbnail"></img>
                 </div>
                 {button}
               </div>
@@ -323,12 +310,12 @@ export default class nfts extends Component {
       )
 
       this.setState({
-        tikets: tikets
+        tikets
       })
-      
+
     }
 
-    
+
 
   }
 
@@ -377,8 +364,8 @@ export default class nfts extends Component {
         return false
       })
 
-      if(transaction){
-        transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+    if (transaction) {
+      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
         .then(() => {
           this.setState({
             modalTitulo: "Purchased lottery ticket",
@@ -388,16 +375,16 @@ export default class nfts extends Component {
           this.estado();
         })
         .catch((e) => {
-  
+
           this.setState({
             ModalTitulo: "Error",
             ModalBody: e.toString()
           })
-  
+
           window.$("#alerta").modal("show");
           return false
         })
-      }
+    }
 
     //await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
 
@@ -427,9 +414,9 @@ export default class nfts extends Component {
   async sorteo() {
 
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
-    let premio = await this.props.contrato.loteria._premio().call()
+    let premio = parseInt(await this.props.contrato.loteria._premio().call())
 
-    let salida = await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call()
+    let salida = parseInt(await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call())
 
     if (Date.now() >= (this.state.prosort * 1000) && salida >= premio) {
       this.props.contrato.loteria.sorteo().send()//.send({shouldPollResponse:true})
@@ -464,7 +451,7 @@ export default class nfts extends Component {
   async consultarPrecio() {
 
     var precio = await this.props.contrato.loteria.RATE().call();
-    precio = parseInt(precio._hex) / 10 ** 6;
+    precio = parseInt(precio) / 10 ** 6;
 
     this.setState({
       precioBRUT: precio
@@ -499,12 +486,12 @@ export default class nfts extends Component {
 
     let contract_base_token = await this.props.tronWeb.contract().at(token)
     let amount_base_token = await contract_base_token.balanceOf(swapContract).call()
-    amount_base_token = parseInt(amount_base_token._hex)
+    amount_base_token = parseInt(amount_base_token)
     amount_base_token = new BigNumber(amount_base_token).shiftedBy(-1 * (await contract_base_token.decimals().call()))
 
     let contract_result_token = await this.props.tronWeb.contract().at(trxAddress)
     let amount_result_token = await contract_result_token.balanceOf(swapContract).call()
-    amount_result_token = parseInt(amount_result_token._hex)
+    amount_result_token = parseInt(amount_result_token)
     amount_result_token = new BigNumber(amount_result_token).shiftedBy(-1 * (await contract_result_token.decimals().call()))
 
 
@@ -521,9 +508,7 @@ export default class nfts extends Component {
     let contrato = await this.props.tronWeb.contract(abi_SUNSAWPv2, sunswapRouter)///esquema de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
 
     let aprove = await contract_base_token.allowance(this.props.accountAddress, sunswapRouter).call()
-
-
-    if (aprove._hex) aprove = parseInt(aprove._hex)
+    aprove = parseInt(aprove)
 
     if (aprove <= 0) {
       await contract_base_token.approve(sunswapRouter, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send()
@@ -562,7 +547,7 @@ export default class nfts extends Component {
                     <div className="text-center row align-items-center justify-content-center">
 
                       {this.state.onSale}
-                      
+
                     </div>
                   </div>
                   <div className="col-md-6">
@@ -641,7 +626,7 @@ export default class nfts extends Component {
 
           <div className="col-xl-12">
 
-          <div className="row">
+            <div className="row">
               <div className="col-xl-12">
                 <div className="card">
 
@@ -649,7 +634,7 @@ export default class nfts extends Component {
 
                     <h2 className="heading">My Tickets</h2>
                     <p>
-                    The probability of winning is based on how many tickets you have, the more tickets you have, the greater the probability of winning.
+                      The probability of winning is based on how many tickets you have, the more tickets you have, the greater the probability of winning.
                       <br></br><br></br>
 
                     </p>
@@ -716,13 +701,13 @@ export default class nfts extends Component {
 
                       </li>
                     </ol>
-                    <p>
+                    <p className="text-center">
                       <br></br><br></br>
                       Join Brutus Lottery and experience the thrill of the unique, where every NFT unlocks endless opportunities.
                     </p>
 
                     <p className="text-center" >
-                      <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf">{"--> "}Read all Terms and Conditions {" <--"}</a>
+                      <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf" className="btn btn-primary">{"--> "}Read all Terms and Conditions {" <--"}</a>
                     </p>
                   </div>
                 </div>
@@ -738,9 +723,9 @@ export default class nfts extends Component {
                 </div>
                 <div className="card-body">
                   <p>
-                  <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+utils.SC4+"/code"}>{utils.SC4}</a>
-                  <br></br>
-                  <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+utils.BRLT+"/code"}>{utils.BRLT}</a>
+                    <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.SC4 + "/code"}>{utils.SC4}</a>
+                    <br></br>
+                    <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.BRLT + "/code"}>{utils.BRLT}</a>
                   </p>
                 </div>
               </div>

@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import utils from "../utils";
+import Alert from "./Alert";
 
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
@@ -49,6 +50,9 @@ const options2 = [
   },
 ];
 
+let nextUpdate = 0
+let intervalId = null
+
 export default class Home extends Component {
   constructor(props) {
     super(props);
@@ -74,6 +78,8 @@ export default class Home extends Component {
       cantidadDatos: 30,
       cambio24h: 0,
 
+      msj: {},
+
     };
 
     this.grafico = this.grafico.bind(this);
@@ -97,17 +103,23 @@ export default class Home extends Component {
     this.grafico(1000, "day", 30);
     this.consultarPrecio();
 
-    setTimeout(() => {
-      this.estado();
+    intervalId = setInterval(() => {
+
+      if (Date.now() >= nextUpdate) {
+
+        if (!this.props.contrato.ready) {
+          nextUpdate = Date.now() + 3 * 1000;
+        } else {
+          nextUpdate = Date.now() + 60 * 1000;
+        }
+        this.estado();
+      }
 
     }, 3 * 1000);
+  }
 
-    /*
-    setInterval(() => {
-      this.root.dispose();
-      this.grafico(0);
-    }, 60 * 1000);
-    */
+  componentWillUnmount() {
+    clearInterval(intervalId)
   }
 
   handleChange(e) {
@@ -168,7 +180,6 @@ export default class Home extends Component {
     try {
       response = await fetch(proxyUrl + utils.market_brut).then((res) => { return res.json() }).catch(error => { console.error(error) })
       market = response.marketcap.usdt;
-      console.log(response)
       tokens = response.circulatingSupply;
 
     } catch (err) {
@@ -193,19 +204,18 @@ export default class Home extends Component {
 
   async estado() {
 
-    var accountAddress = this.props.accountAddress;
+    let { accountAddress, contrato } = this.props;
 
-    var aprovadoUSDT = await this.props.contrato.USDT.allowance(accountAddress, this.props.contrato.BRUT_USDT.address).call();
-    if (aprovadoUSDT.remaining) {
-      aprovadoUSDT = parseInt(aprovadoUSDT.remaining._hex);
-    } else {
-      aprovadoUSDT = parseInt(aprovadoUSDT._hex);
-    }
+    if (!contrato.ready) return;
 
-    var balanceUSDT = await this.props.contrato.USDT.balanceOf(accountAddress).call();
-    balanceUSDT = parseInt(balanceUSDT._hex) / 10 ** 6;
+    let aprovadoUSDT = await contrato.USDT.allowance(accountAddress, contrato.BRUT_USDT.address).call();
+    if (aprovadoUSDT.remaining) aprovadoUSDT = aprovadoUSDT.remaining;
+    aprovadoUSDT = utils.normalizarNumero(aprovadoUSDT)
 
-    if (aprovadoUSDT > 0) {
+    let balanceUSDT = await contrato.USDT.balanceOf(accountAddress).call();
+    balanceUSDT = utils.normalizarNumero(balanceUSDT)
+
+    if (aprovadoUSDT >= balanceUSDT) {
       aprovadoUSDT = "Buy ";
     } else {
       aprovadoUSDT = "Approve Purchases";
@@ -214,17 +224,14 @@ export default class Home extends Component {
       })
     }
 
-    var aprovadoBRUT = await this.props.contrato.BRUT.allowance(accountAddress, this.props.contrato.BRUT_USDT.address).call();
-    if (aprovadoBRUT.remaining) {
-      aprovadoBRUT = parseInt(aprovadoBRUT.remaining._hex);
-    } else {
-      aprovadoBRUT = parseInt(aprovadoBRUT._hex);
-    }
+    let aprovadoBRUT = await contrato.BRUT.allowance(accountAddress, contrato.BRUT_USDT.address).call();
+    if (aprovadoBRUT.remaining) aprovadoBRUT = aprovadoBRUT.remaining;
+    aprovadoBRUT = utils.normalizarNumero(aprovadoBRUT);
 
-    var balanceBRUT = await this.props.contrato.BRUT.balanceOf(accountAddress).call();
-    balanceBRUT = parseInt(balanceBRUT._hex) / 10 ** 6;
+    let balanceBRUT = await contrato.BRUT.balanceOf(accountAddress).call();
+    balanceBRUT = utils.normalizarNumero(balanceBRUT);
 
-    if (aprovadoBRUT > 0) {
+    if (aprovadoBRUT >= balanceBRUT) {
       aprovadoBRUT = "Sell ";
     } else {
       aprovadoBRUT = "Approve Sales";
@@ -233,141 +240,187 @@ export default class Home extends Component {
       })
     }
 
-    var supplyBRUT = await this.props.contrato.BRUT.totalSupply().call();
-    supplyBRUT = supplyBRUT.toNumber() / 1e6;
+    let supplyBRUT = await contrato.BRUT.totalSupply().call();
+    supplyBRUT = utils.normalizarNumero(supplyBRUT);
 
     this.setState({
       depositoUSDT: aprovadoUSDT,
       depositoBRUT: aprovadoBRUT,
-      balanceBRUT: balanceBRUT,
-      balanceUSDT: balanceUSDT,
+      balanceBRUT,
+      balanceUSDT,
       wallet: accountAddress,
       totalCirculando: supplyBRUT
     });
 
   }
 
-
   async compra() {
 
+    let { minCompra } = this.state;
+    const { contrato, accountAddress, tronWeb } = this.props;
 
-    const { minCompra } = this.state;
+    let amount = document.getElementById("amountUSDT").value;
+    amount = utils.normalizarNumero(amount.replace(/,/g, "."), 0);
 
-    var amount = document.getElementById("amountUSDT").value;
-    amount = parseFloat(amount);
-    amount = parseInt(amount * 10 ** 6);
+    let aprovado = await contrato.USDT.allowance(accountAddress, contrato.BRUT_USDT.address).call();
 
-    var accountAddress = this.props.accountAddress;
+    if (aprovado <= 0) {
+      let inputs = [
+        { type: 'address', value: contrato.BRUT_USDT.address },
+        { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" }
+      ]
 
-    var aprovado = await this.props.contrato.USDT.allowance(accountAddress, this.props.contrato.BRUT_USDT.address).call();
-    if (aprovado.remaining) {
-      aprovado = parseInt(aprovado.remaining._hex);
-    } else {
-      aprovado = parseInt(aprovado._hex);
+      let funcion = "allowance(address,uint256)"
+      let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.USDT.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+      let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+        .catch((e) => {
+
+          this.setState({ msj: { title: "Error", message: e.toString() } })
+          return false;
+        })
+      if (!transaction) return;
+      await tronWeb.trx.sendRawTransaction(transaction)
+        .then((r) => {
+
+          this.setState({ msj: { title: "Result", message: <>Transacction hash: {r.txid}</> } })
+
+        })
+      //await contrato.USDT.approve(contrato.USDT, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
+      aprovado = await contrato.USDT.allowance(accountAddress, contrato.BRUT_USDT.address).call();
+
     }
 
+    if (aprovado.remaining) aprovado = aprovado.remaining;
+    aprovado = utils.normalizarNumero(aprovado);
+
     if (aprovado >= amount) {
-
-
       if (amount >= minCompra) {
+
+        let inputs = [
+          //{ type: 'address', value: AddressContract },
+          { type: 'uint256', value: utils.numberToStringCero(amount) }
+        ]
+
+        let funcion = "comprar(uint256)"
+        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRUT_USDT.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+          .catch((e) => {
+
+            this.setState({ msj: { title: "Error", message: e.toString() } })
+            return false;
+          })
+        if (!transaction) return;
+        await tronWeb.trx.sendRawTransaction(transaction)
+          .then((r) => {
+
+            this.setState({ msj: { title: "Result", message: <>Transacction {r.txid}</> } })
+
+          })
 
         document.getElementById("amountUSDT").value = "";
 
-        await this.props.contrato.BRUT_USDT.comprar(amount).send();
 
       } else {
         window.alert("Enter an amount greater than " + minCompra + " USDT");
         document.getElementById("amountUSDT").value = minCompra;
       }
 
-
-
     } else {
 
+
       if (aprovado <= 0) {
-        await this.props.contrato.USDT.approve(this.props.contrato.USDT, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
-      }
-
-      if (amount > aprovado) {
-        if (aprovado <= 0) {
-          document.getElementById("amountUSDT").value = minCompra;
-          window.alert("Not enough USDT");
-        } else {
-          document.getElementById("amountUSDT").value = minCompra;
-          window.alert("invalid value");
-        }
-
-
-
+        document.getElementById("amountUSDT").value = minCompra;
+        window.alert("Not enough USDT");
       } else {
-
-        document.getElementById("amountUSDT").value = amount;
+        document.getElementById("amountUSDT").value = minCompra;
         window.alert("invalid value");
-
       }
+
     }
 
-
+    this.estado();
   };
 
   async venta() {
 
+    const { minventa, balanceBRUT } = this.state;
+    const { contrato, accountAddress, tronWeb } = this.props;
 
-    const { minventa } = this.state;
+    let amount = document.getElementById("amountBRUT").value;
+    amount = utils.normalizarNumero(amount.replace(/,/g, "."), 0)
 
-    var amount = document.getElementById("amountBRUT").value;
-    amount = parseFloat(amount);
-    amount = parseInt(amount * 10 ** 6);
+    let aprovado = await contrato.BRUT.allowance(accountAddress, contrato.BRUT_USDT.address).call();
 
-    var accountAddress = this.props.accountAddress;
+    if (aprovado <= 0) {
+      let inputs = [
+        { type: 'address', value: contrato.BRUT_USDT.address },
+        { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" }
+      ]
 
-    var aprovado = await this.props.contrato.BRUT.allowance(accountAddress, this.props.contrato.BRUT_USDT.address).call();
-    if (aprovado.remaining) {
-      aprovado = parseInt(aprovado.remaining._hex);
-    } else {
-      aprovado = parseInt(aprovado._hex);
+      let funcion = "allowance(address,uint256)"
+      let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRUT.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+      let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+        .catch((e) => {
+
+          this.setState({ msj: { title: "Error", message: e.toString() } })
+          return false;
+        })
+      if (!transaction) return;
+      await tronWeb.trx.sendRawTransaction(transaction)
+        .then((r) => {
+
+          this.setState({ msj: { title: "Result", message: <>Transacction hash: {r.txid}</> } })
+
+        })
+      aprovado = await contrato.BRUT.allowance(accountAddress, contrato.BRUT_USDT.address).call();
     }
+
+    if (aprovado.remaining) aprovado = aprovado.remaining;
+    aprovado = utils.normalizarNumero(aprovado);
+
+    if (amount < minventa) {
+      document.getElementById("amountBRUT").value = minventa;
+      this.setState({ msj: { title: "Error", message: "Place an amount greater than " + minventa + " BRUT" } })
+      return;
+    }
+
+    if (amount > balanceBRUT) {
+      document.getElementById("amountBRUT").value = minventa;
+      this.setState({ msj: { title: "Error", message: "Insuficient BRUT" } })
+      return;
+    }
+
 
     if (aprovado >= amount) {
 
+      let inputs = [
+        //{ type: 'address', value: AddressContract },
+        { type: 'uint256', value: utils.numberToStringCero(amount) }
+      ]
 
-      if (amount >= minventa) {
+      let funcion = "vender(uint256)"
+      let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRUT_USDT.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+      let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+        .catch((e) => {
 
-        document.getElementById("amountBRUT").value = "";
+          this.setState({ msj: { title: "Error", message: e.toString() } })
+          return false;
+        })
+      if (!transaction) return;
+      await tronWeb.trx.sendRawTransaction(transaction)
+        .then((r) => {
 
-        await this.props.contrato.BRUT_USDT.vender(amount).send();
+          this.setState({ msj: { title: "Result", message: <>Transacction {r.txid}</> } })
 
-      } else {
-        window.alert("place an amount greater than $10 USDT");
-        document.getElementById("amountBRUT").value = 10;
-      }
+        })
 
-
-
-    } else {
-
-
-      if (aprovado <= 0) {
-        await this.props.contrato.BRUT.approve(this.props.contrato.BRUT_USDT.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
-      }
-
-      if (amount > aprovado) {
-        if (aprovado <= 0) {
-          document.getElementById("amountBRUT").value = minventa;
-          window.alert("the minimum requirements to sell are " + minventa + " BRUT");
-        } else {
-          document.getElementById("amountBRUT").value = minventa;
-          window.alert("invalid value");
-        }
+      document.getElementById("amountBRUT").value = "";
 
 
-
-      } else {
-
-        document.getElementById("amountBRUT").value = minventa;
-        window.alert("valor inválido");
-
-      }
 
     }
 
@@ -443,12 +496,9 @@ export default class Home extends Component {
       let consulta = (await (await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brut?temporalidad=" + temporalidad + "&limite=" + count)).json()).Data
       let data = []
 
-      console.log(consulta)
       for (var i = consulta.length - 1; i >= 0; --i) {
         data.push(generateData(consulta[i]));
       }
-      console.log(data)
-
 
       return data;
     }
@@ -555,7 +605,7 @@ export default class Home extends Component {
 
   render() {
 
-    var { minCompra, minventa } = this.state;
+    let { minCompra, minventa, msj } = this.state;
 
     minCompra = "Min. " + minCompra + " USDT";
     minventa = "Min. " + minventa + " BRUT";
@@ -603,13 +653,13 @@ export default class Home extends Component {
                       </div>
                       <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
 
-                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: "white"}} value={this.state.cantidadDatos} onChange={this.handleChange2}>
+                      <select className="btn-secondary style-1 default-select" style={{ backgroundColor: "white" }} value={this.state.cantidadDatos} onChange={this.handleChange2}>
                         {options2.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
                       </select>
                       {" | "}
-                      <select className="btn-secondary style-1 default-select" style={{backgroundColor: "white"}} value={this.state.temporalidad} onChange={this.handleChange}>
+                      <select className="btn-secondary style-1 default-select" style={{ backgroundColor: "white" }} value={this.state.temporalidad} onChange={this.handleChange}>
                         {options.map((option) => (
                           <option key={option.label.toString()} value={option.value}>{option.label}</option>
                         ))}
@@ -729,7 +779,7 @@ export default class Home extends Component {
           </div>
         </div>
       </div>
-
+      <Alert {...msj} />
     </>);
   }
 }
