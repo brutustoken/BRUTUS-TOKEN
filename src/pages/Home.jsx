@@ -37,12 +37,12 @@ export default class Inicio extends Component {
 
 		intervalId = setInterval(() => {
 
-			if(Date.now() >= nextUpdate){
+			if (Date.now() >= nextUpdate) {
 
-				if(!this.props.contrato.ready){
-					nextUpdate = Date.now()+ 3 * 1000;
-				}else{
-					nextUpdate = Date.now()+ 60 * 1000;
+				if (!this.props.contrato.ready) {
+					nextUpdate = Date.now() + 3 * 1000;
+				} else {
+					nextUpdate = Date.now() + 60 * 1000;
 				}
 				this.estado();
 			}
@@ -51,7 +51,7 @@ export default class Inicio extends Component {
 
 	}
 
-	componentWillUnmount(){
+	componentWillUnmount() {
 		clearInterval(intervalId)
 	}
 
@@ -139,7 +139,7 @@ export default class Inicio extends Component {
 				//console.log(r)
 
 				this.setState({
-					precioTRX: r.usd/r.trx,
+					precioTRX: r.usd / r.trx,
 					varBrst: r.v24h,
 					precioBrstUSD: r.usd
 				})
@@ -155,9 +155,9 @@ export default class Inicio extends Component {
 
 		await this.consultaPrecios();
 
-		let {contrato, accountAddress} = this.props
+		let { contrato, accountAddress } = this.props
 
-		if(!contrato.ready)return;
+		if (!contrato.ready) return;
 
 		//console.log(this.props.tronWeb.createRandom({path: "m/44'/195'/0'/0/0", extraEntropy: 'alajuacdand', locale: 'en'}))
 		let precioBrst = utils.normalizarNumero(await contrato.BRST_TRX_Proxy.RATE().call());
@@ -175,11 +175,11 @@ export default class Inicio extends Component {
 
 		if (accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
 			contrato.BRGY.balanceOf(accountAddress).call()
-				.then((result) => { this.setState({ misBRGY: utils.normalizarNumero(result,0) }) })
+				.then((result) => { this.setState({ misBRGY: utils.normalizarNumero(result, 0) }) })
 				.catch(console.error)
 
 			contrato.BRLT.balanceOf(accountAddress).call()
-				.then((result) => { this.setState({ misBRLT: utils.normalizarNumero(result,0) }) })
+				.then((result) => { this.setState({ misBRLT: utils.normalizarNumero(result, 0) }) })
 				.catch(console.error)
 		}
 
@@ -195,7 +195,7 @@ export default class Inicio extends Component {
 						<div className="profile card card-body px-3 pt-3">
 							<div className="profile-head">
 								<div className="photo-content">
-									<a href="?ebot" title={this.props.i18n.t('inicio.try')}>
+									<a href="/#/ebot" title={this.props.i18n.t('inicio.try')}>
 										<div className="rounded"><img style={{ borderRadius: "1%" }}
 											src="images/banner.jpg" alt="tron energy rental" width="100%" />
 										</div>
@@ -237,7 +237,7 @@ export default class Inicio extends Component {
 													<tr>
 														<td>
 															<a className="market-title d-flex align-items-center"
-																href="?brut">
+																href="/#/brut">
 																<img src="images/brut.png" width="50px" alt="brutus token" />
 																<h5 className="mb-0 ms-2">BRUT</h5>
 																<span className="text-muted ms-2">Brutus Token</span>
@@ -253,7 +253,7 @@ export default class Inicio extends Component {
 													<tr>
 														<td>
 															<a className="market-title d-flex align-items-center"
-																href="?brst">
+																href="/#/brst">
 																<img src="images/brst.png" width="50px" alt="brutus tron staking" />
 																<h5 className="mb-0 ms-2">BRST</h5>
 																<span className="text-muted ms-2">Brutus Tron Staking</span>
@@ -268,7 +268,7 @@ export default class Inicio extends Component {
 													<tr>
 														<td>
 															<a className="market-title d-flex align-items-center"
-																href="?brgy">
+																href="/#/brgy">
 																<img src="images/brgy.png" width="50px" alt="brutus gallery" />
 																<h5 className="mb-0 ms-2">BRGY</h5>
 																<span className="text-muted ms-2">Brutus {this.props.i18n.t("gallery")}</span>
@@ -283,7 +283,7 @@ export default class Inicio extends Component {
 													<tr>
 														<td>
 															<a className="market-title d-flex align-items-center"
-																href="?brlt">
+																href="/#/brlt">
 																<img src="images/brlt.png" width="50px" alt="brutus lottery" />
 																<h5 className="mb-0 ms-2">BRLT</h5>
 																<span className="text-muted ms-2">Brutus {this.props.i18n.t("lottery")}</span>
@@ -292,8 +292,8 @@ export default class Inicio extends Component {
 														<td>{this.state.misBRLT}</td>
 														<td>100 TRX</td>
 														<td>-0-</td>
-														<td>{this.state.misBRLT*100} TRX</td>
-														<td>{(this.state.misBRLT*100*this.state.precioTRX).toFixed(1)} USD</td>
+														<td>{this.state.misBRLT * 100} TRX</td>
+														<td>{(this.state.misBRLT * 100 * this.state.precioTRX).toFixed(1)} USD</td>
 													</tr>
 												</tbody>
 											</table>
@@ -313,5 +313,5 @@ export default class Inicio extends Component {
 
 export const Head = () => <>
 
-    <meta property="og:image" content="brutusimage" />
+	<meta property="og:image" content="brutusimage" />
 </>

@@ -1473,11 +1473,13 @@ export default class Staking extends Component {
 
   async grafico(time, temporalidad, cantidad, lastPrice) {
 
+    if (!document.getElementById('chartdiv-brst')) return;
+
     if (this.root) {
       this.root.dispose();
     }
 
-    const root = am5.Root.new("chartdiv");
+    const root = am5.Root.new("chartdiv-brst");
     root._logo.dispose();
     root.setThemes([
       am5themes_Animated.new(root)
@@ -1724,7 +1726,7 @@ export default class Staking extends Component {
                           </div>
                         </div>
                       </div>
-                      <div className="mb-3" id="chartdiv" style={{ height: "400px", backgroundColor: "white" }}></div>
+                      <div className="mb-3" id="chartdiv-brst" style={{ height: "400px", backgroundColor: "white" }}></div>
 
 
                       <select className="btn-secondary style-1 default-select" style={{ backgroundColor: 'white' }} value={this.state.cantidadDatos} onChange={this.handleChange2}>

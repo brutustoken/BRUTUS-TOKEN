@@ -208,6 +208,8 @@ export default class Home extends Component {
 
     if (!contrato.ready) return;
 
+    console.log(contrato.USDT)
+
     let aprovadoUSDT = await contrato.USDT.allowance(accountAddress, contrato.BRUT_USDT.address).call();
     if (aprovadoUSDT.remaining) aprovadoUSDT = aprovadoUSDT.remaining;
     aprovadoUSDT = utils.normalizarNumero(aprovadoUSDT)
@@ -428,6 +430,9 @@ export default class Home extends Component {
   };
 
   async grafico(time, temporalidad, cantidad) {
+
+    if (!document.getElementById('chartdiv')) return;
+
     if (this.root) {
       this.root.dispose();
     }

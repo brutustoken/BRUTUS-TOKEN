@@ -66,16 +66,20 @@ function setDarkTheme() {
 
 }
 
+let nextUpdate = 0
+let intervalId = null
 
 class App extends Component {
   constructor(props) {
     super(props);
 
     this.state = {
+      ruta: "",
       accountAddress: adressDefault,
       tronlink: {
         installed: false,
         loggedIn: false,
+        viewer: false,
         adapter: {}
       },
       tronWeb: tronWeb,
@@ -103,7 +107,6 @@ class App extends Component {
     this.estado = this.estado.bind(this);
 
     this.route = this.route.bind(this);
-    this.intervalo = this.intervalo.bind(this);
     this.loadContracts = this.loadContracts.bind(this);
     this.selecionarIdioma = this.selecionarIdioma.bind(this);
 
@@ -118,29 +121,27 @@ class App extends Component {
     document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
     document.getElementById("conectTL").onclick = () => { this.conectar(true); }
 
-    this.intervalo(5);
+    intervalId = setInterval(() => {
+      this.route();
+      this.selecionarIdioma();
+      if (Date.now() >= nextUpdate) {
+
+        if (this.state.tronlink.installed && !this.state.tronlink.loggedIn) {
+          nextUpdate = Date.now() + 3 * 1000;
+        } else {
+          nextUpdate = Date.now() + 60 * 1000;
+        }
+        this.estado(true);
+      }
+
+    }, 3 * 1000);
 
   }
 
   async componentWillUnmount() {
-    clearInterval(this.state.interval)
-    this.setState({ interval: null })
+    clearInterval(intervalId)
   }
 
-  intervalo(s) {
-    if (this.state.interval !== null) {
-      clearInterval(this.state.interval)
-      this.setState({ interval: null })
-    }
-
-    let interval = setInterval(() => {
-      this.selecionarIdioma();
-      this.estado(true);
-    }, s * 1000);
-
-    this.setState({ interval })
-
-  }
 
   async selecionarIdioma() {
     try {
@@ -157,7 +158,6 @@ class App extends Component {
 
 
   async conectar(billetera) {
-
 
     if (!this.state.conexion && !adapter.connected && tryes > 0) {
       this.setState({ conexion: true })
@@ -176,7 +176,6 @@ class App extends Component {
 
 
     }
-
 
     return adapter.connected;
 
@@ -226,11 +225,13 @@ class App extends Component {
   route() {
     let url = window.location.href;
     if (url.indexOf("/?") >= 0) url = (url.split("/?"))[1];
+    if (url.indexOf("/#/") >= 0) url = (url.split("/#/"))[1];
     if (url.indexOf("#") >= 0) url = (url.split("#"))[0];
     if (url.indexOf("&") >= 0) url = (url.split("&"))[0];
     if (url.indexOf("=") >= 0) url = (url.split("="))[0];
 
     if (url === window.location.origin + "/" || url === "utum_source") url = ""
+    this.setState({ ruta: url })
     return url
   }
 
@@ -238,29 +239,28 @@ class App extends Component {
     let { accountAddress, contrato } = this.state;
 
     let web3Contracts = await utils.getTronweb(accountAddress);
-    let url = this.route()
 
-    if (contrato.BRUT === null && utils.BRUT !== "" && (url === "" || url === "brut")) {
+    if (contrato.BRUT === null && utils.BRUT !== "") {
       web3Contracts = await utils.getTronweb(accountAddress, 1);
       contrato.BRUT = await web3Contracts.contract().at(utils.BRUT);
     }
 
-    if (contrato.USDT === null && utils.USDT !== "" && (url === "brut")) {
+    if (contrato.USDT === null && utils.USDT !== "") {
       web3Contracts = await utils.getTronweb(accountAddress, 1);
       contrato.USDT = await web3Contracts.contract().at(utils.USDT);
     }
 
-    if (contrato.BRUT_USDT === null && utils.SC !== "" && (url === "brut")) {
+    if (contrato.BRUT_USDT === null && utils.SC !== "") {
       web3Contracts = await utils.getTronweb(accountAddress, 1);
       contrato.BRUT_USDT = await web3Contracts.contract().at(utils.SC);
     }
 
-    if (contrato.BRST_TRX === null && utils.SC2 !== "" && (url === "brst")) {
+    if (contrato.BRST_TRX === null && utils.SC2 !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRST_TRX = await web3Contracts.contract().at(utils.SC2);
     }
 
-    if (contrato.BRST_TRX_Proxy === null && utils.ProxySC2 !== "" && (url === "" || url === "brst")) {
+    if (contrato.BRST_TRX_Proxy === null && utils.ProxySC2 !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
       contrato.Proxy = web3Contracts.contract(abi_PROXY, utils.ProxySC2);
 
@@ -268,7 +268,7 @@ class App extends Component {
       contrato.BRST_TRX_Proxy = web3Contracts.contract(abi_POOLBRST, utils.ProxySC2);
     }
 
-    if (contrato.BRST_TRX_Proxy_fast === null && utils.ProxySC3 !== "" && (url === "" || url === "brst")) {
+    if (contrato.BRST_TRX_Proxy_fast === null && utils.ProxySC3 !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
       contrato.Proxy_fast = web3Contracts.contract(abi_PROXY, utils.ProxySC3);
 
@@ -276,27 +276,27 @@ class App extends Component {
       contrato.BRST_TRX_Proxy_fast = web3Contracts.contract(abi_SimpleSwap, utils.ProxySC3);
     }
 
-    if (contrato.BRST === null && utils.BRST !== "" && (url === "" || url === "brst")) {
+    if (contrato.BRST === null && utils.BRST !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRST = await web3Contracts.contract().at(utils.BRST);
     }
 
-    if (contrato.BRGY === null && utils.BRGY !== "" && (url === "" || url === "brgy")) {
+    if (contrato.BRGY === null && utils.BRGY !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
       contrato.BRGY = await web3Contracts.contract().at(utils.BRGY);
     }
 
-    if (contrato.MBOX === null && utils.SC3 !== "" && (url === "brgy")) {
+    if (contrato.MBOX === null && utils.SC3 !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
       contrato.MBOX = await web3Contracts.contract().at(utils.SC3);
     }
 
-    if (contrato.BRLT === null && utils.BRLT !== "" && (url === "" || url === "brlt")) {
+    if (contrato.BRLT === null && utils.BRLT !== "") {
       web3Contracts = await utils.getTronweb(accountAddress, 2);
       contrato.BRLT = await web3Contracts.contract().at(utils.BRLT);
     }
 
-    if (contrato.loteria === null && utils.SC4 !== "" && (url === "brlt" || url === "brst")) {
+    if (contrato.loteria === null && utils.SC4 !== "") {
       web3Contracts = await utils.getTronweb(accountAddress, 2);
       contrato.ProxyLoteria = web3Contracts.contract(abi_PROXY, utils.SC4);
 
@@ -316,7 +316,7 @@ class App extends Component {
 
   render() {
 
-    let { tronlink, contrato, accountAddress, tronWeb, msj } = this.state
+    let { tronlink, contrato, accountAddress, tronWeb, msj, ruta } = this.state
 
     let Retorno = <></>
 
@@ -345,7 +345,7 @@ class App extends Component {
       );
     } else {
 
-      let url = this.route()
+      let url = ruta
 
       switch (url) {
 
@@ -374,7 +374,9 @@ class App extends Component {
           Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
           break;
       }
+
     }
+
     return (<>
       {Retorno}
       <Alert {...msj} />
