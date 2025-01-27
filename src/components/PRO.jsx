@@ -335,6 +335,8 @@ export default class ProviderPanel extends Component {
 
   async grafico(external_data) {
 
+    if (!document.getElementById('chartdiv')) return;
+
     if (this.root) {
       this.root.dispose();
     }
@@ -1203,7 +1205,7 @@ export default class ProviderPanel extends Component {
                           </div>
 
                           <div className="col-lg-4 col-sm-6 ">
-                            <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onInput={this.handleChange} ></input>
+                            <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
 
                               this.setState({
@@ -1216,7 +1218,7 @@ export default class ProviderPanel extends Component {
                           </div>
 
                           <div className="col-lg-4 col-sm-6 " style={{ textAlign: "center" }}>
-                            <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onInput={this.handleChange} ></input>
+                            <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
 
                               this.setState({
@@ -1229,7 +1231,7 @@ export default class ProviderPanel extends Component {
                           </div>
 
                           <div className="col-lg-4 col-sm-6 " style={{ textAlign: "right" }}>
-                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onInput={this.handleChange} ></input>
+                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notifications <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
 
                               this.setState({

@@ -287,6 +287,8 @@ export default class ProviderPanel extends Component {
 
   async grafico(external_data) {
 
+    if (!document.getElementById('chartdiv')) return;
+
     if (this.root) {
       this.root.dispose();
     }

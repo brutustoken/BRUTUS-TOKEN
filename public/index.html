@@ -13,7 +13,6 @@
     <meta name="format-detection" content="telephone=no" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-
     <!-- PAGE TITLE HERE -->
     <title>Brutus.finance - Dashboard</title>
 
@@ -43,7 +42,7 @@
             Nav header start
         ***********************************-->
       <div class="nav-header">
-        <a href="/" class="brand-logo">
+        <a href="#/" class="brand-logo">
           <img src="images/logo/logo-movil.png" class="logo-abbr" alt="" />
           <img src="images/logo/logotexto.png" class="brand-title" alt="" />
           <img src="images/logo/logo-movil.png" class="logo-color" alt="" />
@@ -100,49 +99,49 @@
         <div class="deznav-scroll">
           <ul class="metismenu" id="menu">
             <li>
-              <a class="has-arrow" href="/" aria-expanded="false">
+              <a class="has-arrow" href="#/" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">dashboard</span></i>
                 <span class="nav-text">Dashboard</span>
               </a>
             </li>
             <li>
-              <a class="has-arrow" href="?brut" aria-expanded="false">
+              <a class="has-arrow" href="#/brut" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">trending_up</span></i>
                 <span class="nav-text">Brutus Token </span>
               </a>
             </li>
             <li>
-              <a class="has-arrow" href="?brst" aria-expanded="false">
+              <a class="has-arrow" href="#/brst" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">dynamic_form</span></i>
                 <span class="nav-text">Brutus Staking </span>
               </a>
             </li>
             <li>
-              <a class="has-arrow" href="?brgy" aria-expanded="false">
+              <a class="has-arrow" href="#/brgy" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">gallery_thumbnail</span></i>
                 <span class="nav-text">Brutus Gallery </span>
               </a>
             </li>
             <li>
-              <a class="has-arrow" href="?brlt" aria-expanded="false">
+              <a class="has-arrow" href="#/brlt" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">app_registration</span></i>
                 <span class="nav-text">Brutus Lottery </span>
               </a>
             </li>
             <li>
-              <a class="has-arrow" href="?ebot" aria-expanded="false">
+              <a class="has-arrow" href="#/ebot" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">offline_bolt</span></i>
                 <span class="nav-text">Resource Rent</span>
               </a>
             </li>
             <li>
-              <a class="has-arrow" href="?pro" aria-expanded="false">
+              <a class="has-arrow" href="#/pro" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">groups_2</span></i>
                 <span class="nav-text">Panel Providers</span>
               </a>
             </li>
             <li>
-              <a class="has-arrow" href="?api" aria-expanded="false">
+              <a class="has-arrow" href="#/api" aria-expanded="false">
                 <i><span translate="no" class="material-symbols-outlined">api</span></i>
                 <span class="nav-text">API Services </span>
               </a>
@@ -176,7 +175,7 @@
       <div class="footer out-footer">
         <div class="copyright">
           <p>
-            Copyright © <span id="year">2024</span> | <a href="https://brutus.finance" target="_blank">Brutus.finance</a> | 
+            Copyright © <span id="year">2024</span> | <a href="https://brutus.finance" target="_blank">Brutus.finance</a> |
             <select name="choice" id="selectLng">
               <option value="en">English</option>
               <option value="es">Español</option>
@@ -186,6 +185,30 @@
           </p>
         </div>
       </div>
+
+      <script>
+        function updateActiveLink() {
+          const currentPath = window.location.hash || window.location.pathname;
+
+          const menuItems = document.querySelectorAll("#menu li");
+
+          menuItems.forEach((item) => {
+            const link = item.querySelector("a");
+            if (link.getAttribute("href") === currentPath) {
+              item.classList.add("mm-active");
+            } else {
+              item.classList.remove("mm-active");
+            }
+          });
+
+          const mostrarMenu = document.querySelector("#main-wrapper");
+          mostrarMenu.classList.remove("menu-toggle");
+        }
+
+        // Llama a esta función en cada cambio de ruta
+        window.addEventListener("hashchange", updateActiveLink);
+        window.addEventListener("load", updateActiveLink); // Ejecuta al cargar la página
+      </script>
 
       <script>
         let elemento = document.getElementById("selectLng");
