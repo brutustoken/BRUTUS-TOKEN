@@ -64,7 +64,7 @@
         "hold": "You Hold",
         "status": "Status",
         "estimateIn": "Estimated income",
-        "growthR": "Growth rate",
+        "growthR": "APY",
         "calculated": "calculated",
         "daily": "Daily",
         "monthly":"Monthly",
