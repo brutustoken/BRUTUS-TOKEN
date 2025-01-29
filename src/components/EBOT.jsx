@@ -146,11 +146,10 @@ export default class EnergyRental extends Component {
 
     let {fromUrl} = this.state
 
-    
     await this.recursos()
 
     let loc = document.location.href;
-    if (loc.indexOf('?ebot=buy') > 0 && fromUrl) {
+    if (loc.indexOf('amount') > 0 && fromUrl) {
       let getString = loc.split('?')[1];
       let GET = getString.split('&');
       let get = {};
@@ -162,10 +161,12 @@ export default class EnergyRental extends Component {
       }
 
 
-      if (get['ebot'] === 'buy') {
-        tmp = get['buy'];
+      if (parseInt(get['amount']) >= 32000) {
         let cantidad = parseInt(get['amount'])
-        let recurso = get['resource']
+        let recurso = "energy"
+        if(get['resource'] !== undefined) {
+          recurso = get['resource']
+        }
 
         if(recurso === "band"||recurso === "bandwidth"){
           recurso = "bandwidth"

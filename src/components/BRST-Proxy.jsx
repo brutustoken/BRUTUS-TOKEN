@@ -111,7 +111,7 @@ export default class Staking extends Component {
       temporalidad: props.i18n.t("day"),
       cantidadDatos: 30,
       dias: props.i18n.t("loading") + "...",
-      days: [{ days: 30, amount: 0, time: 0 }, { days: 90, amount: 0, time: 0 }, { days: 180, amount: 0, time: 0 }, { days: 360, amount: 0, time: 0 }],
+      days: [{ days: 30, amount: 0, time: 0, APY: 0 }, { days: 90, amount: 0, time: 0, APY: 0 }, { days: 180, amount: 0, time: 0, APY: 0 }, { days: 360, amount: 0, time: 0, APY: 0 }],
       varBrut: 0,
       precioBrst: 0,
       varBrst: 0,
@@ -120,7 +120,7 @@ export default class Staking extends Component {
       contractEnergy: 0,
       ModalTitulo: "",
       ModalBody: "",
-      tiempoPromediado: 3,
+      tiempoPromediado: 30,
       promE7to1day: 0,
       resultCalc: 0,
       diasCalc: 1,
@@ -133,6 +133,8 @@ export default class Staking extends Component {
       total_required: 0,
       isOwner: false,
       isAdmin: false,
+      interesCompuesto: 0,
+      crecimientoPorcentual: 0,
     };
 
 
@@ -349,9 +351,8 @@ export default class Staking extends Component {
     if (useTrx >= 1) {
       useTrx = 1
     } else {
-      useTrx = "5 ~ 7"
+      useTrx = "10"
     }
-
 
     let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=" + tiempoPromediado)
       .then(async (r) => (await r.json()).Data)
@@ -365,14 +366,20 @@ export default class Staking extends Component {
       let crecimientoPorcentual = this.state.varBrst;
 
       if (consulta.length >= 2) {
-        const valorInicial = consulta[0].value; // Primer valor del rango
-        const valorFinal = consulta[consulta.length - 1].value; // Último valor del rango
+        const valorInicial = consulta[consulta.length - 1].value; // Primer valor del rango
+        const valorFinal = consulta[0].value; // Ultimo valor del rango
 
+        console.log(valorInicial, valorFinal)
         crecimientoPorcentual = ((valorFinal - valorInicial) / valorInicial) * 100;
+        crecimientoPorcentual = crecimientoPorcentual / consulta.length;
       }
+
+      let interesCompuesto = (1 + crecimientoPorcentual/100) ** tiempoPromediado;
+
       this.setState({
         promE7to1day,
         crecimientoPorcentual,
+        interesCompuesto,
       })
     }
 
@@ -1671,7 +1678,7 @@ export default class Staking extends Component {
 
   render() {
 
-    let { minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, varBrst, isOwner, isAdmin, globDepositos } = this.state;
+    let { precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual } = this.state;
 
     minCompra = "Min. " + minCompra + " TRX";
     minventa = "Min. " + minventa + " BRST";
@@ -1963,34 +1970,37 @@ export default class Staking extends Component {
         <div className="col-lg-12">
           <div className="card">
             <div className="card-header">
-              <h4 className="card-title">{this.props.i18n.t("brst.estimate")}</h4><br></br>
+              <h4 className="card-title">{this.props.i18n.t("brst.estimate")} <br></br> APY {(crecimientoPorcentual*360).toFixed(3)} %</h4><br></br>
+              
               <h6 className="card-subtitle" style={{ cursor: "pointer" }} onClick={() => { document.getElementById("hold").value = this.state.balanceBRST; this.handleChangeCalc({ target: { value: this.state.balanceBRST } }) }}>
                 {this.props.i18n.t("brst.mystaking")}{this.state.misBRST} BRST = {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX
               </h6>
             </div>
             <div className="card-body">
-              <div className="table-responsive overflow-scroll" style={{ height: "350px" }}>
+
+                        <b>Days Average: </b>
+                        <input type="number" id="daysProm" defaultValue={tiempoPromediado} placeholder={tiempoPromediado + " days"} min={1} step={1} onInput={async() => {
+                          let daysProm = parseInt(document.getElementById('daysProm').value);
+                          await this.setState({ tiempoPromediado: isNaN(daysProm) ? 1 : daysProm });
+                          this.estado();
+                        }} ></input>
+                      
+              <div className="table-responsive overflow-scroll" style={{ marginTop: "30px", height: "420px", border: "2px solid rgba(207, 207, 207, 0.97)" , borderRadius: "10px"}}>
                 <table className="table table-hover table-responsive-sm">
 
                   <tbody>
                     <tr>
                       <th>
                         Days Hold<br></br>
-                        <input type="number" id="days" defaultValue={1} onChange={this.handleChangeDias} ></input>
+                        <input type="number" id="days" defaultValue={360} onInput={this.handleChangeDias} ></input><br></br>
+                        <button className="btn btn-primary" onClick={() => { days = days.unshift({ days: diasCalc, amount: parseFloat((document.getElementById('hold').value).replace(/,/g, ".")), time: Date.now(), APY: crecimientoPorcentual }) }}>Calculate</button>
+
                       </th>
-                      <td>
-                        Your BRST<br></br>
-                        <input type="number" id="hold" defaultValue={0} onChange={this.handleChangeCalc} ></input>
-                      </td>
                       <th>
-                        Days Average<br></br>
-                        <input type="number" id="daysProm" defaultValue={tiempoPromediado} placeholder={tiempoPromediado + " days"} min="1" onChange={() => {
-                          let daysProm = parseInt(document.getElementById('daysProm').value);
-                          this.setState({ tiempoPromediado: isNaN(daysProm) ? 1 : daysProm });
-                          this.estado();
-                        }} ></input>
+                        Your BRST<br></br>
+                        <input type="number" id="hold" defaultValue={0} onInput={this.handleChangeCalc} ></input>
                       </th>
-                      <td className="color-primary"><button className="btn btn-primary" onClick={() => { days = days.unshift({ days: diasCalc, amount: parseFloat((document.getElementById('hold').value).replace(/,/g, ".")), time: Date.now() }) }}>Calculate</button></td>
+                     
                     </tr>
                   </tbody>
                 </table>
@@ -2000,7 +2010,6 @@ export default class Staking extends Component {
                       <th>{this.props.i18n.t("day", { count: 10 })}</th>
                       <th>{this.props.i18n.t("brst.hold")}</th>
                       <th>{this.props.i18n.t("brst.estimateIn")}</th>
-                      <th>{this.props.i18n.t("brst.growthR")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -2014,9 +2023,9 @@ export default class Staking extends Component {
                       return (
                         <tr key={"prospect-days-" + obj.days + "-" + obj.amount + "-" + obj.time}>
                           <th>{obj.days}</th>
-                          <td>{obj.amount} BRST</td>
-                          <td>{((obj.amount * this.state.precioBrst * ((varBrst * obj.days) / 100))).toFixed(6)} TRX</td>
-                          <td className="color-success">{(varBrst * obj.days).toFixed(4)} % </td>
+                          <td>{obj.amount} BRST<br>
+                          </br>{(obj.amount * precioBrst).toFixed(3)} TRX</td>
+                          <td>{((obj.amount * precioBrst * ((crecimientoPorcentual * obj.days) / 100))).toFixed(6)} TRX</td>
                         </tr>
                       )
                     })}
