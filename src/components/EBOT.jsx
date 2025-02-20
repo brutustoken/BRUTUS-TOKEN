@@ -20,6 +20,8 @@ const amountB = [
   { amount: 50000, text: "50k" }
 ]
 
+let intervalId
+
 export default class EnergyRental extends Component {
 
   constructor(props) {
@@ -74,11 +76,15 @@ export default class EnergyRental extends Component {
       this.estado()
     }, 1 * 1000)
 
-    setInterval(() => {
+    intervalId = setInterval(() => {
       this.estado()
 
     }, 60 * 1000)
 
+  }
+
+  componentWillUnmount(){
+    clearInterval(intervalId)
   }
 
   handleChangeWallet(event) {
