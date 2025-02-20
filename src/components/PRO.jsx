@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import Cookies from 'universal-cookie';
 import utils from "../utils";
 
-import TronWeb from "tronweb";
+import {TronWeb} from "tronweb";
 
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
@@ -526,6 +526,8 @@ export default class ProviderPanel extends Component {
 
   async estado() {
 
+    const {accountAddress} = this.props
+
     this.setState({
       tiempo: moment.tz.guess(true)
     })
@@ -535,7 +537,7 @@ export default class ProviderPanel extends Component {
     let provider = { result: false };
 
     try {
-      provider = await fetch(url + "provider?wallet=" + this.props.accountAddress)
+      provider = await fetch(url + "provider?wallet=" + accountAddress)
         .then((r) => {
           return r.json();
         })
@@ -544,6 +546,10 @@ export default class ProviderPanel extends Component {
     } catch (error) {
       console.log(error.toString())
     }
+
+    this.setState({
+      provider: provider.result
+    })
 
     //console.log(this.props.tronlink.adapter)
 
@@ -560,7 +566,6 @@ export default class ProviderPanel extends Component {
         cookies.set('firma-tron', firma, { maxAge: 86400 });
       } else {
         firma = await cookies.get('firma-tron');
-
       }
 
       try {
@@ -575,17 +580,15 @@ export default class ProviderPanel extends Component {
         auth = true
       }
 
-      if (firma !== undefined && auth) {
+      this.setState({firma: auth})
 
-        this.setState({
-          provider: true,
-        })
+      if (firma !== undefined && auth ) {
 
         let info = {}
 
         try {
 
-          info = await fetch(url + "status?wallet=" + this.props.accountAddress)
+          info = await fetch(url + "status?wallet=" + accountAddress)
             .then((r) => {
               return r.json();
             })
@@ -615,13 +618,13 @@ export default class ProviderPanel extends Component {
         }
 
 
-        let cuenta = await this.props.tronWeb.trx.getAccountResources(this.props.accountAddress);
+        let cuenta = await this.props.tronWeb.trx.getAccountResources(accountAddress);
 
         let providerEnergy = 0
         let providerEnergyTotal = 0
 
-        var providerBand = 0
-        var providerBandTotal = 0
+        let providerBand = 0
+        let providerBandTotal = 0
 
 
         if (cuenta.EnergyLimit) {
@@ -702,7 +705,7 @@ export default class ProviderPanel extends Component {
               'token-api': process.env.REACT_APP_TOKEN,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ wallet: this.props.accountAddress })
+            body: JSON.stringify({ wallet: accountAddress })
 
           }
           )
@@ -730,7 +733,7 @@ export default class ProviderPanel extends Component {
               'token-api': process.env.REACT_APP_TOKEN,
               'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ wallet: this.props.accountAddress })
+            body: JSON.stringify({ wallet: accountAddress })
 
           }
           )
@@ -745,8 +748,6 @@ export default class ProviderPanel extends Component {
         } catch (error) {
           console.log(error.toString())
         }
-
-
 
         allPayed = (new BigNumber(allPayed).dp(3).toNumber()).toLocaleString('en-US')
 
@@ -781,7 +782,7 @@ export default class ProviderPanel extends Component {
 
         try {
 
-          let body = { wallet: this.props.accountAddress }
+          let body = { wallet: accountAddress }
 
           ongoins = await fetch(url + "ongoingdeals", {
             method: "POST",
@@ -798,10 +799,8 @@ export default class ProviderPanel extends Component {
               return r.ongoing_deals;
             })
 
-
-
         } catch (error) {
-
+          console.log(error)
         }
 
         let listWallets = []
@@ -850,7 +849,7 @@ export default class ProviderPanel extends Component {
 
         try {
 
-          let body = { wallet: this.props.accountAddress }
+          let body = { wallet: accountAddress }
 
           completed = await fetch(url + "completed_deals", {
             method: "POST",
@@ -914,7 +913,7 @@ export default class ProviderPanel extends Component {
         });
 
 
-        const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(this.props.accountAddress)
+        const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(accountAddress)
 
         let delegatedExternal = []
 
@@ -924,7 +923,7 @@ export default class ProviderPanel extends Component {
             delegationInfo.toAccounts[index] = this.props.tronWeb.address.fromHex(delegationInfo.toAccounts[index])
 
             if (listWallets.indexOf(delegationInfo.toAccounts[index]) === -1) {
-              let info = await this.props.tronWeb.trx.getDelegatedResourceV2(this.props.accountAddress, delegationInfo.toAccounts[index])
+              let info = await this.props.tronWeb.trx.getDelegatedResourceV2(accountAddress, delegationInfo.toAccounts[index])
 
               //console.log(info.delegatedResource)
 
@@ -977,7 +976,7 @@ export default class ProviderPanel extends Component {
           let amount = item.sun;
           let receiverAddress = item.wallet
           let resource = item.resource
-          let ownerAddress = this.props.accountAddress
+          let ownerAddress = accountAddress
 
           return (
             <tr key={index}>
@@ -1032,10 +1031,7 @@ export default class ProviderPanel extends Component {
       }
     }
 
-    this.setState({
-      provider: provider.result,
-      firma: auth
-    })
+    
 
 
   }
@@ -1045,7 +1041,41 @@ export default class ProviderPanel extends Component {
   render() {
 
 
-    if (this.state.provider && this.state.firma) {
+    if (this.state.provider) {
+
+      if (!this.state.firma) {
+
+        return (<>
+
+          <div className="container-fluid">
+            <div className="row">
+              <div className="col-12">
+                <div className="row">
+                  <div className="col-12">
+                    <div className="card exchange">
+                      <div className="card-header d-block" style={{ border: "none" }}>
+                        <h2 className="heading">Status: you are a provider</h2>
+
+                        <p>
+                          <button className="btn btn-warning" onClick={()=>this.estado()}>Login</button>
+                        </p>
+
+                        <p>There seems to be problems when performing signature verification please contact support</p>
+
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+
+        </>);
+
+      } else {
 
 
       let estatus = <button className="btn btn-outline-danger btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
@@ -1291,11 +1321,14 @@ export default class ProviderPanel extends Component {
 
                       <hr></hr>
 
-                      <div className="mt-1">Total earned all time:<br>
-                      </br><b>{this.state.allPayed} TRX</b> </div>
-
-
-
+                      <div className="mt-1">
+                        Total earned all time:<br></br>
+                        <b>{this.state.allPayed} TRX</b> <br></br>
+                        <button className="btn btn-danger" onClick={()=>{cookies.remove("firma-tron"); this.setState({firma:false})}}>LogOut <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+  <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+</svg></button>
+                      </div>
 
 
                     </div>
@@ -1437,36 +1470,9 @@ export default class ProviderPanel extends Component {
         </div>
 
       </>);
+      }
     } else {
-      if (this.state.firma) {
-
-        return (<>
-
-          <div className="container-fluid">
-            <div className="row">
-              <div className="col-12">
-                <div className="row">
-                  <div className="col-12">
-                    <div className="card exchange">
-                      <div className="card-header d-block" style={{ border: "none" }}>
-                        <h2 className="heading">Status: you are a provider</h2>
-
-                        <p>there seems to be problems when performing signature verification please contact support</p>
-
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-
-        </>);
-
-      } else {
+      
         return (<>
 
           <div className="container-fluid">
@@ -1477,10 +1483,6 @@ export default class ProviderPanel extends Component {
                     <div className="card exchange">
                       <div className="card-header d-block" style={{ border: "none" }}>
                         <h2 className="heading">Ready for rent your energy</h2>
-
-                        <p>
-                          <button className="btn btn-warning">Login</button>
-                        </p>
 
                         <p>
                           You are not a supplier? if you want to become one read the following article <br></br>
@@ -1499,7 +1501,7 @@ export default class ProviderPanel extends Component {
 
 
         </>);
-      }
+      
 
     }
 

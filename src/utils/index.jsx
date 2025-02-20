@@ -147,7 +147,7 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
       'Accept': 'application/json',
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ user: "9650f24d09200d8d0e1b31fd9eab8b55", data })
+    body: JSON.stringify({ user: env.REACT_APP_USER_C, data })
   }).then((r) => r.json())
     .catch((e) => {
       console.log(e.toString());
