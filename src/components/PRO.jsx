@@ -52,9 +52,12 @@ export default class ProviderPanel extends Component {
       alturaGrafico: "0px",
       tiempo: "",
       payment: "0",
+      payhere: ">>>>>>>>>>>>>>>Loading<<<<<<<<<<<<<<<",
+      payHere: "*************************************",
       completed: [],
       totalPayed30: "Loading...",
       allPayed: "Loading..."
+
 
     };
 
@@ -763,10 +766,11 @@ export default class ProviderPanel extends Component {
           totalPayed30 = totalPayed30.plus(item.amount)
           return (
             <tr key={index}>
-              <td>{moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")}</td>
-              <td>{(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')}
+              <td align="right">{(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')}
               </td>
               <td>{item.coin}</td>
+              <td>{moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")}</td>
+
             </tr>
           )
         })
@@ -1317,7 +1321,7 @@ export default class ProviderPanel extends Component {
                       <div className="count-num mt-1">{(this.state.payment).toLocaleString("en-US")} TRX</div>
                       <hr></hr>
 
-                      <div className="mt-1">that will be paid here: <u>{this.state.payhere}</u></div>
+                      <div className="mt-1">that will be paid here:<br></br> <u onMouseEnter ={()=>{this.setState({payHere: this.state.payhere})}} onMouseLeave={()=>{this.setState({payHere: "*************************************"})}}>{this.state.payHere}</u></div>
 
                       <hr></hr>
 
@@ -1350,9 +1354,10 @@ export default class ProviderPanel extends Component {
                             <table className="table verticle-middle table-responsive-md " >
                               <thead>
                                 <tr>
+                                  <th scope="col" style={{textAlign:"right"}}>Amount</th>
+                                  <th scope="col">Currency</th>
                                   <th scope="col">Date</th>
-                                  <th scope="col">Amount</th>
-                                  <th scope="col">Coin</th>
+
                                 </tr>
                               </thead>
                               <tbody>
