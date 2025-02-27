@@ -88,6 +88,7 @@ let earnings = []
 let iniciado = 0;
 let nextUpdate = 0
 let intervalId = null
+
 export default class Staking extends Component {
   constructor(props) {
     super(props);
@@ -123,7 +124,7 @@ export default class Staking extends Component {
       tiempoPromediado: 30,
       promE7to1day: 0,
       resultCalc: 0,
-      diasCalc: 1,
+      diasCalc: 360,
       brutCalc: 1000,
       balanceBRST: 0,
       balanceTRX: 0,
@@ -299,7 +300,10 @@ export default class Staking extends Component {
       this.handleChangeCalc({ target: { value: misBRST } })
     }
 
-    document.getElementById("hold").value = misBRST
+    if(parseInt(document.getElementById("hold").value) === 0){
+      document.getElementById("hold").value = misBRST
+
+    }
 
 
     //let balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
@@ -1986,13 +1990,14 @@ export default class Staking extends Component {
                         }} ></input>
                       
               <div className="table-responsive overflow-scroll" style={{ marginTop: "30px", height: "420px", border: "2px solid rgba(207, 207, 207, 0.97)" , borderRadius: "10px"}}>
+                
                 <table className="table table-hover table-responsive-sm">
 
                   <tbody>
                     <tr>
                       <th>
                         Days Hold<br></br>
-                        <input type="number" id="days" defaultValue={360} onInput={this.handleChangeDias} ></input><br></br>
+                        <input type="number" id="days" defaultValue={diasCalc} onInput={this.handleChangeDias} ></input><br></br><br></br>
                         <button className="btn btn-primary" onClick={() => { days = days.unshift({ days: diasCalc, amount: parseFloat((document.getElementById('hold').value).replace(/,/g, ".")), time: Date.now(), APY: crecimientoPorcentual }) }}>Calculate</button>
 
                       </th>
