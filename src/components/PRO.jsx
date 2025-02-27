@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import Cookies from 'universal-cookie';
 import utils from "../utils";
 
 import {TronWeb} from "tronweb";
@@ -10,9 +9,7 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
 
-//function delay(s) { return new Promise(res => setTimeout(res, s * 1000)); }
-
-const cookies = new Cookies(null, { path: '/' });
+let isMovil = false;
 
 export default class ProviderPanel extends Component {
 
@@ -76,6 +73,14 @@ export default class ProviderPanel extends Component {
   componentDidMount() {
     document.title = "Provider Panel | Brutus.Finance"
     document.getElementById("tittle").innerText = this.props.i18n.t("Provider Panel")
+
+    function esDispositivoMovil() {
+      return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    }
+
+    if (esDispositivoMovil()) {
+      isMovil = true
+    }
 
     setTimeout(() => {
       this.estado()
@@ -560,15 +565,17 @@ export default class ProviderPanel extends Component {
 
     if (provider.result && this.props.tronlink.adapter.connected) {
 
-      let firma = await cookies.get('firma-tron')
+      let firma = localStorage.getItem('firma-tron')
       let fecha = new Date(Date.now())
       let messge = "https://brutus.finance - " + fecha.getFullYear()
 
-      if (firma === undefined || await window.tronWeb.trx.verifyMessageV2(messge, firma) !== this.props.tronlink.adapter.address) {
+      if ((firma === null || firma === undefined) || await window.tronWeb.trx.verifyMessageV2(messge, firma) !== this.props.tronlink.adapter.address) {
         firma = await this.props.tronlink.adapter.signMessage(messge);
-        cookies.set('firma-tron', firma, { maxAge: 86400 });
+        //cookies.set('firma-tron', firma, { maxAge: 86400 });
+
+        localStorage.setItem('firma-tron', firma);
       } else {
-        firma = await cookies.get('firma-tron');
+        firma = localStorage.getItem('firma-tron')
       }
 
       try {
@@ -1217,8 +1224,8 @@ export default class ProviderPanel extends Component {
                           </div>
 
 
-                          <div className="col-lg-12 col-sm-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: "95.33%" }} data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
+                          <div className="col-lg-12 col-sm-12 mb-2" >
+                            <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: isMovil ? "90%" : "95.333%" }} data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -1238,8 +1245,8 @@ export default class ProviderPanel extends Component {
                             {campoFreeze}
                           </div>
 
-                          <div className="col-lg-4 col-sm-6 ">
-                            <input className="form-check-input" type="checkbox" id="rent" checked={this.state.rent} onChange={this.handleChange} ></input>
+                          <div className="col-4  ">
+                            <input className="form-check-input" type="checkbox" id="rent" style={{backgroundColor: this.state.rent ? "#9568FF" : "lightgray"}} checked={this.state.rent} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
 
                               this.setState({
@@ -1251,8 +1258,8 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
 
-                          <div className="col-lg-4 col-sm-6 " style={{ textAlign: "center" }}>
-                            <input className="form-check-input" type="checkbox" id="burn" checked={this.state.burn} onChange={this.handleChange} ></input>
+                          <div className="col-4  " style={{ textAlign: "center" }}>
+                            <input className="form-check-input" type="checkbox" id="burn" style={{backgroundColor: this.state.burn ? "#9568FF" : "lightgray"}} checked={this.state.burn} onChange={this.handleChange} ></input>
                             <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
 
                               this.setState({
@@ -1264,9 +1271,9 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
 
-                          <div className="col-lg-4 col-sm-6 " style={{ textAlign: "right" }}>
-                            <input className="form-check-input" type="checkbox" id="noti" checked={this.state.noti} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notifications <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
+                          <div className="col-4  " style={{ textAlign: "right" }}>
+                            <input className="form-check-input" type="checkbox" id="noti" style={{backgroundColor: this.state.noti ? "#9568FF" : "lightgray"}} checked={this.state.noti} onChange={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notify <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -1277,9 +1284,9 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
 
-                          <div className="col-lg-6 col-sm-12 ">
-                            <input className="form-check-input" type="checkbox" id="band" checked={this.state.sellband} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: {(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
+                          <div className="col-6  ">
+                            <input className="form-check-input" type="checkbox" id="band" style={{backgroundColor: this.state.sellband ? "#9568FF" : "lightgray"}} checked={this.state.sellband} onChange={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: <br></br>{(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -1290,9 +1297,9 @@ export default class ProviderPanel extends Component {
                             }}></i></label>
                           </div>
 
-                          <div className="col-lg-6 col-sm-12 " style={{ textAlign: "right" }}>
-                            <input className="form-check-input" type="checkbox" id="ener" checked={this.state.sellener} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
+                          <div className="col-6 " style={{ textAlign: "right" }}>
+                            <input className="form-check-input" type="checkbox" id="ener" style={{backgroundColor: this.state.sellener ? "#9568FF" : "lightgray"}} checked={this.state.sellener} onChange={this.handleChange} ></input>
+                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: <br></br> {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
 
                               this.setState({
                                 ModalTitulo: "Info",
@@ -1328,9 +1335,9 @@ export default class ProviderPanel extends Component {
                       <div className="mt-1">
                         Total earned all time:<br></br>
                         <b>{this.state.allPayed} TRX</b> <br></br>
-                        <button className="btn btn-danger" onClick={()=>{cookies.remove("firma-tron"); this.setState({firma:false})}}>LogOut <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-right" viewBox="0 0 16 16">
-  <path fill-rule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
-  <path fill-rule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
+                        <button className="btn btn-danger" onClick={()=>{localStorage.removeItem("firma-tron"); this.setState({firma:false})}}>LogOut <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-right" viewBox="0 0 16 16">
+  <path fillRule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
+  <path fillRule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
 </svg></button>
                       </div>
 
