@@ -141,19 +141,26 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
   // Encrypt
   data = CryptoJS.AES.encrypt(JSON.stringify(data), env.REACT_APP_SECRET).toString();
 
-  let consulta = await fetch(constantes.BRUTUS_API + "rent/energy", {
-    method: "POST",
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ user: env.REACT_APP_USER_C, data })
-  }).then((r) => r.json())
-    .catch((e) => {
-      console.log(e.toString());
-      return { result: false, hash: signedTransaction.txID, msg: "API-Error" }
-    })
+  let consulta = {}
 
+  try {
+
+    consulta = await fetch(constantes.BRUTUS_API + "rent/energy", {
+      method: "POST",
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ user: env.REACT_APP_USER_C, data })
+    }).then((r) => r.json())
+    
+  } catch (error) {
+
+    console.log(error.toString());
+    consulta = { result: false, hash: signedTransaction.txID, msg: "API-Error: "+ error.toString() }
+    
+  }
+   
   return consulta
 
 }

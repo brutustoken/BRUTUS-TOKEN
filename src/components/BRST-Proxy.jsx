@@ -151,6 +151,8 @@ export default class Staking extends Component {
     this.venta = this.venta.bind(this);
     this.sell = this.sell.bind(this);
 
+    this.retiro = this.retiro.bind(this);
+
     this.estado = this.estado.bind(this);
     this.preClaim = this.preClaim.bind(this);
 
