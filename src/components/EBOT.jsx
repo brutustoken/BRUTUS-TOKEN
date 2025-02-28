@@ -50,6 +50,7 @@ export default class EnergyRental extends Component {
       fromUrl: true,
 
       unitEnergyPrice: new BigNumber(1),
+      precios: [],
 
     };
 
@@ -62,6 +63,7 @@ export default class EnergyRental extends Component {
 
     this.recursos = this.recursos.bind(this);
     this.calcularRecurso = this.calcularRecurso.bind(this);
+    this.calcularPrecios = this.calcularPrecios.bind(this);
 
     this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
@@ -106,12 +108,18 @@ export default class EnergyRental extends Component {
       tmp = "m"
     }
 
-    this.setState({
-      periodo: parseInt(dato),
-      temporalidad: tmp
-    });
+    if(this.state.periodo !== parseInt(dato) || this.state.temporalidad !== tmp){
 
-    this.calcularRecurso()
+      this.setState({
+        periodo: parseInt(dato),
+        temporalidad: tmp
+      });
+  
+      this.calcularRecurso()
+
+    }
+
+    
 
   }
 
@@ -153,6 +161,7 @@ export default class EnergyRental extends Component {
     let {fromUrl} = this.state
 
     await this.recursos()
+    await this.calcularPrecios()
 
     let loc = document.location.href;
     if (loc.indexOf('amount') > 0 && fromUrl) {
@@ -251,12 +260,14 @@ export default class EnergyRental extends Component {
       }
     }
 
+
+
     if (recurso === "energy") {
-      if (energi < consulta.total_energy_pool * 0.005) {
+      if (energi < consulta.total_energy_pool * 0.005 ) {
         energyOn = false;
         this.setState({
-          titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
-          body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
+          titulo: <>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
+          body: <> <img src="/images/alerts/recarge_energy.jpeg" alt="Energy sold out"  style={{borderRadius: "15px", width:"100%"}}></img> <br></br><br></br>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1]}</>,
         })
 
         window.$("#mensaje-ebot").modal("show");
@@ -378,7 +389,7 @@ export default class EnergyRental extends Component {
 
       precio = consulta.price
 
-      this.setState({unitEnergyPrice: new BigNumber(precio).dividedBy(cantidad)})
+      this.setState({unitEnergyPrice: new BigNumber(precio).dividedBy(cantidad).shiftedBy(6)})
 
       if (parseInt(cantidad) <= montoMin) {
         this.setState({minPrice:precio})
@@ -394,6 +405,43 @@ export default class EnergyRental extends Component {
     })
 
     return precio
+  }
+
+  async calcularPrecios() {
+
+    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+
+    let precios = []
+
+      let cantidad = "100000"
+      let duraciones = ["5m", "1h", "1", "3" , "7", "14" ]
+      let body = { "resource": "energy", "amount": cantidad, "duration": "5m" }
+
+      let consulta = {}
+
+      for (let index = 0; index < duraciones.length; index++) {
+
+        body.duration = duraciones[index]
+        consulta = await fetch(url, {
+          method: "POST",
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+        .then(async (r) => await r.json())
+        .catch((e) => {
+          console.log(e)
+          return {price: -1}
+        })
+        precios.push({duration: duraciones[index], UE:new BigNumber(consulta.price).dividedBy(cantidad).shiftedBy(6)})
+        
+      }
+
+
+      this.setState({precios})
+
+    return precios
   }
 
   async preCompra() {
@@ -583,9 +631,12 @@ export default class EnergyRental extends Component {
       porcentaje = this.state.available_energy * 100 / this.state.total_energy_pool
     }
 
+    if(isNaN(porcentaje)) porcentaje = 0
 
-    let medidor = (<><p className="font-14">{texto}</p>
-      <div className="progress" style={{ margin: "5px" }}>
+
+    let medidor = (<>
+      <p className="font-14">{texto} ({new BigNumber(porcentaje).dp(2).toString(10)}%)</p>
+      <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
         <div className="progress-bar" role="progressbar" style={{ "width": porcentaje + "%" }}
           aria-valuenow={porcentaje} aria-valuemin="0" aria-valuemax="100">
         </div>
@@ -656,24 +707,23 @@ export default class EnergyRental extends Component {
                       <input type="hidden" className="form-control" name="dzToDo" value="Contact" ></input>
                       {medidor}
 
-                      <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
+                      <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Amount</p>
-                        <input style={{ "textAlign": "end" }} id="amount" name="dzLastName" type="text" onChange={()=>this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} ></input>
+                        <input style={{ "textAlign": "end", border: "lightgray  solid" }} id="amount" name="dzLastName" type="text" onChange={()=>this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} ></input>
 
                       </div>
-
-                      <div className="col-xl-12 mb-3 mb-md-4">
+                      <div className="col-xl-12 mt-2 mb-2">
                         <div className="d-flex justify-content-xl-center">
                           {amountButtons}
                         </div>
                       </div>
-                      <div className="col-12 mb-3 d-flex justify-content-center align-items-center">
-                        <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Duration</p>
 
-                        <input style={{ "textAlign": "end" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5m (five minutes)"} defaultValue="5min" ></input>
+                      <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
+                        <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Duration</p>
+                        <input style={{ "textAlign": "end", border: "lightgray  solid" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5m (five minutes)"} defaultValue="5min" ></input>
 
                       </div>
-                      <div className="col-12 ">
+                      <div className="col-12 mt-2 mb-2 ">
                         <div className="d-flex justify-content-xl-center">
                         <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "5m"; this.handleChangePeriodo({ target: { value: "5m" } }) }}>5m</button>
@@ -690,11 +740,12 @@ export default class EnergyRental extends Component {
                         </div>
                       </div>
 
-                      <div className="col-12 mt-5 mb-3 justify-content-center align-items-center">
+                      <div className="col-12 mt-2 mb-2 justify-content-center align-items-center">
+                        Energy Unit: {unitEnergyPrice.toString(10)} SUN<br></br>
 
                         <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ width: "100%", height: "40px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
+                          style={{ width: "100%", height: "40px", marginTop: "5px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
                         </button>
 
                       </div>
@@ -706,10 +757,6 @@ export default class EnergyRental extends Component {
                           className="form-control" placeholder={this.props.accountAddress}  onChange={this.handleChangeWallet} ></input>
                       </div>
 
-                      <div className="col-xl-12 mb-3 mb-md-4">
-                        <p className="font-14">UE: {unitEnergyPrice.toString(10)}</p>
-
-                      </div>
 
                     </form>
                   </div>
