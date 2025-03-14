@@ -34,8 +34,8 @@ export default class ProviderPanel extends Component {
       ongoins: [],
       nexpayment: "Loading...",
       payoutRatio: 0,
-      ratioEnergy: 0,
-      ratioEnergyPool: 0,
+      ratioEnergy: new BigNumber(0),
+      ratioEnergyPool: new BigNumber(0),
       paymentPoints: 0,
       voteSR: "",
       newVoteSR: "",
@@ -471,14 +471,25 @@ export default class ProviderPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, paymenthour: hour }
-      await fetch(utils.apiProviders + "set/paymenthour", {
+      let consulta = await fetch(utils.apiProviders + "set/paymenthour", {
         method: "POST",
         headers: {
           'token-api': process.env.REACT_APP_TOKEN,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
-      })
+      }).then((r)=>r.json())
+
+      console.log(consulta)
+
+      if(!consulta.result && consulta.data){
+        this.setState({
+          ModalTitulo: "Operation not executed",
+          ModalBody: consulta.data
+        })
+  
+        window.$("#alert").modal("show");
+      }
 
 
     } catch (error) {
@@ -694,8 +705,8 @@ export default class ProviderPanel extends Component {
           maxdays: info.maxdays,
           payhere: info.payhere,
           payoutRatio: info.payout_ratio,
-          ratioEnergy: new BigNumber(info.ratio_e * 100).dp(3).toString(10),
-          ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100).dp(3).toString(10),
+          ratioEnergy: new BigNumber(info.ratio_e * 100),
+          ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100),
           cNaranja: naranja,
           voteSR: info.srVote,
           proEnergy: providerEnergy,
@@ -1182,7 +1193,7 @@ export default class ProviderPanel extends Component {
                             <h2 className="heading">{estatus} </h2>
                           </div>
                           <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy} /  {this.state.ratioEnergyPool} </button></h2>
+                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy.dp(3).toString(10)} /  {this.state.ratioEnergyPool.dp(3).toString(10)} </button></h2>
                           </div>
                           <div className="col-lg-4 col-sm-12 mb-2">
                             <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>

@@ -3,7 +3,6 @@ import utils from "../utils";
 
 const BigNumber = require('bignumber.js');
 
-
 const amountsE = [
   { amount: 32000, text: "32K" },
   { amount: 100000, text: "100K" },
@@ -36,17 +35,21 @@ export default class EnergyRental extends Component {
       recurso: "energy",
       cantidad: 32000,
       montoMin: 32000,
-      minPrice: '1.92',
+      minPrice: '2.56',
       periodo: 5,
-      temporalidad: "m",
-      available_bandwidth: 0,
-      available_energy: 0,
+      temporalidad: "min",
+      duration: '5min',
+      av_band: new BigNumber(0),
+      av_energy: new BigNumber(0),
+      available_bandwidth: [],
+      available_energy: [],
       total_bandwidth_pool: 0,
       total_energy_pool: 0,
       titulo: "Titulo",
       body: "Cuerpo del mensaje",
       amounts: amountsE,
       energyOn: false,
+      bandOn: false,
       fromUrl: true,
 
       unitEnergyPrice: new BigNumber(1),
@@ -73,7 +76,7 @@ export default class EnergyRental extends Component {
   async componentDidMount() {
     document.title = "B.F | E-Bot"
     document.getElementById("tittle").innerText = this.props.i18n.t("ebot.tittle")
- 
+
     setTimeout(() => {
       this.estado()
     }, 1 * 1000)
@@ -85,7 +88,7 @@ export default class EnergyRental extends Component {
 
   }
 
-  componentWillUnmount(){
+  componentWillUnmount() {
     clearInterval(intervalId)
   }
 
@@ -100,6 +103,9 @@ export default class EnergyRental extends Component {
     let dato = (event.target.value).toLowerCase();
     let tmp = "d"
 
+    document.getElementById("periodo").value = dato;
+
+
     if (dato.split("h").length > 1 || dato.split("hora").length > 1) {
       tmp = "h"
     }
@@ -108,60 +114,65 @@ export default class EnergyRental extends Component {
       tmp = "m"
     }
 
-    if(this.state.periodo !== parseInt(dato) || this.state.temporalidad !== tmp){
+    this.setState({
+      periodo: parseInt(dato),
+      temporalidad: tmp
+    });
 
-      this.setState({
-        periodo: parseInt(dato),
-        temporalidad: tmp
-      });
-  
-      this.calcularRecurso()
+    this.calcularRecurso()
 
-    }
-
-    
 
   }
 
-  updateAmount(amount){
+  updateAmount(amount) {
 
-    let {recurso} = this.state
+    let { recurso } = this.state
 
     let montoMin = 32000
     if (recurso === "bandwidth") {
       montoMin = 1000
-    } 
+    }
 
     this.setState({ montoMin })
 
     let cantidad = 0;
-    if(amount){
+    if (amount) {
       cantidad = amount
-      document.getElementById("amount").value = amount
+      try {
+        document.getElementById("amount").value = amount
 
-    }else{
+      } catch(e){
+        console.log(e)
+      }
+
+    } else {
+      try {
       cantidad = document.getElementById("amount").value
+        
+      } catch(e){
+        console.log(e)
+      }
 
     }
-    
+
     cantidad = parseInt(cantidad)
 
     if (parseInt(cantidad) < montoMin || isNaN(cantidad)) {
       cantidad = montoMin
     }
-    
-    this.setState({ cantidad})
-  
+
+    this.setState({ cantidad })
+
     return cantidad
 
   }
 
-  async estado(){
+  async estado() {
 
-    let {fromUrl} = this.state
+    let { fromUrl } = this.state
 
-    await this.recursos()
-    await this.calcularPrecios()
+    await this.recursos();
+    await this.calcularPrecios();
 
     let loc = document.location.href;
     if (loc.indexOf('amount') > 0 && fromUrl) {
@@ -179,14 +190,19 @@ export default class EnergyRental extends Component {
       if (parseInt(get['amount']) >= 32000) {
         let cantidad = parseInt(get['amount'])
         let recurso = "energy"
-        if(get['resource'] !== undefined) {
+        let duration = "5min"
+        if (get['resource'] !== undefined) {
           recurso = get['resource']
         }
 
-        if(recurso === "band"||recurso === "bandwidth"){
+        if (recurso === "band" || recurso === "bandwidth") {
           recurso = "bandwidth"
-        }else{
+        } else {
           recurso = "energy"
+        }
+
+        if (get['duration'] !== undefined) {
+          duration = get['duration']
         }
 
         await this.setState({
@@ -194,17 +210,18 @@ export default class EnergyRental extends Component {
           recurso,
           temporalidad: 'm',
           periodo: '5',
+          duration,
           fromUrl: false
         })
 
         this.updateAmount(cantidad)
 
         this.preCompra()
-      } 
+      }
 
 
 
-    }else{
+    } else {
       await this.calcularRecurso()
 
     }
@@ -214,82 +231,95 @@ export default class EnergyRental extends Component {
 
   async recursos() {
 
-    let {recurso, energyOn} = this.state
+    let { energyOn, bandOn } = this.state
 
     let band = 0
     let energi = 0
     let consulta = false
-    const URL = "https://cors.brutusservices.com/"+process.env.REACT_APP_BOT_URL
+    const URL = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL
 
     try {
 
-      consulta = await fetch( URL)
+      consulta = await fetch(URL)
         .then((r) => {
           return r.json();
         })
 
       energyOn = consulta.available
+      bandOn = consulta.available
 
-      consulta = await fetch(URL+ "available")
+      consulta = await fetch(URL + "available")
         .then((r) => r.json())
 
     } catch (error) {
       console.log(error.toString())
+      consulta = false
     }
 
-  
-    if (this.state.temporalidad.indexOf("m") >= 0 || this.state.temporalidad.indexOf("h") >= 0 ) {
-      band = consulta.av_band[0].available
-      energi = consulta.av_energy[0].available
-    } else {
+    if (!consulta) return false;
 
-      for (let index = 0; index < consulta.av_band.length; index++) {
-        if (this.state.periodo <= consulta.av_band[index].period) {
-          band = consulta.av_band[index].available
-          break;
-        }
+    energi = [
+      {
+        duration: "5min",
+        available: consulta.av_energy[0].available
+      },
+      {
+        duration: "1h",
+        available: consulta.av_energy[1].available
+      },
+      {
+        duration: "1d",
+        available: consulta.av_energy[1].available
+      },
+      {
+        duration: "3d",
+        available: consulta.av_energy[1].available
+      },
+      {
+        duration: "7d",
+        available: consulta.av_energy[1].available
+      },
+      {
+        duration: "14d",
+        available: consulta.av_energy[1].available
+      },
 
-      }
+    ]
 
-      for (let index = 0; index < consulta.av_energy.length; index++) {
-        if (this.state.periodo <= consulta.av_energy[index].period) {
-          energi = consulta.av_energy[index].available
-          break;
-        }
-
-      }
-    }
-
-
-
-    if (recurso === "energy") {
-      if (energi < consulta.total_energy_pool * 0.005 ) {
-        energyOn = false;
-        this.setState({
-          titulo: <>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
-          body: <> <img src="/images/alerts/recarge_energy.jpeg" alt="Energy sold out"  style={{borderRadius: "15px", width:"100%"}}></img> <br></br><br></br>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1]}</>,
-        })
-
-        window.$("#mensaje-ebot").modal("show");
-      }
-    } else {
-      if (band < consulta.total_bandwidth_pool * 0.005) {
-        energyOn = false;
-        this.setState({
-          titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
-          body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
-        })
-
-        window.$("#mensaje-ebot").modal("show");
-      }
-    }
+    band = [
+      {
+        duration: "5min",
+        available: consulta.av_band[0].available
+      },
+      {
+        duration: "1h",
+        available: consulta.av_band[1].available
+      },
+      {
+        duration: "1d",
+        available: consulta.av_band[1].available
+      },
+      {
+        duration: "3d",
+        available: consulta.av_band[1].available
+      },
+      {
+        duration: "7d",
+        available: consulta.av_band[1].available
+      },
+      {
+        duration: "14d",
+        available: consulta.av_band[1].available
+      },
+    ]
 
     this.setState({
       available_bandwidth: band,
       available_energy: energi,
       total_bandwidth_pool: consulta.total_bandwidth_pool,
       total_energy_pool: consulta.total_energy_pool,
-      energyOn
+      energyOn,
+      bandOn
     });
 
     return energyOn
@@ -297,21 +327,24 @@ export default class EnergyRental extends Component {
 
   async calcularRecurso() {
 
-    let { periodo , temporalidad , recurso, montoMin} = this.state
-
-    let precio = this.props.i18n.t("calculating") + "..."
+    let { recurso, montoMin, precio, available_bandwidth, available_energy } = this.state
 
     let cantidad = this.updateAmount()
+    let time = document.getElementById("periodo").value
+    this.setState({ duration: time })
 
-    this.setState({
-      precio: precio
-    })
+    let av_energy = available_energy.find(obj => obj.duration === time)
+    av_energy = new BigNumber(av_energy.available)
 
-    let time = periodo + temporalidad
+    this.setState({ av_energy })
+
+    let av_band = available_bandwidth.find(obj => obj.duration === time)
+    av_band = new BigNumber(av_band.available)
+
+    this.setState({ av_band })
+
+
     let ok = true;
-    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
-
-    await this.recursos();
 
     if (time.indexOf("d") >= 0) {
 
@@ -330,7 +363,7 @@ export default class EnergyRental extends Component {
 
     }
 
-    if(time.indexOf("h") >= 0) {
+    if (time.indexOf("h") >= 0) {
 
       if (parseInt(time[0]) !== 1) {
         this.setState({
@@ -348,7 +381,7 @@ export default class EnergyRental extends Component {
 
     }
 
-    if(time.indexOf("m") >= 0) {
+    if (time.indexOf("m") >= 0) {
 
       if (parseInt(time[0]) !== 5) {
         this.setState({
@@ -366,37 +399,28 @@ export default class EnergyRental extends Component {
 
     }
 
-    if (ok) {
-      
+    let priceList = this.state.precios[recurso]
 
-      let body = { "resource": recurso, "amount": cantidad, "duration": time }
+    if (ok && priceList.length > 0) {
 
-      //console.log(body)
+      const foundPrice = priceList.find(price => price.duration === time);
 
-      let consulta = await fetch(url, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
-      .then(async (r) => await r.json())
-      .catch((e) => {
-        return e.toString()
-      })
+      //console.log(cantidad, time, recurso)
 
-      //console.log(consulta)
+      precio = new BigNumber(foundPrice.UE).times(cantidad)
+      // cobro adicional para aumentar la reserva de trx === 10_000 SUN
+      precio = precio.plus(0)
 
-      precio = consulta.price
+      precio = precio.shiftedBy(-6).dp(6)
 
-      this.setState({unitEnergyPrice: new BigNumber(precio).dividedBy(cantidad).shiftedBy(6)})
+      this.setState({ unitEnergyPrice: foundPrice.UE })
 
       if (parseInt(cantidad) <= montoMin) {
-        this.setState({minPrice:precio})
+        this.setState({ minPrice: precio })
       }
 
     } else {
-      precio = "Input error"
+      precio = "**.**"
 
     }
 
@@ -409,37 +433,121 @@ export default class EnergyRental extends Component {
 
   async calcularPrecios() {
 
-    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+    //let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
 
-    let precios = []
+    let consulta = {}
 
-      let cantidad = "100000"
-      let duraciones = ["5m", "1h", "1", "3" , "7", "14" ]
-      let body = { "resource": "energy", "amount": cantidad, "duration": "5m" }
 
-      let consulta = {}
+    let url2 = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices/all"
 
-      for (let index = 0; index < duraciones.length; index++) {
+    consulta = await fetch(url2, {
+      method: "GET",
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+      .then(async (r) => await r.json())
+      .catch((e) => {
+        console.log(e)
+        return []
+      })
 
-        body.duration = duraciones[index]
-        consulta = await fetch(url, {
-          method: "POST",
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(body)
-        })
+    let { precios } = this.state
+
+    precios["energy"] = [
+      {
+        duration: "5min",
+        UE: new BigNumber(consulta.energy_minutes_100K).shiftedBy(1).dp(6).toNumber()
+      },
+      {
+        duration: "1h",
+        UE: new BigNumber(consulta.energy_hour_100K).shiftedBy(1).dp(6).toNumber()
+      },
+      {
+        duration: "1",
+        UE: new BigNumber(consulta.energy_one_day_100K).shiftedBy(1).dp(6).toNumber()
+      },
+      {
+        duration: "3",
+        UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).dp(6).toNumber()
+      },
+      {
+        duration: "7",
+        UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(7 / 3).dp(6).toNumber()
+      },
+      {
+        duration: "14",
+        UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(14 / 3).dp(6).toNumber()
+      },
+    ]
+
+    precios["bandwidth"] = [
+      {
+        duration: "5min",
+        UE: new BigNumber(consulta.band_minutes_1000).times(1000).dp(6).toNumber()
+      },
+      {
+        duration: "1h",
+        UE: new BigNumber(consulta.band_hour_1000).times(1000).dp(6).toNumber()
+      },
+      {
+        duration: "1",
+        UE: new BigNumber(consulta.band_one_day_1000).times(1000).dp(6).toNumber()
+      },
+      {
+        duration: "3",
+        UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).dp(6).toNumber()
+      },
+      {
+        duration: "7",
+        UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(7 / 3).dp(6).toNumber()
+      },
+      {
+        duration: "14",
+        UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(14 / 3).dp(6).toNumber()
+      },
+    ]
+
+    /*
+      let ajuste = 0;
+  
+      function calcularY(x) {
+        return parseInt((1.0956 * (x ** 2)) + (29.2415 * x) + 78.1474 + ajuste);
+      }
+  
+      console.log(calcularY(1),calcularY(3),calcularY(7),calcularY(14))
+    */
+
+    /*
+    let cantidad = "100000"
+    let duraciones = ["5min", "1h", "1", "3", "7", "14"]
+    let body = { "resource": resource, "amount": cantidad, "duration": "5m" }
+
+
+    for (let index = 0; index < duraciones.length; index++) {
+
+      body.duration = duraciones[index]
+      consulta = await fetch(url, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      })
         .then(async (r) => await r.json())
         .catch((e) => {
           console.log(e)
-          return {price: -1}
+          return { price: -1 }
         })
-        precios.push({duration: duraciones[index], UE:new BigNumber(consulta.price).dividedBy(cantidad).shiftedBy(6)})
-        
-      }
 
+      precios[resource].push({ duration: duraciones[index], UE: new BigNumber(consulta.price).dividedBy(cantidad).shiftedBy(6).toNumber() })
 
-      this.setState({precios})
+    }
+
+*/
+
+    this.setState({ precios })
+
 
     return precios
   }
@@ -448,10 +556,10 @@ export default class EnergyRental extends Component {
 
     await this.recursos();
 
-    let {wallet_orden, cantidad, periodo, temporalidad, recurso, energyOn, available_energy, available_bandwidth} = this.state
-    let {accountAddress, tronWeb, i18n} = this.props
+    let { wallet_orden, cantidad, periodo, temporalidad, recurso, energyOn, bandOn, av_energy, av_band, total_energy_pool, total_bandwidth_pool } = this.state
+    let { accountAddress, tronWeb, i18n } = this.props
 
-    if (!energyOn) {
+    if (!energyOn || !bandOn) {
       this.setState({
         titulo: i18n.t("ebot.alert.eResource", { returnObjects: true })[0],
         body: (<span>{i18n.t("ebot.alert.eResource", { returnObjects: true })[1]}
@@ -462,7 +570,34 @@ export default class EnergyRental extends Component {
       return;
     }
 
-    let pagas = await this.calcularRecurso()
+
+    if (av_energy.toNumber() < total_energy_pool * 0.005) {
+      energyOn = false;
+
+      if (recurso === "energy") {
+        this.setState({
+          titulo: <>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
+          body: <> <img src="/images/alerts/recarge_energy.jpeg" alt="Energy sold out" style={{ borderRadius: "15px", width: "100%" }}></img> <br></br><br></br>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1]}</>,
+        })
+
+        window.$("#mensaje-ebot").modal("show");
+      }
+    }
+
+
+    if (av_band.toNumber() < total_bandwidth_pool * 0.005) {
+      bandOn = false;
+      if (recurso !== "energy") {
+        this.setState({
+          titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
+          body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
+        })
+
+        window.$("#mensaje-ebot").modal("show");
+      }
+    }
+
+    let pagas = (await this.calcularRecurso()).toNumber()
 
     if (isNaN(pagas)) {
       this.setState({
@@ -491,7 +626,7 @@ export default class EnergyRental extends Component {
       return;
     }
 
-    
+
 
     if (wallet_orden === "" || !tronWeb.isAddress(wallet_orden)) {
       this.setState({
@@ -514,29 +649,29 @@ export default class EnergyRental extends Component {
     }
 
 
-    if(recurso === "energy"){
-      if(cantidad > available_energy){
+    if (recurso === "energy") {
+      if (cantidad > av_energy.toNumber()) {
         this.setState({
           titulo: "Error",
           body: "insufficient resources to cover this order try a lower value or try again later."
         })
-  
+
         window.$("#mensaje-ebot").modal("show");
         return;
       }
-    }else{
-      if(cantidad > available_bandwidth){
+    } else {
+      if (cantidad > av_band.toNumber()) {
         this.setState({
           titulo: "Error",
           body: "insufficient resources to cover this order try a lower value or try again later."
         })
-  
+
         window.$("#mensaje-ebot").modal("show");
         return;
       }
     }
 
-   
+
 
     this.setState({
       titulo: <>Confirm order information</>,
@@ -558,7 +693,7 @@ export default class EnergyRental extends Component {
 
   async compra() {
 
-    let {cantidad, periodo, temporalidad, recurso, wallet_orden, precio} = this.state
+    let { cantidad, periodo, temporalidad, recurso, wallet_orden, precio } = this.state
 
     const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." ></img>
 
@@ -592,7 +727,7 @@ export default class EnergyRental extends Component {
       body: "Wait while one of our robots attends to your recharge, we try to be as fast as possible."
     })
 
-    let consulta2 = await utils.rentResource(wallet_orden,recurso,cantidad,periodo,temporalidad,precio,signedTransaction) ;
+    let consulta2 = await utils.rentResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction);
 
     if (consulta2.result) {
 
@@ -619,19 +754,19 @@ export default class EnergyRental extends Component {
   }
 
   render() {
-    let {unitEnergyPrice, amounts, recurso} = this.state
+    let { unitEnergyPrice, amounts, recurso, av_energy, av_band } = this.state
     const amountButtons = amounts.map(amounts => <button key={"Amb-" + amounts.text} id="ra1" type="button" className="btn btn-primary"
-      style={{ margin: "auto" }} onClick={() => { this.updateAmount(amounts.amount); this.estado()}}>{amounts.text}</button>)
+      style={{ margin: "auto" }} onClick={() => { this.updateAmount(amounts.amount); this.estado() }}>{amounts.text}</button>)
 
-    let texto = <>Bandwidth Pool: {(this.state.available_bandwidth).toLocaleString('en-US')}</>
-    let porcentaje = this.state.available_bandwidth * 100 / this.state.total_bandwidth_pool
+    let texto = <>Bandwidth Pool: {av_band.toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</>
+    let porcentaje = av_band.toNumber() * 100 / this.state.total_bandwidth_pool
 
     if (recurso === "energy") {
-      texto = <>Energy Pool: {(this.state.available_energy).toLocaleString('en-US')}</>
-      porcentaje = this.state.available_energy * 100 / this.state.total_energy_pool
+      texto = <>Energy Pool: {av_energy.toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}</>
+      porcentaje = av_energy.toNumber() * 100 / this.state.total_energy_pool
     }
 
-    if(isNaN(porcentaje)) porcentaje = 0
+    if (isNaN(porcentaje)) porcentaje = 0
 
 
     let medidor = (<>
@@ -641,6 +776,10 @@ export default class EnergyRental extends Component {
           aria-valuenow={porcentaje} aria-valuemin="0" aria-valuemax="100">
         </div>
       </div></>)
+
+function capitalizarPrimeraLetra(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 
     return (<>
@@ -670,19 +809,19 @@ export default class EnergyRental extends Component {
                           </button>
                           <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
                             <li onClick={async () => {
-                              await this.setState({ 
+                              await this.setState({
                                 cantidad: 32000,
-                                recurso: "energy", 
-                                amounts: amountsE 
+                                recurso: "energy",
+                                amounts: amountsE
                               });
-                              
+
                               this.updateAmount(32000)
 
                               await this.estado();
 
                             }}>
                               <button className="dropdown-item" >Energy</button>
-                              </li>
+                            </li>
 
                             <li onClick={async () => {
                               await this.setState({
@@ -690,7 +829,7 @@ export default class EnergyRental extends Component {
                                 recurso: "bandwidth",
                                 amounts: amountB
                               });
-                              this.updateAmount(1000);                       
+                              this.updateAmount(1000);
                               await this.estado();
 
                             }}>
@@ -709,7 +848,7 @@ export default class EnergyRental extends Component {
 
                       <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Amount</p>
-                        <input style={{ "textAlign": "end", border: "lightgray  solid" }} id="amount" name="dzLastName" type="text" onChange={()=>this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} ></input>
+                        <input style={{ "textAlign": "end", border: "lightgray  solid" }} id="amount" name="dzLastName" type="text" onChange={() => this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} ></input>
 
                       </div>
                       <div className="col-xl-12 mt-2 mb-2">
@@ -720,32 +859,32 @@ export default class EnergyRental extends Component {
 
                       <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Duration</p>
-                        <input style={{ "textAlign": "end", border: "lightgray  solid" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5m (five minutes)"} defaultValue="5min" ></input>
+                        <input style={{ "textAlign": "end", border: "lightgray  solid", cursor: "not-allowed" }} id="periodo" required type="text" className="form-control mb-1" onChange={this.handleChangePeriodo} placeholder={"Default: 5m (five minutes)"} defaultValue="5min" readOnly></input>
 
                       </div>
                       <div className="col-12 mt-2 mb-2 ">
                         <div className="d-flex justify-content-xl-center">
-                        <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "5m"; this.handleChangePeriodo({ target: { value: "5m" } }) }}>5m</button>
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1h"; this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "5min" } }) }}>5min</button>
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "1d"; this.handleChangePeriodo({ target: { value: "1d" } }) }}>1d</button>
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "3d"; this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "1d" } }) }}>1d</button>
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "7d"; this.handleChangePeriodo({ target: { value: "7d" } }) }}>7d</button>
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { document.getElementById("periodo").value = "14d"; this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "7d" } }) }}>7d</button>
+                          <button type="button" className="btn btn-primary"
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
                         </div>
                       </div>
 
                       <div className="col-12 mt-2 mb-2 justify-content-center align-items-center">
-                        Energy Unit: {unitEnergyPrice.toString(10)} SUN<br></br>
+                        {capitalizarPrimeraLetra(this.state.recurso)} Unit: {unitEnergyPrice.toString(10)} SUN<br></br>
 
                         <button name="submit" type="button" value="Submit"
                           className="btn btn-secondary"
-                          style={{ width: "100%", height: "40px", marginTop: "5px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio} TRX
+                          style={{ width: "100%", height: "40px", marginTop: "5px" }} onClick={() => this.preCompra()}> Complete Purchase - Total: {this.state.precio.toString(10)} TRX
                         </button>
 
                       </div>
@@ -754,7 +893,7 @@ export default class EnergyRental extends Component {
                         <p className="font-14">Send resources for another wallet</p>
 
                         <input name="dzFirstName" required type="text"
-                          className="form-control" placeholder={this.props.accountAddress}  onChange={this.handleChangeWallet} ></input>
+                          className="form-control" placeholder={this.props.accountAddress} onChange={this.handleChangeWallet} ></input>
                       </div>
 
 
@@ -790,7 +929,7 @@ export default class EnergyRental extends Component {
             </div>
             <div className="card-body">
               <p>
-                <b>rental operator:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+process.env.REACT_APP_WALLET_API+"/code"}>{process.env.REACT_APP_WALLET_API}</a>
+                <b>rental operator:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + process.env.REACT_APP_WALLET_API + "/code"}>{process.env.REACT_APP_WALLET_API}</a>
               </p>
             </div>
           </div>
@@ -813,35 +952,6 @@ export default class EnergyRental extends Component {
         </div>
       </div>
 
-      <div className="modal fade" id="regalo">
-        <div className="modal-dialog" role="document">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">¡Sopresa!</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal">
-              </button>
-            </div>
-            <div className="modal-body">
-              <p> Nos colaboras ayudando a que la loteria funcione y te retribuiremos con una pequeña recompensa, recomendamos que tengas ENERGIA y ANCHO DE BANDA para que no consumas TRX y sea realmente beneficioso.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="modal fade" id="reviewModal">
-        <div className="modal-dialog" role="document">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h5 className="modal-title">¡Nunca pierdes!</h5>
-              <button type="button" className="btn-close" data-bs-dismiss="modal">
-              </button>
-            </div>
-            <div className="modal-body">
-              <p> no pierdes por que el trx que ingresas pasa a producir ganancias con otros productos como BRST una vez tenemos utilidades se genera el sorteo aletorio por contrato y las utilidades generadas son entregadas a el poseedor del NFT de la Loteria</p>
-            </div>
-          </div>
-        </div>
-      </div>
 
     </>);
   }

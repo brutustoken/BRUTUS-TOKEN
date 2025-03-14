@@ -1,5 +1,9 @@
 import { TronWeb } from 'tronweb';
 
+const abi_TOKEN = require("../assets/abi/TRC20-USDT.json")
+const abi_SUNSWAP = require("../assets/abi/SunswapV3.json")
+
+
 const BigNumber = require('bignumber.js');
 
 const env = process.env;
@@ -29,7 +33,10 @@ constantes.BRST = "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3";//token trc20 BRST
 constantes.APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery box
 constantes.BRGY = "TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7";//token NFT  BRGY 
 constantes.BRLT = "TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU";//token NFT LOTERIA 
+constantes.TOKEN_ABI = abi_TOKEN;
 
+constantes.SUNSWAPV3 = "TXF1xDbVGdxFGbovmmmXvBGu8ZiE3Lq4mR";
+constantes.SUNSWAPV3_ABI = abi_SUNSWAP;
 
 if (constantes.testnet) {
 

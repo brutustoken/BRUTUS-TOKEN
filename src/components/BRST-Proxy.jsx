@@ -7,7 +7,7 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 import utils from "../utils";
 
 const BigNumber = require('bignumber.js');
-BigNumber.config({ DECIMAL_PLACES: 6, ROUNDING_MODE: BigNumber.ROUND_DOWN });
+BigNumber.config({ DECIMAL_PLACES: 6, ROUNDING_MODE: BigNumber.ROUND_HALF_DOWN });
 
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." ></img>
 
@@ -136,6 +136,7 @@ export default class Staking extends Component {
       isAdmin: false,
       interesCompuesto: 0,
       crecimientoPorcentual: 0,
+      precioUSDT: new BigNumber(0),
     };
 
 
@@ -169,6 +170,9 @@ export default class Staking extends Component {
     this.llenarTRX = this.llenarTRX.bind(this);
 
     this.rentEnergy = this.rentEnergy.bind(this);
+
+    this.preSwap = this.preSwap.bind(this);
+    this.suawpTokenFromTRX = this.suawpTokenFromTRX.bind(this);
 
   }
 
@@ -244,6 +248,7 @@ export default class Staking extends Component {
       valueTRX: oper.toString(10),
     });
     document.getElementById('amountTRX').value = oper.toString(10);
+
   }
 
   handleChangeTRX(event) {
@@ -302,7 +307,7 @@ export default class Staking extends Component {
       this.handleChangeCalc({ target: { value: misBRST } })
     }
 
-    if(parseInt(document.getElementById("hold").value) === 0){
+    if (parseInt(document.getElementById("hold").value) === 0) {
       document.getElementById("hold").value = misBRST
 
     }
@@ -380,7 +385,7 @@ export default class Staking extends Component {
         crecimientoPorcentual = crecimientoPorcentual / consulta.length;
       }
 
-      let interesCompuesto = (1 + crecimientoPorcentual/100) ** tiempoPromediado;
+      let interesCompuesto = (1 + crecimientoPorcentual / 100) ** tiempoPromediado;
 
       this.setState({
         promE7to1day,
@@ -428,6 +433,15 @@ export default class Staking extends Component {
       depositoBRUT: aprovadoBRUT,
       balanceBRST: balanceBRST,
     })
+
+    consulta = await fetch("https://apilist.tronscanapi.com/api/token/price?contract=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+      .then((r) => r.json())
+      .then((r)=>{
+        this.setState({precioUSDT: new BigNumber(r.price_in_usd)})
+      })
+      .catch((e) => { console.log(e) })
+
+
 
     let deposito = await contrato.BRST_TRX_Proxy.todasSolicitudes(accountAddress).call();
     let myids = []
@@ -945,7 +959,142 @@ export default class Staking extends Component {
 
   }
 
+  async preSwap() {
 
+    let {valueTRX, precioUSDT} = this.state
+
+    this.setState({
+      ModalTitulo: <>Select your payment {imgLoading}</>,
+      ModalBody: (<>
+
+        Choose between TRX, USDT, or USDD to acquire BRST:<br></br><br></br>
+        <span style={{
+          display: "flex",
+          justifyContent: "center",
+          gap: "10px", // Espacio entre los botones
+        }}>
+          <button type="button" className="btn btn-primary" onClick={() => { this.preCompra() }}>{valueTRX} TRX <img height="25px" src="/images/token/trx.png" alt="tron logo" /></button>
+          <button type="button" className="btn btn-primary" onClick={() => { this.suawpTokenFromTRX(0) }}>{precioUSDT.times(valueTRX).dp(2).toString(10)} USDT <img height="25px" src="/images/token/usdt.png" alt="usdt logo" /></button>
+          <button type="button" className="btn btn-primary" onClick={() => { this.suawpTokenFromTRX(1) }}>{precioUSDT.times(valueTRX).dp(2).toString(10)} USDD <img height="25px" src="/images/token/usdd.png" alt="usdd logo" /></button>
+
+        </span>
+      </>)
+    })
+
+    window.$("#mensaje-brst").modal("show");
+
+  }
+
+  async suawpTokenFromTRX(select = 0) {
+
+    // TOKEN => TRX
+
+    let token = select === 0 ? "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t" : "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz" //USDT : USDD
+
+    let sunswapRouter = utils.SUNSWAPV3
+
+    let trxAddress = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR"//WTRX
+
+    const { tronWeb, accountAddress } = this.props
+    let {precioUSDT} = this.state
+
+    ///ABI de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
+    let contrato = await tronWeb.contract(utils.SUNSWAPV3_ABI, sunswapRouter)
+
+    let contract_base_token = await tronWeb.contract(utils.TOKEN_ABI, token)
+    let contract_result_token = await tronWeb.contract(utils.TOKEN_ABI, trxAddress)
+
+    let price = precioUSDT
+
+    let balance_usdt = new BigNumber(parseInt(await contract_base_token.balanceOf(accountAddress).call())).shiftedBy(-1 * parseInt(await contract_base_token.decimals().call()))
+    console.log(balance_usdt.toString(10))
+
+    if (balance_usdt.dp(2).toNumber() < 1) {
+      this.setState({
+        ModalBody: (<>
+          {this.state.ModalBody}<br></br>
+          Sorry, you don't have enough {await contract_base_token.name().call()} to complete this operation.
+        </>)
+      })
+
+      return "false";
+
+    }
+
+    balance_usdt = price.times(this.state.valueTRX)
+
+    price = balance_usdt.dividedBy(price).times(0.99)
+    console.log(price.toString(10))
+
+    this.setState({
+      ModalTitulo: <>Swap Alert {imgLoading}</>,
+      ModalBody: (<>
+        {"will spend " + balance_usdt.dp(2).toString(10) + " (" + await contract_base_token.name().call() + ") -> to recibe " + price.dp(3).toString(10) + " (" + await contract_result_token.name().call() + ")"}
+      </>)
+    })
+
+    window.$("#mensaje-brst").modal("show");
+
+    let aprove = await contract_base_token.allowance(accountAddress, sunswapRouter).call()
+    if (aprove.remaining) aprove = aprove.remaining
+    aprove = parseInt(aprove)
+    //console.log(aprove)
+    if (aprove <= balance_usdt.toNumber()) {
+      console.log(await contract_base_token.approve(sunswapRouter, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send())
+    }
+
+    //alquilar energia
+
+    let inputs = [
+      { type: 'uint256', value: balance_usdt.shiftedBy(parseInt(await contract_base_token.decimals().call())).dp(0).toString(10) },
+      { type: 'uint256', value: price.shiftedBy(parseInt(await contract_result_token.decimals().call())).dp(0).toString(10) },
+      { type: 'address[]', value: [tronWeb.address.toHex(token), tronWeb.address.toHex(trxAddress)] },
+      { type: 'address', value: tronWeb.address.toHex(accountAddress) },
+      { type: 'uint256', value: (parseInt(Date.now() / 1000)) + 100 }
+
+      //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+      //{type: 'uint256', value: '1000000'}
+    ]
+
+    let funcion = "swapExactTokensForETH(uint256,uint256,address[],address,uint256)"
+    const options = {}
+    let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(contrato.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
+    let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+    transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+      .catch((e) => {
+
+        this.setState({
+          ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
+          ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+        })
+
+        window.$("#mensaje-brst").modal("show");
+      })
+    console.log(transaction)
+    transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+      .then(() => {
+        this.setState({
+          ModalTitulo: <>Swap Alert {imgLoading}</>,
+          ModalBody: <>Swap done, continue the process</>
+        })
+
+        window.$("#mensaje-brst").modal("show");
+      })
+    /*
+        let hash = await contrato.swapExactTokensForETH(
+          balance_usdt.shiftedBy(parseInt(await contract_base_token.decimals().call())).dp(0).toString(10),
+          price.shiftedBy(parseInt(await contract_result_token.decimals().call())).dp(0).toString(10),
+          [tronWeb.address.toHex(token), tronWeb.address.toHex(trxAddress)],
+          accountAddress,
+          (parseInt(Date.now() / 1000)) + 100
+        ).send({ feeLimit: 200000000 })
+    */
+    // alerta de conversion exitosa
+
+    await utils.delay(3)
+
+    this.preCompra()
+  }
 
   async preCompra() {
 
@@ -1756,58 +1905,82 @@ export default class Staking extends Component {
                     </div>
                   </div>
                 </div>
-                <div className="col-xl-3 col-xxl-3 col-sm-6 wow fadeInRight" data-wow-delay="0.3s">
-                  <div className="card  digital-cash">
 
-                    <div className="card-body ">
+
+                <div className="col-xl-3 col-xxl-3 col-sm-6 wow fadeInRight" data-wow-delay="0.3s">
+                  <div className="card digital-cash">
+                    <div className="card-body">
                       <div className="text-center">
                         <div className="media d-block">
-                          <img onClick={() => {
-                            this.setState({
-                              ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[0],
-                              ModalBody: <>
-                                <input type="number" id="trxD"></input> TRX
-                                <br ></br>
-                                <button type="button" className="btn btn-success" onClick={() => {
-                                  let donacion = document.getElementById('trxD').value
-                                  donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
-                                  this.props.contrato.BRST_TRX_Proxy['donate()']().send({ callValue: donacion })
-                                    .then(() => {
-                                      this.setState({
-                                        ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[1],
-                                        ModalBody: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[2]
-                                      })
-                                      window.$("#mensaje-brst").modal("show");
-                                      this.estado();
-                                    })
-
-                                }}>{this.props.i18n.t("brst.alert.donate", { returnObjects: true })[3]}</button>
-                                <br ></br><br ></br>
-                                <input type="number" id="brstD"></input> BRST
-                                <br ></br>
-                                <button type="button" className="btn btn-success" onClick={() => {
-                                  let donacion = document.getElementById('brstD').value
-                                  donacion = new BigNumber(donacion).shiftedBy(6).dp(0)
-                                  this.props.contrato.BRST_TRX_Proxy['donate(uint256)'](donacion.toString(10)).send()
-                                    .then(() => {
-                                      this.setState({
-                                        ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[1],
-                                        ModalBody: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[2]
-                                      })
-                                      window.$("#mensaje-brst").modal("show");
-                                      this.estado();
-
-                                    })
-
-
-                                }}>{this.props.i18n.t("brst.alert.donate", { returnObjects: true })[3]}</button>
-
-                              </>
-                            })
-
-                            window.$("#mensaje-brst").modal("show");
-
-                          }} src="images/brst.png" width="100%" alt="brutus tron staking" ></img>
+                          <img
+                            onClick={() => {
+                              this.setState({
+                                ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[0],
+                                ModalBody: (
+                                  <>
+                                    <select id="currencySelect" className="form-select mb-3">
+                                      <option value="TRX">TRX</option>
+                                      <option value="BRST">BRST</option>
+                                      <option value="USDT">USDT</option>
+                                      <option value="USDD">USDD</option>
+                                    </select>
+                                    TRX
+                                    <input type="number" id="trxD" className="form-control mb-3" placeholder="Amount"></input>
+                                    <button
+                                      type="button"
+                                      className="btn btn-success w-100 mb-3"
+                                      onClick={() => {
+                                        let donacion = document.getElementById('trxD').value;
+                                        let currency = document.getElementById('currencySelect').value;
+                                        donacion = new BigNumber(donacion).shiftedBy(6).dp(0);
+                                        if (currency === "TRX") {
+                                          this.props.contrato.BRST_TRX_Proxy['donate()']().send({ callValue: donacion })
+                                            .then(() => {
+                                              this.setState({
+                                                ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[1],
+                                                ModalBody: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[2]
+                                              });
+                                              window.$("#mensaje-brst").modal("show");
+                                              this.estado();
+                                            });
+                                        } else if (currency === "USDT" || currency === "USDD" || currency === "BRST") {
+                                          // Aquí puedes agregar la lógica para manejar USDT y USDD
+                                          console.log("Donación en " + currency + ":" + donacion);
+                                        }
+                                      }}
+                                    >
+                                      {this.props.i18n.t("brst.alert.donate", { returnObjects: true })[3]}
+                                    </button>
+                                    BRST
+                                    <input type="number" id="brstD" className="form-control mb-3" placeholder="Amount"></input>
+                                    <button
+                                      type="button"
+                                      className="btn btn-success w-100 mb-3"
+                                      onClick={() => {
+                                        let donacion = document.getElementById('brstD').value;
+                                        donacion = new BigNumber(donacion).shiftedBy(6).dp(0);
+                                        this.props.contrato.BRST_TRX_Proxy['donate(uint256)'](donacion.toString(10)).send()
+                                          .then(() => {
+                                            this.setState({
+                                              ModalTitulo: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[1],
+                                              ModalBody: this.props.i18n.t("brst.alert.donate", { returnObjects: true })[2]
+                                            });
+                                            window.$("#mensaje-brst").modal("show");
+                                            this.estado();
+                                          });
+                                      }}
+                                    >
+                                      {this.props.i18n.t("brst.alert.donate", { returnObjects: true })[3]}
+                                    </button>
+                                  </>
+                                )
+                              });
+                              window.$("#mensaje-brst").modal("show");
+                            }}
+                            src="images/brst.png"
+                            width="100%"
+                            alt="brutus tron staking"
+                          />
                           <div className="media-content">
                             <h4 className="mt-0 mt-md-4 fs-20 font-w700 text-black mb-0">{this.props.i18n.t("brst.aStaking")}</h4>
                             <span className="font-w600 text-black">Brutus</span>
@@ -1822,57 +1995,97 @@ export default class Staking extends Component {
                     </div>
                   </div>
                 </div>
+
+
                 <div className="col-xl-6 col-sm-6 wow fadeInUp" data-wow-delay="0.4s">
+
+
                   <div className="card quick-trade">
                     <div className="card-header pb-0 border-0 flex-wrap">
                       <div>
-                        <h4 className="heading mb-0">{this.props.i18n.t("brst.exchange")} V4</h4>
-                        <p className="mb-0 fs-14">{this.props.i18n.t("brst.energy", { e1: (this.state.contractEnergy).toLocaleString('en-US') })}</p>
+                        <h4 className="heading mb-0">{this.props.i18n.t("brst.exchange")} V4.1</h4>
                       </div>
                     </div>
-                    <div className="card-body pb-0">
-                      <div className="basic-form">
-                        <form className="form-wrapper trade-form">
-                          <div className="input-group mb-3 ">
-                            <span className="input-group-text">BRST</span>
+                    <div className="container">
+                      <div className="row">
+                        <div className="col-12">From</div>
+                        <div className="col-2">
+                          <img height="42px" src="/images/token/brst.png" alt="brst logo" />
+                        </div>
+                        <div className="col-3" style={{paddingLeft: "0px", paddingRight: "0px"}}>
+                          <select
+                            style={{ backgroundColor: "var(--primary)", cursor: "pointer", borderRadius: "0.625rem 0 0 0.625rem" }}
+                            className="form-select"
+                            id="currencySelect"
+                            onChange={this.handleCurrencyChange} // Manejador para cambios en la selección
+                            readOnly
+                          >
+                            <option value="brst">BRST </option>
+                            <option value="trx">TRX </option>
+                          </select>
+                        </div>
+                        
+                        <div className="col-7" style={{paddingLeft: "0px"}}>
 
-                            <input className="form-control form-control text-end" type="number" id="amountBRST" onInput={this.handleChangeBRST} placeholder={minventa} min={this.state.minventa} step={0.5} ></input>
+                          <input className="form-control form-control text-end" style={{ borderRadius: "0 0.625rem 0.625rem 0"}} type="number" id="amountBRST" onInput={this.handleChangeBRST} placeholder={minventa} min={this.state.minventa} step={0.0001} ></input>
 
-                          </div>
-                          <div className="input-group mb-3 ">
-                            <span className="input-group-text">TRX</span>
-                            <input className="form-control form-control text-end" type="number" id="amountTRX" onInput={this.handleChangeTRX} placeholder={minCompra} min={this.state.minCompra} step={10} ></input>
-
-                          </div>
-                        </form>
+                        </div>
                       </div>
+                      <hr></hr>
+                      <div className="row">
+                        <div className="col-12">To</div>
+                        <div className="col-2 ">
+                          <img height="42px" src="/images/token/trx.png" alt="tron logo" />
+                        </div>
+                        <div className="col-3" style={{paddingLeft: "0px", paddingRight: "0px"}}>
+                          <select
+                            style={{ backgroundColor: "var(--primary)", cursor: "pointer", borderRadius: "0.625rem 0 0 0.625rem" }}
+                            className="form-select"
+                            id="currencySelect"
+                            onChange={this.handleCurrencyChange} // Manejador para cambios en la selección
+                          >
+                            <option value="trx">TRX </option>
+                            <option value="usdt">USDT </option>
+                            <option value="usdd">USDD </option>
+                          </select>
+                        </div>
+                        
+                        <div className="col-7" style={{paddingLeft: "0px"}}>
+                          <input className="form-control form-control text-end" style={{ borderRadius: "0 0.625rem 0.625rem 0"}} type="number" id="amountTRX" onInput={this.handleChangeTRX} placeholder={minCompra} min={this.state.minCompra} step={0.1} ></input>
+
+                        </div>
+                      </div>
+
+
                     </div>
                     <div className="card-footer border-0">
                       <div className="row">
 
                         <div className="col-6">
                           <button className="btn d-flex  btn-danger justify-content-between w-100" onClick={() => this.sell()}>
-                            {this.props.i18n.t("sell")}
+                            {this.props.i18n.t("sell")} BRST
                             <img src="/images/svg/up.svg" style={{ transform: "rotate(180deg)" }} height="16px" alt="" ></img>
                           </button>
                         </div>
 
                         <div className="col-6">
-                          <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.preCompra()}>
-                            {this.props.i18n.t("buy")}
+                          <button className="btn d-flex  btn-success justify-content-between w-100" onClick={() => this.preSwap()}>
+                            {this.props.i18n.t("buy")} BRST
 
                             <img src="/images/svg/up.svg" height="16px" alt="" ></img>
                           </button>
                         </div>
                       </div>
-                      <div className="d-flex mt-3 align-items-center">
-                        <div className="form-check custom-checkbox me-3">
-                          <label className="form-check-label fs-14 font-w400" htmlFor="customCheckBox1">We recommend keeping ~ {this.state.useTrx} TRX for transactions.</label>
-                        </div>
-                        <p className="mb-0"></p>
+                      <div className="d-flex mt-2" style={{ justifyContent: "space-between" }}>
+                        <p className="mb-0 fs-14">{this.props.i18n.t("brst.energy", { e1: (this.state.contractEnergy).toLocaleString('en-US') })}</p>
+                        <p className="mb-0 fs-14">Fee ~ {this.state.useTrx} TRX</p>
+
+
                       </div>
                     </div>
                   </div>
+
+
                 </div>
                 <div className="col-xl-6 col-sm-12 wow fadeInUp" data-wow-delay="0.6s">
                   <div className="card price-list">
@@ -1976,23 +2189,23 @@ export default class Staking extends Component {
         <div className="col-lg-12">
           <div className="card">
             <div className="card-header">
-              <h4 className="card-title">{this.props.i18n.t("brst.estimate")} <br></br> APY {(crecimientoPorcentual*360).toFixed(3)} %</h4><br></br>
-              
+              <h4 className="card-title">{this.props.i18n.t("brst.estimate")} <br></br> APY {(crecimientoPorcentual * 360).toFixed(3)} %</h4><br></br>
+
               <h6 className="card-subtitle" style={{ cursor: "pointer" }} onClick={() => { document.getElementById("hold").value = this.state.balanceBRST; this.handleChangeCalc({ target: { value: this.state.balanceBRST } }) }}>
                 {this.props.i18n.t("brst.mystaking")}{this.state.misBRST} BRST = {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX
               </h6>
             </div>
             <div className="card-body">
 
-                        <b>Days Average: </b>
-                        <input type="number" id="daysProm" defaultValue={tiempoPromediado} placeholder={tiempoPromediado + " days"} min={1} step={1} onInput={async() => {
-                          let daysProm = parseInt(document.getElementById('daysProm').value);
-                          await this.setState({ tiempoPromediado: isNaN(daysProm) ? 1 : daysProm });
-                          this.estado();
-                        }} ></input>
-                      
-              <div className="table-responsive overflow-scroll" style={{ marginTop: "30px", height: "420px", border: "2px solid rgba(207, 207, 207, 0.97)" , borderRadius: "10px"}}>
-                
+              <b>Days Average: </b>
+              <input type="number" id="daysProm" defaultValue={tiempoPromediado} placeholder={tiempoPromediado + " days"} min={1} step={1} onInput={async () => {
+                let daysProm = parseInt(document.getElementById('daysProm').value);
+                await this.setState({ tiempoPromediado: isNaN(daysProm) ? 1 : daysProm });
+                this.estado();
+              }} ></input>
+
+              <div className="table-responsive overflow-scroll" style={{ marginTop: "30px", height: "420px", border: "2px solid rgba(207, 207, 207, 0.97)", borderRadius: "10px" }}>
+
                 <table className="table table-hover table-responsive-sm">
 
                   <tbody>
@@ -2007,7 +2220,7 @@ export default class Staking extends Component {
                         Your BRST<br></br>
                         <input type="number" id="hold" defaultValue={0} onInput={this.handleChangeCalc} ></input>
                       </th>
-                     
+
                     </tr>
                   </tbody>
                 </table>
