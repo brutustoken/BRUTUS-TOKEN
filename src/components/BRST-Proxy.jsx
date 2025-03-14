@@ -2012,7 +2012,7 @@ export default class Staking extends Component {
                         <div className="col-2">
                           <img height="42px" src="/images/token/brst.png" alt="brst logo" />
                         </div>
-                        <div className="col-3" style={{paddingLeft: "0px", paddingRight: "0px"}}>
+                        <div className="col-3" style={{ color: "white", paddingLeft: "0px", paddingRight: "0px"}}>
                           <select
                             style={{ backgroundColor: "var(--primary)", cursor: "pointer", borderRadius: "0.625rem 0 0 0.625rem" }}
                             className="form-select"
@@ -2037,7 +2037,7 @@ export default class Staking extends Component {
                         <div className="col-2 ">
                           <img height="42px" src="/images/token/trx.png" alt="tron logo" />
                         </div>
-                        <div className="col-3" style={{paddingLeft: "0px", paddingRight: "0px"}}>
+                        <div className="col-3" style={{color: "white", paddingLeft: "0px", paddingRight: "0px"}}>
                           <select
                             style={{ backgroundColor: "var(--primary)", cursor: "pointer", borderRadius: "0.625rem 0 0 0.625rem" }}
                             className="form-select"
