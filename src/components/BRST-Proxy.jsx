@@ -137,6 +137,7 @@ export default class Staking extends Component {
       interesCompuesto: 0,
       crecimientoPorcentual: 0,
       precioUSDT: new BigNumber(0),
+      precioUSDD: new BigNumber(0),
       from: "trx",
       to: "brst",
       par: "trx_brst",
@@ -230,6 +231,8 @@ export default class Staking extends Component {
       to,
       par: selectedCurrency + "_" + to
     }); // Guarda la moneda seleccionada en el estado
+    this.calcExchange(false, selectedCurrency+"_"+to)
+
   };
 
   handleCurrencyChangeTo = (event) => {
@@ -246,7 +249,10 @@ export default class Staking extends Component {
       to: selectedCurrency,
       par: from + "_" + selectedCurrency
     }); // Guarda la cantidad ingresada en el estado
+    this.calcExchange(true, selectedCurrency+"_"+from)
   };
+
+  
 
   handleChange(e) {
     let evento = e.target.value;
@@ -283,10 +289,12 @@ export default class Staking extends Component {
   }
 
   calcExchange(out = false, swap = "trx_brst") {
-    let { precioBrst, precioUSDT } = this.state
+    let { precioBrst, precioUSDT, precioUSDD} = this.state
     let element = out ? "amountTo" : "amountFrom"
 
     let salida = new BigNumber(0)
+
+    if(precioUSDT.toNumber() <= 0 || precioUSDD.toNumber() <= 0) return salida;
 
     let entrada = (document.getElementById(element).value).replace(/,/g, ".")
     entrada = new BigNumber(parseFloat(entrada))
@@ -304,13 +312,13 @@ export default class Staking extends Component {
         break;
 
       case "usdd_brst":
-        salida = entrada.div(precioUSDT)
+        salida = entrada.div(precioUSDD)
         salida = salida.div(precioBrst)
 
         break;
 
       case "brst_usdd":
-        salida = entrada.times(precioUSDT)
+        salida = entrada.times(precioUSDD)
 
         break;
 
@@ -331,9 +339,11 @@ export default class Staking extends Component {
 
     element = !out ? "amountTo" : "amountFrom"
 
-    document.getElementById(element).value = salida.toString(10)
+    if(!isNaN(salida.toString(10))){
+      document.getElementById(element).value = salida.toString(10)
+    }
 
-    console.log(swap, entrada.toString(10), salida.toString(10))
+    //console.log(swap, entrada.toString(10), salida.toString(10))
 
     return salida
 
@@ -455,7 +465,6 @@ export default class Staking extends Component {
         const valorInicial = consulta[consulta.length - 1].value; // Primer valor del rango
         const valorFinal = consulta[0].value; // Ultimo valor del rango
 
-        console.log(valorInicial, valorFinal)
         crecimientoPorcentual = ((valorFinal - valorInicial) / valorInicial) * 100;
         crecimientoPorcentual = crecimientoPorcentual / consulta.length;
       }
@@ -509,13 +518,19 @@ export default class Staking extends Component {
       balanceBRST: balanceBRST,
     })
 
-    consulta = await fetch("https://apilist.tronscanapi.com/api/token/price?contract=TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t")
+    consulta = await fetch("https://apilist.tronscanapi.com/api/token/price?token=usdt")
       .then((r) => r.json())
       .then((r) => {
-        this.setState({ precioUSDT: new BigNumber(r.price_in_usd) })
+        this.setState({ precioUSDT: new BigNumber(1/r.price_in_trx) })
       })
       .catch((e) => { console.log(e) })
 
+      consulta = await fetch("https://apilist.tronscanapi.com/api/token/price?token=usdd")
+      .then((r) => r.json())
+      .then((r) => {
+        this.setState({ precioUSDD: new BigNumber(1/r.price_in_trx) })
+      })
+      .catch((e) => { console.log(e) })
 
 
     let deposito = await contrato.BRST_TRX_Proxy.todasSolicitudes(accountAddress).call();
