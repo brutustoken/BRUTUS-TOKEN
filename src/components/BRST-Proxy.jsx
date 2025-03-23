@@ -1488,7 +1488,7 @@ export default class Staking extends Component {
 
     const { minventa } = this.state;
 
-    let amount = document.getElementById("amountTo").value;
+    let amount = document.getElementById("amountFrom").value;
     amount = amount.replace(/,/g, ".")
     amount = new BigNumber(amount).shiftedBy(6)
 
@@ -1590,7 +1590,6 @@ export default class Staking extends Component {
               window.$("#mensaje-brst").modal("show");
             })
 
-          //await this.props.contrato.BRST_TRX_Proxy.instaRetiro(amount).send();
 
         } else {
           let inputs = [
