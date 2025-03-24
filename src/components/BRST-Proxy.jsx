@@ -215,8 +215,8 @@ export default class Staking extends Component {
   handleCurrencyChangeFrom = (event) => {
     let { to } = this.state
     const selectedCurrency = event.target.value;
-    if(selectedCurrency === "usdt") to = "brst"
-    if(selectedCurrency === "usdd") to = "brst"
+    if (selectedCurrency === "usdt") to = "brst"
+    if (selectedCurrency === "usdd") to = "brst"
 
     if (selectedCurrency === to) {
       if (selectedCurrency === "trx") {
@@ -231,17 +231,17 @@ export default class Staking extends Component {
       to,
       par: selectedCurrency + "_" + to
     }); // Guarda la moneda seleccionada en el estado
-    this.calcExchange(false, selectedCurrency+"_"+to)
+    this.calcExchange(false, selectedCurrency + "_" + to)
 
   };
 
   handleCurrencyChangeTo = (event) => {
     let { from } = this.state
     const selectedCurrency = event.target.value;
-      
+
     if (selectedCurrency === "trx") from = "brst"
     if (selectedCurrency === "brst") from = "trx"
- 
+
     document.getElementById('currencySelectFrom').value = from
 
     this.setState({
@@ -249,10 +249,10 @@ export default class Staking extends Component {
       to: selectedCurrency,
       par: from + "_" + selectedCurrency
     }); // Guarda la cantidad ingresada en el estado
-    this.calcExchange(true, selectedCurrency+"_"+from)
+    this.calcExchange(true, selectedCurrency + "_" + from)
   };
 
-  
+
 
   handleChange(e) {
     let evento = e.target.value;
@@ -289,12 +289,12 @@ export default class Staking extends Component {
   }
 
   calcExchange(out = false, swap = "trx_brst") {
-    let { precioBrst, precioUSDT, precioUSDD} = this.state
+    let { precioBrst, precioUSDT, precioUSDD } = this.state
     let element = out ? "amountTo" : "amountFrom"
 
     let salida = new BigNumber(0)
 
-    if(precioUSDT.toNumber() <= 0 || precioUSDD.toNumber() <= 0) return salida;
+    if (precioUSDT.toNumber() <= 0 || precioUSDD.toNumber() <= 0) return salida;
 
     let entrada = (document.getElementById(element).value).replace(/,/g, ".")
     entrada = new BigNumber(parseFloat(entrada))
@@ -339,7 +339,7 @@ export default class Staking extends Component {
 
     element = !out ? "amountTo" : "amountFrom"
 
-    if(!isNaN(salida.toString(10))){
+    if (!isNaN(salida.toString(10))) {
       document.getElementById(element).value = salida.toString(10)
     }
 
@@ -521,14 +521,14 @@ export default class Staking extends Component {
     consulta = await fetch("https://apilist.tronscanapi.com/api/token/price?token=usdt")
       .then((r) => r.json())
       .then((r) => {
-        this.setState({ precioUSDT: new BigNumber(1/r.price_in_trx) })
+        this.setState({ precioUSDT: new BigNumber(1 / r.price_in_trx) })
       })
       .catch((e) => { console.log(e) })
 
-      consulta = await fetch("https://apilist.tronscanapi.com/api/token/price?token=usdd")
+    consulta = await fetch("https://apilist.tronscanapi.com/api/token/price?token=usdd")
       .then((r) => r.json())
       .then((r) => {
-        this.setState({ precioUSDD: new BigNumber(1/r.price_in_trx) })
+        this.setState({ precioUSDD: new BigNumber(1 / r.price_in_trx) })
       })
       .catch((e) => { console.log(e) })
 
@@ -723,16 +723,16 @@ export default class Staking extends Component {
       let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL)
         .then((r) => r.json())
 
-      if(consulta.available){
+      if (consulta.available) {
         energyOn = energyOn.available
-      }else{
+      } else {
         energyOn = false
       }
 
       consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available")
         .then((r) => r.json())
 
-      if(consulta.av_energy.length > 0){
+      if (consulta.av_energy.length > 0) {
         energi = consulta.av_energy[0].available
       }
 
@@ -1053,8 +1053,6 @@ export default class Staking extends Component {
     let from = document.getElementById('currencySelectFrom').value
     let to = document.getElementById('currencySelectTo').value
 
-    console.log(from + "_" + to)
-
     switch (from + "_" + to) {
 
       case "usdt_brst":
@@ -1067,8 +1065,8 @@ export default class Staking extends Component {
         break;
 
       case "brst_trx":
-          this.sell()
-          break;
+        this.sell()
+        break;
 
       default:
         // TRX -> BRST
@@ -1079,23 +1077,23 @@ export default class Staking extends Component {
 
   async suawpTokenFromTRX(select = 0) {
 
+    const { tronWeb, accountAddress } = this.props
+    let { precioUSDT, precioUSDD } = this.state
+
     // TOKEN => TRX
     let token = select === 0 ? "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t" : "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz" //USDT : USDD
 
-    let sunswapRouter = utils.SUNSWAPV3
+    let currentPrice = select === 0 ? precioUSDT : precioUSDD
 
-    let trxAddress = "TNUC9Qb1rRpS5CbWLmNMxXBjyFoydXjWFR"//WTRX
+    let sunswapRouter = "TCFNp179Lg46D16zKoumd4Poa2WFFdtqYj" // V3
 
-    const { tronWeb, accountAddress } = this.props
-    let { precioUSDT } = this.state
+    let contrato = tronWeb.contract(utils.SUNSWAPV3_ABI, sunswapRouter)
+    //console.log(contrato)
 
-    ///ABI de funciones desde TWetT85bP8PqoPLzorQrCyyGdCEG3MoQAk
-    let contrato = await tronWeb.contract(utils.SUNSWAPV3_ABI, sunswapRouter)
+    let contract_base_token = tronWeb.contract(utils.TOKEN_ABI, token)
+    let decimals_base = parseInt(await contract_base_token.decimals().call())
 
-    let contract_base_token = await tronWeb.contract(utils.TOKEN_ABI, token)
-    let contract_result_token = await tronWeb.contract(utils.TOKEN_ABI, trxAddress)
-
-    let balance_usdt = new BigNumber(parseInt(await contract_base_token.balanceOf(accountAddress).call())).shiftedBy(-1 * parseInt(await contract_base_token.decimals().call()))
+    let balance_usdt = new BigNumber(parseInt(await contract_base_token.balanceOf(accountAddress).call())).shiftedBy(-decimals_base)
 
     let monto = document.getElementById("amountFrom").value;
     monto = monto.replace(/,/g, ".")
@@ -1115,40 +1113,113 @@ export default class Staking extends Component {
 
     }
 
-    this.setState({
-      ModalTitulo: <>Swap Alert {imgLoading}</>,
-      ModalBody: (<>
-        {"will spend " + monto.dp(2).toString(10) + " (" + await contract_base_token.name().call() + ") -> to recibe " + monto.div(precioUSDT).dp(3).toString(10) + " (TRX)"}
-      </>)
-    })
-
-    window.$("#mensaje-brst").modal("show");
-
     let aprove = await contract_base_token.allowance(accountAddress, sunswapRouter).call()
     if (aprove.remaining) aprove = aprove.remaining
     aprove = parseInt(aprove)
     //console.log(aprove)
     if (aprove <= balance_usdt.toNumber()) {
-      console.log(await contract_base_token.approve(sunswapRouter, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send())
+
+      this.setState({
+        ModalTitulo: <>Token Alert {imgLoading}</>,
+        ModalBody: (<>Approve unlimited future exchanges</>)
+      })
+
+      window.$("#mensaje-brst").modal("show");
+
+      let inputs = [
+        { type: 'address', value: tronWeb.address.toHex(sunswapRouter) },
+        { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" },
+      ]
+
+      let funcion = "approve(address,uint256)"
+      const options = {}
+      let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contract_base_token.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+      let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+
+      transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+        .catch((e) => {
+
+          this.setState({
+            ModalTitulo: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[0],
+            ModalBody: this.props.i18n.t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+          })
+
+          window.$("#mensaje-brst").modal("show");
+          return false
+        })
+      if (!transaction) return;
+      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+        .then(() => {
+          this.setState({
+            ModalTitulo: <>Token Alert {imgLoading}</>,
+            ModalBody: <>Approval done, continue the process</>
+          })
+
+          window.$("#mensaje-brst").modal("show");
+          return true;
+        }).catch((e) => {
+
+          this.setState({
+            ModalTitulo: <>Error{imgLoading}</>,
+            ModalBody: <>{e.toString()}</>
+          })
+
+          window.$("#mensaje-brst").modal("show");
+
+          return false;
+        })
+      if (!transaction) return;
+
+
     }
 
-    //alquilar energia
+    let consulta = await fetch("https://rot.endjgfsv.link/swap/router?fromToken=" + token + "&toToken=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb&amountIn=" + monto.shiftedBy(decimals_base).dp(0).toString(10) + "&typeList=SUNSWAP_V3,SUNSWAP_V2,WTRX")
+      .then((r) => r.json())
+      .then((r) => r.data[0])
+
+    function distributeTokens(totalTokens, versions) {
+      let result = new Array(versions.length).fill(0); // Inicializamos el array con ceros
+      let remainingTokens = totalTokens;
+
+      // Asignamos 1 token a cada elemento si hay suficientes tokens disponibles
+      for (let i = 0; i < versions.length && remainingTokens > 0; i++) {
+        result[i] = 1;
+        remainingTokens--;
+      }
+
+      // Distribuimos los tokens restantes de forma balanceada
+      let index = 0;
+      while (remainingTokens > 0) {
+        result[index]++;
+        remainingTokens--;
+        index = (index + 1) % versions.length; // Ciclar en el array
+      }
+
+      return result;
+    }
 
     let inputs = [
-      { type: 'uint256', value: monto.shiftedBy(parseInt(await contract_base_token.decimals().call())).dp(0).toString(10) },
-      { type: 'uint256', value: monto.times(0.99).shiftedBy(parseInt(await contract_result_token.decimals().call())).dp(0).toString(10) },
-      { type: 'address[]', value: [tronWeb.address.toHex(token), tronWeb.address.toHex(trxAddress)] },
-      { type: 'address', value: tronWeb.address.toHex(accountAddress) },
-      { type: 'uint256', value: (parseInt(Date.now() / 1000)) + 100 }
+      { type: 'address[]', value: consulta.tokens },
+      { type: 'string[]', value: consulta.poolVersions },
+      { type: 'uint256[]', value: distributeTokens(consulta.tokens.length, consulta.poolVersions) },
+      { type: 'uint24[]', value: consulta.poolFees },
+      {
+        type: '(uint256,uint256,address,uint256)',
+        value: [
+          new BigNumber(consulta.amountIn).shiftedBy(decimals_base).dp(0).toString(10),
+          new BigNumber(consulta.amountOut).times(0.995).shiftedBy(6).dp(0).toString(10),
+          (tronWeb.address.toHex(accountAddress)).replace(/41/g, "0x"),
+          ((parseInt(Date.now() / 1000)) + 100).toString(10)
+        ]
+      }
 
-      //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-      //{type: 'uint256', value: '1000000'}
     ]
 
-    let funcion = "swapExactTokensForETH(uint256,uint256,address[],address,uint256)"
-    const options = {}
-    let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(contrato.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-    let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+    let funcion = "swapExactInput(address[],string[],uint256[],uint24[],(uint256,uint256,address,uint256))"
+    const options = { feeLimit: 10000 * 1e6, callValue: 0 }
+    let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+    let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+
     transaction = await window.tronLink.tronWeb.trx.sign(transaction)
       .catch((e) => {
 
@@ -1160,7 +1231,7 @@ export default class Staking extends Component {
         window.$("#mensaje-brst").modal("show");
         return false
       })
-    if(!transaction) return;
+    if (!transaction) return;
     transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
       .then(() => {
         this.setState({
@@ -1173,19 +1244,20 @@ export default class Staking extends Component {
 
     await utils.delay(3)
 
-    this.preCompra(monto.div(precioUSDT))
+    this.preCompra(monto.div(currentPrice))
   }
 
   async preCompra(amount) {
 
-    if(amount.toNumber() <= 0){
-      amount = document.getElementById("amountFrom").value;
-      amount = parseInt(parseFloat(amount) * 10 ** 6);
-    }else{
-      amount = amount.toNumber()
-    }
 
-    
+    if (amount.toNumber() <= 0) {
+      amount = parseFloat(document.getElementById("amountFrom").value);
+      amount = new BigNumber(amount)
+
+    } 
+
+    amount = amount.shiftedBy(6).dp(0).toNumber()
+
     if (amount <= 0) {
 
       this.setState({
@@ -1248,7 +1320,7 @@ export default class Staking extends Component {
           <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
-              this.compra()
+              this.compra(amount)
             }
           }}>{this.props.i18n.t("rentE")}</button>
         </>
@@ -1289,7 +1361,7 @@ export default class Staking extends Component {
             window.$("#mensaje-brst").modal("show");
             return false
           })
-        if(!transaction) return;
+        if (!transaction) return;
         transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
           .then(() => {
             this.setState({
@@ -1432,8 +1504,6 @@ export default class Staking extends Component {
     let transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(contrato, funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
       .catch(() => { return {} })
 
-    console.log(transaccion)
-
     if (transaccion.energy_used) {
       eenergy += transaccion.energy_used;
     } else {
@@ -1466,9 +1536,9 @@ export default class Staking extends Component {
       this.setState({
         ModalTitulo: "Energy Notice",
         ModalBody: <>
-        Operation requires: <b>{eenergy} energy</b><br></br>
-        You have: <b>{this.state.contractEnergy} energy</b> <br></br><br></br>
-        Rent <b>{requerido} energy</b> for <b>{precio.toString(10)} TRX</b>
+          Operation requires: <b>{eenergy} energy</b><br></br>
+          You have: <b>{this.state.contractEnergy} energy</b> <br></br><br></br>
+          Rent <b>{requerido} energy</b> for <b>{precio.toString(10)} TRX</b>
           <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
@@ -1636,7 +1706,7 @@ export default class Staking extends Component {
 
         window.$("#mensaje-brst").modal("show");
 
-        document.getElementById("amountTo").value = minventa;
+        document.getElementById("amountFrom").value = minventa;
       }
 
 
@@ -1644,7 +1714,6 @@ export default class Staking extends Component {
 
       if (amount > aprovado) {
         if (aprovado <= 0) {
-          document.getElementById("amountTo").value = minventa;
           this.setState({
             ModalTitulo: "Info",
             ModalBody: "You do not have enough aproved funds in your account you place at least " + minventa + " BRST"
@@ -1652,7 +1721,6 @@ export default class Staking extends Component {
 
           window.$("#mensaje-brst").modal("show");
         } else {
-          document.getElementById("amountTo").value = minventa;
           this.setState({
             ModalTitulo: "Info",
             ModalBody: "You must leave 21 TRX free in your account to make the transaction"
@@ -1661,11 +1729,8 @@ export default class Staking extends Component {
           window.$("#mensaje-brst").modal("show");
         }
 
-
-
       } else {
 
-        document.getElementById("amountTo").value = minventa;
         this.setState({
           ModalTitulo: "Info",
           ModalBody: "You must leave 21 TRX free in your account to make the transaction"
@@ -1674,6 +1739,9 @@ export default class Staking extends Component {
         window.$("#mensaje-brst").modal("show");
 
       }
+
+      document.getElementById("amountFrom").value = minventa;
+
 
     }
 
@@ -2111,7 +2179,7 @@ export default class Staking extends Component {
                           </select>
                         </div>
                         <div className="col-7" style={{ paddingLeft: "0px" }}>
-                          <input className="form-control form-control text-end" style={{ borderRadius: "0 0.625rem 0.625rem 0" }} type="number" id="amountFrom" onInput={() => this.calcExchange(false, this.state.from+"_"+this.state.to)} placeholder={minCompra} min={this.state.minCompra} step={0.1} ></input>
+                          <input className="form-control form-control text-end" style={{ borderRadius: "0 0.625rem 0.625rem 0" }} type="number" id="amountFrom" onInput={() => this.calcExchange(false, this.state.from + "_" + this.state.to)} placeholder={minCompra} min={this.state.minCompra} step={0.1} ></input>
 
                         </div>
                       </div>
@@ -2138,7 +2206,7 @@ export default class Staking extends Component {
 
                         <div className="col-7" style={{ paddingLeft: "0px" }}>
 
-                          <input className="form-control form-control text-end" style={{ borderRadius: "0 0.625rem 0.625rem 0" }} type="number" id="amountTo" onInput={() => this.calcExchange(true, this.state.to+"_"+this.state.from)} placeholder={minventa} min={this.state.minventa} step={0.0001} ></input>
+                          <input className="form-control form-control text-end" style={{ borderRadius: "0 0.625rem 0.625rem 0" }} type="number" id="amountTo" onInput={() => this.calcExchange(true, this.state.to + "_" + this.state.from)} placeholder={minventa} min={this.state.minventa} step={0.0001} ></input>
 
                         </div>
                       </div>

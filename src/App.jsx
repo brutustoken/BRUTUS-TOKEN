@@ -359,7 +359,7 @@ class App extends Component {
       switch (url) {
 
         case "brut":
-          Retorno = <Brut accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
+          Retorno = <Brut accountAddress={accountAddress}  contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
           break;
         case "brst":
           Retorno = <Brst accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
@@ -374,10 +374,10 @@ class App extends Component {
           Retorno = <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
           break;
         case "pro":
-          Retorno = <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} i18n={i18next} />
+          Retorno = <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
           break;
         case "api":
-          Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} i18n={i18next} />
+          Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
           break;
         default:
           Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
