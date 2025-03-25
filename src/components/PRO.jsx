@@ -238,7 +238,7 @@ export default class ProviderPanel extends Component {
           sellener = true
         }
 
-        info.coin = "TRX"
+        info.coin = info.currency
 
         console.log(info)
 
@@ -935,6 +935,9 @@ export default class ProviderPanel extends Component {
 
   async setConfig(target, info) {
     const { accountAddress } = this.props
+    let { ModalTitulo, ModalBody } = this.state
+
+    let msg = false
 
     async function setFreez(data) {
       try {
@@ -968,15 +971,11 @@ export default class ProviderPanel extends Component {
           body: JSON.stringify(body)
         }).then((r) => r.json())
 
-        console.log(consulta)
-
         if (!consulta.result && consulta.data) {
-          this.setState({
-            ModalTitulo: "Operation not executed",
-            ModalBody: consulta.data
-          })
-
-          window.$("#alert").modal("show");
+         
+            msg = true
+            ModalTitulo = "Operation not executed"
+            ModalBody = consulta.data
         }
 
 
@@ -1029,15 +1028,34 @@ export default class ProviderPanel extends Component {
     async function setCoin(coin) {
 
       try {
-        let body = { wallet: accountAddress, currency: coin }
-        await fetch(utils.apiProviders + "set/change_currency", {
+        let body = { wallet: accountAddress, currency: coin.toUpperCase() }
+        let consulta = await fetch(utils.apiProviders + "set/change_currency", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify(body)
-        })
+        }).then((r) => r.json())
+
+        console.log(consulta)
+
+        if (consulta.result) {
+          if (consulta.data.msg) {
+            msg = true
+            ModalTitulo = "Operation Alert"
+            ModalBody = consulta.data.msg
+          }
+
+        } else {
+
+          msg = true
+          ModalTitulo = "Operation not executed"
+          ModalBody = consulta.data
+
+
+
+        }
 
 
       } catch (error) {
@@ -1071,6 +1089,15 @@ export default class ProviderPanel extends Component {
         alert("no asigned")
         break;
     }
+
+    if(msg){
+      this.setState({
+        ModalTitulo,
+        ModalBody
+      })
+      window.$("#alert").modal("show");
+    }
+    
 
     this.estado();
 
@@ -1219,7 +1246,7 @@ export default class ProviderPanel extends Component {
                             </div>
 
                             <div className="col-lg-6 col-md-12 mb-2">
-                              <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Pay hour: {this.state.payhour} GMT</button> {"  "} <span role="img"><i className="bi bi-question-circle-fill"  title="Set the time you want to receive your daily payments" onClick={() => {
+                              <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Pay hour: {this.state.payhour} GMT</button> {"  "} <span role="img"><i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
 
                                 this.setState({
                                   ModalTitulo: "Info",
