@@ -1,15 +1,15 @@
 import React, { Component } from "react";
 import utils from "../utils";
 
-import {TronWeb} from "tronweb";
+import { TronWeb } from "tronweb";
 
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 
+const env = process.env
+
 var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
-
-let isMovil = false;
 
 export default class ProviderPanel extends Component {
 
@@ -53,17 +53,15 @@ export default class ProviderPanel extends Component {
       payHere: "*************************************",
       completed: [],
       totalPayed30: "Loading...",
-      allPayed: "Loading..."
-
+      allPayed: "Loading...",
+      coin: "Loading...",
 
     };
 
     this.estado = this.estado.bind(this);
     this.handleChange = this.handleChange.bind(this);
-    this.setPaymentHour = this.setPaymentHour.bind(this);
-    this.setMaxDays = this.setMaxDays.bind(this);
-    this.setFreez = this.setFreez.bind(this);
-    this.setWalletSr = this.setWalletSr.bind(this);
+
+    this.setConfig = this.setConfig.bind(this);
 
     this.grafico = this.grafico.bind(this);
 
@@ -79,7 +77,7 @@ export default class ProviderPanel extends Component {
     }
 
     if (esDispositivoMovil()) {
-      isMovil = true
+      console.log("movil: true")
     }
 
     setTimeout(() => {
@@ -92,460 +90,9 @@ export default class ProviderPanel extends Component {
 
   }
 
-
-  async handleChange(event) {
-
-    let elemento = event.target
-
-    //console.log(elemento.id)
-
-    switch (elemento.id) {
-      case "rent":
-
-        if (elemento.value !== this.state.rent) {
-          //alert("diferentes: " + this.state.rent) //hace cambio
-
-          let activate = 1
-          if (this.state.rent) {
-            activate = 0
-          }
-          // activar renta
-
-
-          try {
-            let body = { wallet: this.props.accountAddress, active: activate }
-            fetch(utils.apiProviders + "set/active", {
-              method: "POST",
-              headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            })
-
-
-          } catch (error) {
-            console.log(error.toString())
-          }
-
-          let value = false
-          if (elemento.value === "true") {
-            value = true
-          }
-
-          this.setState({
-            rent: value
-          })
-        }
-
-
-        break;
-
-      case "band":
-
-        if (elemento.value !== this.state.sellband) {
-          //alert("diferentes: " + this.state.rent) //hace cambio
-
-          let over = 0
-          let activate = "0"
-          if (!this.state.sellband) {
-            activate = "1"
-            over = parseInt(prompt("sell band over, leave ", this.state.bandover))
-
-            console.log(over)
-            if (!isNaN(over)) {
-              let body = { wallet: this.props.accountAddress, sellbandover: over }
-
-              fetch(utils.apiProviders + "set/sellbandover", {
-                method: "POST",
-                headers: {
-                  'token-api': process.env.REACT_APP_TOKEN,
-                  'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-              })
-            }
-
-
-          }
-          // activar renta
-
-          try {
-            let body = { wallet: this.props.accountAddress, sellband: activate }
-            fetch(utils.apiProviders + "set/sellband", {
-              method: "POST",
-              headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            })
-
-
-          } catch (error) {
-            console.log(error.toString())
-          }
-
-          let value = false
-          if (elemento.value === "true") {
-            value = true
-          }
-
-          this.setState({
-            sellband: value
-          })
-        }
-
-
-        break;
-
-      case "ener":
-
-        if (elemento.value !== this.state.sellener) {
-
-          let over = 0
-          if (!this.state.sellener) {
-            over = parseInt(prompt("sell energy over, leave ", 32000))
-
-          }
-
-          //console.log(over)
-
-          if (!isNaN(over)) {
-            let body = { wallet: this.props.accountAddress, sellenergyover: over }
-
-            fetch(utils.apiProviders + "set/sellenergyover", {
-              method: "POST",
-              headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            })
-          }
-
-
-
-
-          let value = false
-          if (elemento.value === "true") {
-            value = true
-          }
-
-          this.setState({
-            sellband: value
-          })
-        }
-
-
-        break;
-
-      case "burn":
-
-        if (elemento.value !== this.state.burn) {
-          //alert("diferentes: " + this.state.rent) //hace cambio
-
-          let activate = "1"
-          if (this.state.burn) {
-            activate = "0"
-          }
-          // activar renta
-
-
-          try {
-            let body = { wallet: this.props.accountAddress, burn: activate }
-            fetch(utils.apiProviders + "set/burn", {
-              method: "POST",
-              headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            })
-
-
-          } catch (error) {
-            console.log(error.toString())
-          }
-
-          //console.log(elemento.value)
-
-          let value = false
-          if (elemento.value === "true") {
-            value = true
-          }
-
-
-          this.setState({
-            burn: value
-          })
-        }
-
-
-        break;
-
-      case "voteSR":
-
-        this.setState({
-          newVoteSR: elemento.value
-        })
-
-        break;
-
-      case "noti":
-
-        if (elemento.value !== this.state.noti) {
-          //alert("diferentes: " + this.state.noti) //hace cambio
-
-          let activate = "1"
-          if (this.state.noti) {
-            activate = "0"
-          }
-          // activar renta
-
-
-          try {
-            let body = { wallet: this.props.accountAddress, allow_notifications: activate }
-            fetch(utils.apiProviders + "set/allow_notifications", {
-              method: "POST",
-              headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(body)
-            })
-
-
-          } catch (error) {
-            console.log(error.toString())
-          }
-
-          let value = false
-          if (elemento.value === "true") {
-            value = true
-          }
-
-          this.setState({
-            noti: value
-          })
-        }
-
-
-        break;
-
-      default:
-        break;
-    }
-
-    this.estado()
-
-  }
-
-  async grafico(external_data) {
-
-    if (!document.getElementById('chartdiv')) return;
-
-    if (this.root) {
-      this.root.dispose();
-    }
-    const root = am5.Root.new("chartdiv");
-    root._logo.dispose();
-    let chart = root.container.children.push(
-      am5xy.XYChart.new(root, {
-        panY: false,
-        layout: root.verticalLayout
-      })
-    );
-
-    // Define data
-    let data = [{
-      date: new Date(1712953610 * 1000),
-      amount: 1000,
-      coin: "trx"
-    }, {
-      date: new Date(1712780810 * 1000),
-      amount: 1300,
-      coin: "trx"
-    }, {
-      date: new Date(1712694410 * 1000),
-      amount: 1200,
-      coin: "trx"
-    },
-    {
-      date: new Date(1712694410 * 1000),
-      amount: 250,
-      coin: "brst"
-    }, {
-      date: new Date(1712521610 * 1000),
-      amount: 200,
-      coin: "brst"
-    }, {
-      date: new Date(1712435210 * 1000),
-      amount: 500,
-      coin: "brst"
-    }];
-
-    data = external_data
-
-    // Create Y-axis
-    let yAxis = chart.yAxes.push(
-      am5xy.ValueAxis.new(root, {
-        renderer: am5xy.AxisRendererY.new(root, {})
-      })
-    );
-
-    // Create X-Axis
-    let xAxis = chart.xAxes.push(
-      am5xy.CategoryAxis.new(root, {
-        baseInterval: { timeUnit: "day", count: 1 },
-        renderer: am5xy.AxisRendererX.new(root, {}),
-        categoryField: "date"
-      })
-    );
-    xAxis.data.setAll(data);
-
-    // Create series
-
-    let series1 = chart.series.push(
-      am5xy.ColumnSeries.new(root, {
-        name: "TRX",
-        xAxis: xAxis,
-        yAxis: yAxis,
-        valueYField: "amount",
-        categoryXField: "date",
-        fill: am5.color(0x7135ff),
-        stroke: am5.color(0x7135ff)
-      })
-    );
-    series1.data.setAll(data);
-
-
-    // Create series
-    /*
-    let series2 = chart.series.push(
-      am5xy.ColumnSeries.new(root, {
-        name: "Payed in BRST",
-        xAxis: xAxis,
-        yAxis: yAxis,
-        valueYField: "value",
-        categoryXField: "date"
-      })
-    );
-    series2.data.setAll(data);
-*/
-
-    // Add legend
-    /*
-    let legend = chart.children.push(am5.Legend.new(root, {}));
-    legend.data.setAll(chart.series.values);
-    */
-
-    // Add cursor
-    chart.set("cursor", am5xy.XYCursor.new(root, {}));
-
-    this.root = root;
-  }
-
-  async setFreez(data) {
-    try {
-      let body = { wallet: this.props.accountAddress, autofreeze: data }
-      await fetch(utils.apiProviders + "set/autofreeze", {
-        method: "POST",
-        headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
-
-
-    } catch (error) {
-      console.log(error.toString())
-    }
-
-    this.estado()
-
-  }
-
-  async setPaymentHour(hour) {
-
-    try {
-      let body = { wallet: this.props.accountAddress, paymenthour: hour }
-      let consulta = await fetch(utils.apiProviders + "set/paymenthour", {
-        method: "POST",
-        headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      }).then((r)=>r.json())
-
-      console.log(consulta)
-
-      if(!consulta.result && consulta.data){
-        this.setState({
-          ModalTitulo: "Operation not executed",
-          ModalBody: consulta.data
-        })
-  
-        window.$("#alert").modal("show");
-      }
-
-
-    } catch (error) {
-      console.log(error.toString())
-    }
-
-    this.estado()
-
-  }
-
-  async setMaxDays(days) {
-
-    try {
-      let body = { wallet: this.props.accountAddress, maxdays: days }
-      await fetch(utils.apiProviders + "set/maxdays", {
-        method: "POST",
-        headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
-
-
-    } catch (error) {
-      console.log(error.toString())
-    }
-
-    this.estado()
-
-  }
-
-  async setWalletSr(wallet) {
-
-    try {
-      let body = { wallet: this.props.accountAddress, sr: wallet }
-      await fetch(utils.apiProviders + "set/sr", {
-        method: "POST",
-        headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
-
-
-    } catch (error) {
-      console.log(error.toString())
-    }
-
-    this.estado()
-  }
-
   async estado() {
 
-    const {accountAddress} = this.props
+    const { accountAddress } = this.props
 
     this.setState({
       tiempo: moment.tz.guess(true)
@@ -569,8 +116,6 @@ export default class ProviderPanel extends Component {
     this.setState({
       provider: provider.result
     })
-
-    //console.log(this.props.tronlink.adapter)
 
     let auth = false
 
@@ -601,9 +146,9 @@ export default class ProviderPanel extends Component {
         auth = true
       }
 
-      this.setState({firma: auth})
+      this.setState({ firma: auth })
 
-      if (firma !== undefined && auth ) {
+      if (firma !== undefined && auth) {
 
         let info = {}
 
@@ -622,11 +167,15 @@ export default class ProviderPanel extends Component {
           console.log(error.toString())
         }
 
+        console.log(info)
+
         let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
 
         if (naranja >= 0) {
           naranja = "+" + naranja
         }
+
+        info.naranja = naranja
 
         if (info.freez) {
           info.freez = (info.freez).toLowerCase()
@@ -689,21 +238,18 @@ export default class ProviderPanel extends Component {
           sellener = true
         }
 
+        info.coin = "TRX"
+
+        console.log(info)
+
         this.setState({
+          ...info,
           rent: info.activo,
-          elegible: info.elegible,
-          sellband: info.sellband,
-          bandover: info.bandover,
           sellener: sellener,
           enerover: info.energyover,
-          burn: info.burn,
           noti: info.allow_notifications,
           autofreeze: info.freez,
-          payhour: info.payhour,
-          payment: info.payment,
           paymentPoints: info.payout_ratio * 100,
-          maxdays: info.maxdays,
-          payhere: info.payhere,
           payoutRatio: info.payout_ratio,
           ratioEnergy: new BigNumber(info.ratio_e * 100),
           ratioEnergyPool: new BigNumber(info.ratio_e_pool * 100),
@@ -1053,19 +599,492 @@ export default class ProviderPanel extends Component {
       }
     }
 
-    
+  }
 
+
+  async handleChange(event) {
+
+    let elemento = event.target
+
+    //console.log(elemento.id)
+
+    switch (elemento.id) {
+      case "rent":
+
+        if (elemento.value !== this.state.rent) {
+          //alert("diferentes: " + this.state.rent) //hace cambio
+
+          let activate = 1
+          if (this.state.rent) {
+            activate = 0
+          }
+          // activar renta
+
+
+          try {
+            let body = { wallet: this.props.accountAddress, active: activate }
+            fetch(utils.apiProviders + "set/active", {
+              method: "POST",
+              headers: {
+                'token-api': process.env.REACT_APP_TOKEN,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            })
+
+
+          } catch (error) {
+            console.log(error.toString())
+          }
+
+          let value = false
+          if (elemento.value === "true") {
+            value = true
+          }
+
+          this.setState({
+            rent: value
+          })
+        }
+
+
+        break;
+
+      case "band":
+
+        if (elemento.value !== this.state.sellband) {
+          //alert("diferentes: " + this.state.rent) //hace cambio
+
+          let over = 0
+          let activate = "0"
+          if (!this.state.sellband) {
+            activate = "1"
+            over = parseInt(prompt("sell band over, leave ", this.state.bandover))
+
+            console.log(over)
+            if (!isNaN(over)) {
+              let body = { wallet: this.props.accountAddress, sellbandover: over }
+
+              fetch(utils.apiProviders + "set/sellbandover", {
+                method: "POST",
+                headers: {
+                  'token-api': process.env.REACT_APP_TOKEN,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+              })
+            }
+
+
+          }
+          // activar renta
+
+          try {
+            let body = { wallet: this.props.accountAddress, sellband: activate }
+            fetch(utils.apiProviders + "set/sellband", {
+              method: "POST",
+              headers: {
+                'token-api': process.env.REACT_APP_TOKEN,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            })
+
+
+          } catch (error) {
+            console.log(error.toString())
+          }
+
+          let value = false
+          if (elemento.value === "true") {
+            value = true
+          }
+
+          this.setState({
+            sellband: value
+          })
+        }
+
+
+        break;
+
+      case "ener":
+
+        if (elemento.value !== this.state.sellener) {
+
+          let over = 0
+          if (!this.state.sellener) {
+            over = parseInt(prompt("sell energy over, leave ", 32000))
+
+          }
+
+          //console.log(over)
+
+          if (!isNaN(over)) {
+            let body = { wallet: this.props.accountAddress, sellenergyover: over }
+
+            fetch(utils.apiProviders + "set/sellenergyover", {
+              method: "POST",
+              headers: {
+                'token-api': process.env.REACT_APP_TOKEN,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            })
+          }
+
+
+
+
+          let value = false
+          if (elemento.value === "true") {
+            value = true
+          }
+
+          this.setState({
+            sellband: value
+          })
+        }
+
+
+        break;
+
+      case "burn":
+
+        if (elemento.value !== this.state.burn) {
+          //alert("diferentes: " + this.state.rent) //hace cambio
+
+          let activate = "1"
+          if (this.state.burn) {
+            activate = "0"
+          }
+          // activar renta
+
+
+          try {
+            let body = { wallet: this.props.accountAddress, burn: activate }
+            fetch(utils.apiProviders + "set/burn", {
+              method: "POST",
+              headers: {
+                'token-api': process.env.REACT_APP_TOKEN,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            })
+
+
+          } catch (error) {
+            console.log(error.toString())
+          }
+
+          //console.log(elemento.value)
+
+          let value = false
+          if (elemento.value === "true") {
+            value = true
+          }
+
+
+          this.setState({
+            burn: value
+          })
+        }
+
+
+        break;
+
+      case "voteSR":
+
+        this.setState({
+          newVoteSR: elemento.value
+        })
+
+        break;
+
+      case "noti":
+
+        if (elemento.value !== this.state.noti) {
+          //alert("diferentes: " + this.state.noti) //hace cambio
+
+          let activate = "1"
+          if (this.state.noti) {
+            activate = "0"
+          }
+          // activar renta
+
+
+          try {
+            let body = { wallet: this.props.accountAddress, allow_notifications: activate }
+            fetch(utils.apiProviders + "set/allow_notifications", {
+              method: "POST",
+              headers: {
+                'token-api': process.env.REACT_APP_TOKEN,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(body)
+            })
+
+
+          } catch (error) {
+            console.log(error.toString())
+          }
+
+          let value = false
+          if (elemento.value === "true") {
+            value = true
+          }
+
+          this.setState({
+            noti: value
+          })
+        }
+
+
+        break;
+
+      default:
+        break;
+    }
+
+    this.estado()
 
   }
 
+  async grafico(external_data) {
+
+    if (!document.getElementById('chartdiv')) return;
+
+    if (this.root) {
+      this.root.dispose();
+    }
+    const root = am5.Root.new("chartdiv");
+    root._logo.dispose();
+    let chart = root.container.children.push(
+      am5xy.XYChart.new(root, {
+        panY: false,
+        layout: root.verticalLayout
+      })
+    );
+
+    // Define data
+    let data = [{
+      date: new Date(1712953610 * 1000),
+      amount: 1000,
+      coin: "trx"
+    }, {
+      date: new Date(1712780810 * 1000),
+      amount: 1300,
+      coin: "trx"
+    }, {
+      date: new Date(1712694410 * 1000),
+      amount: 1200,
+      coin: "trx"
+    },
+    {
+      date: new Date(1712694410 * 1000),
+      amount: 250,
+      coin: "brst"
+    }, {
+      date: new Date(1712521610 * 1000),
+      amount: 200,
+      coin: "brst"
+    }, {
+      date: new Date(1712435210 * 1000),
+      amount: 500,
+      coin: "brst"
+    }];
+
+    data = external_data
+
+    // Create Y-axis
+    let yAxis = chart.yAxes.push(
+      am5xy.ValueAxis.new(root, {
+        renderer: am5xy.AxisRendererY.new(root, {})
+      })
+    );
+
+    // Create X-Axis
+    let xAxis = chart.xAxes.push(
+      am5xy.CategoryAxis.new(root, {
+        baseInterval: { timeUnit: "day", count: 1 },
+        renderer: am5xy.AxisRendererX.new(root, {}),
+        categoryField: "date"
+      })
+    );
+    xAxis.data.setAll(data);
+
+    // Create series
+
+    let series1 = chart.series.push(
+      am5xy.ColumnSeries.new(root, {
+        name: "TRX",
+        xAxis: xAxis,
+        yAxis: yAxis,
+        valueYField: "amount",
+        categoryXField: "date",
+        fill: am5.color(0x7135ff),
+        stroke: am5.color(0x7135ff)
+      })
+    );
+    series1.data.setAll(data);
+
+    chart.set("cursor", am5xy.XYCursor.new(root, {}));
+
+    this.root = root;
+  }
+
+  async setConfig(target, info) {
+    const { accountAddress } = this.props
+
+    async function setFreez(data) {
+      try {
+        let body = { wallet: accountAddress, autofreeze: data }
+        await fetch(utils.apiProviders + "set/autofreeze", {
+          method: "POST",
+          headers: {
+            'token-api': env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+    }
+
+    async function setPaymentHour(hour) {
+
+      try {
+        let body = { wallet: accountAddress, paymenthour: hour }
+        let consulta = await fetch(utils.apiProviders + "set/paymenthour", {
+          method: "POST",
+          headers: {
+            'token-api': env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        }).then((r) => r.json())
+
+        console.log(consulta)
+
+        if (!consulta.result && consulta.data) {
+          this.setState({
+            ModalTitulo: "Operation not executed",
+            ModalBody: consulta.data
+          })
+
+          window.$("#alert").modal("show");
+        }
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+    }
+
+    async function setMaxDays(days) {
+
+      try {
+        let body = { wallet: accountAddress, maxdays: days }
+        await fetch(utils.apiProviders + "set/maxdays", {
+          method: "POST",
+          headers: {
+            'token-api': env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+    }
+
+    async function setWalletSr(wallet) {
+
+      try {
+        let body = { wallet: accountAddress, sr: wallet }
+        await fetch(utils.apiProviders + "set/sr", {
+          method: "POST",
+          headers: {
+            'token-api': env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+    }
+
+    async function setCoin(coin) {
+
+      try {
+        let body = { wallet: accountAddress, currency: coin }
+        await fetch(utils.apiProviders + "set/change_currency", {
+          method: "POST",
+          headers: {
+            'token-api': env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        })
+
+
+      } catch (error) {
+        console.log(error.toString())
+      }
+
+    }
+
+    switch (target) {
+      case "setFreez":
+        await setFreez(info)
+        break;
+
+      case "setPaymentHour":
+        await setPaymentHour(info)
+        break;
+
+      case "setMaxDays":
+        await setMaxDays(info)
+        break;
+
+      case "setWalletSr":
+        await setWalletSr(info)
+        break;
+
+      case "setCoin":
+        await setCoin(info)
+        break;
+
+      default:
+        alert("no asigned")
+        break;
+    }
+
+    this.estado();
+
+  }
 
 
   render() {
 
 
-    if (this.state.provider) {
+    let { provider, firma, autofreeze, coin } = this.state
 
-      if (!this.state.firma) {
+    if (provider) {
+
+      if (!firma) {
 
         return (<>
 
@@ -1079,7 +1098,7 @@ export default class ProviderPanel extends Component {
                         <h2 className="heading">Status: you are a provider</h2>
 
                         <p>
-                          <button className="btn btn-warning" onClick={()=>this.estado()}>Login</button>
+                          <button className="btn btn-warning" onClick={() => this.estado()}>Login</button>
                         </p>
 
                         <p>There seems to be problems when performing signature verification please contact support</p>
@@ -1100,65 +1119,419 @@ export default class ProviderPanel extends Component {
       } else {
 
 
-      let estatus = <button className="btn btn-outline-danger btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
+        let estatus = <button className="btn btn-outline-danger btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-sign-stop-fill"></i> Stopped</button>
 
-      if (this.state.rent) {
+        if (this.state.rent) {
 
-        estatus = <button className="btn btn-outline-info btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-arrow-clockwise"></i> Recharging</button>
+          estatus = <button className="btn btn-outline-info btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-arrow-clockwise"></i> Recharging</button>
 
-        if (this.state.elegible) {
-          estatus = <button className="btn btn-outline-success btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-check-circle-fill"></i> Active</button>
+          if (this.state.elegible) {
+            estatus = <button className="btn btn-outline-success btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><i className="bi bi-check-circle-fill"></i> Active</button>
+          }
+
         }
 
-      }
 
+        let campoFreeze = <></>
 
-      let campoFreeze = <></>
+        if (autofreeze !== "Off") {
 
-      if (this.state.autofreeze !== "Off") {
+          campoFreeze = <div className="container mt-1">
+            <div className="row mt-1">
+              <div className="col-12">Wallet of SR to vote (default: Brutus)</div>
+              <div className="col-11">
+                <input type="text" className="form-control" id="voteSR" style={{ borderColor: "#c3c3c3" }} placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} ></input>
+              </div>
+              <div className="col-1">
+                <i className="bi bi-question-circle-fill" title="You can set by which super representative wallet the automatic votes will be made" onClick={() => {
 
-        campoFreeze = <div className="container mt-1">
-          <div className="row mt-1">
-            <div className="col-12">Wallet of SR to vote (default: Brutus)</div>
-            <div className="col-11">
-              <input type="text" className="form-control" id="voteSR" style={{ borderColor: "#c3c3c3" }} placeholder={this.state.voteSR} onChange={this.handleChange} disabled={false} ></input>
-            </div>
-            <div className="col-1">
-              <i className="bi bi-question-circle-fill" title="You can set by which super representative wallet the automatic votes will be made" onClick={() => {
+                  this.setState({
+                    ModalTitulo: "Info",
+                    ModalBody: "You can set by which super representative wallet the automatic votes will be made"
+                  })
 
-                this.setState({
-                  ModalTitulo: "Info",
-                  ModalBody: "You can set by which super representative wallet the automatic votes will be made"
-                })
-
-                window.$("#alert").modal("show");
-              }}></i>
+                  window.$("#alert").modal("show");
+                }}></i>
+              </div>
             </div>
           </div>
-        </div>
 
 
-        if (this.state.voteSR !== "" && TronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
+          if (this.state.voteSR !== "" && TronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
 
-          campoFreeze = (<>
-            {campoFreeze}
-            <button className="btn btn-outline-secondary" type="button" onClick={() => {
-              this.setWalletSr(this.state.newVoteSR)
-            }}>Update Wallet to Vote</button>
+            campoFreeze = (<>
+              {campoFreeze}
+              <button className="btn btn-outline-secondary" type="button" onClick={() => {
+                this.setWalletSr(this.state.newVoteSR)
+              }}>Update Wallet to Vote</button>
 
-          </>)
+            </>)
+
+          }
+
+
+
+
+
+
 
         }
 
 
 
+        return (<>
+
+          <div className="container-fluid">
+            <div className="row">
+              <div className="col-12">
+                <div className="row">
+                  <div className="col-lg-8 col-sm-12">
+                    <div className="card exchange">
+                      <div className="card-header d-block" style={{ border: "none" }}>
+
+
+                        <div className="container-fluid">
+                          <div className="row">
+                            <div className="col-lg-6 col-sm-12 mb-2 text-center">
+                              <img height="15px" src="images/energy.png" alt="" ></img> Energy ({(this.state.proEnergy).toLocaleString('en-US')}/{(this.state.proEnergyTotal).toLocaleString("en-us")})
+                              <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
+                                <div className="progress-bar bg-warning" role="progressbar" style={{ "width": ((this.state.proEnergy / this.state.proEnergyTotal) * 100) + "%" }}
+                                  aria-valuenow={(this.state.proEnergy / this.state.proEnergyTotal) * 100} aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-lg-6 col-sm-12 mb-2 text-center">
+                              <span role="img">{"🌐"}</span> Bandwidth ({(this.state.proBand).toLocaleString("en-us")}/{(this.state.proBandTotal).toLocaleString("en-us")})
+                              <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
+                                <div className="progress-bar bg-info" role="progressbar" style={{ "width": ((this.state.proBand / this.state.proBandTotal) * 100) + "%" }}
+                                  aria-valuenow={(this.state.proBand / this.state.proBandTotal) * 100} aria-valuemin="0" aria-valuemax="100">
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-lg-4 col-sm-12 mb-2">
+                              <h2 className="heading">{estatus} </h2>
+                            </div>
+                            <div className="col-lg-4 col-sm-12 mb-2">
+                              <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy.dp(3).toString(10)} /  {this.state.ratioEnergyPool.dp(3).toString(10)} </button></h2>
+                            </div>
+                            <div className="col-lg-4 col-sm-12 mb-2">
+                              <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
+                            </div>
+
+                            <div className="col-lg-6 col-md-12 mb-2">
+                              <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Pay hour: {this.state.payhour} GMT</button> {"  "} <span role="img"><i className="bi bi-question-circle-fill"  title="Set the time you want to receive your daily payments" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Set the time you want to receive your daily payments"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i></span>
+                              <div className="dropdown-menu" aria-labelledby="menu1">
+                                <button className="dropdown-item" onClick={() => this.setConfig("setPaymentHour", "130")}>1:30 GMT</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setPaymentHour", "930")}>9:30 GMT</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setPaymentHour", "1730")}>17:30 GMT</button>
+                              </div>
+                            </div>
+
+                            <div className="col-lg-6 col-md-12 mb-2">
+                              <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Coin: {coin} </button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Set the time you want to receive your daily payments"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i>
+                              <div className="dropdown-menu" aria-labelledby="menu1">
+                                <button className="dropdown-item" onClick={() => this.setConfig("setCoin", "trx")}>TRX</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setCoin", "usdd")}>USDD</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setCoin", "usdt")}>USDT</button>
+                              </div>
+                            </div>
+
+                            <div className="col-lg-6 col-md-12 mb-2">
+                              <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="Establish the max. duration of the orders you want to accept" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Establish the max. duration of the orders you want to accept"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i>
+                              <div className="dropdown-menu" aria-labelledby="menu2">
+                                <button className="dropdown-item" onClick={() => this.setConfig("setMaxDays", '1h')}>1h</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setMaxDays", 3)} >3 days</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setMaxDays", 7)}>7 days</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setMaxDays", 14)}>14 days</button>
+                              </div>
+                            </div>
 
 
 
+                            <div className="col-lg-6 col-md-12 mb-2" >
+                              <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
 
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i>
+                              <div className="dropdown-menu" aria-labelledby="menu">
+                                <button className="dropdown-item" onClick={() => this.setConfig("setFreez", "no")}>Off</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setFreez", "bandwidth")}>Bandwidth</button>
+                                <button className="dropdown-item" onClick={() => this.setConfig("setFreez", "energy")}>Energy</button>
+                              </div>
+                            </div>
+
+                            <div className="col-lg-12 col-sm-12 mb-2">
+                              {campoFreeze}
+                            </div>
+
+                            <div className="col-4  ">
+                              <input className="form-check-input" type="checkbox" id="rent" style={{ backgroundColor: this.state.rent ? "#9568FF" : "lightgray" }} checked={this.state.rent} onChange={this.handleChange} ></input>
+                              <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Pause/Resume the bot"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i></label>
+                            </div>
+
+                            <div className="col-4  " style={{ textAlign: "center" }}>
+                              <input className="form-check-input" type="checkbox" id="burn" style={{ backgroundColor: this.state.burn ? "#9568FF" : "lightgray" }} checked={this.state.burn} onChange={this.handleChange} ></input>
+                              <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Allow TRX burn to accept new orders when you run out of bandwidth"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i></label>
+                            </div>
+
+                            <div className="col-4  " style={{ textAlign: "right" }}>
+                              <input className="form-check-input" type="checkbox" id="noti" style={{ backgroundColor: this.state.noti ? "#9568FF" : "lightgray" }} checked={this.state.noti} onChange={this.handleChange} ></input>
+                              <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notify <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Pause/Resume notifications from the telegram bot"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i></label>
+                            </div>
+
+                            <div className="col-6  ">
+                              <input className="form-check-input" type="checkbox" id="band" style={{ backgroundColor: this.state.sellband ? "#9568FF" : "lightgray" }} checked={this.state.sellband} onChange={this.handleChange} ></input>
+                              <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: <br></br>{(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Sell your staked bandwidth over the amount you establish"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i></label>
+                            </div>
+
+                            <div className="col-6 " style={{ textAlign: "right" }}>
+                              <input className="form-check-input" type="checkbox" id="ener" style={{ backgroundColor: this.state.sellener ? "#9568FF" : "lightgray" }} checked={this.state.sellener} onChange={this.handleChange} ></input>
+                              <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: <br></br> {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
+
+                                this.setState({
+                                  ModalTitulo: "Info",
+                                  ModalBody: "Sell your staked energy over the amount you establish"
+                                })
+
+                                window.$("#alert").modal("show");
+                              }}></i></label>
+                            </div>
+
+
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                  <div className="col-lg-4 col-sm-12">
+                    <div className="card">
+                      <div className="card-header border-0 pb-0">
+                        <h2 className="heading mb-0 m-auto">Next Payment</h2>
+                      </div>
+                      <div className="card-body text-center pt-3">
+                        <div className="mt-1">Hour {this.state.payhour} GMT</div>
+                        <hr></hr>
+                        <div className="count-num mt-1">{(this.state.payment).toLocaleString("en-US")} TRX</div>
+                        <hr></hr>
+
+                        <div className="mt-1">that will be paid here:<br></br> <u onMouseEnter={() => { this.setState({ payHere: this.state.payhere }) }} onMouseLeave={() => { this.setState({ payHere: "*************************************" }) }}>{this.state.payHere}</u></div>
+
+                        <hr></hr>
+
+                        <div className="mt-1">
+                          Total earned all time:<br></br>
+                          <b>{this.state.allPayed} TRX</b> <br></br>
+                          <button className="btn btn-danger" onClick={() => { localStorage.removeItem("firma-tron"); this.setState({ firma: false }) }}>LogOut <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-right" viewBox="0 0 16 16">
+                            <path fillRule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z" />
+                            <path fillRule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z" />
+                          </svg></button>
+                        </div>
+
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="col-xl-12">
+                <div className="row">
+                  <div className="col-12">
+                    <div className="card">
+                      <div className="card-header">
+                        <h4 className="card-title">last {this.state.historic.length} payments = {this.state.totalPayed30}</h4>
+                      </div>
+                      <div className="card-body">
+                        <div className="row">
+                          <div className="col-lg-8 col-sm-12">
+                            <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
+                              <table className="table verticle-middle table-responsive-md " >
+                                <thead>
+                                  <tr>
+                                    <th scope="col" style={{ textAlign: "right" }}>Amount</th>
+                                    <th scope="col">Currency</th>
+                                    <th scope="col">Date</th>
+
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {this.state.historic}
+
+                                </tbody>
+                              </table>
+                            </div>
+                          </div>
+                          <div className="col-lg-4 col-sm-12">
+                            <div className="mb-3" id="chartdiv" style={{ height: this.state.alturaGrafico, backgroundColor: "white" }}></div>
+                            <button className="btn btn-success" onClick={() => { if (this.state.alturaGrafico === "0px") { this.setState({ alturaGrafico: "350px" }); this.grafico(this.state.dataHistoric) } else { this.setState({ alturaGrafico: "0px" }); this.root.dispose(); } }}>Graphic (Open / Close)</button>
+                          </div>
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="card">
+                      <div className="card-header">
+                        <h4 className="card-title">Ongoing deals ({this.state.ongoins.length})</h4>
+                      </div>
+                      <div className="card-body">
+                        <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
+                          <table className="table verticle-middle table-responsive-md " >
+                            <thead>
+                              <tr>
+                                <th scope="col">Resource / Period</th>
+                                <th scope="col">Buyer / Time</th>
+                                <th scope="col">Payout</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {this.state.ongoins}
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="card">
+                      <div className="card-header">
+                        <h4 className="card-title">Completed deals ({this.state.completed.length})</h4>
+                      </div>
+                      <div className="card-body">
+                        <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
+                          <table className="table verticle-middle table-responsive-md " >
+                            <thead>
+                              <tr>
+                                <th scope="col">Resource / Period</th>
+                                <th scope="col">Buyer / Time</th>
+                                <th scope="col">Payout</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {this.state.completed}
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="card">
+                      <div className="card-header">
+                        <h4 className="card-title">Other delegations ({this.state.noregist.length})</h4>
+                      </div>
+                      <div className="card-body">
+                        <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
+                          <table className="table verticle-middle table-responsive-md">
+                            <thead>
+                              <tr>
+                                <th scope="col"></th>
+
+                                <th scope="col">Resource</th>
+                                <th scope="col">TRX</th>
+                                <th scope="col">Wallet / Expire Time</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {this.state.noregist}
+
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+          </div >
+
+          <div className="modal fade" id="alert">
+            <div className="modal-dialog" role="document">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">{this.state.ModalTitulo}</h5>
+                  <button type="button" className="btn-close" data-bs-dismiss="modal">
+                  </button>
+                </div>
+                <div className="modal-body">
+                  <p>{this.state.ModalBody}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </>);
       }
-
-
+    } else {
 
       return (<>
 
@@ -1166,365 +1539,29 @@ export default class ProviderPanel extends Component {
           <div className="row">
             <div className="col-12">
               <div className="row">
-                <div className="col-lg-8 col-sm-12">
+                <div className="col-12">
                   <div className="card exchange">
                     <div className="card-header d-block" style={{ border: "none" }}>
+                      <h2 className="heading">Ready for rent your energy</h2>
 
-
-                      <div className="container-fluid">
-                        <div className="row">
-                          <div className="col-lg-6 col-sm-12 mb-2">
-                            Energy ({(this.state.proEnergy).toLocaleString('en-US')}/{(this.state.proEnergyTotal).toLocaleString("en-us")}) <img height="15px" src="images/energy.png" alt="" ></img>
-                            <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
-                              <div className="progress-bar bg-warning" role="progressbar" style={{ "width": ((this.state.proEnergy / this.state.proEnergyTotal) * 100) + "%" }}
-                                aria-valuenow={(this.state.proEnergy / this.state.proEnergyTotal) * 100} aria-valuemin="0" aria-valuemax="100">
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-lg-6 col-sm-12 mb-2">
-                            Bandwidth ({(this.state.proBand).toLocaleString("en-us")}/{(this.state.proBandTotal).toLocaleString("en-us")}) 🌐
-                            <div className="progress" style={{ margin: "5px", backgroundColor: "lightgray" }}>
-                              <div className="progress-bar bg-info" role="progressbar" style={{ "width": ((this.state.proBand / this.state.proBandTotal) * 100) + "%" }}
-                                aria-valuenow={(this.state.proBand / this.state.proBandTotal) * 100} aria-valuemin="0" aria-valuemax="100">
-                              </div>
-                            </div>
-                          </div>
-                          <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading">{estatus} </h2>
-                          </div>
-                          <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy.dp(3).toString(10)} /  {this.state.ratioEnergyPool.dp(3).toString(10)} </button></h2>
-                          </div>
-                          <div className="col-lg-4 col-sm-12 mb-2">
-                            <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
-                          </div>
-
-                          <div className="col-lg-6 col-md-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Payment hour: {this.state.payhour} GMT</button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Set the time you want to receive your daily payments"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i>
-                            <div className="dropdown-menu" aria-labelledby="menu1">
-                              <button className="dropdown-item" onClick={() => this.setPaymentHour("130")}>1:30 GMT</button>
-                              <button className="dropdown-item" onClick={() => this.setPaymentHour("930")}>9:30 GMT</button>
-                              <button className="dropdown-item" onClick={() => this.setPaymentHour("1730")}>17:30 GMT</button>
-                            </div>
-                          </div>
-
-                          <div className="col-lg-6 col-md-12 mb-2">
-                            <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu2">Max Days: {this.state.maxdays}</button> <i className="bi bi-question-circle-fill" title="Establish the max. duration of the orders you want to accept" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Establish the max. duration of the orders you want to accept"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i>
-                            <div className="dropdown-menu" aria-labelledby="menu2">
-                              <button className="dropdown-item" onClick={() => this.setMaxDays('1h')}>1h</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(3)} >3 days</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(7)}>7 days</button>
-                              <button className="dropdown-item" onClick={() => this.setMaxDays(14)}>14 days</button>
-                            </div>
-                          </div>
-
-
-                          <div className="col-lg-12 col-sm-12 mb-2" >
-                            <button type="button" className="btn btn-primary dropdown-toggle" style={{ width: isMovil ? "90%" : "95.333%" }} data-bs-toggle="dropdown" id="menu" >Autofreeze: {this.state.autofreeze}</button> {"  "} <i className="bi bi-question-circle-fill" title="Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Let the bot freeze the remaining TRX in your wallet (leaving 100 TRX unfrozen)"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i>
-                            <div className="dropdown-menu" aria-labelledby="menu">
-                              <button className="dropdown-item" onClick={() => this.setFreez("no")}>Off</button>
-                              <button className="dropdown-item" onClick={() => this.setFreez("bandwidth")}>Bandwidth</button>
-                              <button className="dropdown-item" onClick={() => this.setFreez("energy")}>Energy</button>
-                            </div>
-                          </div>
-
-                          <div className="col-lg-12 col-sm-12 mb-2">
-                            {campoFreeze}
-                          </div>
-
-                          <div className="col-4  ">
-                            <input className="form-check-input" type="checkbox" id="rent" style={{backgroundColor: this.state.rent ? "#9568FF" : "lightgray"}} checked={this.state.rent} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Rent <i className="bi bi-question-circle-fill" title="Pause/Resume the bot" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Pause/Resume the bot"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
-                          </div>
-
-                          <div className="col-4  " style={{ textAlign: "center" }}>
-                            <input className="form-check-input" type="checkbox" id="burn" style={{backgroundColor: this.state.burn ? "#9568FF" : "lightgray"}} checked={this.state.burn} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Burn <i className="bi bi-question-circle-fill" title="Allow TRX burn to accept new orders when you run out of bandwidth" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Allow TRX burn to accept new orders when you run out of bandwidth"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
-                          </div>
-
-                          <div className="col-4  " style={{ textAlign: "right" }}>
-                            <input className="form-check-input" type="checkbox" id="noti" style={{backgroundColor: this.state.noti ? "#9568FF" : "lightgray"}} checked={this.state.noti} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Notify <i className="bi bi-question-circle-fill" title="Pause/Resume notifications from the telegram bot" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Pause/Resume notifications from the telegram bot"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
-                          </div>
-
-                          <div className="col-6  ">
-                            <input className="form-check-input" type="checkbox" id="band" style={{backgroundColor: this.state.sellband ? "#9568FF" : "lightgray"}} checked={this.state.sellband} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Band over: <br></br>{(this.state.bandover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked bandwidth over the amount you establish" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Sell your staked bandwidth over the amount you establish"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
-                          </div>
-
-                          <div className="col-6 " style={{ textAlign: "right" }}>
-                            <input className="form-check-input" type="checkbox" id="ener" style={{backgroundColor: this.state.sellener ? "#9568FF" : "lightgray"}} checked={this.state.sellener} onChange={this.handleChange} ></input>
-                            <label className="form-check-label" htmlFor="flexSwitchCheckDefault">Sell Energy over: <br></br> {(this.state.enerover).toLocaleString("en-us")} <i className="bi bi-question-circle-fill" title="Sell your staked energy over the amount you establish" onClick={() => {
-
-                              this.setState({
-                                ModalTitulo: "Info",
-                                ModalBody: "Sell your staked energy over the amount you establish"
-                              })
-
-                              window.$("#alert").modal("show");
-                            }}></i></label>
-                          </div>
-
-
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-                <div className="col-lg-4 col-sm-12">
-                  <div className="card">
-                    <div className="card-header border-0 pb-0">
-                      <h2 className="heading mb-0 m-auto">Next Payment</h2>
-                    </div>
-                    <div className="card-body text-center pt-3">
-                      <div className="mt-1">Hour {this.state.payhour} GMT</div>
-                      <hr></hr>
-                      <div className="count-num mt-1">{(this.state.payment).toLocaleString("en-US")} TRX</div>
-                      <hr></hr>
-
-                      <div className="mt-1">that will be paid here:<br></br> <u onMouseEnter ={()=>{this.setState({payHere: this.state.payhere})}} onMouseLeave={()=>{this.setState({payHere: "*************************************"})}}>{this.state.payHere}</u></div>
-
-                      <hr></hr>
-
-                      <div className="mt-1">
-                        Total earned all time:<br></br>
-                        <b>{this.state.allPayed} TRX</b> <br></br>
-                        <button className="btn btn-danger" onClick={()=>{localStorage.removeItem("firma-tron"); this.setState({firma:false})}}>LogOut <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-box-arrow-right" viewBox="0 0 16 16">
-  <path fillRule="evenodd" d="M10 12.5a.5.5 0 0 1-.5.5h-8a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5h8a.5.5 0 0 1 .5.5v2a.5.5 0 0 0 1 0v-2A1.5 1.5 0 0 0 9.5 2h-8A1.5 1.5 0 0 0 0 3.5v9A1.5 1.5 0 0 0 1.5 14h8a1.5 1.5 0 0 0 1.5-1.5v-2a.5.5 0 0 0-1 0z"/>
-  <path fillRule="evenodd" d="M15.854 8.354a.5.5 0 0 0 0-.708l-3-3a.5.5 0 0 0-.708.708L14.293 7.5H5.5a.5.5 0 0 0 0 1h8.793l-2.147 2.146a.5.5 0 0 0 .708.708z"/>
-</svg></button>
-                      </div>
+                      <p>
+                        You are not a supplier? if you want to become one read the following article <br></br>
+                        <a className="btn btn-primary" href="https://brutus.finance/brutusprovider.html">Become a supplier</a>
+                      </p>
 
 
                     </div>
                   </div>
                 </div>
-              </div>
-            </div>
-            <div className="col-xl-12">
-              <div className="row">
-                <div className="col-12">
-                  <div className="card">
-                    <div className="card-header">
-                      <h4 className="card-title">last {this.state.historic.length} payments = {this.state.totalPayed30}</h4>
-                    </div>
-                    <div className="card-body">
-                      <div className="row">
-                        <div className="col-lg-8 col-sm-12">
-                          <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
-                            <table className="table verticle-middle table-responsive-md " >
-                              <thead>
-                                <tr>
-                                  <th scope="col" style={{textAlign:"right"}}>Amount</th>
-                                  <th scope="col">Currency</th>
-                                  <th scope="col">Date</th>
-
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {this.state.historic}
-
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                        <div className="col-lg-4 col-sm-12">
-                          <div className="mb-3" id="chartdiv" style={{ height: this.state.alturaGrafico, backgroundColor: "white" }}></div>
-                          <button className="btn btn-success" onClick={() => { if (this.state.alturaGrafico === "0px") { this.setState({ alturaGrafico: "350px" }); this.grafico(this.state.dataHistoric) } else { this.setState({ alturaGrafico: "0px" }); this.root.dispose(); } }}>Graphic (Open / Close)</button>
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-12">
-                  <div className="card">
-                    <div className="card-header">
-                      <h4 className="card-title">Ongoing deals ({this.state.ongoins.length})</h4>
-                    </div>
-                    <div className="card-body">
-                      <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
-                        <table className="table verticle-middle table-responsive-md " >
-                          <thead>
-                            <tr>
-                              <th scope="col">Resource / Period</th>
-                              <th scope="col">Buyer / Time</th>
-                              <th scope="col">Payout</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {this.state.ongoins}
-
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-12">
-                  <div className="card">
-                    <div className="card-header">
-                      <h4 className="card-title">Completed deals ({this.state.completed.length})</h4>
-                    </div>
-                    <div className="card-body">
-                      <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
-                        <table className="table verticle-middle table-responsive-md " >
-                          <thead>
-                            <tr>
-                              <th scope="col">Resource / Period</th>
-                              <th scope="col">Buyer / Time</th>
-                              <th scope="col">Payout</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {this.state.completed}
-
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="col-12">
-                  <div className="card">
-                    <div className="card-header">
-                      <h4 className="card-title">Other delegations ({this.state.noregist.length})</h4>
-                    </div>
-                    <div className="card-body">
-                      <div className="table-responsive recentOrderTable overflow-scroll" style={{ height: "350px" }}>
-                        <table className="table verticle-middle table-responsive-md">
-                          <thead>
-                            <tr>
-                              <th scope="col"></th>
-
-                              <th scope="col">Resource</th>
-                              <th scope="col">TRX</th>
-                              <th scope="col">Wallet / Expire Time</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {this.state.noregist}
-
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        </div >
-
-        <div className="modal fade" id="alert">
-          <div className="modal-dialog" role="document">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h5 className="modal-title">{this.state.ModalTitulo}</h5>
-                <button type="button" className="btn-close" data-bs-dismiss="modal">
-                </button>
-              </div>
-              <div className="modal-body">
-                <p>{this.state.ModalBody}</p>
               </div>
             </div>
           </div>
         </div>
 
+
+
       </>);
-      }
-    } else {
-      
-        return (<>
 
-          <div className="container-fluid">
-            <div className="row">
-              <div className="col-12">
-                <div className="row">
-                  <div className="col-12">
-                    <div className="card exchange">
-                      <div className="card-header d-block" style={{ border: "none" }}>
-                        <h2 className="heading">Ready for rent your energy</h2>
-
-                        <p>
-                          You are not a supplier? if you want to become one read the following article <br></br>
-                          <a className="btn btn-primary" href="https://brutus.finance/brutusprovider.html">Become a supplier</a>
-                        </p>
-
-
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-
-
-        </>);
-      
 
     }
 
