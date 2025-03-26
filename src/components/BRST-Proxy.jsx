@@ -141,6 +141,7 @@ export default class Staking extends Component {
       from: "trx",
       to: "brst",
       par: "trx_brst",
+      selector: "trx",
     };
 
 
@@ -252,17 +253,15 @@ export default class Staking extends Component {
     this.calcExchange(true, selectedCurrency + "_" + from)
   };
 
-
-
   handleChange(e) {
     let evento = e.target.value;
-    this.grafico(500, evento, this.state.cantidadDatos, this.state.precioBrst);
+    this.grafico(500, evento, this.state.cantidadDatos, document.getElementById("selector").value);
     this.setState({ temporalidad: evento });
   }
 
   handleChange2(e) {
     let evento = parseInt(e.target.value);
-    this.grafico(500, this.state.temporalidad, evento, this.state.precioBrst);
+    this.grafico(500, this.state.temporalidad, evento, document.getElementById("selector").value);
     this.setState({ cantidadDatos: evento });
   }
 
@@ -380,7 +379,7 @@ export default class Staking extends Component {
     this.consultaPrecio();
 
     if (iniciado === 0) {
-      this.grafico(1000, "day", 90, precio);
+      this.grafico(1000, "day", 90, "trx");
       iniciado++;
     }
 
@@ -396,7 +395,6 @@ export default class Staking extends Component {
       document.getElementById("hold").value = misBRST
 
     }
-
 
     //let balance = await this.props.tronWeb.trx.getBalance() / 10 ** 6;
     let balance = await this.props.tronWeb.trx.getUnconfirmedBalance(accountAddress)
@@ -1126,6 +1124,7 @@ export default class Staking extends Component {
 
       window.$("#mensaje-brst").modal("show");
 
+
       let inputs = [
         { type: 'address', value: tronWeb.address.toHex(sunswapRouter) },
         { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" },
@@ -1133,7 +1132,23 @@ export default class Staking extends Component {
 
       let funcion = "approve(address,uint256)"
       const options = {}
+
+      let eenergy = {};
+
+      eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(contract_base_token.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+        .catch(() => { return {} })
+
+
+      if (eenergy.energy_used) {
+        eenergy = eenergy.energy_used;
+      } else {
+        eenergy = 120000;
+      }
+
+      await this.rentEnergy(eenergy)
+
       let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contract_base_token.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+
       let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
 
       transaction = await window.tronLink.tronWeb.trx.sign(transaction)
@@ -1254,7 +1269,7 @@ export default class Staking extends Component {
       amount = parseFloat(document.getElementById("amountFrom").value);
       amount = new BigNumber(amount)
 
-    } 
+    }
 
     amount = amount.shiftedBy(6).dp(0).toNumber()
 
@@ -1404,7 +1419,6 @@ export default class Staking extends Component {
 
 
   };
-
 
   async sell() {
 
@@ -1784,7 +1798,9 @@ export default class Staking extends Component {
 
   };
 
-  async grafico(time, temporalidad, cantidad, lastPrice) {
+  async grafico(time, temporalidad, cantidad, selector) {
+
+    let { precioBrst, precioUSDT, precioUSDD } = this.state
 
     if (!document.getElementById('chartdiv-brst')) return;
 
@@ -1825,8 +1841,21 @@ export default class Staking extends Component {
     let previousColor;
     let previousDataObj;
 
-    function generateData(data) {
-      let value = data.value;
+    function generateData(data, alt) {
+      let value;
+      console.log(alt)
+      if (alt) {
+        let encontrado = data.valor_alt.find((obj) => obj.coin === alt)
+        console.log(encontrado)
+
+        if (encontrado) {
+          value = encontrado.valor
+        } else {
+          value = 0
+        }
+      } else {
+        value = data.valor
+      }
       let color;
 
       if (value >= previousValue) {
@@ -1852,7 +1881,21 @@ export default class Staking extends Component {
       return dataObj;
     }
 
+    let lastPrice = precioBrst
 
+    switch (selector) {
+      case "usdt":
+        lastPrice = lastPrice * precioUSDT
+        break;
+
+      case "usdd":
+        lastPrice = lastPrice * precioUSDD
+        break;
+
+      default:
+        selector = false
+        break;
+    }
     let lastData = { date: Date.now(), value: lastPrice };
 
     //console.log(lastData)
@@ -1870,7 +1913,7 @@ export default class Staking extends Component {
         previousDataObj = "";
         let data = []
         for (var i = consulta.length - 1; i >= 0; --i) {
-          data.push(generateData(consulta[i]));
+          data.push(generateData(consulta[i], selector));
         }
 
         data.push(lastData)
@@ -2012,9 +2055,14 @@ export default class Staking extends Component {
                         <span className="fs-16">Brutus Tron Staking </span>
                       </div>
                       <div className="dropdown bootstrap-select">
-                        <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0">
-                          <option >TRX (Tron)</option>
-                          <option >USD ({this.props.i18n.t("dollar")})</option>
+                        
+                        <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" onInput={(r)=>{
+                          
+                          this.grafico(500, this.state.temporalidad, this.state.cantidadDatos, document.getElementById("selector").value);
+                        }}>
+                          <option value="trx">TRX (Tron)</option>
+                          <option value="usdd">USDD (Tether)</option>
+                          <option value="usdt">USD₮ (Tether)</option>
                         </select>
                       </div>
                     </div>

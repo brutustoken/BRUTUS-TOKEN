@@ -470,7 +470,8 @@ export default class Home extends Component {
     let previousDataObj;
 
     function generateData(data) {
-      value = data.value;
+      value = data.valor;
+      let date = data.date
 
       if (value >= previousValue) {
         color = upColor;
@@ -479,7 +480,7 @@ export default class Home extends Component {
       }
       previousValue = value;
 
-      let dataObj = { date: data.date, value: value, color: color }; // color will be used for tooltip background
+      let dataObj = { date , value, color }; // color will be used for tooltip background
 
       // only if changed
       if (color !== previousColor) {
@@ -629,7 +630,7 @@ export default class Home extends Component {
                       </div>
                       <div className="dropdown bootstrap-select">
                         <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0" defaultValue="usd">
-                          <option value={"usd"}>USD ($ US Dollar)</option>
+                          <option value={"usd"}>USD₮ (Tether)</option>
                         </select>
                       </div>
                     </div>
