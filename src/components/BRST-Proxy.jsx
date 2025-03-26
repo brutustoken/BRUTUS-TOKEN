@@ -1837,32 +1837,28 @@ export default class Staking extends Component {
     let downColor = root.interfaceColors.get("negative");
     let upColor = root.interfaceColors.get("positive");
 
-    let previousValue;
+    let previousValue = 0;
     let previousColor;
     let previousDataObj;
 
     function generateData(data, alt) {
-      let value;
-      console.log(alt)
+      let value = data.value
       if (alt) {
         let encontrado = data.valor_alt.find((obj) => obj.coin === alt)
-        console.log(encontrado)
 
         if (encontrado) {
           value = encontrado.valor
         } else {
           value = 0
         }
-      } else {
-        value = data.valor
       }
-      let color;
+
+      let color = downColor;
 
       if (value >= previousValue) {
         color = upColor;
-      } else {
-        color = downColor;
       }
+
       previousValue = value;
 
       let dataObj = { date: data.date, value: value, color: color }; // color will be used for tooltip background
@@ -2056,12 +2052,12 @@ export default class Staking extends Component {
                       </div>
                       <div className="dropdown bootstrap-select">
                         
-                        <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" onInput={(r)=>{
+                        <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" style={{ background: "rgb(3 0 8 / 49%)"}} onInput={(r)=>{
                           
                           this.grafico(500, this.state.temporalidad, this.state.cantidadDatos, document.getElementById("selector").value);
                         }}>
                           <option value="trx">TRX (Tron)</option>
-                          <option value="usdd">USDD (Tether)</option>
+                          <option value="usdd">USDD (Decentralized USD)</option>
                           <option value="usdt">USD₮ (Tether)</option>
                         </select>
                       </div>
