@@ -470,7 +470,7 @@ export default class Home extends Component {
     let previousDataObj;
 
     function generateData(data) {
-      value = data.valor;
+      value = data.value;
       let date = data.date
 
       if (value >= previousValue) {
@@ -629,8 +629,8 @@ export default class Home extends Component {
                         <span className="fs-16">Brutus Algorithmic Trading Robot </span>
                       </div>
                       <div className="dropdown bootstrap-select">
-                        <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0" defaultValue="usd">
-                          <option value={"usd"}>USD₮ (Tether)</option>
+                        <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0" defaultValue="usdt" style={{ background: "rgb(3 0 8 / 49%)"}}>
+                          <option value={"usdt"}>USD₮ (Tether)</option>
                         </select>
                       </div>
                     </div>
