@@ -265,7 +265,7 @@ export default class EnergyRental extends Component {
       },
       {
         duration: "1h",
-        available: consulta.av_energy[1].available
+        available: consulta.av_energy[0].available
       },
       {
         duration: "1d",
@@ -332,6 +332,8 @@ export default class EnergyRental extends Component {
     let cantidad = this.updateAmount()
     let time = document.getElementById("periodo").value
     this.setState({ duration: time })
+
+    console.log(time, available_energy)
 
     let av_energy = available_energy.find(obj => obj.duration === time)
     av_energy = new BigNumber(av_energy.available)
@@ -508,46 +510,7 @@ export default class EnergyRental extends Component {
       },
     ]
 
-    /*
-      let ajuste = 0;
-  
-      function calcularY(x) {
-        return parseInt((1.0956 * (x ** 2)) + (29.2415 * x) + 78.1474 + ajuste);
-      }
-  
-      console.log(calcularY(1),calcularY(3),calcularY(7),calcularY(14))
-    */
-
-    /*
-    let cantidad = "100000"
-    let duraciones = ["5min", "1h", "1", "3", "7", "14"]
-    let body = { "resource": resource, "amount": cantidad, "duration": "5m" }
-
-
-    for (let index = 0; index < duraciones.length; index++) {
-
-      body.duration = duraciones[index]
-      consulta = await fetch(url, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      })
-        .then(async (r) => await r.json())
-        .catch((e) => {
-          console.log(e)
-          return { price: -1 }
-        })
-
-      precios[resource].push({ duration: duraciones[index], UE: new BigNumber(consulta.price).dividedBy(cantidad).shiftedBy(6).toNumber() })
-
-    }
-
-*/
-
     this.setState({ precios })
-
 
     return precios
   }
@@ -848,7 +811,7 @@ function capitalizarPrimeraLetra(str) {
 
                       <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
                         <p style={{ "marginTop": "auto", "marginRight": "10px" }} className="font-14">Amount</p>
-                        <input style={{ "textAlign": "end", border: "lightgray  solid" }} id="amount" name="dzLastName" type="text" onChange={() => this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} ></input>
+                        <input style={{ "textAlign": "end", border: "lightgray  solid" }} id="amount" name="dzLastName" type="text" onInput={() => this.calcularRecurso()} className="form-control mb-1" placeholder={this.state.montoMin} ></input>
 
                       </div>
                       <div className="col-xl-12 mt-2 mb-2">
