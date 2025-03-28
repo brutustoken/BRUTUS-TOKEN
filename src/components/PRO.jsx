@@ -6,6 +6,8 @@ import { TronWeb } from "tronweb";
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 
+import CsvDownloader from 'react-csv-downloader';
+
 const env = process.env
 
 var moment = require('moment-timezone');
@@ -325,7 +327,7 @@ export default class ProviderPanel extends Component {
 
         historic = historic.toReversed().map((item, index) => {
 
-          dataHistoric.unshift({ date: new Date(item.date * 1000), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
+          dataHistoric.unshift({ date: moment.utc(item.date * 1000).tz(this.state.tiempo).format("L"), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
 
           totalPayed30 = totalPayed30.plus(item.amount)
           return (
@@ -972,10 +974,10 @@ export default class ProviderPanel extends Component {
         }).then((r) => r.json())
 
         if (!consulta.result && consulta.data) {
-         
-            msg = true
-            ModalTitulo = "Operation not executed"
-            ModalBody = consulta.data
+
+          msg = true
+          ModalTitulo = "Operation not executed"
+          ModalBody = consulta.data
         }
 
 
@@ -1090,14 +1092,14 @@ export default class ProviderPanel extends Component {
         break;
     }
 
-    if(msg){
+    if (msg) {
       this.setState({
         ModalTitulo,
         ModalBody
       })
       window.$("#alert").modal("show");
     }
-    
+
 
     this.estado();
 
@@ -1107,7 +1109,7 @@ export default class ProviderPanel extends Component {
   render() {
 
 
-    let { provider, firma, autofreeze, coin } = this.state
+    let { provider, firma, autofreeze, coin , dataHistoric} = this.state
 
     if (provider) {
 
@@ -1455,6 +1457,28 @@ export default class ProviderPanel extends Component {
                           </div>
                         </div>
 
+                      </div>
+                      <div className="card-footer">
+                        <CsvDownloader
+                          filename={"Last_30_payments"}
+                          suffix={true}
+                          extension=".csv"
+                          separator=";"
+                          wrapColumnChar="'"
+                          columns={[{
+                            id: 'amount',
+                            displayName: 'Amount'
+                          }, {
+                            id: 'coin',
+                            displayName: 'Currency'
+                          }, {
+                            id: 'date',
+                            displayName: 'Date'
+                          }]}
+                          datas={dataHistoric}
+                          text="DOWNLOAD CSV" 
+                          className="btn btn-info"
+                          />
                       </div>
                     </div>
                   </div>
