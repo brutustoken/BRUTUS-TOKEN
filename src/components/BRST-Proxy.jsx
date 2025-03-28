@@ -119,6 +119,7 @@ export default class Staking extends Component {
       misBRST: 0,
       dataBRST: [],
       contractEnergy: 0,
+      userEnergy: 0,
       ModalTitulo: "",
       ModalBody: "",
       tiempoPromediado: 30,
@@ -307,7 +308,7 @@ export default class Staking extends Component {
 
       case "brst_usdt":
         salida = entrada.times(precioUSDT)
-
+        salida = salida.times(precioBrst)
         break;
 
       case "usdd_brst":
@@ -318,6 +319,7 @@ export default class Staking extends Component {
 
       case "brst_usdd":
         salida = entrada.times(precioUSDD)
+        salida = salida.times(precioBrst)
 
         break;
 
@@ -411,14 +413,14 @@ export default class Staking extends Component {
         return {};
       })
 
-    let contractEnergy = 0
+    let userEnergy = 0
 
     if (cuenta.EnergyLimit) {
-      contractEnergy = cuenta.EnergyLimit
+      userEnergy = cuenta.EnergyLimit
     }
 
     if (cuenta.EnergyUsed) {
-      contractEnergy -= cuenta.EnergyUsed
+      userEnergy -= cuenta.EnergyUsed
     }
 
     let eenergy = {};
@@ -441,7 +443,7 @@ export default class Staking extends Component {
       eenergy = 65000
     }
 
-    let useTrx = parseInt(contractEnergy / eenergy)
+    let useTrx = parseInt(userEnergy / eenergy)
     if (useTrx >= 1) {
       useTrx = 1
     } else {
@@ -502,7 +504,7 @@ export default class Staking extends Component {
 
     this.setState({
       useTrx,
-      contractEnergy,
+      userEnergy,
       balanceTRX: balance,
     })
 
@@ -754,7 +756,7 @@ export default class Staking extends Component {
 
   async preClaim(id) {
 
-    let { isOwner } = this.state
+    let { isOwner, userEnergy, energyOn } = this.state
     let eenergy = 0;
 
     let inputs = [
@@ -771,9 +773,9 @@ export default class Staking extends Component {
       eenergy += 80000;
     }
 
-    if (eenergy > this.state.contractEnergy && this.state.energyOn) {
+    if (eenergy > userEnergy && energyOn) {
 
-      let requerido = eenergy - this.state.contractEnergy
+      let requerido = eenergy - userEnergy
 
       if (requerido < 32000) {
         requerido = 32000;
@@ -792,13 +794,11 @@ export default class Staking extends Component {
 
       let precio = new BigNumber(consultaPrecio.price).dp(6)
 
-      //console.log(precio)
-
       let textoModal = this.props.i18n.t("brst.alert.energy", { returnObjects: true })
 
       this.setState({
         ModalTitulo: textoModal[0],
-        ModalBody: <>{textoModal[1]} <b>{eenergy} {textoModal[2]}</b>{textoModal[3]}<b>{this.state.contractEnergy} {textoModal[2]}</b> {textoModal[4]} <b>{requerido} {textoModal[2]}</b>{textoModal[5]}<b>{precio.toString(10)} TRX</b>{textoModal[6]}
+        ModalBody: <>{textoModal[1]} <b>{eenergy} {textoModal[2]}</b>{textoModal[3]}<b>{userEnergy} {textoModal[2]}</b> {textoModal[4]} <b>{requerido} {textoModal[2]}</b>{textoModal[5]}<b>{precio.toString(10)} TRX</b>{textoModal[6]}
           <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
@@ -979,23 +979,40 @@ export default class Staking extends Component {
 
   async rentEnergy(cantidad) {
 
+    let {userEnergy, energyOn} =this.state
+
+    if(!energyOn) return false;
+
+    cantidad = cantidad-userEnergy
+    if(cantidad<32000)cantidad = 32000
+
     let retorno = false;
 
-
     let body = { "resource": "energy", "amount": cantidad, "duration": "5min" }
-    let precios = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+    let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(body)
     }).then((r) => r.json())
+    .catch((e)=>{
+      console.log(e)
+      return false;
+    })
 
-    let precio = new BigNumber(precios.price).dp(6).toNumber()
+    if(!consulta) return false;
+
+    let precio = new BigNumber(consulta.price).dp(6).toNumber()
 
     this.setState({
-      ModalTitulo: <>{this.props.i18n.t("brst.alert.renergy", { returnObjects: true })[0]}{imgLoading}</>,
-      ModalBody: <>{this.props.i18n.t("brst.alert.renergy", { returnObjects: true })[1]} </>
+      ModalTitulo: <>Confirm transaction {imgLoading}</>,
+      ModalBody: <>
+      Please confirm the transaction from your wallet <br></br>
+      <br></br>
+      to rent {cantidad} energy<br></br>
+      for {consulta.price} TRX
+      </>
     })
 
     window.$("#mensaje-brst").modal("show");
@@ -1264,6 +1281,7 @@ export default class Staking extends Component {
 
   async preCompra(amount) {
 
+    let {userEnergy} = this.state
 
     if (amount.toNumber() <= 0) {
       amount = parseFloat(document.getElementById("amountFrom").value);
@@ -1306,9 +1324,9 @@ export default class Staking extends Component {
       eenergy = 80000;
     }
 
-    if (eenergy > this.state.contractEnergy && this.state.energyOn) {
+    if (eenergy > userEnergy && this.state.energyOn) {
 
-      var requerido = eenergy - this.state.contractEnergy
+      var requerido = eenergy - userEnergy
 
       if (requerido < 32000) {
         requerido = 32000;
@@ -1331,7 +1349,7 @@ export default class Staking extends Component {
 
       this.setState({
         ModalTitulo: alerta[0],
-        ModalBody: <>{alerta[1]}<b>{eenergy} {alerta[2]}</b>, {alerta[3]}<b>{this.state.contractEnergy} {alerta[2]} </b>{alerta[4]} <b>{requerido} {alerta[2]}</b>{alerta[5]} <b>{precio.toString(10)} TRX</b> {alerta[6]}
+        ModalBody: <>{alerta[1]}<b>{eenergy} {alerta[2]}</b>, {alerta[3]}<b>{userEnergy} {alerta[2]} </b>{alerta[4]} <b>{requerido} {alerta[2]}</b>{alerta[5]} <b>{precio.toString(10)} TRX</b> {alerta[6]}
           <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
@@ -1471,6 +1489,8 @@ export default class Staking extends Component {
 
   async preVenta(rapida) {
 
+    let {userEnergy} = this.state
+
     let eenergy = 0;
 
     let amount = document.getElementById("amountTo").value;
@@ -1524,9 +1544,9 @@ export default class Staking extends Component {
       eenergy += 80000;
     }
 
-    if (eenergy > this.state.contractEnergy && this.state.energyOn) {
+    if (eenergy > userEnergy && this.state.energyOn) {
 
-      let requerido = eenergy - this.state.contractEnergy
+      let requerido = eenergy - userEnergy
 
       if (requerido < 32000) {
         requerido = 32000;
@@ -1551,7 +1571,7 @@ export default class Staking extends Component {
         ModalTitulo: "Energy Notice",
         ModalBody: <>
           Operation requires: <b>{eenergy} energy</b><br></br>
-          You have: <b>{this.state.contractEnergy} energy</b> <br></br><br></br>
+          You have: <b>{userEnergy} energy</b> <br></br><br></br>
           Rent <b>{requerido} energy</b> for <b>{precio.toString(10)} TRX</b>
           <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
@@ -2023,7 +2043,7 @@ export default class Staking extends Component {
 
   render() {
 
-    let { from, to, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual } = this.state;
+    let { from, to, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy } = this.state;
 
     minCompra = "Min. " + minCompra + " " + from;
     minventa = "Min. " + minventa + " " + to;
@@ -2052,7 +2072,7 @@ export default class Staking extends Component {
                       </div>
                       <div className="dropdown bootstrap-select">
                         
-                        <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" style={{ background: "rgb(3 0 8 / 49%)"}} onInput={(r)=>{
+                        <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" style={{ background: "rgb(3 0 8 / 20%)"}} onInput={(r)=>{
                           
                           this.grafico(500, this.state.temporalidad, this.state.cantidadDatos, document.getElementById("selector").value);
                         }}>
@@ -2269,7 +2289,7 @@ export default class Staking extends Component {
                         </div>
                       </div>
                       <div className="d-flex mt-2" style={{ justifyContent: "space-between" }}>
-                        <p className="mb-0 fs-14">{this.props.i18n.t("brst.energy", { e1: (this.state.contractEnergy).toLocaleString('en-US') })}</p>
+                        <p className="mb-0 fs-14">{this.props.i18n.t("brst.energy", { e1: (userEnergy).toLocaleString('en-US') })}</p>
                         <p className="mb-0 fs-14">Fee ~ {this.state.useTrx} TRX</p>
 
 
