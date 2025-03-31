@@ -265,126 +265,95 @@ export default class ProviderPanel extends Component {
 
         })
 
-        let historic = {}
-        try {
+        let allPayed = await fetch(url + "acum_payments", {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ wallet: accountAddress })
 
-          historic = await fetch(url + "historic_payments", {
-            method: "POST",
-            headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ wallet: accountAddress })
-
-          }
-          )
-            .then((r) => {
-              return r.json();
-            })
-            .then((r) => {
-              return r.data;
-            })
-
-
-        } catch (error) {
-          console.log(error.toString())
-        }
-
-
-
-        let allPayed = 0
-
-        try {
-
-          allPayed = await fetch(url + "acum_payments", {
-            method: "POST",
-            headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ wallet: accountAddress })
-
-          }
-          )
-            .then((r) => {
-              return r.json();
-            })
-            .then((r) => {
-              return r.data;
-            })
-
-
-        } catch (error) {
-          console.log(error.toString())
-        }
+        })
+          .then((r) => {
+            return r.json();
+          })
+          .then((r) => {
+            return r.data;
+          })
+          .catch((e) => {
+            console.log(e)
+            return 0
+          })
 
         allPayed = (new BigNumber(allPayed).dp(3).toNumber()).toLocaleString('en-US')
-
         this.setState({ allPayed: allPayed })
 
-        let dataHistoric = []
+
+        let dataHistoric = await fetch(url + "historic_payments", {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ wallet: accountAddress })
+
+        })
+          .then((r) => {
+            return r.json();
+          })
+          .then((r) => {
+            return r.data;
+          })
+          .catch((e) => {
+            console.log(e)
+            return []
+          })
+
         let totalPayed30 = new BigNumber(0)
 
-        historic = historic.toReversed().map((item, index) => {
-
-          dataHistoric.unshift({ date: moment.utc(item.date * 1000).tz(this.state.tiempo).format("L"), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin })
-
+        dataHistoric = dataHistoric.map((item, index) => {
           totalPayed30 = totalPayed30.plus(item.amount)
-          return (
-            <tr key={index}>
-              <td align="right">{(new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US')}
-              </td>
-              <td>{item.coin}</td>
-              <td>{moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll")}</td>
 
-            </tr>
-          )
+          return { index, date: moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll"), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin }
         })
 
-
         this.setState({
-          historic: historic,
-          dataHistoric: dataHistoric,
+          dataHistoric,
           totalPayed30: (totalPayed30.shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US') + " TRX"
         })
 
-        let ongoins = []
-
-        try {
-
-          let body = { wallet: accountAddress }
-
-          ongoins = await fetch(url + "ongoingdeals", {
-            method: "POST",
-            headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
+        let ongoins = await fetch(url + "ongoingdeals", {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ wallet: accountAddress })
+        })
+          .then((r) => {
+            return r.json();
           })
-            .then((r) => {
-              return r.json();
-            })
-            .then((r) => {
-              return r.ongoing_deals;
-            })
+          .then((r) => {
+            return r.ongoing_deals;
+          })
+          .catch((e) => {
+            console.log(e)
+            return []
+          })
 
-        } catch (error) {
-          console.log(error)
-        }
 
         let listWallets = []
 
-        const ordenesActivas = ongoins.map((item, index) => {
+        ongoins = ongoins.map((item, index) => {
 
           listWallets.push(item.customer)
 
-          let lock = "unlock"
+          item.lock = "unlock"
 
           if (((item.order_type).toLowerCase()).includes("wol")) {
-            lock = "unlock"
+            item.lock = "unlock"
           } else {
-            lock = "lock"
+            item.lock = "lock"
           }
 
           if (((item.order_type).toLowerCase()).includes("hour")) {
@@ -402,57 +371,45 @@ export default class ProviderPanel extends Component {
 
           }
 
-          return (
-            <tr key={index}>
-              <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
-              <td>{item.customer}<br ></br>
-                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br ></br>
+          item.confirm = moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")
+          item.unfreeze = moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")
+          item.time = item.confirm+" -> "+item.unfreeze
 
-              </td>
-              <td>{item.payout} TRX</td>
-            </tr>
-          )
+          return { index, ...item }
+
         });
 
 
-        let completed = []
-
-        try {
-
-          let body = { wallet: accountAddress }
-
-          completed = await fetch(url + "completed_deals", {
-            method: "POST",
-            headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
+        let completed = await fetch(url + "completed_deals", {
+          method: "POST",
+          headers: {
+            'token-api': process.env.REACT_APP_TOKEN,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ wallet: accountAddress })
+        })
+          .then((r) => {
+            return r.json();
           })
-            .then((r) => {
-              return r.json();
-            })
-            .then((r) => {
-              return r.completed_deals;
-            })
+          .then((r) => {
+            return r.completed_deals;
+          })
+          .catch((e) => {
+            console.log(e)
+            return []
+          })
 
 
-
-        } catch (error) {
-
-        }
-
-
-        const ordenesCompletadas = completed.map((item, index) => {
+        completed = completed.map((item, index) => {
 
           listWallets.push(item.customer)
 
-          let lock = "unlock"
+          item.lock = "unlock"
 
           if (((item.order_type).toLowerCase()).includes("wol")) {
-            lock = "unlock"
+            item.lock = "unlock"
           } else {
-            lock = "lock"
+            item.lock = "lock"
           }
 
           if (((item.order_type).toLowerCase()).includes("hour")) {
@@ -470,22 +427,17 @@ export default class ProviderPanel extends Component {
 
           }
 
-          return (
-            <tr key={index}>
-              <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + lock + "-fill"}></i></td>
-              <td>{item.customer}<br ></br>
-                {moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")}{" -> "}{moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")}<br ></br>
+          item.confirm = moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")
+          item.unfreeze = moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")
+          item.time = item.confirm+" -> "+item.unfreeze
+          return { index, ...item }
 
-              </td>
-              <td>{item.payout} TRX</td>
-            </tr>
-          )
         });
 
 
         const delegationInfo = await this.props.tronWeb.trx.getDelegatedResourceAccountIndexV2(accountAddress)
 
-        let delegatedExternal = []
+        let noregist = []
 
         if (delegationInfo.toAccounts) {
 
@@ -504,7 +456,8 @@ export default class ProviderPanel extends Component {
                   resource: "ENERGY",
                   trx: 0,
                   sun: "0",
-                  expire: "--/--/-- 00:00 --"
+                  expire: "--/--/-- 00:00 --",
+                  ownerAddress: accountAddress
                 }
 
                 if (info.delegatedResource[index2].frozen_balance_for_energy) {
@@ -529,7 +482,7 @@ export default class ProviderPanel extends Component {
                 }
 
 
-                delegatedExternal.push(order)
+                noregist.push(order)
 
 
               }
@@ -540,62 +493,11 @@ export default class ProviderPanel extends Component {
 
         }
 
-        const ordenesNoregistradas = delegatedExternal.map((item, index) => {
-
-
-          let amount = item.sun;
-          let receiverAddress = item.wallet
-          let resource = item.resource
-          let ownerAddress = accountAddress
-
-          return (
-            <tr key={index}>
-              <td className="text-end">
-                <div className="dropdown custom-dropdown mb-0">
-                  <div className="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown">
-                    <i className="bi bi-three-dots-vertical"></i>
-                  </div>
-                  <div className="dropdown-menu dropdown-menu-end">
-                    <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" target="_blank" rel="noopener noreferrer">View on TronScan</a>
-
-                    <button className="dropdown-item text-danger" onClick={async () => {
-                      let transaction = await this.props.tronWeb.transactionBuilder.undelegateResource(amount, receiverAddress, resource, ownerAddress);
-                      transaction = await window.tronWeb.trx.sign(transaction)
-                      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
-
-                      this.setState({
-                        ModalTitulo: "Result: " + transaction.result,
-                        ModalBody: <a className="btn btn-primary" href={"https://tronscan.org/#/transaction/" + transaction.txid} target="_blank" rel="noopener noreferrer">see result in TronScan</a>
-                      })
-
-                      window.$("#alert").modal("show");
-                      this.estado();
-
-                    }}>Reclaim Resource</button>
-                  </div>
-                </div>
-              </td>
-              <td>{item.resource} </td>
-              <td>{(item.trx).toLocaleString('en-US')} </td>
-
-              <td>{item.wallet}<br ></br>
-                {item.expire}
-              </td>
-
-            </tr>
-          )
-
-
-
-        })
-
-
-
-
         this.setState({
-          ongoins: ordenesActivas,
-          noregist: ordenesNoregistradas,
-          completed: ordenesCompletadas,
+          ongoins,
+          completed,
+          noregist,
+
         })
 
       }
@@ -1109,7 +1011,7 @@ export default class ProviderPanel extends Component {
   render() {
 
 
-    let { provider, firma, autofreeze, coin , dataHistoric} = this.state
+    let { provider, firma, autofreeze, coin, dataHistoric } = this.state
 
     if (provider) {
 
@@ -1429,7 +1331,7 @@ export default class ProviderPanel extends Component {
                   <div className="col-12">
                     <div className="card">
                       <div className="card-header">
-                        <h4 className="card-title">last {this.state.historic.length} payments = {this.state.totalPayed30}</h4>
+                        <h4 className="card-title">last {dataHistoric.length} payments = {this.state.totalPayed30}</h4>
                       </div>
                       <div className="card-body">
                         <div className="row">
@@ -1445,7 +1347,20 @@ export default class ProviderPanel extends Component {
                                   </tr>
                                 </thead>
                                 <tbody>
-                                  {this.state.historic}
+                                  {
+                                    dataHistoric.toReversed().map((item, index) => {
+
+                                      return (
+                                        <tr key={index}>
+                                          <td align="right">{(item.amount).toLocaleString('en-US')}
+                                          </td>
+                                          <td>{item.coin}</td>
+                                          <td>{item.date}</td>
+
+                                        </tr>
+                                      )
+                                    })
+                                  }
 
                                 </tbody>
                               </table>
@@ -1476,9 +1391,9 @@ export default class ProviderPanel extends Component {
                             displayName: 'Date'
                           }]}
                           datas={dataHistoric}
-                          text="DOWNLOAD CSV" 
+                          text="DOWNLOAD CSV"
                           className="btn btn-info"
-                          />
+                        />
                       </div>
                     </div>
                   </div>
@@ -1499,11 +1414,52 @@ export default class ProviderPanel extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {this.state.ongoins}
+                              {this.state.ongoins.map((item) => {
+                                return (
+                                  <tr key={item.index}>
+                                    <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + item.lock + "-fill"}></i></td>
+                                    <td>{item.customer}<br ></br>
+                                      {item.confirm}{" -> "}{item.unfreeze}<br ></br>
+
+                                    </td>
+                                    <td>{item.payout} TRX</td>
+                                  </tr>
+                                )
+                              })
+
+                              }
 
                             </tbody>
                           </table>
                         </div>
+                      </div>
+                      <div className="card-footer">
+                        <CsvDownloader
+                          filename={"ongoing_deals"}
+                          suffix={true}
+                          extension=".csv"
+                          separator=";"
+                          wrapColumnChar="'"
+                          columns={[{
+                            id: 'resource',
+                            displayName: 'Resource'
+                          }, {
+                            id: 'order_type',
+                            displayName: 'Period'
+                          }, {
+                            id: 'customer',
+                            displayName: 'Buyer'
+                          }, {
+                            id: 'time',
+                            displayName: 'Time'
+                          }, {
+                            id: 'payout',
+                            displayName: 'Payout'
+                          }]}
+                          datas={this.state.ongoins}
+                          text="DOWNLOAD CSV"
+                          className="btn btn-info"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1524,11 +1480,50 @@ export default class ProviderPanel extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {this.state.completed}
+                              {this.state.completed.map((item) => {
+                                return (
+                                  <tr key={item.index}>
+                                    <td>{(item.amount).toLocaleString('en-US')} {item.resource} / {item.order_type} <i className={"bi bi-" + item.lock + "-fill"}></i></td>
+                                    <td>{item.customer}<br ></br>
+                                      {item.confirm}{" -> "}{item.unfreeze}<br ></br>
+
+                                    </td>
+                                    <td>{item.payout} TRX</td>
+                                  </tr>
+                                )
+                              })}
 
                             </tbody>
                           </table>
                         </div>
+                      </div>
+                      <div className="card-footer">
+                        <CsvDownloader
+                          filename={"completed_deals"}
+                          suffix={true}
+                          extension=".csv"
+                          separator=";"
+                          wrapColumnChar="'"
+                          columns={[{
+                            id: 'resource',
+                            displayName: 'Resource'
+                          }, {
+                            id: 'order_type',
+                            displayName: 'Period'
+                          }, {
+                            id: 'customer',
+                            displayName: 'Buyer'
+                          }, {
+                            id: 'time',
+                            displayName: 'Time'
+                          }, {
+                            id: 'payout',
+                            displayName: 'Payout'
+                          }]}
+                          datas={this.state.completed}
+                          text="DOWNLOAD CSV"
+                          className="btn btn-info"
+                        />
                       </div>
                     </div>
                   </div>
@@ -1551,7 +1546,49 @@ export default class ProviderPanel extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {this.state.noregist}
+                              {this.state.noregist.map((item)=>{
+                                let amount = item.sun;
+                                let receiverAddress = item.wallet;
+                                let resource = item.resource;
+                                let ownerAddress = item.ownerAddress;
+
+                                return (
+                                  <tr key={item.index}>
+                                    <td className="text-end">
+                                      <div className="dropdown custom-dropdown mb-0">
+                                        <div className="btn sharp btn-primary tp-btn" data-bs-toggle="dropdown">
+                                          <i className="bi bi-three-dots-vertical"></i>
+                                        </div>
+                                        <div className="dropdown-menu dropdown-menu-end">
+                                          <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" target="_blank" rel="noopener noreferrer">View on TronScan</a>
+                      
+                                          <button className="dropdown-item text-danger" onClick={async () => {
+                                            let transaction = await this.props.tronWeb.transactionBuilder.undelegateResource(amount, receiverAddress, resource, ownerAddress);
+                                            transaction = await window.tronWeb.trx.sign(transaction)
+                                            transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+                      
+                                            this.setState({
+                                              ModalTitulo: "Result: " + transaction.result,
+                                              ModalBody: <a className="btn btn-primary" href={"https://tronscan.org/#/transaction/" + transaction.txid} target="_blank" rel="noopener noreferrer">see result in TronScan</a>
+                                            })
+                      
+                                            window.$("#alert").modal("show");
+                                            this.estado();
+                      
+                                          }}>Reclaim Resource</button>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td>{item.resource} </td>
+                                    <td>{(item.trx).toLocaleString('en-US')} </td>
+                      
+                                    <td>{item.wallet}<br ></br>
+                                      {item.expire}
+                                    </td>
+                      
+                                  </tr>
+                                )
+                              })}
 
                             </tbody>
                           </table>

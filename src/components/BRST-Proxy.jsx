@@ -1922,7 +1922,6 @@ export default class Staking extends Component {
         .then(async (r) => (await r.json()).Data)
         .catch(() => { return false })
 
-
       if (consulta) {
         previousValue = 0;
         previousColor = "";

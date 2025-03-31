@@ -16,15 +16,7 @@ const options = [
   {
     label: "Days",
     value: "day",
-  },
-  {
-    label: "Weeks",
-    value: "week",
-  },
-  {
-    label: "Months",
-    value: "month",
-  },
+  }
 ];
 
 const options2 = [
