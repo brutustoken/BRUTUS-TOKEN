@@ -27,7 +27,8 @@ constantes.ProxySC3 = "TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr";// Pool brst/trx reti
 constantes.SC3 = "TV2oWfCNLtLDxu1AGJ2D4QJhdWagJN5Xqk";//contrato Mixtery box
 constantes.SC4 = "TKghr3aZvCbo41c8y5vUXofChF1gMmjTHr";//contrato sorteo de loteria 15 dias Proxy
 
-constantes.USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";//token USDT
+constantes.USDT = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t";//token trc20 USDT
+constantes.USDD = "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz";//token trc20 USDD
 constantes.BRUT = "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU";//token trc20 BRUT
 constantes.BRST = "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3";//token trc20 BRST
 constantes.APENFT = "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq";//token de venta de mixtery box
