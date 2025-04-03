@@ -91,6 +91,7 @@ class App extends Component {
         loteria: null,
         BRLT: null,
         USDT: null,
+        USDD: null,
         BRGY: null,
         BRST: null,
         BRST_TRX: null,
@@ -251,12 +252,14 @@ class App extends Component {
 
     if (contrato.BRUT === null && utils.BRUT !== "") {
       web3Contracts = await utils.getTronweb(accountAddress, 1);
-      contrato.BRUT = await web3Contracts.contract().at(utils.BRUT);
+      contrato.BRUT = web3Contracts.contract(utils.TOKEN_ABI, utils.BRUT);
     }
 
     if (contrato.USDT === null && utils.USDT !== "") {
       web3Contracts = await utils.getTronweb(accountAddress, 1);
-      contrato.USDT = await web3Contracts.contract().at(utils.USDT);
+      contrato.USDT = web3Contracts.contract(utils.TOKEN_ABI, utils.USDT);
+      contrato.USDD = web3Contracts.contract(utils.TOKEN_ABI, utils.USDD);
+
     }
 
     if (contrato.BRUT_USDT === null && utils.SC !== "") {
@@ -287,7 +290,7 @@ class App extends Component {
 
     if (contrato.BRST === null && utils.BRST !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
-      contrato.BRST = await web3Contracts.contract().at(utils.BRST);
+      contrato.BRST = web3Contracts.contract(utils.TOKEN_ABI,utils.BRST);
     }
 
     if (contrato.BRGY === null && utils.BRGY !== "") {
