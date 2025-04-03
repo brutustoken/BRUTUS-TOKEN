@@ -2392,7 +2392,7 @@ export default class Staking extends Component {
                   <div className="card price-list">
                     <div className="card-header border-0 pb-2">
                       <div className="chart-title">
-                        <h4 className="text-warning mb-0">{this.props.i18n.t("mya")}</h4>
+                        <h4 className=" mb-0" style={{color: "var(--primary)"}}>{this.props.i18n.t("mya")}</h4>
                       </div>
                     </div>
                     <div className="card-body p-3 py-0">

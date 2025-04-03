@@ -186,6 +186,8 @@ export default class Inicio extends Component {
 
 	}
 
+	
+
 	render() {
 
 		/**
@@ -209,25 +211,43 @@ export default class Inicio extends Component {
 		 * 
 		 */
 
+				const tableStyle = {
+					minWidth: "425px",
+					width: "100%",
+					borderCollapse: "collapse",
+				  };
+				  
+				  const cellStyle = {
+					borderBottom: "1px solid #ddd", // Solo bordes internos horizontales
+					borderRight: "1px solid #ddd", // Solo bordes internos verticales
+					padding: "8px",
+				  };
+
+				  const lastCellStyle = {
+					...cellStyle,
+					borderRight: "none",
+				  };
+				  
+				  
+
 		return (
 			<>
 
 				<div className="row">
-					<div className="col-xl-12">
+
+					<div className="col-12">
 						<div className="card">
 							<div className="card-body pt-0">
 								<div className="tab-content" id="pills-tabContent">
 									<div className="tab-pane fade show active" id="pills-crypto" role="tabpanel"
 										aria-labelledby="pills-crypto-tab">
 										<div className="table-responsive dataTablemarket">
-											<table id="example" className="table shadow-hover display"
-												style={{ minWidth: "845px" }}>
+											<table id="example" style={tableStyle} className="table shadow-hover display"
+												>
 												<thead>
 													<tr>
 														<th>{this.props.i18n.t('inicio.name')}</th>
 														<th className="text-center">{this.props.i18n.t('inicio.tokenB')}</th>
-														<th className="text-center">{this.props.i18n.t('inicio.price')}</th>
-														<th className="text-center">{this.props.i18n.t('inicio.changeH', { hours: 24 })}</th>
 														<th className="text-center">{this.props.i18n.t("inicio.totalB")}</th>
 														<th className="text-center">{this.props.i18n.t("inicio.usdValue")}</th>
 
@@ -235,65 +255,71 @@ export default class Inicio extends Component {
 												</thead>
 												<tbody>
 													<tr>
-														<td>
+														<td style={cellStyle}>
 															<a className="market-title d-flex align-items-center"
 																href="/#/brut">
 																<img src="images/brut.png" width="50px" alt="brutus token" />
-																<h5 className="mb-0 ms-2">BRUT</h5>
-																<span className="text-muted ms-2">Brutus Token</span>
+																<div style={{paddingLeft: "10px"}}>
+																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRUT</b> Brutus Token<br></br>
+																		{this.state.precioBrut} USDT {this.subeobaja(this.state.varBrut)}<span className={"text-" + this.textoE(this.state.varBrut)}>{(this.state.varBrut).toFixed(3)}%</span>
+
+																	</span>
+																</div>
 															</a>
 														</td>
-														<td>{this.state.misBRUT}</td>
-														<td>{this.state.precioBrut} USDT</td>
-														<td>{this.subeobaja(this.state.varBrut)}
-															<span className={"text-" + this.textoE(this.state.varBrut)}>{(this.state.varBrut).toFixed(3)}%</span></td>
-														<td>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USDT</td>
-														<td>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USD</td>
+														<td  style={cellStyle}>{this.state.misBRUT}</td>
+														<td  style={cellStyle}>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USDT</td>
+														<td  style={lastCellStyle}>{(this.state.misBRUT * this.state.precioBrut).toFixed(3)} USD</td>
 													</tr>
 													<tr>
-														<td>
-															<a className="market-title d-flex align-items-center"
-																href="/#/brst">
+														<td  style={cellStyle}>
+															<a className="market-title d-flex align-items-center"href="/#/brst">
 																<img src="images/brst.png" width="50px" alt="brutus tron staking" />
-																<h5 className="mb-0 ms-2">BRST</h5>
-																<span className="text-muted ms-2">Brutus Tron Staking</span>
+																<div style={{paddingLeft: "10px"}}>
+																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRST</b> Brutus Tron Staking<br></br>
+																	{(this.state.precioBrst).toFixed(6)} TRX {this.subeobaja(this.state.varBrst)}<span className={"text-" + this.textoE(this.state.varBrst)}>{(this.state.varBrst).toFixed(3)}%</span>
+
+																	</span>
+																</div>
 															</a>
 														</td>
-														<td>{this.state.misBRST}</td>
-														<td>{(this.state.precioBrst).toFixed(6)} TRX</td>
-														<td>{this.subeobaja(this.state.varBrst)}<span className={"text-" + this.textoE(this.state.varBrst)}>{(this.state.varBrst).toFixed(3)}%</span></td>
-														<td>{(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX</td>
-														<td>{(this.state.misBRST * this.state.precioBrstUSD).toFixed(2)} USD</td>
+														<td  style={cellStyle}>{(this.state.misBRST).toLocaleString("en-US")}</td>
+														<td  style={cellStyle}>{(this.state.misBRST * this.state.precioBrst).toLocaleString("en-US")} TRX</td>
+														<td  style={lastCellStyle}>{(this.state.misBRST * this.state.precioBrstUSD).toLocaleString("en-US")} USD</td>
 													</tr>
 													<tr>
-														<td>
+														<td  style={cellStyle}>
 															<a className="market-title d-flex align-items-center"
 																href="/#/brgy">
 																<img src="images/brgy.png" width="50px" alt="brutus gallery" />
-																<h5 className="mb-0 ms-2">BRGY</h5>
-																<span className="text-muted ms-2">Brutus {this.props.i18n.t("gallery")}</span>
+																<div style={{paddingLeft: "10px"}}>
+																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRGY</b> Brutus {this.props.i18n.t("gallery")}<br></br>
+																	10,000 NFT
+
+																	</span>
+																</div>
 															</a>
 														</td>
-														<td>{this.state.misBRGY}</td>
-														<td>NFT</td>
-														<td>-0-</td>
-														<td>-0-</td>
-														<td>-0-</td>
+														<td  style={cellStyle}>{this.state.misBRGY}</td>
+														<td  style={cellStyle}>{this.state.misBRGY*10000} NFT</td>
+														<td  style={lastCellStyle}>-0-</td>
 													</tr>
 													<tr>
-														<td>
+														<td  style={{...cellStyle, borderBottom: "none"}}>
 															<a className="market-title d-flex align-items-center"
 																href="/#/brlt">
 																<img src="images/brlt.png" width="50px" alt="brutus lottery" />
-																<h5 className="mb-0 ms-2">BRLT</h5>
-																<span className="text-muted ms-2">Brutus {this.props.i18n.t("lottery")}</span>
+																<div style={{paddingLeft: "10px"}}>
+																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRLT</b> Brutus {this.props.i18n.t("lottery")}<br></br>
+																	100 TRX
+
+																	</span>
+																</div>
 															</a>
 														</td>
-														<td>{this.state.misBRLT}</td>
-														<td>100 TRX</td>
-														<td>-0-</td>
-														<td>{this.state.misBRLT * 100} TRX</td>
-														<td>{(this.state.misBRLT * 100 * this.state.precioTRX).toFixed(1)} USD</td>
+														<td style={{...cellStyle, borderBottom: "none"}}>{this.state.misBRLT}</td>
+														<td style={{...cellStyle, borderBottom: "none"}}>{this.state.misBRLT * 100} TRX</td>
+														<td style={{...lastCellStyle, borderBottom: "none"}}>{(this.state.misBRLT * 100 * this.state.precioTRX).toFixed(1)} USD</td>
 													</tr>
 												</tbody>
 											</table>
@@ -303,7 +329,7 @@ export default class Inicio extends Component {
 							</div>
 						</div>
 					</div>
-				</div>
+				</div >
 
 			</>
 		);
