@@ -754,7 +754,8 @@ export default class Staking extends Component {
     let energi = 0;
 
     energyOn = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL)
-      .then((r) => (r.json()).available)
+      .then((r) => r.json())
+      .then((r) => r.available)
       .catch(() => false)
 
     if (energyOn) {
@@ -1222,6 +1223,13 @@ export default class Staking extends Component {
   async rentEnergy(cantidad) {
 
     const { tronWeb, accountAddress } = this.props
+    let { userEnergy, energyOn } = this.state
+
+    if (!energyOn) return false;
+
+    cantidad = cantidad - userEnergy
+    if (cantidad <= 0) return true;
+    if (cantidad < 32000) cantidad = 32000
 
     this.setState({
       ModalTitulo: <>Transaction Alert {imgLoading}</>,
@@ -1231,14 +1239,6 @@ export default class Staking extends Component {
     })
 
     window.$("#mensaje-brst").modal("show");
-
-    let { userEnergy, energyOn } = this.state
-
-    if (!energyOn) return false;
-
-    cantidad = cantidad - userEnergy
-    if (cantidad <= 0) return true;
-    if (cantidad < 32000) cantidad = 32000
 
     let retorno = false;
 
