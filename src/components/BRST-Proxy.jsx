@@ -139,10 +139,13 @@ export default class Staking extends Component {
       crecimientoPorcentual: 0,
       precioUSDT: new BigNumber(0),
       precioUSDD: new BigNumber(0),
+      retiroRapido: new BigNumber(0),
+      penalty: 0,
       from: "trx",
       to: "brst",
       par: "trx_brst",
       selector: "trx",
+      rapida: true,
     };
 
 
@@ -151,12 +154,9 @@ export default class Staking extends Component {
     this.consultaPrecio = this.consultaPrecio.bind(this);
     this.grafico = this.grafico.bind(this);
 
-    this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
 
-    this.preVenta = this.preVenta.bind(this);
     this.venta = this.venta.bind(this);
-    this.sell = this.sell.bind(this);
 
     this.retiro = this.retiro.bind(this);
 
@@ -178,11 +178,14 @@ export default class Staking extends Component {
     this.handleCurrencyChangeTo = this.handleCurrencyChangeTo.bind(this);
 
     this.calcExchange = this.calcExchange.bind(this);
-
     this.exchangeTokens = this.exchangeTokens.bind(this);
-
     this.suawpTokenFromTRX = this.suawpTokenFromTRX.bind(this);
 
+    this.calculoEnergy = this.calculoEnergy.bind(this);
+
+    this.preExchange = this.preExchange.bind(this);
+
+    this.costEnergy = this.costEnergy.bind(this);
 
   }
 
@@ -352,13 +355,11 @@ export default class Staking extends Component {
 
   async estado() {
 
-    let { tiempoPromediado } = this.state;
+    let { tiempoPromediado, rapida } = this.state;
     let { contrato, accountAddress } = this.props;
 
 
     if (!contrato.ready) return;
-
-
 
     let precio = utils.normalizarNumero(await contrato.BRST_TRX_Proxy.RATE().call())
 
@@ -413,6 +414,15 @@ export default class Staking extends Component {
         return {};
       })
 
+    let penalty = (parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.descuentoRapido().call()) / parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.precision().call())) * 100
+      this.setState({penalty})
+      let loteria = utils.normalizarNumero((await this.props.contrato.loteria._premio().call())[0])
+      let retiroRapido = parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call())
+      retiroRapido = new BigNumber(retiroRapido).shiftedBy(-6).minus(loteria)
+      if (retiroRapido < 0) retiroRapido = new BigNumber(0)
+      this.setState({retiroRapido})
+
+
     let userEnergy = 0
 
     if (cuenta.EnergyLimit) {
@@ -423,32 +433,19 @@ export default class Staking extends Component {
       userEnergy -= cuenta.EnergyUsed
     }
 
-    let eenergy = {};
+    let eenergy = 65000;
 
     if (balance >= 1) {
-      let inputs = [
-        //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-        //{type: 'uint256', value: '1000000'}
-      ]
-
-      let funcion = "staking()"
-      const options = { callValue: '1000000' }
-      eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-        .catch(() => { return {} })
+      eenergy = (await this.calculoEnergy(rapida)).dp(0).toNumber()
     }
 
-    if (eenergy.energy_used) {
-      eenergy = eenergy.energy_used
-    } else {
-      eenergy = 65000
-    }
+    let useTrx = 0
 
-    let useTrx = parseInt(userEnergy / eenergy)
-    if (useTrx >= 1) {
-      useTrx = 1
-    } else {
-      useTrx = "10"
+    if(userEnergy < eenergy){
+      useTrx = (await this.costEnergy(eenergy)).toString(10)
+    
     }
+    
 
     let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=" + tiempoPromediado)
       .then(async (r) => (await r.json()).Data)
@@ -977,45 +974,47 @@ export default class Staking extends Component {
 
   }
 
-  async rentEnergy(cantidad) {
+  async costEnergy(cantidad) {
 
-    let {userEnergy, energyOn} =this.state
+    cantidad = new BigNumber(cantidad).dp(0).toString(10)
 
-    if(!energyOn) return false;
-
-    cantidad = cantidad-userEnergy
-    if(cantidad<32000)cantidad = 32000
-
-    let retorno = false;
-
-    let body = { "resource": "energy", "amount": cantidad, "duration": "5min" }
     let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(body)
+      body: JSON.stringify({ "resource": "energy", "amount": cantidad , "duration": "5min" })
     }).then((r) => r.json())
-    .catch((e)=>{
-      console.log(e)
-      return false;
-    })
+      .catch((e) => {
+        console.log(e)
+        return false;
+      })
 
-    if(!consulta) return false;
+    if (!consulta) return false;
 
-    let precio = new BigNumber(consulta.price).dp(6).toNumber()
+    let useTrx = new BigNumber(consulta.price).dp(6)
 
-    this.setState({
-      ModalTitulo: <>Confirm transaction {imgLoading}</>,
-      ModalBody: <>
-      Please confirm the transaction from your wallet <br></br>
-      <br></br>
-      to rent {cantidad} energy<br></br>
-      for {consulta.price} TRX
-      </>
-    })
+    this.setState({useTrx: useTrx.toString(10)})
 
-    window.$("#mensaje-brst").modal("show");
+    return useTrx
+
+  }
+
+  async rentEnergy(cantidad) {
+
+    let { userEnergy, energyOn } = this.state
+
+    if (!energyOn) return false;
+
+    cantidad = cantidad - userEnergy
+    if (cantidad <= 0) return true;
+    if (cantidad < 32000) cantidad = 32000
+
+    let retorno = false;
+
+    let precio = await this.costEnergy(cantidad)
+
+    if (!precio) return false;
 
     const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio), this.props.accountAddress);
     // using adapter to sign the transaction
@@ -1064,7 +1063,40 @@ export default class Staking extends Component {
 
   }
 
-  async exchangeTokens() {
+  async preExchange(rapida = false) {
+
+    let {userEnergy} = this.state
+
+    let eenergy = (await this.calculoEnergy(rapida)).dp(0)
+    let precio = await this.costEnergy(eenergy)
+
+    if(eenergy > userEnergy){
+
+    this.setState({
+      ModalTitulo: "Energy Notice",
+      ModalBody: <>
+        Operation requires:  <br></br><br></br>
+        Rent <b>{eenergy.toString(10)} energy</b> for <b>{precio.toString(10)} TRX</b>
+        <br ></br><br ></br>
+        <button type="button" className="btn btn-success" onClick={async () => {
+          if (await this.rentEnergy(eenergy)) {
+            this.exchangeTokens(rapida)
+          }
+        }}>Rent Energy </button>
+      </>
+    })
+
+    window.$("#mensaje-brst").modal("show");
+
+  }else{
+    this.exchangeTokens(rapida)
+
+  }
+
+
+  }
+
+  async exchangeTokens(rapida = false) {
     let from = document.getElementById('currencySelectFrom').value
     let to = document.getElementById('currencySelectTo').value
 
@@ -1080,14 +1112,196 @@ export default class Staking extends Component {
         break;
 
       case "brst_trx":
-        this.sell()
+        this.sell(rapida)
         break;
 
       default:
         // TRX -> BRST
-        this.preCompra(new BigNumber(0))
+        this.compra()
         break;
     }
+  }
+
+  async calculoEnergy(rapida= false) {
+    let from = document.getElementById('currencySelectFrom').value
+    let to = document.getElementById('currencySelectTo').value
+
+    const { tronWeb, accountAddress, contrato } = this.props
+
+    function tokenSelector(name) {
+
+      let address = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+
+      switch (name) {
+        case "usdt":
+          address = "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t"
+          break;
+
+        case "usdd":
+          address = "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz"
+          break;
+
+        default:
+          address = false
+          break;
+      }
+
+      return address
+
+    }
+
+    let energyRequired = new BigNumber(0)
+
+    let token = tokenSelector(from)
+
+    if (token) {
+
+      let sunswapRouter = "TCFNp179Lg46D16zKoumd4Poa2WFFdtqYj" // V3
+
+      const options2 = {
+        method: 'POST',
+        headers: { accept: 'application/json', 'content-type': 'application/json' },
+        body: JSON.stringify({ value: sunswapRouter, visible: true })
+      };
+
+      let energyFactor = await fetch('https://api.trongrid.io/wallet/getcontract', options2)
+        .then(res => res.json())
+        .catch(err => { console.error(err); return {} });
+
+      if (energyFactor.consume_user_resource_percent) {
+        energyFactor = energyFactor.consume_user_resource_percent / 100
+      } else {
+        energyFactor = 1
+      }
+
+      let contract_base_token = tronWeb.contract(utils.TOKEN_ABI, token)
+      let decimals_base = parseInt(await contract_base_token.decimals().call())
+
+      let aprove = await contract_base_token.allowance(accountAddress, sunswapRouter).call()
+      if (aprove.remaining) aprove = aprove.remaining
+      aprove = parseInt(aprove)
+
+
+      if (aprove <= 1 * 1e6) {
+
+        let inputs = [
+          { type: 'address', value: tronWeb.address.toHex(sunswapRouter) },
+          { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" },
+        ]
+
+        let funcion = "approve(address,uint256)"
+        const options = {}
+        let trigger = await tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(token), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+          .catch(() => { return {} })
+
+        if (trigger.energy_used) {
+          console.log("aprovacion ", trigger.energy_used)
+          energyRequired = energyRequired.plus(trigger.energy_used)
+        }
+      }
+
+
+      let monto = new BigNumber(1).shiftedBy(decimals_base).dp(0).toString(10)
+
+      let consulta = await fetch("https://rot.endjgfsv.link/swap/router?fromToken=" + token + "&toToken=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb&amountIn=" + monto + "&typeList=SUNSWAP_V3,SUNSWAP_V2,WTRX")
+        .then((r) => r.json())
+        .then((r) => r.data[0])
+
+      function distributeTokens(totalTokens, versions) {
+        let result = new Array(versions.length).fill(0); // Inicializamos el array con ceros
+        let remainingTokens = totalTokens;
+
+        // Asignamos 1 token a cada elemento si hay suficientes tokens disponibles
+        for (let i = 0; i < versions.length && remainingTokens > 0; i++) {
+          result[i] = 1;
+          remainingTokens--;
+        }
+
+        // Distribuimos los tokens restantes de forma balanceada
+        let index = 0;
+        while (remainingTokens > 0) {
+          result[index]++;
+          remainingTokens--;
+          index = (index + 1) % versions.length; // Ciclar en el array
+        }
+
+        return result;
+      }
+
+      let inputs = [
+        { type: 'address[]', value: consulta.tokens },
+        { type: 'string[]', value: consulta.poolVersions },
+        { type: 'uint256[]', value: distributeTokens(consulta.tokens.length, consulta.poolVersions) },
+        { type: 'uint24[]', value: consulta.poolFees },
+        {
+          type: '(uint256,uint256,address,uint256)',
+          value: [
+            new BigNumber(consulta.amountIn).shiftedBy(decimals_base).dp(0).toString(10),
+            new BigNumber(consulta.amountOut).times(0.995).shiftedBy(6).dp(0).toString(10),
+            (tronWeb.address.toHex(accountAddress)).replace(/41/g, "0x"),
+            ((parseInt(Date.now() / 1000)) + 100).toString(10)
+          ]
+        }
+
+      ]
+
+      let funcion = "swapExactInput(address[],string[],uint256[],uint24[],(uint256,uint256,address,uint256))"
+      const options = { feeLimit: 10000 * 1e6, callValue: 0 }
+      let trigger = await tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(sunswapRouter), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+        .catch(() => { return {} })
+
+      if (trigger.energy_used) {
+        console.log("swap ", trigger.energy_used * energyFactor)
+        energyRequired = energyRequired.plus(trigger.energy_used * energyFactor)
+      }
+
+    }
+
+
+    if (to === "brst") {
+
+      let inputs = []
+
+      let funcion = "staking()"
+      const options = { callValue: 1 * 1e6 }
+      let trigger = await tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+        .catch(() => { return {} })
+
+      if (trigger.energy_used) {
+        //61_839
+        console.log("staking ", trigger.energy_used)
+        energyRequired = energyRequired.plus(trigger.energy_used);
+      }
+
+
+    } else {
+
+      let inputs = [
+        { type: 'uint256', value: "1000000" }
+      ]
+
+      let funcion = "instaRetiro(uint256)"
+      if (rapida) {
+        funcion = "sell_token_2(uint256)"
+      }
+      const options = {}
+      let trigger = await tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+        .catch(() => { return {} })
+
+      if (trigger.energy_used) {
+        //180_000
+        console.log("retiro ", trigger.energy_used)
+        energyRequired = energyRequired.plus(trigger.energy_used);
+      }
+
+    }
+
+    energyRequired = energyRequired.plus(1000)
+
+    console.log(energyRequired.toString(10))
+
+    return energyRequired
+
   }
 
   async suawpTokenFromTRX(select = 0) {
@@ -1141,7 +1355,6 @@ export default class Staking extends Component {
 
       window.$("#mensaje-brst").modal("show");
 
-
       let inputs = [
         { type: 'address', value: tronWeb.address.toHex(sunswapRouter) },
         { type: 'uint256', value: "115792089237316195423570985008687907853269984665640564039457584007913129639935" },
@@ -1149,21 +1362,6 @@ export default class Staking extends Component {
 
       let funcion = "approve(address,uint256)"
       const options = {}
-
-      let eenergy = {};
-
-      eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(contract_base_token.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
-        .catch(() => { return {} })
-
-
-      if (eenergy.energy_used) {
-        eenergy = eenergy.energy_used;
-      } else {
-        eenergy = 120000;
-      }
-
-      await this.rentEnergy(eenergy)
-
       let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contract_base_token.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
 
       let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
@@ -1276,12 +1474,10 @@ export default class Staking extends Component {
 
     await utils.delay(3)
 
-    this.preCompra(monto.div(currentPrice))
+    this.compra(monto.div(currentPrice))
   }
 
-  async preCompra(amount) {
-
-    let {userEnergy} = this.state
+  async compra(amount = new BigNumber(0)) {
 
     if (amount.toNumber() <= 0) {
       amount = parseFloat(document.getElementById("amountFrom").value);
@@ -1304,68 +1500,6 @@ export default class Staking extends Component {
 
       return;
     }
-
-    var eenergy = {};
-
-    let inputs = [
-      //{type: 'address', value: this.props.tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-      //{type: 'uint256', value: '1000000'}
-    ]
-
-    let funcion = "staking()"
-    const options = { callValue: amount }
-    eenergy = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-      .catch(() => { return {} })
-
-
-    if (eenergy.energy_used) {
-      eenergy = eenergy.energy_used;
-    } else {
-      eenergy = 80000;
-    }
-
-    if (eenergy > userEnergy && this.state.energyOn) {
-
-      var requerido = eenergy - userEnergy
-
-      if (requerido < 32000) {
-        requerido = 32000;
-      } else {
-        requerido += 1000;
-      }
-
-      var body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      var consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      }).then((r) => r.json())
-
-      var precio = new BigNumber(consultaPrecio.price).dp(6)
-
-      let alerta = this.props.i18n.t("brst.alert.energyNotice", { returnObjects: true })
-
-      this.setState({
-        ModalTitulo: alerta[0],
-        ModalBody: <>{alerta[1]}<b>{eenergy} {alerta[2]}</b>, {alerta[3]}<b>{userEnergy} {alerta[2]} </b>{alerta[4]} <b>{requerido} {alerta[2]}</b>{alerta[5]} <b>{precio.toString(10)} TRX</b> {alerta[6]}
-          <br ></br><br ></br>
-          <button type="button" className="btn btn-success" onClick={async () => {
-            if (await this.rentEnergy(requerido)) {
-              this.compra(amount)
-            }
-          }}>{this.props.i18n.t("rentE")}</button>
-        </>
-      })
-
-      window.$("#mensaje-brst").modal("show");
-    } else {
-      this.compra(amount)
-    }
-  }
-
-  async compra(amount) {
 
     const { minCompra } = this.state;
 
@@ -1437,156 +1571,6 @@ export default class Staking extends Component {
 
 
   };
-
-  async sell() {
-
-    let amount = document.getElementById("amountTo").value;
-    let amountNorm = new BigNumber(amount)
-
-    let penalty = parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.descuentoRapido().call())
-    let presicion = parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.precision().call())
-
-    penalty = (penalty / presicion) * 100
-    amount = new BigNumber(amount).multipliedBy(presicion - penalty).div(presicion);
-
-    let loteria = utils.normalizarNumero((await this.props.contrato.loteria._premio().call())[0])
-
-    let retiroRapido = parseInt(await this.props.contrato.BRST_TRX_Proxy_fast.balance_token_1().call())
-    retiroRapido = new BigNumber(retiroRapido).shiftedBy(-6).minus(loteria)
-
-    if (retiroRapido < 0) retiroRapido = new BigNumber(0)
-
-    let primerBoton = <></>
-
-    if (amount.toNumber() > 0 && amount.toNumber() > retiroRapido.toNumber()) {
-      primerBoton = (<>
-        <button type="button" id="fastw" className="btn btn-secondary" disabled >Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
-        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
-        <br ></br><br ></br>
-
-      </>)
-    } else {
-      primerBoton = (<>
-        <button type="button" id="fastw" className="btn btn-warning" onClick={() => { this.preVenta(true) }}>Fast Withdrawal {amount.toNumber()} TRX</button><br ></br>
-        you can request up to {retiroRapido.toNumber()} TRX for instant withdrawal with a {penalty}% penalty on what you are going to withdraw and you will receive the funds instantly in your wallet.
-        <br ></br><br ></br>
-
-      </>)
-    }
-
-    this.setState({
-      ModalTitulo: "Select Your Method",
-      ModalBody: <>We now have two withdrawal methods:<br ></br>
-        {primerBoton}
-        <button type="button" className="btn btn-success" onClick={() => { this.preVenta(false) }}>Regular Withdrawal {amountNorm.toNumber()} TRX</button><br ></br>
-        you can make a withdrawal request that you can claim from the contract in its entirety in 17 days.
-      </>
-    })
-
-    window.$("#mensaje-brst").modal("show");
-
-  }
-
-  async preVenta(rapida) {
-
-    let {userEnergy} = this.state
-
-    let eenergy = 0;
-
-    let amount = document.getElementById("amountTo").value;
-    amount = parseInt(parseFloat(amount) * 10 ** 6);
-
-    let { accountAddress } = this.props;
-
-    let aprovado = await this.props.contrato.BRST.allowance(accountAddress, this.props.contrato.BRST_TRX_Proxy.address).call();
-    aprovado = parseInt(aprovado);
-
-    if (aprovado === 0) {
-
-      let inputs1 = [
-        { type: 'address', value: this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address) },
-        { type: 'uint256', value: '115792089237316195423570985008687907853269984665640564039457584007913129639935' }
-      ]
-
-      let funcion1 = "approve(address,uint256)"
-      const options1 = { callValue: amount }
-      let transaccion1 = await this.props.tronWeb.transactionBuilder.triggerConstantContract(this.props.tronWeb.address.toHex(this.props.contrato.BRST.address), funcion1, options1, inputs1, this.props.tronWeb.address.toHex(this.props.accountAddress))
-        .catch(() => { return {} })
-
-      if (transaccion1.energy_used) {
-        eenergy += transaccion1.energy_used;
-      } else {
-        eenergy += 32000
-      }
-
-    }
-
-    let inputs = [
-      { type: 'uint256', value: amount }
-
-    ]
-    let funcion = "esperaRetiro(uint256)"
-    let contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy.address);
-
-    if (rapida) {
-      funcion = "sell_token_2(uint256)"
-      contrato = this.props.tronWeb.address.toHex(this.props.contrato.BRST_TRX_Proxy_fast.address);
-
-    }
-
-    const options = {}
-    let transaccion = await this.props.tronWeb.transactionBuilder.triggerConstantContract(contrato, funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-      .catch(() => { return {} })
-
-    if (transaccion.energy_used) {
-      eenergy += transaccion.energy_used;
-    } else {
-      eenergy += 80000;
-    }
-
-    if (eenergy > userEnergy && this.state.energyOn) {
-
-      let requerido = eenergy - userEnergy
-
-      if (requerido < 32000) {
-        requerido = 32000;
-      } else {
-        requerido += 1000;
-      }
-
-      let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      let consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      }).then((r) => r.json())
-
-      let precio = new BigNumber(consultaPrecio.price).dp(6)
-
-      //console.log(precio)
-
-      this.setState({
-        ModalTitulo: "Energy Notice",
-        ModalBody: <>
-          Operation requires: <b>{eenergy} energy</b><br></br>
-          You have: <b>{userEnergy} energy</b> <br></br><br></br>
-          Rent <b>{requerido} energy</b> for <b>{precio.toString(10)} TRX</b>
-          <br ></br><br ></br>
-          <button type="button" className="btn btn-success" onClick={async () => {
-            if (await this.rentEnergy(requerido)) {
-              this.venta(rapida)
-            }
-          }}>Rent Energy </button>
-        </>
-      })
-
-      window.$("#mensaje-brst").modal("show");
-    } else {
-      this.venta(rapida)
-    }
-  }
 
   async venta(rapida) {
 
@@ -2042,7 +2026,7 @@ export default class Staking extends Component {
 
   render() {
 
-    let { from, to, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy } = this.state;
+    let { from, to, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty,retiroRapido, dias } = this.state;
 
     minCompra = "Min. " + minCompra + " " + from;
     minventa = "Min. " + minventa + " " + to;
@@ -2053,6 +2037,17 @@ export default class Staking extends Component {
       opciones = optionsHours
     } else {
       opciones = options2
+    }
+
+    let retiradas = <></>
+
+    if (from + "_" + to === "brst_trx") {
+      retiradas = (<div className="row mb-3">
+        <div className="col-12 text-center">
+          <input type="checkbox" checked={rapida} readOnly onClick={() => {  this.setState({ rapida: !rapida }) }} style={{cursor: "pointer"}}></input> <b>Quick:</b> request up to <b>{retiroRapido.dp(1).toString(10)} TRX</b> with a <b>{penalty}% fee.</b><br></br>
+          <input type="checkbox" checked={!rapida} readOnly onClick={() => {  this.setState({ rapida: !rapida }) }} style={{cursor: "pointer"}}></input> <b>Regular:</b> request the <b>total</b> with a <b>{dias} days</b> waiting period.
+        </div>
+      </div>)
     }
 
     return (<>
@@ -2070,9 +2065,9 @@ export default class Staking extends Component {
                         <span className="fs-16">Brutus Tron Staking </span>
                       </div>
                       <div className="dropdown bootstrap-select">
-                        
-                        <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" style={{ background: "rgb(3 0 8 / 20%)"}} onInput={(r)=>{
-                          
+
+                        <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" style={{ background: "rgb(3 0 8 / 20%)" }} onInput={(r) => {
+
                           this.grafico(500, this.state.temporalidad, this.state.cantidadDatos, document.getElementById("selector").value);
                         }}>
                           <option value="trx">TRX (Tron)</option>
@@ -2278,10 +2273,11 @@ export default class Staking extends Component {
 
                     </div>
                     <div className="card-footer border-0">
+                      {retiradas}
                       <div className="row">
 
                         <div className="col-12 text-center">
-                          <button className="btn btn-success" style={{ width: "100%" }} onClick={() => this.exchangeTokens()}>
+                          <button className="btn btn-success" style={{ width: "100%" }} onClick={() => this.preExchange(rapida)}>
                             Swap {(this.state.from).toUpperCase() + " -> " + (this.state.to).toUpperCase()}
 
                           </button>
