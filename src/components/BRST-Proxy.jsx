@@ -307,10 +307,10 @@ export default class Staking extends Component {
     let entrada = (document.getElementById(element).value).replace(/,/g, ".")
     entrada = new BigNumber(parseFloat(entrada))
 
-    if(out){
-      this.setState({valueTo: entrada})
-    }else{
-      this.setState({valueFrom: entrada})
+    if (out) {
+      this.setState({ valueTo: entrada })
+    } else {
+      this.setState({ valueFrom: entrada })
     }
 
     switch (swap) {
@@ -360,10 +360,10 @@ export default class Staking extends Component {
 
     //console.log(swap, entrada.toString(10), salida.toString(10))
 
-    if(!out){
-      this.setState({valueTo: salida})
-    }else{
-      this.setState({valueFrom: salida})
+    if (!out) {
+      this.setState({ valueTo: salida })
+    } else {
+      this.setState({ valueFrom: salida })
     }
 
     return salida
@@ -518,7 +518,6 @@ export default class Staking extends Component {
 
       })
       .catch((e) => { return false })
-
 
 
     fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=361")
@@ -1162,17 +1161,23 @@ export default class Staking extends Component {
         { type: 'uint256', value: "1000000" }
       ]
 
-      let funcion = "instaRetiro(uint256)"
+      let AddressContract = contrato.BRST_TRX_Proxy.address
+
+      if (rapida) {
+        AddressContract = contrato.BRST_TRX_Proxy_fast.address
+      }
+
+      let funcion = "esperaRetiro(uint256)"
       if (rapida) {
         funcion = "sell_token_2(uint256)"
       }
       const options = {}
-      let trigger = await tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+      let trigger = await tronWeb.transactionBuilder.triggerConstantContract(tronWeb.address.toHex(AddressContract), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
         .catch(() => { return {} })
 
       if (trigger.energy_used) {
 
-        //console.log("retiro ", trigger.energy_used)
+        console.log("retiro ", trigger.energy_used, trigger)
         energyRequired = energyRequired.plus(trigger.energy_used);
       }
 
@@ -1222,12 +1227,13 @@ export default class Staking extends Component {
 
   async rentEnergy(cantidad) {
 
+    cantidad = cantidad.dp(0).toNumber()
+
     const { tronWeb, accountAddress } = this.props
-    let { userEnergy, energyOn } = this.state
+    let { energyOn } = this.state
 
     if (!energyOn) return false;
 
-    cantidad = cantidad - userEnergy
     if (cantidad <= 0) return true;
     if (cantidad < 32000) cantidad = 32000
 
@@ -1309,7 +1315,9 @@ export default class Staking extends Component {
     let eenergy = (await this.calculoEnergy(rapida)).dp(0)
     let precio = await this.costEnergy(eenergy)
 
-    if (eenergy > userEnergy) {
+    console.log(eenergy.toNumber(), userEnergy)
+
+    if (eenergy.toNumber() > 0) {
 
       this.setState({
         ModalTitulo: "Energy Notice",
@@ -1353,7 +1361,7 @@ export default class Staking extends Component {
         break;
 
       case "brst_trx":
-        this.sell(rapida)
+        this.venta(rapida)
         break;
 
       default:
@@ -1643,7 +1651,6 @@ export default class Staking extends Component {
     let { accountAddress, contrato, tronWeb } = this.props;
 
     let AddressContract = tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address)
-
     if (rapida) {
       AddressContract = tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address);
     }
@@ -1652,6 +1659,13 @@ export default class Staking extends Component {
     aprovado = parseInt(aprovado);
 
     if (aprovado <= amount.toNumber()) {
+
+      this.setState({
+        ModalTitulo: <>BRST Aproval</>,
+        ModalBody: <>sign the following transaction to confirm Token Aproval</>
+      })
+
+      window.$("#mensaje-brst").modal("show");
 
       let inputs = [
         { type: 'address', value: AddressContract },
@@ -1682,8 +1696,6 @@ export default class Staking extends Component {
           window.$("#mensaje-brst").modal("show");
         })
 
-      //await contrato.BRST.approve(contrato.BRST_TRX_Proxy.address, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
-
       aprovado = await contrato.BRST.allowance(accountAddress, AddressContract).call();
       aprovado = parseInt(aprovado);
 
@@ -1693,88 +1705,54 @@ export default class Staking extends Component {
 
       if (amount.toNumber() >= minventa && true) {
 
+        this.setState({
+          ModalTitulo: <>Withdrawal process {imgLoading}</>,
+          ModalBody: <>
+            sign the following transaction to confirm your withdrawal.
+          </>
+        })
+
+        window.$("#mensaje-brst").modal("show");
+
+        let inputs = [
+          { type: 'uint256', value: amount.toString(10) }
+        ]
+
+        let funcion = "esperaRetiro(uint256)"
         if (rapida) {
-          this.setState({
-            ModalTitulo: "You select fast withdrawal",
-            ModalBody: <>
-              The request has been processed! Your funds are on their way. Thank you for choosing our speedy service.
-            </>
+          funcion = "sell_token_2(uint256)"
+        }
+        const options = {}
+        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(AddressContract, funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+          .catch((e) => {
+
+            this.setState({
+              ModalTitulo: "Error",
+              ModalBody: e.toString()
+            })
+
+            window.$("#mensaje-brst").modal("show");
+          })
+        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+          .then(() => {
+            this.setState({
+              ModalTitulo: "Operation result",
+              ModalBody: <>Your withdrawal was successfully processed <a href={"https://tronscan.org/#/transaction/"+transaction.txid} rel="noreferrer noopener" target="_blank" >{transaction.txid}</a>
+                <br ></br><br ></br>
+                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
+              </>
+            })
+
+            window.$("#mensaje-brst").modal("show");
           })
 
-          window.$("#mensaje-brst").modal("show");
 
-          let inputs = [
-            //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-            { type: 'uint256', value: amount.toString(10) }
-          ]
-
-          let funcion = "instaRetiro(uint256)"
-          if (rapida) {
-            funcion = "sell_token_2(uint256)"
-          }
-          const options = {}
-          let trigger = await tronWeb.transactionBuilder.triggerSmartContract(AddressContract, funcion, options, inputs, tronWeb.address.toHex(accountAddress))
-          let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-          transaction = await window.tronLink.tronWeb.trx.sign(transaction)
-            .catch((e) => {
-
-              this.setState({
-                ModalTitulo: "Error",
-                ModalBody: e.toString()
-              })
-
-              window.$("#mensaje-brst").modal("show");
-            })
-          transaction = await tronWeb.trx.sendRawTransaction(transaction)
-            .then(() => {
-              this.setState({
-                ModalTitulo: "Result",
-                ModalBody: <>Your fast withdrawal was successfully processed {transaction.txid}
-                  <br ></br><br ></br>
-                  <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
-                </>
-              })
-
-              window.$("#mensaje-brst").modal("show");
-            })
-
-
-        } else {
-          let inputs = [
-            //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-            { type: 'uint256', value: amount.toString(10) }
-          ]
-
-          let funcion = "esperaRetiro(uint256)"
-          const options = {}
-          let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
-          let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-          transaction = await window.tronLink.tronWeb.trx.sign(transaction)
-            .catch((e) => {
-
-              this.setState({
-                ModalTitulo: "Error",
-                ModalBody: e.toString()
-              })
-
-              window.$("#mensaje-brst").modal("show");
-            })
-          transaction = await tronWeb.trx.sendRawTransaction(transaction)
-            .then(() => {
-              this.setState({
-                ModalTitulo: "Result",
-                ModalBody: <>Normal retiro Done {transaction.txid}
-                  <br ></br><br ></br>
-                  <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
-                </>
-              })
-
-              window.$("#mensaje-brst").modal("show");
-            })
-
-          window.$("#mensaje-brst").modal("hide");
+        if(!rapida){
           document.getElementById("request-brst").scrollIntoView();
         }
+
 
       } else {
         this.setState({
@@ -2091,8 +2069,8 @@ export default class Staking extends Component {
     const { contrato } = this.props
     let { from, to, valueFrom, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty, retiroRapido, dias, balanceUSDT, balanceUSDD, balanceBRST, balanceTRX } = this.state;
 
-    minCompra = "Min. " + minCompra + " " + from;
-    minventa = "Min. " + minventa + " " + to;
+    minCompra = "Min. " + minCompra + " " + from.toUpperCase();
+    minventa = "Min. " + minventa + " " + to.toUpperCase();
 
     let opciones;
 
@@ -2118,9 +2096,9 @@ export default class Staking extends Component {
         Swap {(this.state.from).toUpperCase() + " -> " + (this.state.to).toUpperCase()}
       </button>
 
-    if(valueFrom.toNumber() < 1){
+    if (valueFrom.toNumber() < 1) {
       swapButton = <button className="btn btn-warning" style={{ width: "100%" }} >
-        The minimum to operate is {1} {from.toUpperCase()} 
+        The minimum to operate is {1} {from.toUpperCase()}
       </button>
     }
 
@@ -2135,12 +2113,12 @@ export default class Staking extends Component {
       case "brst":
         balance = balanceBRST
         break;
-    
+
       default:
         break;
     }
 
-    if(valueFrom.toNumber() > balance){
+    if (valueFrom.toNumber() > balance) {
       swapButton = <button className="btn btn-danger" style={{ width: "100%" }} >
         Not enough {from.toUpperCase()} top up to proceed
       </button>
@@ -2392,7 +2370,7 @@ export default class Staking extends Component {
                   <div className="card price-list">
                     <div className="card-header border-0 pb-2">
                       <div className="chart-title">
-                        <h4 className=" mb-0" style={{color: "var(--primary)"}}>{this.props.i18n.t("mya")}</h4>
+                        <h4 className=" mb-0" style={{ color: "var(--primary)" }}>{this.props.i18n.t("mya")}</h4>
                       </div>
                     </div>
                     <div className="card-body p-3 py-0">

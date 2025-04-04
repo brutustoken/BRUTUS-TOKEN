@@ -53,7 +53,7 @@ export default class EnergyRental extends Component {
       fromUrl: true,
 
       unitEnergyPrice: new BigNumber(1),
-      precios: [],
+      precios: {energy: [], bandwidth: []},
 
     };
 
@@ -333,16 +333,12 @@ export default class EnergyRental extends Component {
     let time = document.getElementById("periodo").value
     this.setState({ duration: time })
 
-    console.log(time, available_energy)
-
     let av_energy = available_energy.find(obj => obj.duration === time)
     av_energy = new BigNumber(av_energy.available)
-
     this.setState({ av_energy })
 
     let av_band = available_bandwidth.find(obj => obj.duration === time)
     av_band = new BigNumber(av_band.available)
-
     this.setState({ av_band })
 
 
@@ -434,15 +430,11 @@ export default class EnergyRental extends Component {
   }
 
   async calcularPrecios() {
+    let { precios } = this.state
 
-    //let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices"
+    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices/all"
 
-    let consulta = {}
-
-
-    let url2 = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices/all"
-
-    consulta = await fetch(url2, {
+    let consulta = await fetch(url, {
       method: "GET",
       headers: {
         'Content-Type': 'application/json'
@@ -451,66 +443,67 @@ export default class EnergyRental extends Component {
       .then(async (r) => await r.json())
       .catch((e) => {
         console.log(e)
-        return []
+        return false
       })
 
-    let { precios } = this.state
-
-    precios["energy"] = [
-      {
-        duration: "5min",
-        UE: new BigNumber(consulta.energy_minutes_100K).shiftedBy(1).dp(6).toNumber()
-      },
-      {
-        duration: "1h",
-        UE: new BigNumber(consulta.energy_hour_100K).shiftedBy(1).dp(6).toNumber()
-      },
-      {
-        duration: "1",
-        UE: new BigNumber(consulta.energy_one_day_100K).shiftedBy(1).dp(6).toNumber()
-      },
-      {
-        duration: "3",
-        UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).dp(6).toNumber()
-      },
-      {
-        duration: "7",
-        UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(7 / 3).dp(6).toNumber()
-      },
-      {
-        duration: "14",
-        UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(14 / 3).dp(6).toNumber()
-      },
-    ]
-
-    precios["bandwidth"] = [
-      {
-        duration: "5min",
-        UE: new BigNumber(consulta.band_minutes_1000).times(1000).dp(6).toNumber()
-      },
-      {
-        duration: "1h",
-        UE: new BigNumber(consulta.band_hour_1000).times(1000).dp(6).toNumber()
-      },
-      {
-        duration: "1",
-        UE: new BigNumber(consulta.band_one_day_1000).times(1000).dp(6).toNumber()
-      },
-      {
-        duration: "3",
-        UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).dp(6).toNumber()
-      },
-      {
-        duration: "7",
-        UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(7 / 3).dp(6).toNumber()
-      },
-      {
-        duration: "14",
-        UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(14 / 3).dp(6).toNumber()
-      },
-    ]
-
-    this.setState({ precios })
+    
+    if(consulta){
+      precios["energy"] = [
+        {
+          duration: "5min",
+          UE: new BigNumber(consulta.energy_minutes_100K).shiftedBy(1).dp(6).toNumber()
+        },
+        {
+          duration: "1h",
+          UE: new BigNumber(consulta.energy_hour_100K).shiftedBy(1).dp(6).toNumber()
+        },
+        {
+          duration: "1",
+          UE: new BigNumber(consulta.energy_one_day_100K).shiftedBy(1).dp(6).toNumber()
+        },
+        {
+          duration: "3",
+          UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).dp(6).toNumber()
+        },
+        {
+          duration: "7",
+          UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(7 / 3).dp(6).toNumber()
+        },
+        {
+          duration: "14",
+          UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(14 / 3).dp(6).toNumber()
+        },
+      ]
+  
+      precios["bandwidth"] = [
+        {
+          duration: "5min",
+          UE: new BigNumber(consulta.band_minutes_1000).times(1000).dp(6).toNumber()
+        },
+        {
+          duration: "1h",
+          UE: new BigNumber(consulta.band_hour_1000).times(1000).dp(6).toNumber()
+        },
+        {
+          duration: "1",
+          UE: new BigNumber(consulta.band_one_day_1000).times(1000).dp(6).toNumber()
+        },
+        {
+          duration: "3",
+          UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).dp(6).toNumber()
+        },
+        {
+          duration: "7",
+          UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(7 / 3).dp(6).toNumber()
+        },
+        {
+          duration: "14",
+          UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(14 / 3).dp(6).toNumber()
+        },
+      ]
+      
+      this.setState({ precios })
+    }
 
     return precios
   }
