@@ -1189,8 +1189,15 @@ export default class Staking extends Component {
     energyRequired = energyRequired.minus(userEnergy)
     console.log("requerido ", energyRequired.toString(10))
 
-    if (energyRequired.toNumber() <= 0) energyRequired = new BigNumber(0);
-    if (energyRequired.toNumber() < 32000) energyRequired = new BigNumber(32000);
+    if (energyRequired.toNumber() <= 0) {
+      energyRequired = new BigNumber(0)
+    }else{
+      if (energyRequired.toNumber() < 32000) energyRequired = new BigNumber(32000);
+
+    }
+
+
+    console.log("send ", energyRequired.toString(10))
 
 
     return energyRequired
@@ -1315,7 +1322,7 @@ export default class Staking extends Component {
     let eenergy = (await this.calculoEnergy(rapida)).dp(0)
     let precio = await this.costEnergy(eenergy)
 
-    console.log(eenergy.toNumber(), userEnergy)
+    console.log(eenergy.toString(10))
 
     if (eenergy.toNumber() > 0) {
 
@@ -1332,6 +1339,13 @@ export default class Staking extends Component {
               this.exchangeTokens(rapida)
             }
           }}>Rent Energy </button>
+
+<button type="button" className="btn btn-danger" onClick={async () => {
+           
+              this.exchangeTokens(rapida)
+          }}>Proceed without renting energy </button>
+
+
         </>
       })
 
@@ -2067,7 +2081,7 @@ export default class Staking extends Component {
   render() {
 
     const { contrato } = this.props
-    let { from, to, valueFrom, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty, retiroRapido, dias, balanceUSDT, balanceUSDD, balanceBRST, balanceTRX } = this.state;
+    let { from, to, valueFrom, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty, retiroRapido, dias, balanceUSDT, balanceUSDD, balanceBRST, balanceTRX, valueTo } = this.state;
 
     minCompra = "Min. " + minCompra + " " + from.toUpperCase();
     minventa = "Min. " + minventa + " " + to.toUpperCase();
@@ -2096,6 +2110,11 @@ export default class Staking extends Component {
         Swap {(this.state.from).toUpperCase() + " -> " + (this.state.to).toUpperCase()}
       </button>
 
+if (rapida && retiroRapido.toNumber() < valueTo.toNumber()) {
+  swapButton = <button className="btn btn-warning" style={{ width: "100%" }} >
+     Enter a lower amount or change to regular withdrawal
+  </button>
+}
     if (valueFrom.toNumber() < 1) {
       swapButton = <button className="btn btn-warning" style={{ width: "100%" }} >
         The minimum to operate is {1} {from.toUpperCase()}
