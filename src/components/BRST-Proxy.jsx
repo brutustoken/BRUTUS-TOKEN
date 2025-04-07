@@ -1191,7 +1191,7 @@ export default class Staking extends Component {
 
     if (energyRequired.toNumber() <= 0) {
       energyRequired = new BigNumber(0)
-    }else{
+    } else {
       if (energyRequired.toNumber() < 32000) energyRequired = new BigNumber(32000);
 
     }
@@ -1340,9 +1340,9 @@ export default class Staking extends Component {
             }
           }}>Rent Energy </button>
 
-<button type="button" className="btn btn-danger" onClick={async () => {
-           
-              this.exchangeTokens(rapida)
+          <button type="button" className="btn btn-danger" onClick={async () => {
+
+            this.exchangeTokens(rapida)
           }}>Proceed without renting energy </button>
 
 
@@ -1753,7 +1753,7 @@ export default class Staking extends Component {
           .then(() => {
             this.setState({
               ModalTitulo: "Operation result",
-              ModalBody: <>Your withdrawal was successfully processed <a href={"https://tronscan.org/#/transaction/"+transaction.txid} rel="noreferrer noopener" target="_blank" >{transaction.txid}</a>
+              ModalBody: <>Your withdrawal was successfully processed <a href={"https://tronscan.org/#/transaction/" + transaction.txid} rel="noreferrer noopener" target="_blank" >{transaction.txid}</a>
                 <br ></br><br ></br>
                 <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{this.props.i18n.t("accept")}</button>
               </>
@@ -1763,7 +1763,7 @@ export default class Staking extends Component {
           })
 
 
-        if(!rapida){
+        if (!rapida) {
           document.getElementById("request-brst").scrollIntoView();
         }
 
@@ -2110,11 +2110,12 @@ export default class Staking extends Component {
         Swap {(this.state.from).toUpperCase() + " -> " + (this.state.to).toUpperCase()}
       </button>
 
-if (rapida && retiroRapido.toNumber() < valueTo.toNumber()) {
-  swapButton = <button className="btn btn-warning" style={{ width: "100%" }} >
-     Enter a lower amount or change to regular withdrawal
-  </button>
-}
+    if (to === "trx" && rapida && retiroRapido.toNumber() < valueTo.toNumber()) {
+      swapButton = <button className="btn btn-warning" style={{ width: "100%" }} >
+        Enter a lower amount or change to regular withdrawal
+      </button>
+    }
+    
     if (valueFrom.toNumber() < 1) {
       swapButton = <button className="btn btn-warning" style={{ width: "100%" }} >
         The minimum to operate is {1} {from.toUpperCase()}
