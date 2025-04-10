@@ -1,9 +1,11 @@
 import React, { Component } from "react";
+import { withTranslation } from 'react-i18next';
+
 import utils from "../utils";
 
 let nextUpdate = 0
 let intervalId = null
-export default class Inicio extends Component {
+class Inicio extends Component {
 	constructor(props) {
 		super(props);
 
@@ -33,7 +35,8 @@ export default class Inicio extends Component {
 	}
 
 	componentDidMount() {
-		document.getElementById("tittle").innerText = this.props.i18n.t("inicio.tittle")
+		const { t } = this.props
+		document.getElementById("tittle").innerText = t("inicio.tittle")
 
 		intervalId = setInterval(() => {
 
@@ -190,6 +193,8 @@ export default class Inicio extends Component {
 
 	render() {
 
+		const { t } = this.props
+
 		/**
 		 *
 		 * <div className="row">
@@ -197,7 +202,7 @@ export default class Inicio extends Component {
 						<div className="profile card card-body px-3 pt-3">
 							<div className="profile-head">
 								<div className="photo-content">
-									<a href="/#/ebot" title={this.props.i18n.t('inicio.try')}>
+									<a href="/#/ebot" title={t('inicio.try')}>
 										<div className="rounded"><img style={{ borderRadius: "1%" }}
 											src="images/banner.jpg" alt="tron energy rental" width="100%" />
 										</div>
@@ -246,10 +251,10 @@ export default class Inicio extends Component {
 												>
 												<thead>
 													<tr>
-														<th>{this.props.i18n.t('inicio.name')}</th>
-														<th className="text-center">{this.props.i18n.t('inicio.tokenB')}</th>
-														<th className="text-center">{this.props.i18n.t("inicio.totalB")}</th>
-														<th className="text-center">{this.props.i18n.t("inicio.usdValue")}</th>
+														<th>{t('inicio.name')}</th>
+														<th className="text-center">{t('inicio.tokenB')}</th>
+														<th className="text-center">{t("inicio.totalB")}</th>
+														<th className="text-center">{t("inicio.usdValue")}</th>
 
 													</tr>
 												</thead>
@@ -293,7 +298,7 @@ export default class Inicio extends Component {
 																href="/#/brgy">
 																<img src="images/brgy.png" width="50px" alt="brutus gallery" />
 																<div style={{paddingLeft: "10px"}}>
-																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRGY</b> Brutus {this.props.i18n.t("gallery")}<br></br>
+																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRGY</b> Brutus {t("gallery")}<br></br>
 																	10,000 NFT
 
 																	</span>
@@ -310,7 +315,7 @@ export default class Inicio extends Component {
 																href="/#/brlt">
 																<img src="images/brlt.png" width="50px" alt="brutus lottery" />
 																<div style={{paddingLeft: "10px"}}>
-																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRLT</b> Brutus {this.props.i18n.t("lottery")}<br></br>
+																	<span className="text-muted ms-2"><b style={{color: "black",fontSize:"18px"}}>BRLT</b> Brutus {t("lottery")}<br></br>
 																	100 TRX
 
 																	</span>
@@ -336,8 +341,4 @@ export default class Inicio extends Component {
 	}
 }
 
-
-export const Head = () => <>
-
-	<meta property="og:image" content="brutusimage" />
-</>
+export default withTranslation()(Inicio);

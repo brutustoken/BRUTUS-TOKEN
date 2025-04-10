@@ -1,0 +1,31 @@
+{
+    "conect": "Conecte a Carteira",
+    "gallery": "Galeria",
+    "lottery": "Loteria",
+    "day": "Dia",
+    "loading": "Carregando",
+    "claim": "Resgate",
+    "brst": {
+        "tittle": "Fazer Staking de TRX",
+        "sale": "Venta N° {{number}} | {{days}} Dias restantes | {{wallet}}",
+        "price": "Preço por unidade: {{price}} TRX",
+        "unStaking": "A uma ordem no processo de retirada (UnStaking) para os próximos {{days}} dias, uma vez que esse período tenha terminado, retorne e resgate os TRX correspondentes",
+        "available": "Disponível em: ",
+        "alert": {
+            "energy": [
+                "Aviso de Energia"
+            ]
+        }
+    },
+    "inicio": {
+        "tittle": "Painel de controle",
+        "try": "Tente agora!",
+        "position": "Minha posição",
+        "name": "Nome",
+        "tokenB": "Saldo de Tokens",
+        "price": "Preço",
+        "changeH": "{{hours}} Horas para Mudar",
+        "totalB": "Valor Total",
+        "usdValue": "Valor em USD"
+    }
+}
