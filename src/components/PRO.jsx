@@ -169,7 +169,7 @@ export default class ProviderPanel extends Component {
           console.log(error.toString())
         }
 
-        console.log(info)
+        //console.log(info)
 
         let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100).dp(3).toNumber()
 
@@ -242,7 +242,7 @@ export default class ProviderPanel extends Component {
 
         info.coin = info.currency
 
-        console.log(info)
+        //console.log(info)
 
         this.setState({
           ...info,
@@ -1032,7 +1032,9 @@ export default class ProviderPanel extends Component {
                           <button className="btn btn-warning" onClick={() => this.estado()}>Login</button>
                         </p>
 
-                        <p>There seems to be problems when performing signature verification please contact support</p>
+                        <p>There seems to be problems when performing signature verification please contact support.</p>
+
+                        <p>Join the telegram providers <a href="https://t.me/+V-HHCgAevxA5NGQ0" target="_blank" rel="noopener noreferrer">channel</a> to keep tuned with the latest news! </p>
 
 
                       </div>
@@ -1042,8 +1044,6 @@ export default class ProviderPanel extends Component {
               </div>
             </div>
           </div>
-
-
 
         </>);
 
@@ -1100,14 +1100,7 @@ export default class ProviderPanel extends Component {
 
           }
 
-
-
-
-
-
-
         }
-
 
 
         return (<>
@@ -1527,7 +1520,7 @@ export default class ProviderPanel extends Component {
                       </div>
                     </div>
                   </div>
-
+                  
                   <div className="col-12">
                     <div className="card">
                       <div className="card-header">
@@ -1593,6 +1586,20 @@ export default class ProviderPanel extends Component {
                             </tbody>
                           </table>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="card">
+                      <div className="card-header">
+                        <h4 className="card-title">Other Info</h4>
+                      </div>
+                      <div className="card-body">
+                        <p>
+                        {"🔵"} Join the telegram providers <b><a href="https://t.me/+V-HHCgAevxA5NGQ0" target="_blank" rel="noopener noreferrer">channel</a></b> to keep tuned with the latest news! 
+
+                           </p>
                       </div>
                     </div>
                   </div>

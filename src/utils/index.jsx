@@ -112,7 +112,7 @@ async function getTronweb(wallet, red = 0) {
 
 }
 
-async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction) {
+async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction, referral=false) {
 
   if (recurso === "bandwidth" || recurso === "band") {
     recurso = "band"
@@ -144,6 +144,10 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
 
     "id_api": env.REACT_APP_USER_ID,
     "token": env.REACT_APP_TOKEN,
+
+    "dApp":referral?1:0,
+    "referral": referral?referral:0,
+    "dapp_identif": env.REACT_APP_IDENTF || 0
   }
 
   // Encrypt
