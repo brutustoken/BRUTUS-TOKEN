@@ -80,40 +80,40 @@
         "to perform this operation."
       ],
       "tfail": [
-        "Transaction failed"
+        "Falha na transação"
       ],
       "done": [
-        "Completed successfully",
-        "Energy rental completed successfully. ",
-        "Continue the process"
+        "Terminado com sucesso",
+        "Alocação de energia concluída com sucesso. ",
+        "Continuar o processo"
       ],
       "compra": [
-        "Done!",
-        "Your TRX automatic staking has started"
+        "Concluído!",
+        "Seu staking automático de TRX começou"
       ],
       "nonEfective": [
-        "non-effective transaction",
-        "The transaction has failed, you have connection problems or you have taken too long to sign, this has made the transaction unsuccessful, try again"
+        "Transação não eficaz",
+        "A transação falhou, você tem problemas de conexão ou demorou muito para assinar, isso fez a transação falhar, tente novamente"
       ],
       "errGreater": [
-        "Please enter an amount greater than {{min}} TRX"
+        "Por favor insira um valor maior que {{min}} TRX"
       ],
       "errFunds": [
-        "You do not have enough funds in your account you place at least {{min}} TRX"
+        "Você não tem fundos suficientes em sua conta e pelo menos {{min}} TRX"
       ],
       "donate": [
-        "Donate to grow BRST",
-        "Thanks for Donate to grow BRST",
-        "Thank you for contributing to this great project that we have done to help the community grow. We truly appreciate it ❤️",
-        "Donate"
+        "Doar para o crescimento BRST",
+        "Obrigado por doar para crescer BRST",
+        "Obrigado por contribuir para este grande projeto que fizemos para ajudar a comunidade a crescer. Nós realmente apreciamos ❤️",
+        "Doar"
       ]
     },
     "button": {
-      "readM": "Read more"
+      "readM": "Ler mais"
     },
-    "exchange": "Exchange",
-    "energy": "Your energy: {{e1}}",
-    "dailyG": "daily Growth",
+    "exchange": "Intercâmbio",
+    "energy": "Sua energia: {{e1}}",
+    "dailyG": "crescimento diário",
     "daysAgo": "{{days}} ago",
     "request": [
       "Requests in process ({{number}}) ",
