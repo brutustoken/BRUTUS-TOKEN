@@ -93,13 +93,13 @@
       ],
       "nonEfective": [
         "Transação não eficaz",
-        "A transação falhou, você tem problemas de conexão ou demorou muito para assinar, isso fez a transação falhar, tente novamente"
+        "A transação falhou, tem problemas de conexão ou demorou muito para assinar, isso fez a transação falhar, tente novamente"
       ],
       "errGreater": [
-        "Por favor insira um valor maior que {{min}} TRX"
+        "Por favor, insira um valor maior que {{min}} TRX"
       ],
       "errFunds": [
-        "Você não tem fundos suficientes em sua conta e pelo menos {{min}} TRX"
+        "Não tem fundos suficientes na sua conta e pelo menos {{min}} TRX"
       ],
       "donate": [
         "Doar para o crescimento BRST",
@@ -114,25 +114,25 @@
     "exchange": "Intercâmbio",
     "energy": "Sua energia: {{e1}}",
     "dailyG": "crescimento diário",
-    "daysAgo": "{{days}} ago",
+    "daysAgo": "{{days}} dias atrás",
     "request": [
-      "Requests in process ({{number}}) ",
-      "Update ",
-      "Come back when time is up and claim your TRX"
+      "Requisições em curso ({{number}}) ",
+      "Atualização ",
+      "Volte quando o tempo estiver pronto e reivindique o seu TRX"
     ],
-    "estimate": "Estimate your Profit",
-    "mystaking": "My Staking: ",
-    "hold": "You Hold",
-    "status": "Status",
-    "estimateIn": "Estimated income",
+    "estimate": "Estimar os seus lucros",
+    "mystaking": "A minha Implantação: ",
+    "hold": "Você está a segurar",
+    "status": "Estado",
+    "estimateIn": "Rendimento estimado",
     "growthR": "APY",
     "calculated": "calculated",
-    "daily": "Daily",
-    "monthly": "Monthly",
-    "yearly": "Yearly",
-    "likely": "likely",
-    "estimated": "Estimated",
-    "calcullatorText": "This calculator uses the average of the last {{days}} days of earnings to generate an estimate that is closest to reality, since earnings can fluctuate from one day to the next and are not fixed but variable."
+    "daily": "Diário",
+    "monthly": "Por mês",
+    "yearly": "Anualmente",
+    "likely": "provável",
+    "estimated": "Estimado",
+    "calcullatorText": "Esta calculadora utiliza a média dos últimos dias de ganhos {{days}} para gerar uma estimativa mais próxima da realidade, já que os ganhos podem variar de um dia para o próximo e não são fixos, mas variáveis."
   },
   "inicio": {
     "tittle": "Painel de controle",
@@ -146,29 +146,29 @@
     "usdValue": "Valor em USD"
   },
   "ebot": {
-    "tittle": "Energy Bot",
-    "subTittle": "Brutus Resources Rental",
+    "tittle": "Bot de Energia",
+    "subTittle": "Aluguer de Recursos Brutus",
     "alert": {
       "eTronlink": [
         "Tronlink Error",
-        "If you have TRONLINK installed, please open the application and connect. If you do not have it, you must download the TRONLINK extension for your browser or TRONLINK GLOBAL from your cell phone."
+        "Se você tiver o TRONLINK instalado, por favor abra o aplicativo e conecte-se. Se não tiver, você deve baixar a extensão TRONLINK para seu navegador ou GLOBAL TRONLINK do seu celular."
       ],
       "soldOut": [
-        "Sold Out Energy",
-        "We apologize that at this time we have sold all the available energy, please come back later when we have recovered"
+        "Energia vendida",
+        "Pedimos desculpas por ter vendido toda a energia disponível, por favor volte mais tarde quando tivermos recuperado"
       ],
       "eRange": [
-        "Error Range",
-        "Please enter a range of values between 1 hour and 14 days"
+        "Erro Range",
+        "Por favor, insira um intervalo de valores entre 1 hora e 14 dias"
       ],
-      "eRange2": "It is only available for 1 hour operations",
+      "eRange2": "Só está disponível para operações de 1 hora",
       "eResource": [
-        "Resource Alert",
-        "At this time we do not have resources available, please try again later."
+        "Alerta de Recursos",
+        "No momento não temos recursos disponíveis, por favor tente novamente mais tarde."
       ],
       "noFounds": [
-        "Insufficient Funds",
-        "Please top up your wallet with additional TRX to complete this operation."
+        "Fundos insuficientes.",
+        "Por favor, carregue a sua carteira com TRX adicional para concluir esta operação."
       ]
     }
   }
