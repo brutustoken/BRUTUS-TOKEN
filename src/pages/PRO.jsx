@@ -7,13 +7,15 @@ import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 
 import CsvDownloader from 'react-csv-downloader';
+import { withTranslation } from 'react-i18next';
+
 
 const env = process.env
 
 var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
 
-export default class ProviderPanel extends Component {
+class ProviderPanel extends Component {
 
   constructor(props) {
     super(props);
@@ -308,23 +310,46 @@ export default class ProviderPanel extends Component {
             console.log(e)
             return []
           })
-
-        let totalPayed30 = new BigNumber(0)
-
+      
         dataHistoric = dataHistoric.map((item, index) => {
-          totalPayed30 = totalPayed30.plus(item.amount)
+          item.amount = new BigNumber(item.amount)
           if(item.amount_stable){
             if(item.coin.toLowerCase() !== "trx"){
-              item.amount = item.amount_stable
+              item.amount = new BigNumber(item.amount_stable)
+              if(item.amount.toNumber() < 5_000_000 && item.amount.toNumber() > 0){
+                item.amount = item.amount.shiftedBy(6)
+              }
             }
-          }
+          }          
           
-          return { index, date: moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll"), amount: new BigNumber(item.amount).shiftedBy(-6).dp(3).toNumber(), coin: item.coin }
+          return { index, date: moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll"), amount: item.amount.shiftedBy(-6).dp(6).toNumber(), coin: item.coin }
         })
+
+        let totalPayed30 = dataHistoric.reduce((totales, { amount, coin }) => {
+
+          let index = totales.findIndex(item => item.coin === coin)
+          if(index === -1 ){
+            totales.push({coin, amount: new BigNumber(amount)})
+          }else{
+            totales[index].amount = totales[index].amount.plus(amount);
+
+          }
+
+          return totales;
+        }, []);
+
+        console.log(totalPayed30)
+
+        totalPayed30 = totalPayed30.map(item => {
+          const cantidad = item.amount.dp(6).toNumber().toLocaleString("en-US");
+          return `${cantidad} ${item.coin}`;
+        })
+        console.log(totalPayed30)
+
 
         this.setState({
           dataHistoric,
-          totalPayed30: (totalPayed30.shiftedBy(-6).dp(3).toNumber()).toLocaleString('en-US') + " TRX"
+          totalPayed30: totalPayed30.join(" + ")
         })
 
         let ongoins = await fetch(url + "ongoingdeals", {
@@ -1668,3 +1693,6 @@ export default class ProviderPanel extends Component {
 
   }
 }
+
+
+export default withTranslation()(ProviderPanel);

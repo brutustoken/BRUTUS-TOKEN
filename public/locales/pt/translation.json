@@ -78,6 +78,7 @@
         "e precisa de pelo menos",
         ", alugure-os por",
         "realizar esta operação."
+
       ],
       "tfail": [
         "Falha na transação"
