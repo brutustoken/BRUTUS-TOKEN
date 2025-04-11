@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { withTranslation } from 'react-i18next';
+
 import utils from "../utils";
 
 
@@ -320,7 +322,7 @@ class nftCrowdFunding extends Component {
 let nextUpdate = 0
 let intervalId = null
 
-export default class nfts extends Component {
+class Galeria extends Component {
 	constructor(props) {
 		super(props);
 
@@ -471,3 +473,4 @@ export default class nfts extends Component {
 	}
 }
 
+export default withTranslation()(Galeria);

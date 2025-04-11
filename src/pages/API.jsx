@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { withTranslation } from 'react-i18next';
+
 import Cookies from 'universal-cookie';
 import utils from "../utils";
 
@@ -12,7 +14,7 @@ const BigNumber = require('bignumber.js');
 
 const cookies = new Cookies(null, { path: '/' });
 
-export default class ProviderPanel extends Component {
+class ApiPanel extends Component {
 
   constructor(props) {
     super(props);
@@ -66,8 +68,9 @@ export default class ProviderPanel extends Component {
 
 
   componentDidMount() {
-    document.title = "B.F | Provider Panel"
-    document.getElementById("tittle").innerText = this.props.i18n.t("Provider Panel")
+    const { t } = this.props;
+    document.title = "B.F | API Panel"
+    document.getElementById("tittle").innerText = t("API Panel")
 
     setTimeout(() => {
       this.estado()
@@ -1402,3 +1405,5 @@ export default class ProviderPanel extends Component {
 
   }
 }
+
+export default withTranslation()(ApiPanel)

@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { withTranslation } from 'react-i18next';
+
 import utils from "../utils";
 
 const BigNumber = require('bignumber.js');
@@ -21,7 +23,7 @@ const amountB = [
 
 let intervalId
 
-export default class EnergyRental extends Component {
+class EnergyRental extends Component {
 
   constructor(props) {
     super(props);
@@ -77,7 +79,9 @@ export default class EnergyRental extends Component {
 
   async componentDidMount() {
 
-    document.getElementById("tittle").innerText = this.props.i18n.t("ebot.tittle")
+    const { t } = this.props
+
+    document.getElementById("tittle").innerText = t("ebot.tittle")
 
 
     setTimeout(() => {
@@ -429,6 +433,8 @@ export default class EnergyRental extends Component {
 
   async calcularRecurso() {
 
+    let { t } = this.props
+
     this.calcularPrecios();
 
     let { recurso, montoMin, precio, duration } = this.state
@@ -441,8 +447,8 @@ export default class EnergyRental extends Component {
 
       if (parseInt(duration[0]) < 1 || parseInt(duration[0]) > 14) {
         this.setState({
-          titulo: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[0],
-          body: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[1]
+          titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
+          body: t("ebot.alert.eRange", { returnObjects: true })[1]
         })
 
         ok = false;
@@ -458,8 +464,8 @@ export default class EnergyRental extends Component {
 
       if (parseInt(duration[0]) !== 1) {
         this.setState({
-          titulo: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[0],
-          body: this.props.i18n.t("ebot.alert.eRange2"),
+          titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
+          body: t("ebot.alert.eRange2"),
           periodo: "1"
         })
 
@@ -476,8 +482,8 @@ export default class EnergyRental extends Component {
 
       if (parseInt(duration[0]) !== 5) {
         this.setState({
-          titulo: this.props.i18n.t("ebot.alert.eRange", { returnObjects: true })[0],
-          body: this.props.i18n.t("ebot.alert.eRange2"),
+          titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
+          body: t("ebot.alert.eRange2"),
           periodo: "5"
         })
 
@@ -521,6 +527,7 @@ export default class EnergyRental extends Component {
   }
 
   async preCompra() {
+    const { t } = this.props
 
     await this.recursos();
 
@@ -544,8 +551,8 @@ export default class EnergyRental extends Component {
 
       if (recurso === "energy") {
         this.setState({
-          titulo: <>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
-          body: <> <img src="/images/alerts/recarge_energy.jpeg" alt="Energy sold out" style={{ borderRadius: "15px", width: "100%" }}></img> <br></br><br></br>{this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1]}</>,
+          titulo: <>{t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
+          body: <> <img src="/images/alerts/recarge_energy.jpeg" alt="Energy sold out" style={{ borderRadius: "15px", width: "100%" }}></img> <br></br><br></br>{t("ebot.alert.soldOut", { returnObjects: true })[1]}</>,
         })
 
         window.$("#mensaje-ebot").modal("show");
@@ -557,8 +564,8 @@ export default class EnergyRental extends Component {
       bandOn = false;
       if (recurso !== "energy") {
         this.setState({
-          titulo: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[0],
-          body: this.props.i18n.t("ebot.alert.soldOut", { returnObjects: true })[1],
+          titulo: t("ebot.alert.soldOut", { returnObjects: true })[0],
+          body: t("ebot.alert.soldOut", { returnObjects: true })[1],
         })
 
         window.$("#mensaje-ebot").modal("show");
@@ -722,6 +729,7 @@ export default class EnergyRental extends Component {
   }
 
   render() {
+    const {t} = this.props
     let { unitEnergyPrice, amounts, recurso, av_energy, av_band } = this.state
 
     const amountButtons = amounts.map(amounts => <button key={"Amb-" + amounts.text} id="ra1" type="button" className="btn btn-primary"
@@ -756,7 +764,7 @@ export default class EnergyRental extends Component {
       <div className="row ">
 
         <div className="col-md-12 text-center">
-          <h1>{this.props.i18n.t("ebot.subTittle")}</h1>
+          <h1>{t("ebot.subTittle")}</h1>
         </div>
 
         <div className="col-lg-6 col-sm-12">
@@ -925,3 +933,5 @@ export default class EnergyRental extends Component {
     </>);
   }
 }
+
+export default withTranslation()(EnergyRental);

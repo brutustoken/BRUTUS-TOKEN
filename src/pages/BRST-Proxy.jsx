@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { withTranslation } from 'react-i18next';
 
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
@@ -6,7 +7,6 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import utils from "../utils";
 
-import { withTranslation } from 'react-i18next';
 
 const BigNumber = require('bignumber.js');
 BigNumber.config({ DECIMAL_PLACES: 6, ROUNDING_MODE: BigNumber.ROUND_HALF_DOWN });

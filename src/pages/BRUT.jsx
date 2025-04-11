@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { withTranslation } from 'react-i18next';
+
 import utils from "../utils";
 import Alert from "../components/Alert";
 
@@ -45,7 +47,7 @@ const options2 = [
 let nextUpdate = 0
 let intervalId = null
 
-export default class Home extends Component {
+class Brut extends Component {
   constructor(props) {
     super(props);
 
@@ -779,3 +781,5 @@ export default class Home extends Component {
     </>);
   }
 }
+
+export default withTranslation()(Brut);

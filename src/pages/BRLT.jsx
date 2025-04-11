@@ -1,4 +1,6 @@
 import React, { Component } from "react";
+import { withTranslation } from 'react-i18next';
+
 import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
 import utils from "../utils";
 
@@ -7,7 +9,7 @@ const BigNumber = require('bignumber.js');
 let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
 let intervalId = [];
 
-export default class nfts extends Component {
+class NFTs extends Component {
 
   constructor(props) {
     super(props);
@@ -752,3 +754,5 @@ export default class nfts extends Component {
     );
   }
 }
+
+export default withTranslation()(NFTs);
