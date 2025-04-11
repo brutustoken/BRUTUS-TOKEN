@@ -2,82 +2,82 @@
   "conect": "Conecte a Carteira",
   "gallery": "Galeria",
   "lottery": "Loteria",
-  "day_one": "Day",
-  "day_other": "Days",
+  "day_one": "Dia",
+  "day_other": "Dias",
   "loading": "Carregando",
   "claim": "Resgate",
-  "close": "Close",
-  "rentE": "Rent Energy",
-  "accept": "Accept",
-  "error": "Error",
-  "tokenChart": "{{token}} Chart",
-  "dollar": "dollar",
-  "price": "Price",
-  "circulating": "Circulating",
-  "endorse": "Endorsement",
-  "sell": "SELL",
-  "buy": "BUY",
-  "mya": "My Assets",
+  "close": "Fechar",
+  "rentE": "Aluguel de Energia",
+  "accept": "Aceitar",
+  "error": "Erro",
+  "tokenChart": "Gráfico {{token}}",
+  "dollar": "dólar",
+  "price": "Preço",
+  "circulating": "Circulando",
+  "endorse": "Aval",
+  "sell": "VENDER",
+  "buy": "COMPRAR",
+  "mya": "Meus Ativos",
   "token": "Token",
-  "amount": "Amount",
-  "showM": "Show more",
-  "earned": "Earned",
-  "calculating": "Calculating",
+  "amount": "Quantidade",
+  "showM": "Mostrar mais",
+  "earned": "Ganho",
+  "calculating": "Calculando",
   "preLoad": [
-    "Loading ",
-    "Please wait a few moments."
+    "Carregando... ",
+    "Por favor, aguarde um pouco."
   ],
   "brst": {
     "tittle": "Fazer Staking de TRX",
     "description": "BRST é um token na rede Tron, que permite aos seus detentores gerar retornos em TRX graças ao staking, aluguel de energia, mais 10% do que é gerado por todos os provedores de Brutus Energy Bot e juros compostos automáticos. Tudo isso faz os lucros crescerem exponencialmente, totalmente automatizados.",
     "sale": "Venta N° {{number}} | {{days}} Dias restantes | {{wallet}}",
     "price": "Preço por unidade: {{price}} TRX",
-    "aStaking": "Automated Staking",
+    "aStaking": "Staking Automatizado",
     "unStaking": "A uma ordem no processo de retirada (UnStaking) para os próximos {{days}} dias, uma vez que esse período tenha terminado, retorne e resgate os TRX correspondentes",
     "available": "Disponível em: ",
     "alert": {
       "energy": [
         "Aviso de Energia",
-        "This operation usually requires ",
-        " energy ",
-        ", and you have ",
-        " and need at least ",
-        ", rent them for ",
-        " to perform this operation.",
-        "Rent Energy"
+        "Esta operação geralmente requer ",
+        " energia ",
+        ", e você tem ",
+        " e precisa de pelo menos ",
+        ", alugure-os por ",
+        " realizar esta operação.",
+        "Aluguel de Energia"
       ],
       "renergy": [
-        "Confirm transaction ",
-        "Please confirm the transaction from your wallet"
+        "Confirmar transação",
+        "Por favor, confirme a transação da sua carteira"
       ],
       "renergy1": [
-        "Waiting for the blockchain ",
-        "We are waiting for the blockchain to process and confirm your transfer. This can take from 3 seconds to 1 minute"
+        "Aguardando blockchain ",
+        "Estamos esperando que o blockchain processe e confirme sua transferência. Isso pode levar de 3 segundos a 1 minuto"
       ],
       "renergy2": [
-        "we are verifying ",
-        "We are verifying that the amounts and the address to which the funds were sent are the correct address, please do not close or exit the website as this may affect this process."
+        "estamos verificando ",
+        "Estamos verificando que os valores e endereço para os quais os fundos foram enviados são o endereço correto, Por favor não feche ou saia do site, pois isso pode afetar este processo."
       ],
       "renergy3": [
-        "we are allocating your energy ",
-        "Please do not close or leave the page as this will cause an error in the energy allocation."
+        "estamos distribuindo sua energia ",
+        "Por favor, não feche ou saia da página, pois isso causará um erro na alocação de energia."
       ],
       "error": [
-        "Contact support",
-        "Support hash: {{hash}} | {{msg}}"
+        "Contactar o suporte",
+        "Hash de apoio: {{hash}} ├ {{msg}}"
       ],
       "errorInput": [
-        "Input Error",
-        "Please enter a valid amount"
+        "Erro de entrada",
+        "Por favor, digite uma quantidade válida"
       ],
       "energyNotice": [
-        "Energy Notice",
-        "This operation usually requires ",
-        "energy",
-        "and you have ",
-        "and need at least",
-        ", rent them for",
-        "to perform this operation."
+        "Aviso de Energia",
+        "Esta operação geralmente requer ",
+        "energia",
+        "e você tem ",
+        "e precisa de pelo menos",
+        ", alugure-os por",
+        "realizar esta operação."
       ],
       "tfail": [
         "Falha na transação"
@@ -151,11 +151,11 @@
     "alert": {
       "eTronlink": [
         "Tronlink Error",
-        "Se você tiver o TRONLINK instalado, por favor abra o aplicativo e conecte-se. Se não tiver, você deve baixar a extensão TRONLINK para seu navegador ou GLOBAL TRONLINK do seu celular."
+        "Se tiver o TRONLINK instalado, por favor abra o aplicativo e conecte-se. Se não tiver, deve baixar a extensão TRONLINK para o seu navegador ou GLOBAL TRONLINK do seu celular."
       ],
       "soldOut": [
         "Energia vendida",
-        "Pedimos desculpas por ter vendido toda a energia disponível, por favor volte mais tarde quando tivermos recuperado"
+        "Pedimos desculpas por vender toda a energia disponível, por favor volte mais tarde quando tivermos recuperado"
       ],
       "eRange": [
         "Erro Range",
