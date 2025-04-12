@@ -1190,11 +1190,11 @@ class ProviderPanel extends Component {
                             </div>
 
                             <div className="col-lg-6 col-md-12 mb-2">
-                              <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Coin: {coin} </button> {"  "} <i className="bi bi-question-circle-fill" title="Set the time you want to receive your daily payments" onClick={() => {
+                              <button type="button" className="btn btn-primary dropdown-toggle " style={{ width: "90%" }} data-bs-toggle="dropdown" id="menu1" >Coin: {coin} </button> {"  "} <i className="bi bi-question-circle-fill" title="Set the currency you want to receive your daily payments" onClick={() => {
 
                                 this.setState({
                                   ModalTitulo: "Info",
-                                  ModalBody: "Set the time you want to receive your daily payments"
+                                  ModalBody: "Set the currency you want to receive your daily payments"
                                 })
 
                                 window.$("#alert").modal("show");
