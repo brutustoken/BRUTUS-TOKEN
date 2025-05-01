@@ -7,7 +7,6 @@ import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
 import utils from "../utils";
 
-
 const BigNumber = require('bignumber.js');
 BigNumber.config({ DECIMAL_PLACES: 6, ROUNDING_MODE: BigNumber.ROUND_HALF_DOWN });
 
@@ -166,8 +165,6 @@ class Staking extends Component {
     this.compra = this.compra.bind(this);
 
     this.venta = this.venta.bind(this);
-
-    this.retiro = this.retiro.bind(this);
 
     this.estado = this.estado.bind(this);
     this.preClaim = this.preClaim.bind(this);
@@ -734,9 +731,7 @@ class Staking extends Component {
     }}>ADD</button><br></br>
       TRON_RR: {utils.normalizarNumero(await contrato.BRST_TRX_Proxy.TRON_RR().call())}
       <br></br>
-      <button className="btn btn-warning" onClick={() => this.retiro()}>SET RR</button>
-      <br></br>
-
+    
 
     </>)
 
@@ -786,7 +781,7 @@ class Staking extends Component {
 
   async preClaim(id) {
 
-    let { isOwner, userEnergy, energyOn } = this.state
+    let { userEnergy, energyOn } = this.state
     const { tronWeb, contrato, accountAddress,t } = this.props
     let eenergy = 0;
 
@@ -833,10 +828,6 @@ class Staking extends Component {
           <br ></br><br ></br>
           <button type="button" className="btn btn-success" onClick={async () => {
             if (await this.rentEnergy(requerido)) {
-
-              if (isOwner) {
-                await this.retiro(id)
-              }
 
               let inputs = [
                 //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
@@ -1238,6 +1229,10 @@ class Staking extends Component {
   }
 
   async rentEnergy(cantidad) {
+
+    if (!BigNumber.isBigNumber(cantidad)){
+      cantidad = new BigNumber(cantidad)
+    }
 
     cantidad = cantidad.dp(0).toNumber()
 
@@ -1826,41 +1821,6 @@ class Staking extends Component {
 
   };
 
-  async retiro(id) {
-
-    const { tronWeb, contrato, accountAddress } = this.props
-
-    let amount = prompt("amount to fast whitdrawl", "example 100 TRX")
-
-    amount = new BigNumber(amount).shiftedBy(6).toString(10)
-
-    let inputs = [
-      //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-      { type: 'uint256', value: amount }
-    ]
-
-    let funcion = "setTRON_RR(uint256)"
-    const options = {}
-    let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
-    let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-    transaction = await window.tronLink.tronWeb.trx.sign(transaction)
-      .catch((e) => {
-
-        this.setState({
-          ModalTitulo: "Error",
-          ModalBody: e.toString()
-        })
-
-        window.$("#mensaje-brst").modal("show");
-      })
-    transaction = await tronWeb.trx.sendRawTransaction(transaction)
-
-
-    console.log(transaction)
-
-    this.estado();
-
-  };
 
   async grafico(time, temporalidad, cantidad, selector) {
 
