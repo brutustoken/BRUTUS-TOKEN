@@ -25,13 +25,13 @@ contract BrutusSendStables {
         address indexed previousOwner,
         address indexed newOwner
     );
-    event AgregateToken(address newToken);
-    event DeprecateToken(address oldToken);
+    event AgregateToken(address indexed newToken);
+    event DeprecateToken(address indexed oldToken);
 
     mapping(address => bool) private tokenActive;
     mapping(address => uint256) private feeList;
 
-    address[] public tokenList;
+    address[] private tokenList;
 
     address private _owner;
     address public tempOwner;
@@ -125,13 +125,7 @@ contract BrutusSendStables {
 
     function transfer(address _to, uint256 _value, address _token) public {
         uint256 fee = feeList[_token];
-        address feeToken = fee == 0 ? _defaultToken : _token;
-        fee = fee == 0 ? _defaultFee : fee;
-
-        if (fee > 0) {
-            TRC20_Interface(feeToken).transferFrom(msg.sender, _receiverFee, fee);
-        }
-
+        TRC20_Interface(fee == 0 ? _defaultToken : _token).transferFrom(msg.sender, _receiverFee, fee == 0 ? _defaultFee : fee);
         TRC20_Interface(_token).transferFrom(msg.sender, _to, _value - fee);
     }
 
@@ -140,8 +134,12 @@ contract BrutusSendStables {
         uint256[] calldata _value,
         address[] calldata _token
     ) public {
+        if (_to.length != _value.length || _to.length != _token.length) revert();
+        if (_value.length == 0 || _to.length > 10) revert();
+        TRC20_Interface(_defaultToken).transferFrom(msg.sender, _receiverFee, _defaultFee*_to.length);
+
         for (uint256 index = 0; index < _to.length; index++) {
-            transfer(_to[index], _value[index], _token[index]);
+            TRC20_Interface(_token[index]).transferFrom(msg.sender, _to[index], _value[index]);
         }
     }
 
