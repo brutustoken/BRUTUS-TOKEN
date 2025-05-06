@@ -1,5 +1,5 @@
 pragma solidity >=0.8.0;
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BSL-1.1
 
 interface TRC20_Interface {
     function totalSupply() external view returns (uint256);
