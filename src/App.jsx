@@ -1,4 +1,5 @@
 import React, { Component } from "react";
+import { Helmet } from "react-helmet";
 
 import Cookies from 'universal-cookie';
 
@@ -350,9 +351,8 @@ class App extends Component {
       );
     } else {
 
-      let url = ruta
-
-      switch (url) {
+      
+      switch (ruta) {
 
         case "brut":
           Retorno = <Brut accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
@@ -389,6 +389,14 @@ class App extends Component {
     }
 
     return (<>
+      <Helmet>
+        <title>{ruta.length > 1 ? ruta.toUpperCase()+" | " : "" }Brutus.Finance</title>
+        <meta property="og:title" content={(ruta.length > 1 ? ruta.toUpperCase()+" | " : "" )+ "Brutus.Finance"} />
+        <meta property="og:description" content="Haz staking de trx y obten los mejores rendimientos del mercado" />
+        <meta property="og:image" content={"/images/og/brutus-"+ruta+".jpg"} />
+        <meta property="og:url" content={"/#/"+ruta} />
+      </Helmet>
+
       {Retorno}
       <Alert {...msj} />
       <button id="theme-switch" onClick={() => { setDarkTheme() }}>

@@ -185,4 +185,9 @@ function numberToStringCero(n, s = 6) {
   return new BigNumber(n).shiftedBy(s).dp(0).toString(10);
 }
 
-export default { ...constantes, keyQuery, getTronweb, delay, rentResource, normalizarNumero, numberToStringCero };
+const hola = () => {
+  "use server"
+  console.log("mundo")
+}
+
+export default { ...constantes, keyQuery, getTronweb, delay, rentResource, normalizarNumero, numberToStringCero, hola };

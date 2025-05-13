@@ -1,5 +1,4 @@
 import React, { Component } from "react";
-import { Helmet } from "react-helmet";
 import { withTranslation } from 'react-i18next';
 
 import * as am5 from "@amcharts/amcharts5";
@@ -2112,14 +2111,6 @@ class Staking extends Component {
     }
 
     return (<>
-
-      <Helmet>
-        <title>BRST | Brutus.Finance</title>
-        <meta property="og:title" content="BRST | Brutus.Finance" />
-        <meta property="og:description" content="Haz staking de trx y obten los mejores rendimientos del mercado" />
-        <meta property="og:image" content="/images/og/brutus-staking.jpg" />
-        <meta property="og:url" content="/#/brst" />
-      </Helmet>
 
       <div className="row">
         <div className="col-xl-12">
