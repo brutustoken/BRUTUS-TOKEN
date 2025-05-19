@@ -9,11 +9,73 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 import CsvDownloader from 'react-csv-downloader';
 import { withTranslation } from 'react-i18next';
 
+import FaqItem from "../components/FaqItems";
 
 const env = process.env
 
 var moment = require('moment-timezone');
 const BigNumber = require('bignumber.js');
+
+const faqs = [
+  {
+    question: "When will I receive my next sales order?",
+    answer: (
+      <>
+        <p>
+          The system is designed to be as equitable as possible among all providers, and all providers receive orders based on their available energy ratio. We cannot guarantee an exact time, but you have at your disposal tools to get an estimate.<br></br><br></br>
+          For example, the famous “orange coefficient” or “availability ratio” indicates what percentage of your total energy you have available for sale, and compares it to the average ratio of the entire pool of providers. The higher your ratio, the better positioned you are in the ranking to receive the next order. This depends a lot on the “maxdays” you have configured (at what term you want to sell), since, in general, there is usually much more demand at long terms than at short terms.<br></br><br></br>
+          You can check the ratios broken down by timeframe in the Telegram bot <strong>@BRUTUS_energy_bot</strong> with the command <code>/infopool</code>.
+        </p>
+      </>
+    )
+  },
+  {
+    question: "How is my % payout calculated?",
+    answer: (
+      <>
+        <p>
+          The payout is the payment you receive with respect to the total price of each sale order. Payout = price - Brutus commission. The % you receive depends on two factors: whether or not you vote Brutus as SR, and the term at which you sell your resources.<br></br><br></br>
+
+          If at least 95% of your votes are for Brutus, your % payout will be 80%, regardless of the timeframe at which you sell your resources.<br></br><br></br>
+
+          Otherwise (less than 95% of your votes are for Brutus), if your “maxdays” is at 1h, you will receive 67%, and if you sell at a higher term, you will receive 77%.<br></br><br></br>
+
+          A daily check is made at a random time of the votes made by your wallet, and based on that this percentage is determined. Therefore, if you change your maxdays or votes, you may not see a change in your payout until the check is made at a random time of the day.
+        </p>
+      </>
+    )
+  },
+  {
+    question: <>What is it and how is my <span role="img" aria-label="orange">🍊</span> coefficient calculated?</>,
+    answer: (
+      <>
+        <p>
+          The coefficient reflects your relative position in the ranking we use to distribute buy orders. It ranges from 0 to 1, is updated every few minutes and determines your priority: the higher, the more likely you are to receive an order soon.<br></br><br></br>
+
+          <b>This value is based on:</b><br></br>
+
+          <ul>
+            <li>· The percentage of your total energy you have available for sale.</li>
+            <li>· Your recent activity: how much energy you have sold in the last 24 hours through Brutus.</li>
+            <li>· If you are selling above your staked energy, the system corrects the coefficient to avoid disproportionate advantages (something common due to fast regeneration or underuse by buyers).</li>
+          </ul>
+          <br></br>
+
+
+          <b>In the panel you will see something like: <span role="img" aria-label="orange">🍊</span> 0.80 / 0.65 </b><br></br>
+          <ul>
+            <li>· First value: your current coefficient.</li>
+
+            <li>· Second value: the overall average of the providers pool.</li>
+          </ul>
+          Note that this average includes all active providers, without distinguishing time horizons. However, your actual position is defined according to the other providers that are in the same timeframe as you (1h, 3 days, etc.), and the demand is usually higher at longer timeframes.<br></br><br></br>
+
+          To see this information broken down by timeframe, you can send /infopool to the Telegram bot @BRUTUS_energy_bot.
+        </p>
+      </>
+    )
+  },
+];
 
 class ProviderPanel extends Component {
 
@@ -310,27 +372,27 @@ class ProviderPanel extends Component {
             console.log(e)
             return []
           })
-      
+
         dataHistoric = dataHistoric.map((item, index) => {
           item.amount = new BigNumber(item.amount)
-          if(item.amount_stable){
-            if(item.coin.toLowerCase() !== "trx"){
+          if (item.amount_stable) {
+            if (item.coin.toLowerCase() !== "trx") {
               item.amount = new BigNumber(item.amount_stable)
-              if(item.amount.toNumber() < 5_000_000 && item.amount.toNumber() > 0){
+              if (item.amount.toNumber() < 5_000_000 && item.amount.toNumber() > 0) {
                 item.amount = item.amount.shiftedBy(6)
               }
             }
-          }          
-          
+          }
+
           return { index, date: moment.utc(item.date * 1000).tz(this.state.tiempo).format("lll"), amount: item.amount.shiftedBy(-6).dp(6).toNumber(), coin: item.coin }
         })
 
         let totalPayed30 = dataHistoric.reduce((totales, { amount, coin }) => {
 
           let index = totales.findIndex(item => item.coin === coin)
-          if(index === -1 ){
-            totales.push({coin, amount: new BigNumber(amount)})
-          }else{
+          if (index === -1) {
+            totales.push({ coin, amount: new BigNumber(amount) })
+          } else {
             totales[index].amount = totales[index].amount.plus(amount);
 
           }
@@ -403,7 +465,7 @@ class ProviderPanel extends Component {
 
           item.confirm = moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")
           item.unfreeze = moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")
-          item.time = item.confirm+" -> "+item.unfreeze
+          item.time = item.confirm + " -> " + item.unfreeze
 
           return { index, ...item }
 
@@ -459,7 +521,7 @@ class ProviderPanel extends Component {
 
           item.confirm = moment.utc(item.confirm * 1000).tz(this.state.tiempo).format("lll")
           item.unfreeze = moment.utc(item.unfreeze * 1000).tz(this.state.tiempo).format("lll")
-          item.time = item.confirm+" -> "+item.unfreeze
+          item.time = item.confirm + " -> " + item.unfreeze
           return { index, ...item }
 
         });
@@ -1550,7 +1612,7 @@ class ProviderPanel extends Component {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="col-12">
                     <div className="card">
                       <div className="card-header">
@@ -1569,7 +1631,7 @@ class ProviderPanel extends Component {
                               </tr>
                             </thead>
                             <tbody>
-                              {this.state.noregist.map((item)=>{
+                              {this.state.noregist.map((item) => {
                                 let amount = item.sun;
                                 let receiverAddress = item.wallet;
                                 let resource = item.resource;
@@ -1584,31 +1646,31 @@ class ProviderPanel extends Component {
                                         </div>
                                         <div className="dropdown-menu dropdown-menu-end">
                                           <a className="dropdown-item text-info" href="https://tronscan.org/#/wallet/resources" target="_blank" rel="noopener noreferrer">View on TronScan</a>
-                      
+
                                           <button className="dropdown-item text-danger" onClick={async () => {
                                             let transaction = await this.props.tronWeb.transactionBuilder.undelegateResource(amount, receiverAddress, resource, ownerAddress);
                                             transaction = await window.tronWeb.trx.sign(transaction)
                                             transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
-                      
+
                                             this.setState({
                                               ModalTitulo: "Result: " + transaction.result,
                                               ModalBody: <a className="btn btn-primary" href={"https://tronscan.org/#/transaction/" + transaction.txid} target="_blank" rel="noopener noreferrer">see result in TronScan</a>
                                             })
-                      
+
                                             window.$("#alert").modal("show");
                                             this.estado();
-                      
+
                                           }}>Reclaim Resource</button>
                                         </div>
                                       </div>
                                     </td>
                                     <td>{item.resource} </td>
                                     <td>{(item.trx).toLocaleString('en-US')} </td>
-                      
+
                                     <td>{item.wallet}<br ></br>
                                       {item.expire}
                                     </td>
-                      
+
                                   </tr>
                                 )
                               })}
@@ -1623,13 +1685,29 @@ class ProviderPanel extends Component {
                   <div className="col-12">
                     <div className="card">
                       <div className="card-header">
+                        <h1 className="text-3xl font-bold mb-6">Frequently Asked Questions</h1>
+
+                      </div>
+                      <div className="card-body">
+
+                        {faqs.map((faq, index) => (
+                          <FaqItem key={index} question={faq.question} answer={faq.answer} />
+                        ))}
+
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="col-12">
+                    <div className="card">
+                      <div className="card-header">
                         <h4 className="card-title">Other Info</h4>
                       </div>
                       <div className="card-body">
                         <p>
-                        {"🔵"} Join the telegram providers <b><a href="https://t.me/+V-HHCgAevxA5NGQ0" target="_blank" rel="noopener noreferrer">channel</a></b> to keep tuned with the latest news! 
+                          {"🔵"} Join the telegram providers <b><a href="https://t.me/+V-HHCgAevxA5NGQ0" target="_blank" rel="noopener noreferrer">channel</a></b> to keep tuned with the latest news!
 
-                           </p>
+                        </p>
                       </div>
                     </div>
                   </div>
