@@ -1,4 +1,4 @@
-import React, {Component} from "react";
+import React, { Component } from "react";
 
 let inter = null
 
@@ -18,47 +18,47 @@ class Alert extends Component {
 
     async componentDidMount() {
 
-        inter = setInterval(()=>{
+        inter = setInterval(() => {
             this.mostrarMensaje()
         }, 1000)
 
     }
 
-    async componentWillUnmount(){
+    async componentWillUnmount() {
         clearInterval(inter)
     }
 
-    async mostrarMensaje(){
+    async mostrarMensaje() {
 
-        let {message} = this.state
+        let { message } = this.state
 
-        if(this.props.message){
-            if(message !== this.props.message){
+        if (this.props.message) {
+            if (message !== this.props.message) {
                 this.setState({
                     ...this.props,
                 })
                 window.$("#alert").modal("show");
             }
         }
-       
+
 
     }
 
 
-    render(){
+    render() {
 
-        let {title, message} = this.state
+        let { title, message } = this.state
 
         let verMensaje = <></>
-        if(message !== "") {
+        if (message !== "") {
             verMensaje = (<button type="button" className="btn btn-primary" onClick={() => {
                 window.$("#alert").modal("show");
             }}>See last Message</button>)
         }
 
-        return(<>
+        return (<>
             {verMensaje}
-    
+
             <div className="modal fade" id="alert">
                 <div className="modal-dialog" role="document">
                     <div className="modal-content">

@@ -1,5 +1,5 @@
 pragma solidity >=0.8.17;
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: BSL-1.1
 
 library SafeMath {
     function add(uint256 a, uint256 b) internal pure returns (uint256) {

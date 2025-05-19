@@ -1,7 +1,10 @@
 import React, { Component } from "react";
+import { Helmet } from "react-helmet";
+
 import Cookies from 'universal-cookie';
 
 import utils from "./utils/index.jsx";
+import SEO from "./components/SEO.jsx";
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapters';
 
 import abi_PROXY from "./assets/abi/Proxy";
@@ -13,29 +16,18 @@ import Alert from "./components/Alert.jsx";
 
 import Home from "./pages/Home.jsx";
 
-import Brut from "./components/BRUT.jsx";
-import Brst from "./components/BRST-Proxy.jsx";
-import Nft from "./components/BRGY.jsx";
-import LOTERIA from "./components/BRLT.jsx";
-import EBOT from "./components/EBOT.jsx";
-import PRO from "./components/PRO.jsx";
-import API from "./components/API.jsx";
+import Brut from "./pages/BRUT.jsx";
+import Brst from "./pages/BRST-Proxy.jsx";
+import Nft from "./pages/BRGY.jsx";
+import LOTERIA from "./pages/BRLT.jsx";
+import EBOT from "./pages/EBOT.jsx";
+import PRO from "./pages/PRO.jsx";
+import API from "./pages/API.jsx";
 
-import i18next from 'i18next';
-import lng from "./locales/langs.js"
+import { withTranslation } from 'react-i18next';
 
 const striptags = require('striptags');
 
-
-let lenguaje = navigator.language || navigator.userLanguage
-
-i18next.init({
-  fallbackLng: 'en',
-  lng: lenguaje, // if you're using a language detector, do not define the lng option
-  debug: false,
-  resources: lng
-
-});
 
 let lgSelector = "en";
 
@@ -145,14 +137,15 @@ class App extends Component {
 
 
   async selecionarIdioma() {
+    const { i18n } = this.props
     try {
       lgSelector = document.getElementById("selectLng").value
     } catch (error) {
       console.log(error)
     }
 
-    if (i18next.resolvedLanguage !== lgSelector) {
-      i18next.changeLanguage(lgSelector);
+    if (i18n.resolvedLanguage !== lgSelector) {
+      i18n.changeLanguage(lgSelector);
     }
 
   }
@@ -290,7 +283,7 @@ class App extends Component {
 
     if (contrato.BRST === null && utils.BRST !== "") {
       web3Contracts = await utils.getTronweb(accountAddress);
-      contrato.BRST = web3Contracts.contract(utils.TOKEN_ABI,utils.BRST);
+      contrato.BRST = web3Contracts.contract(utils.TOKEN_ABI, utils.BRST);
     }
 
     if (contrato.BRGY === null && utils.BRGY !== "") {
@@ -328,6 +321,7 @@ class App extends Component {
 
   render() {
 
+    const { i18n } = this.props
     let { tronlink, contrato, accountAddress, tronWeb, msj, ruta } = this.state
 
     let Retorno = <></>
@@ -344,9 +338,9 @@ class App extends Component {
               <div className="card">
                 <div className='row' style={{ 'padding': '3em', 'decoration': 'none' }} >
                   <div className='col-sm-8'>
-                    <h1>{i18next.t("preLoad", { returnObjects: true })[0]}{imgLoading}</h1>
+                    <h1>{i18n.t("preLoad", { returnObjects: true })[0]}{imgLoading}</h1>
                     <p>
-                      {i18next.t("preLoad", { returnObjects: true })[1]}
+                      {i18n.t("preLoad", { returnObjects: true })[1]}
                     </p>
                   </div>
                 </div>
@@ -357,39 +351,52 @@ class App extends Component {
       );
     } else {
 
-      let url = ruta
-
-      switch (url) {
+      
+      switch (ruta) {
 
         case "brut":
-          Retorno = <Brut accountAddress={accountAddress}  contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
+          Retorno = <Brut accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
           break;
         case "brst":
-          Retorno = <Brst accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
+          Retorno = <Brst accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />
           break;
         case "brgy":
-          Retorno = <Nft accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
+          Retorno = <Nft accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
           break;
         case "brlt":
-          Retorno = <LOTERIA accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
+          Retorno = <LOTERIA accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
           break;
         case "ebot":
-          Retorno = <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
+          Retorno = (<>
+            <SEO
+              title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
+              description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
+            />
+            <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
+          </>)
           break;
         case "pro":
-          Retorno = <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} i18n={i18next} />
+          Retorno = <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink}  />
           break;
         case "api":
-          Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} i18n={i18next} />
+          Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink}  />
           break;
         default:
-          Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} i18n={i18next} />
+          Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
           break;
       }
 
     }
 
     return (<>
+      <Helmet>
+        <title>{ruta.length > 1 ? ruta.toUpperCase()+" | " : "" }Brutus.Finance</title>
+        <meta property="og:title" content={(ruta.length > 1 ? ruta.toUpperCase()+" | " : "" )+ "Brutus.Finance"} />
+        <meta property="og:description" content="Haz staking de trx y obten los mejores rendimientos del mercado" />
+        <meta property="og:image" content={"/images/og/brutus-"+ruta+".jpg"} />
+        <meta property="og:url" content={"/#/"+ruta} />
+      </Helmet>
+
       {Retorno}
       <Alert {...msj} />
       <button id="theme-switch" onClick={() => { setDarkTheme() }}>
@@ -402,4 +409,4 @@ class App extends Component {
 
 }
 
-export default App;
+export default withTranslation()(App);

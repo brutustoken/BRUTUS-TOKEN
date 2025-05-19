@@ -112,7 +112,7 @@ async function getTronweb(wallet, red = 0) {
 
 }
 
-async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction, referral=false) {
+async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalidad, precio, signedTransaction, referral = false) {
 
   if (recurso === "bandwidth" || recurso === "band") {
     recurso = "band"
@@ -145,34 +145,28 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
     "id_api": env.REACT_APP_USER_ID,
     "token": env.REACT_APP_TOKEN,
 
-    "dApp":referral?1:0,
-    "referral": referral?referral:0,
+    "dApp": referral ? 1 : 0,
+    "referral": referral ? referral : 0,
     "dapp_identif": env.REACT_APP_IDENTF || 0
   }
 
   // Encrypt
   data = CryptoJS.AES.encrypt(JSON.stringify(data), env.REACT_APP_SECRET).toString();
 
-  let consulta = {}
+  let consulta = await fetch(constantes.BRUTUS_API + "rent/energy", {
+    method: "POST",
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ user: env.REACT_APP_USER_C, data })
+  }).then((r) => r.json())
+  .catch((error) => {
+    console.log(error)
+    return { result: false, hash: signedTransaction.txID, msg: "API-Error: " + error.toString() }
+  })
 
-  try {
 
-    consulta = await fetch(constantes.BRUTUS_API + "rent/energy", {
-      method: "POST",
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ user: env.REACT_APP_USER_C, data })
-    }).then((r) => r.json())
-    
-  } catch (error) {
-
-    console.log(error.toString());
-    consulta = { result: false, hash: signedTransaction.txID, msg: "API-Error: "+ error.toString() }
-    
-  }
-   
   return consulta
 
 }
@@ -185,4 +179,9 @@ function numberToStringCero(n, s = 6) {
   return new BigNumber(n).shiftedBy(s).dp(0).toString(10);
 }
 
-export default { ...constantes, keyQuery, getTronweb, delay, rentResource, normalizarNumero, numberToStringCero };
+const hola = () => {
+  "use server"
+  console.log("mundo")
+}
+
+export default { ...constantes, keyQuery, getTronweb, delay, rentResource, normalizarNumero, numberToStringCero, hola };
