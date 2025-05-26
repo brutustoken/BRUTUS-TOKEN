@@ -87,8 +87,8 @@ async function keyQuery() {
 
 }
 
-function getRed(index) {
-  index = parseInt(index)
+function getRed(index = 0) {
+
   let tokenList = env.REACT_APP_LIST_TRONQL;
   tokenList = tokenList.split(",")
 
