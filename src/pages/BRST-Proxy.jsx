@@ -532,7 +532,8 @@ class Staking extends Component {
           let dias = [1, 15, 30, 90, 180, 360]
 
           for (let index = 0; index < dias.length; index++) {
-            earnings.push({
+       
+              earnings.push({
               dias: dias[index],
               trx: (misBRST * consultaData[0].value) - (misBRST * consultaData[dias[index]].value),
               diario: ((misBRST * consultaData[0].value) - (misBRST * consultaData[dias[index]].value)) / dias[index]
@@ -545,7 +546,10 @@ class Staking extends Component {
           })
         }
       })
-      .catch((e) => { return [] })
+      .catch((e) => {
+        console.error(e)
+         return [] 
+      })
 
     contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call()
       .then((minCompra) => {
@@ -557,17 +561,17 @@ class Staking extends Component {
         this.setState({ depositoBRUT: utils.normalizarNumero(depositoBRUT) })
       })
 
-    fetch("https://apilist.tronscanapi.com/api/token/price?token=usdt")
+    fetch("https://brutusservices.com/api/v1/precio/usdt")
       .then((r) => r.json())
       .then((r) => {
-        this.setState({ precioUSDT: new BigNumber(1 / r.price_in_trx) })
+        this.setState({ precioUSDT: new BigNumber(r.Data.oneTron) })
       })
       .catch((e) => { console.log(e) })
 
-    fetch("https://apilist.tronscanapi.com/api/token/price?token=usdd")
+    fetch("https://brutusservices.com/api/v1/precio/usdd")
       .then((r) => r.json())
       .then((r) => {
-        this.setState({ precioUSDD: new BigNumber(1 / r.price_in_trx) })
+        this.setState({ precioUSDD: new BigNumber(r.Data.oneTron) })
       })
       .catch((e) => { console.log(e) })
 
