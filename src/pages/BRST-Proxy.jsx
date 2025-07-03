@@ -756,13 +756,13 @@ class Staking extends Component {
     let energyOn = false;
     let energi = 0;
 
-    energyOn = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL)
+    energyOn = await fetch( process.env.REACT_APP_BOT_URL)
       .then((r) => r.json())
       .then((r) => r.available)
       .catch(() => false)
 
     if (energyOn) {
-      let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "available")
+      let consulta = await fetch( process.env.REACT_APP_BOT_URL + "available")
         .then((r) => r.json())
 
       if (consulta.av_energy.length > 0) {
@@ -814,7 +814,7 @@ class Staking extends Component {
       }
 
       let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      let consultaPrecio = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+      let consultaPrecio = await fetch( process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -1210,7 +1210,7 @@ class Staking extends Component {
 
     if (cantidad.toNumber() === 0) return new BigNumber(0);
 
-    let consulta = await fetch("https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices", {
+    let consulta = await fetch( process.env.REACT_APP_BOT_URL + "prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
