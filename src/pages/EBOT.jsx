@@ -240,7 +240,7 @@ class EnergyRental extends Component {
     let { energyOn, bandOn } = this.state
 
     let consulta = false
-    const URL = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL
+    const URL = process.env.REACT_APP_BOT_URL
 
     consulta = await fetch(URL)
       .then((r) => r.json())
@@ -345,7 +345,7 @@ class EnergyRental extends Component {
 
     let { precios, duration, recurso } = this.state
 
-    let url = "https://cors.brutusservices.com/" + process.env.REACT_APP_BOT_URL + "prices/all"
+    let url = process.env.REACT_APP_BOT_URL + "prices/all"
 
     let consulta = await fetch(url, {
       method: "GET",
