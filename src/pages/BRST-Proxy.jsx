@@ -532,8 +532,8 @@ class Staking extends Component {
           let dias = [1, 15, 30, 90, 180, 360]
 
           for (let index = 0; index < dias.length; index++) {
-       
-              earnings.push({
+
+            earnings.push({
               dias: dias[index],
               trx: (misBRST * consultaData[0].value) - (misBRST * consultaData[dias[index]].value),
               diario: ((misBRST * consultaData[0].value) - (misBRST * consultaData[dias[index]].value)) / dias[index]
@@ -548,7 +548,7 @@ class Staking extends Component {
       })
       .catch((e) => {
         console.error(e)
-         return [] 
+        return []
       })
 
     contrato.BRST_TRX_Proxy.MIN_DEPOSIT().call()
@@ -735,7 +735,7 @@ class Staking extends Component {
     }}>ADD</button><br></br>
       TRON_RR: {utils.normalizarNumero(await contrato.BRST_TRX_Proxy.TRON_RR().call())}
       <br></br>
-    
+
 
     </>)
 
@@ -786,7 +786,7 @@ class Staking extends Component {
   async preClaim(id) {
 
     let { userEnergy, energyOn } = this.state
-    const { tronWeb, contrato, accountAddress,t } = this.props
+    const { tronWeb, contrato, accountAddress, t } = this.props
     let eenergy = 0;
 
     let inputs = [
@@ -1234,7 +1234,7 @@ class Staking extends Component {
 
   async rentEnergy(cantidad) {
 
-    if (!BigNumber.isBigNumber(cantidad)){
+    if (!BigNumber.isBigNumber(cantidad)) {
       cantidad = new BigNumber(cantidad)
     }
 
@@ -2470,7 +2470,7 @@ class Staking extends Component {
         <div className="col-lg-12">
           <div className="card">
             <div className="card-header">
-              <h4 className="card-title">{t("brst.estimate")} <br></br> APY {(crecimientoPorcentual * 360).toFixed(3)} %</h4><br></br>
+              <h4 className="card-title">{t("brst.estimate")} <br></br> APR {(crecimientoPorcentual * 360).toFixed(3)} %</h4><br></br>
 
               <h6 className="card-subtitle" style={{ cursor: "pointer" }} onClick={() => { document.getElementById("hold").value = this.state.balanceBRST; this.handleChangeCalc({ target: { value: this.state.balanceBRST } }) }}>
                 {t("brst.mystaking")}{this.state.misBRST} BRST = {(this.state.misBRST * this.state.precioBrst).toFixed(3)} TRX
