@@ -1228,7 +1228,7 @@ class ProviderPanel extends Component {
                               <h2 className="heading">{estatus} </h2>
                             </div>
                             <div className="col-lg-4 col-sm-12 mb-2">
-                              <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy.dp(3).toString(10)} /  {this.state.ratioEnergyPool.dp(3).toString(10)} </button></h2>
+                              <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy.dp(3).toString(10)} { this.state.ratioEnergyPool.toNumber() > 0 && " / "+this.state.ratioEnergyPool.dp(3).toString(10)} </button></h2>
                             </div>
                             <div className="col-lg-4 col-sm-12 mb-2">
                               <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
