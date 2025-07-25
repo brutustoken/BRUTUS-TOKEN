@@ -21,7 +21,7 @@ class NFTs extends Component {
       precioBRUT: 0,
       mc: 0,
       mb: 0,
-      totalNFT: "Loading...",
+      totalNFT: 1,
       premio: "Loading...",
       LastWiner: "Loading...",
       proximoSorteo: "Loading...",
@@ -29,7 +29,7 @@ class NFTs extends Component {
       modalBody: "",
       contarSegundos: 10e25,
       restanteSegundos: 10e25,
-      porcentaje: 100,
+      porcentaje: 0,
 
       comprarBRLT: 1,
       precioUnidad: 100,
@@ -81,7 +81,7 @@ class NFTs extends Component {
 
       this.setState({
         restanteSegundos: restanteSegundos,
-        porcentaje: 100 - (restanteSegundos / 1296000 * 100)
+        porcentaje: (restanteSegundos / 1296000 * 100)
       })
 
     }, 1 * 1000))
@@ -171,7 +171,9 @@ class NFTs extends Component {
 
   async estado() {
 
-    if (!this.props.contrato.ready) return;
+    const {contrato = null, accountAddress} = this.props
+
+    if (!contrato || !contrato.ready) return;
 
     //await this.props.contrato.loteria.inicializar().send();
 
@@ -196,12 +198,12 @@ class NFTs extends Component {
 
 
     let cantidad = 0
-    if (this.props.accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
-      cantidad = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()))
+    if (accountAddress !== "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
+      cantidad = parseInt((await contrato.BRLT.balanceOf(this.props.accountAddress).call()))
     }
-    let totalNFT = parseInt((await this.props.contrato.BRLT.totalSupply().call()))
-    let premio = parseInt((await this.props.contrato.loteria.premio().call())[0]) / 10 ** 6
-    let LastWiner = parseInt(await this.props.contrato.loteria.lastWiner().call())
+    let totalNFT = parseInt((await contrato.BRLT.totalSupply().call()))
+    let premio = parseInt((await contrato.loteria.premio().call())[0]) / 10 ** 6
+    let LastWiner = parseInt(await contrato.loteria.lastWiner().call())
 
     this.setState({
       totalNFT,
@@ -230,7 +232,7 @@ class NFTs extends Component {
 
     this.setState({ onSale })
 
-    let proximoSorteo = parseInt(await this.props.contrato.loteria.proximaRonda().call())
+    let proximoSorteo = parseInt(await contrato.loteria.proximaRonda().call())
     this.setState({ contarSegundos: proximoSorteo })
     let prosort = proximoSorteo;
     proximoSorteo = new Date(proximoSorteo * 1000)
@@ -250,7 +252,7 @@ class NFTs extends Component {
     });
 
 
-    let myTikets = parseInt((await this.props.contrato.BRLT.balanceOf(this.props.accountAddress).call()))
+    let myTikets = parseInt((await contrato.BRLT.balanceOf(accountAddress).call()))
 
     /*
     let inputs = [
@@ -275,16 +277,16 @@ class NFTs extends Component {
 
     for (let index = 0; index < myTikets; index++) {
 
-      let globalId = parseInt((await this.props.contrato.BRLT.tokenOfOwnerByIndex(this.props.accountAddress, index).call()))
+      let globalId = parseInt((await contrato.BRLT.tokenOfOwnerByIndex(accountAddress, index).call()))
 
-      let URI = await this.props.contrato.BRLT.tokenURI(globalId).call()
+      let URI = await contrato.BRLT.tokenURI(globalId).call()
       let metadata = JSON.parse(await (await fetch(utils.proxy + URI)).text());
 
       //console.log(metadata)
 
       let button = <></>
 
-      let value = new BigNumber(parseInt(await this.props.contrato.loteria.valueNFT(globalId).call())).shiftedBy(-6).dp(2).toString(10)
+      let value = new BigNumber(parseInt(await contrato.loteria.valueNFT(globalId).call())).shiftedBy(-6).dp(2).toString(10)
 
       if (value > 0) {
         button = (<div className="new-arrival-content text-center mt-3">
@@ -335,23 +337,26 @@ class NFTs extends Component {
 
   async compra() {
 
+    const {tronWeb,accountAddress, contrato} = this.props
+    const {comprarBRLT,total} = this.state
+
 
     let feelimit = 200 * 10 ** 6;
 
     // comprobar si tiene 100 trx para hacer la compra
 
-    if (this.state.comprarBRLT > 1) feelimit = 1000 * 10 ** 6;
-    if (this.state.comprarBRLT > 20) feelimit = 2000 * 10 ** 6;
+    if (comprarBRLT > 1) feelimit = 1000 * 10 ** 6;
+    if (comprarBRLT > 20) feelimit = 2000 * 10 ** 6;
 
     let inputs = [
-      { type: 'address', value: this.props.tronWeb.address.toHex(this.props.accountAddress) },
-      { type: 'uint256', value: this.state.comprarBRLT }
+      { type: 'address', value: tronWeb.address.toHex(accountAddress) },
+      { type: 'uint256', value: comprarBRLT }
     ]
 
     let funcion = "buyLoteria(address,uint256)"
-    const options = { callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10), feelimit: feelimit }
-    let trigger = await this.props.tronWeb.transactionBuilder.triggerSmartContract(this.props.tronWeb.address.toHex(this.props.contrato.loteria.address), funcion, options, inputs, this.props.tronWeb.address.toHex(this.props.accountAddress))
-    let transaction = await this.props.tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+    const options = { callValue: new BigNumber(total).shiftedBy(6).dp(0).toString(10), feelimit: feelimit }
+    let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.loteria.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+    let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
     transaction = await window.tronLink.tronWeb.trx.sign(transaction)
       .catch((e) => {
 
@@ -367,7 +372,7 @@ class NFTs extends Component {
       })
 
     if (transaction) {
-      transaction = await this.props.tronWeb.trx.sendRawTransaction(transaction)
+      transaction = await tronWeb.trx.sendRawTransaction(transaction)
         .then(() => {
           this.setState({
             modalTitulo: "Purchased lottery ticket",
@@ -388,40 +393,21 @@ class NFTs extends Component {
         })
     }
 
-    //await this.props.contrato.BRST_TRX_Proxy.esperaRetiro(amount).send();
-
-    /*
-        this.props.contrato.loteria.buyLoteria(this.props.accountAddress, this.state.comprarBRLT).send({ callValue: new BigNumber(this.state.total).shiftedBy(6).dp(0).toString(10), feeLimit: feelimit })
-          .then(() => {
-            this.setState({
-              modalTitulo: "Purchased lottery ticket",
-              modalBody: "Thank you for collaborating with the activation of the giveaway"
-            })
-            window.$("#alerta").modal("show");
-            this.estado();
-    
-          })
-          .catch(() => {
-            this.setState({
-              modalTitulo: "Failed transaction",
-              modalBody: "Please try again later remember to check that you have enough resources"
-            })
-            window.$("#alerta").modal("show");
-          })
-    */
-
     this.estado();
   }
 
   async sorteo() {
 
+    const {contrato} = this.props
+    const {prosort} = this.state
+
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
-    let premio = parseInt(await this.props.contrato.loteria._premio().call())
+    let premio = parseInt(await contrato.loteria._premio().call())
 
-    let salida = parseInt(await this.props.contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call())
+    let salida = parseInt(await contrato.BRST_TRX_Proxy.TRON_PAY_BALANCE_WHITE().call())
 
-    if (Date.now() >= (this.state.prosort * 1000) && salida >= premio) {
-      this.props.contrato.loteria.sorteo().send()//.send({shouldPollResponse:true})
+    if (Date.now() >= (prosort * 1000) && salida >= premio) {
+      contrato.loteria.sorteo().send()//.send({shouldPollResponse:true})
         .then(async (r) => {
           console.log(r)
           await this.estado()
@@ -529,6 +515,8 @@ class NFTs extends Component {
 
   render() {
 
+    const {porcentaje,onSale, days, hours, minutes, seconds, proximoSorteo, premio, totalNFT, LastWiner, tikets} = this.state
+
     return (
       <>
 
@@ -548,7 +536,7 @@ class NFTs extends Component {
                   <div className="col-md-6">
                     <div className="text-center row align-items-center justify-content-center">
 
-                      {this.state.onSale}
+                      {onSale}
 
                     </div>
                   </div>
@@ -559,15 +547,17 @@ class NFTs extends Component {
                           <div className="card-body">
                             <div className="d-flex align-items-center justify-content-between">
                               <div className="me-3">
-                                <h2 className=" count-num mb-0">Next round: {this.state.days} {this.state.hours}:{this.state.minutes}:{this.state.seconds}</h2>
+                                <h2 className=" count-num mb-0">Next round: {days} {hours}:{minutes}:{seconds}</h2>
                               </div>
                               <div id="ticketSold"></div>
                             </div>
-                            <div className="progress mb-2" style={{ "height": "10px" }}>
-                              <div className="progress-bar bg-warning progress-animated" style={{ "width": this.state.porcentaje + "%", "height": "10px" }} role="progressbar">
+                            <div className="progress mb-2" style={{ "height": "10px","box-shadow":" 0 0 8px rgba(128, 0, 128, 0.5)" }}>
+                              <div className="progress-bar progress-animated" style={{ "width": porcentaje + "%", "height": "10px",  "background": "rgba(128, 0, 128, 0.8)",
+  "animation": "stripeMove 1s linear infinite",
+  "background-image": "repeating-linear-gradient(45deg,rgba(255, 255, 255, 0.1),rgba(255, 255, 255, 0.1) 10px,rgba(255, 255, 255, 0.2) 10px,rgba(255, 255, 255, 0.2) 20px)" }} role="progressbar">
                               </div>
                             </div>
-                            <p>{this.state.proximoSorteo}</p>
+                            <p>{proximoSorteo}</p>
                           </div>
                         </div>
                       </div>
@@ -577,7 +567,7 @@ class NFTs extends Component {
                             <div className="d-flex align-items-center justify-content-between">
                               <h4 className="fs-18 font-w400">Award</h4>
                               <div className="d-flex align-items-center">
-                                <h2 className="count-num">{this.state.premio} TRX</h2>
+                                <h2 className="count-num">{premio} TRX</h2>
                                 <span className="fs-16 font-w500 text-success ps-2"><i className="bi bi-caret-up-fill pe-2"></i></span>
                               </div>
                             </div>
@@ -594,7 +584,7 @@ class NFTs extends Component {
 
                               <h4 className="fs-18 font-w400">NFT Sold</h4>
                               <div className="d-flex align-items-center">
-                                <h2 className="count-num">{this.state.totalNFT}</h2>
+                                <h2 className="count-num">{totalNFT-1}</h2>
                               </div>
                             </div>
                             <div id="totalInvoices"></div>
@@ -605,12 +595,12 @@ class NFTs extends Component {
                         <div className="card overflow-hidden">
                           <div className="card-body py-4 pt-4">
                             <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
-                              window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + this.state.LastWiner, '_blank')
+                              window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + LastWiner, '_blank')
                             }}>
 
                               <h4 className="fs-18 font-w400">Last Winner</h4>
                               <div className="d-flex align-items-center">
-                                <h2 className="count-num" >#{this.state.LastWiner}</h2>
+                                <h2 className="count-num" >#{LastWiner}</h2>
                               </div>
 
                             </div>
@@ -642,7 +632,7 @@ class NFTs extends Component {
                     </p>
 
                     <div className="row">
-                      {this.state.tikets}
+                      {tikets}
 
                     </div>
 
