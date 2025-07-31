@@ -2,7 +2,7 @@ import { TronWeb } from 'tronweb';
 
 const abi_TOKEN = require("../assets/abi/TRC20-USDT.json")
 const abi_SUNSWAP = require("../assets/abi/SunswapV3.json")
-
+const abi_BRST_USDT = require("../assets/abi/Brst-Usdt.json")
 
 const BigNumber = require('bignumber.js');
 
@@ -20,7 +20,7 @@ constantes.market_brut = constantes.BRUTUS_API + "consulta/marketcap/brut"; //AP
 
 constantes.RED = "https://iujetrtxbxoskh9l1cidv7clngnjnm.mainnet.tron.tronql.com/"
 
-constantes.SC = "TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq";//contrato BRUT/USDT
+constantes.SC = "TMGnBtzQufLp4GvCMBqFQGcV6nsXFNrWcs";//contrato BRUT/USDT
 constantes.SC2 = "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6";//contrato N°2 POOL Staking  BRST/TRX
 constantes.ProxySC2 = "TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55";// POOL Staking  BRST/TRX Proxy
 constantes.ProxySC3 = "TKSpw8UXhJYL2DGdBNPZjBfw3iRrVFAxBr";// Pool brst/trx retiradas rapidas
@@ -38,6 +38,8 @@ constantes.TOKEN_ABI = abi_TOKEN;
 
 constantes.SUNSWAPV3 = "TXF1xDbVGdxFGbovmmmXvBGu8ZiE3Lq4mR";
 constantes.SUNSWAPV3_ABI = abi_SUNSWAP;
+
+constantes.ABI_SC = abi_BRST_USDT;
 
 if (constantes.testnet) {
 

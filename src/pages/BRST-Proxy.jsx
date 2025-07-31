@@ -1196,9 +1196,7 @@ class Staking extends Component {
 
     }
 
-
     console.log("send ", energyRequired.toString(10))
-
 
     return energyRequired
 

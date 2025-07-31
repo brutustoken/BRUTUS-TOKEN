@@ -256,8 +256,7 @@ class App extends Component {
     }
 
     if (contrato.BRUT_USDT === null && utils.SC !== "") {
-      web3Contracts = await utils.getTronweb(accountAddress, 1);
-      contrato.BRUT_USDT = await web3Contracts.contract().at(utils.SC);
+      contrato.BRUT_USDT = web3Contracts.contract(utils.ABI_SC, utils.SC);
     }
 
     if (contrato.BRST_TRX === null && utils.SC2 !== "") {
