@@ -49,10 +49,10 @@ contract Proxy {
     // 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103
     bytes32 private constant ADMIN_SLOT =
         bytes32(uint(keccak256("eip1967.proxy.admin")) - 1);
-
+    // 0x205b3edc4de2a64c9dc1811579a23c1f302aa73f217deba09f37ed3dc9d20bcb
     bytes32 private constant SWAP_SLOT =
         bytes32(uint(keccak256("eip1967.proxy.swap")) - 1);
-
+    // 0xc9ebe7e6dbb775e5d17054a9fa85e9b9f812e8865228422ad7a3a7673a2d2f3b
     bytes32 private constant VERSION_IMPLEMENTATION_SLOT =
         bytes32(uint(keccak256("eip1967.proxy.version")) - 1);
 

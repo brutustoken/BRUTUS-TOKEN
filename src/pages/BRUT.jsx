@@ -212,7 +212,7 @@ class Brut extends Component {
     balanceUSDT = utils.normalizarNumero(balanceUSDT)
 
     if (aprovadoUSDT >= balanceUSDT) {
-      aprovadoUSDT = "Buy ";
+      aprovadoUSDT = "Buy BRUT";
     } else {
       aprovadoUSDT = "Approve Purchases";
       this.setState({
@@ -228,7 +228,7 @@ class Brut extends Component {
     balanceBRUT = utils.normalizarNumero(balanceBRUT);
 
     if (aprovadoBRUT >= balanceBRUT) {
-      aprovadoBRUT = "Sell ";
+      aprovadoBRUT = "Sell BRUT";
     } else {
       aprovadoBRUT = "Approve Sales";
       this.setState({
@@ -640,6 +640,8 @@ class Brut extends Component {
 
   render() {
 
+    const {contrato} = this.props
+
     let { minCompra, minventa, msj, totalCirculando, precioBRUT, cambio24h, enBrutus } = this.state;
 
     minCompra = "Min. " + minCompra + " USDT";
@@ -821,9 +823,9 @@ class Brut extends Component {
             </div>
             <div className="card-body">
               <p>
-                <b>Token:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU/code"}>TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU</a>
+                <b>Token:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+contrato.BRUT.address+"/code"}>{contrato.BRUT.address}</a>
                 <br ></br>
-                <b>swap:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq/code"}>TBRVNF2YCJYGREKuPKaP7jYYP9R1jvVQeq</a>
+                <b>swap:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+contrato.BRUT_USDT.address+"/code"}>{contrato.BRUT_USDT.address}</a>
               </p>
             </div>
             <div>

@@ -74,6 +74,8 @@ contract StorageV1 {
 
     bool internal iniciado = true;
 
+    address internal updater;
+
 }
 
 contract SimpleSwapV4 is StorageV1{
@@ -87,6 +89,7 @@ contract SimpleSwapV4 is StorageV1{
     function inicializar(address _token_1, address _token_2) public {
         onlyOwner();
         require(!iniciado);
+        updater = msg.sender;
         iniciado = true;
         Token_1 = _token_1;
         Token_2 = _token_2;
@@ -123,7 +126,13 @@ contract SimpleSwapV4 is StorageV1{
     }
 
     function ChangeRate(uint256 _rate) public {
+        require(msg.sender == updater || msg.sender == owner(), "Not authorized");
         rate = _rate;
+    }
+
+    function updaterRate(address _updater) public{
+        onlyOwner();
+        updater = _updater;
     }
 
     function  buy_token(uint256 _value_t1,address _to) public {
