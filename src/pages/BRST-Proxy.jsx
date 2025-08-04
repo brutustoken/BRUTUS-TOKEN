@@ -1196,9 +1196,7 @@ class Staking extends Component {
 
     }
 
-
     console.log("send ", energyRequired.toString(10))
-
 
     return energyRequired
 
@@ -2544,6 +2542,8 @@ class Staking extends Component {
             </div>
             <div className="card-body">
               <p>
+                <b>Token:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.BRST + "/code"}>{utils.BRST}</a>
+                <br ></br>
                 <b>Regular withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC2 + "/code"}>{utils.ProxySC2}</a>
                 <br ></br>
                 <b>Fast withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC3 + "/code"}>{utils.ProxySC3}</a>

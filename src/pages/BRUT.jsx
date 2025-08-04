@@ -53,8 +53,8 @@ class Brut extends Component {
 
     this.state = {
 
-      minCompra: 10,
-      minventa: 1,
+      minCompra: 1,
+      minventa: 0.1,
       deposito: "Loading...",
       wallet: "Loading...",
       valueBRUT: "",
@@ -89,6 +89,8 @@ class Brut extends Component {
     this.handleChangeBRUT = this.handleChangeBRUT.bind(this);
     this.handleChangeUSDT = this.handleChangeUSDT.bind(this);
     this.consultarPrecio = this.consultarPrecio.bind(this);
+
+    this.ajustarRate = this.ajustarRate.bind(this);
 
   }
 
@@ -129,30 +131,32 @@ class Brut extends Component {
   }
 
   async handleChangeBRUT(event) {
+    let price = event.target.value 
     this.consultarPrecio();
-    await this.setState({ valueBRUT: event.target.value });
-
-    this.setState({ valueUSDT: parseFloat((this.state.valueBRUT * this.state.precioBRUT).toPrecision(8)) });
+    this.setState({ 
+      valueBRUT: price,
+      valueUSDT: parseFloat((price * this.state.precioBRUT).toPrecision(8)) 
+    });
 
   }
 
   async handleChangeUSDT(event) {
+    let price = event.target.value
     this.consultarPrecio();
-
-    await this.setState({ valueUSDT: event.target.value });
-
-    this.setState({ valueBRUT: parseFloat((this.state.valueUSDT / this.state.precioBRUT).toPrecision(8)) });
-
+    this.setState({ 
+      valueUSDT: price,
+      valueBRUT: parseFloat((price / this.state.precioBRUT).toPrecision(8))
+    });
 
   }
 
   async consultarPrecio() {
 
-    var proxyUrl = utils.proxy;
-    var apiUrl = utils.PRICE;
+    let proxyUrl = utils.proxy;
+    let apiUrl = utils.PRICE;
 
-    var response;
-    var cambio = 0;
+    let response;
+    let cambio = 0;
 
     let precio;
     try {
@@ -164,9 +168,7 @@ class Brut extends Component {
       console.log(err);
       precio = this.state.precioBRUT;
       cambio = this.state.cambio24h
-
     }
-
 
     let market = 0;
     let tokens = 0;
@@ -198,7 +200,7 @@ class Brut extends Component {
 
   async estado() {
 
-    let { accountAddress, contrato } = this.props;
+    const { accountAddress, contrato } = this.props;
 
     if (!contrato.ready) return;
 
@@ -210,7 +212,7 @@ class Brut extends Component {
     balanceUSDT = utils.normalizarNumero(balanceUSDT)
 
     if (aprovadoUSDT >= balanceUSDT) {
-      aprovadoUSDT = "Buy ";
+      aprovadoUSDT = "Buy BRUT";
     } else {
       aprovadoUSDT = "Approve Purchases";
       this.setState({
@@ -226,7 +228,7 @@ class Brut extends Component {
     balanceBRUT = utils.normalizarNumero(balanceBRUT);
 
     if (aprovadoBRUT >= balanceBRUT) {
-      aprovadoBRUT = "Sell ";
+      aprovadoBRUT = "Sell BRUT";
     } else {
       aprovadoBRUT = "Approve Sales";
       this.setState({
@@ -245,6 +247,41 @@ class Brut extends Component {
       wallet: accountAddress,
       totalCirculando: supplyBRUT
     });
+
+  }
+
+  async ajustarRate(){
+    const { contrato, accountAddress, tronWeb } = this.props;
+
+    let rate = utils.normalizarNumero(await contrato.BRUT_USDT.RATE().call())
+
+    alert("rate is:"+rate)
+
+    if(false){
+
+     let inputs = [
+          //{ type: 'address', value: AddressContract },
+          { type: 'uint256', value: utils.numberToStringCero(14.71) }
+        ]
+
+        let funcion = "ChangeRate(uint256)"
+        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRUT_USDT.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+          .catch((e) => {
+
+            this.setState({ msj: { title: "Error", message: e.toString() } })
+            return false;
+          })
+        if (!transaction) return;
+        await tronWeb.trx.sendRawTransaction(transaction)
+          .then((r) => {
+
+            this.setState({ msj: { title: "Result", message: <>Transacction {r.txid}</> } })
+
+          })
+    }
+
 
   }
 
@@ -292,11 +329,11 @@ class Brut extends Component {
       if (amount >= minCompra) {
 
         let inputs = [
-          //{ type: 'address', value: AddressContract },
-          { type: 'uint256', value: utils.numberToStringCero(amount) }
+          { type: 'uint256', value: utils.numberToStringCero(amount) },
+          { type: 'address', value: accountAddress }
         ]
 
-        let funcion = "comprar(uint256)"
+        let funcion = "buy_token(uint256,address)"
         let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRUT_USDT.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
         let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
         transaction = await window.tronLink.tronWeb.trx.sign(transaction)
@@ -391,11 +428,11 @@ class Brut extends Component {
     if (aprovado >= amount) {
 
       let inputs = [
-        //{ type: 'address', value: AddressContract },
-        { type: 'uint256', value: utils.numberToStringCero(amount) }
+        { type: 'uint256', value: utils.numberToStringCero(amount) },
+        { type: 'address', value: accountAddress }
       ]
 
-      let funcion = "vender(uint256)"
+      let funcion = "sell_token(uint256,address)"
       let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRUT_USDT.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
       let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
       transaction = await window.tronLink.tronWeb.trx.sign(transaction)
@@ -474,7 +511,7 @@ class Brut extends Component {
       }
       previousValue = value;
 
-      let dataObj = { date , value, color }; // color will be used for tooltip background
+      let dataObj = { date, value, color }; // color will be used for tooltip background
 
       // only if changed
       if (color !== previousColor) {
@@ -603,7 +640,9 @@ class Brut extends Component {
 
   render() {
 
-    let { minCompra, minventa, msj } = this.state;
+    const {contrato} = this.props
+
+    let { minCompra, minventa, msj, totalCirculando, precioBRUT, cambio24h, enBrutus } = this.state;
 
     minCompra = "Min. " + minCompra + " USDT";
     minventa = "Min. " + minventa + " BRUT";
@@ -623,7 +662,7 @@ class Brut extends Component {
                         <span className="fs-16">Brutus Algorithmic Trading Robot </span>
                       </div>
                       <div className="dropdown bootstrap-select">
-                        <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0" defaultValue="usdt" style={{ background: "rgb(3 0 8 / 49%)"}}>
+                        <select className="image-select default-select dashboard-select" aria-label="Default" tabIndex="0" defaultValue="usdt" style={{ background: "rgb(3 0 8 / 49%)" }}>
                           <option value={"usdt"}>USD₮ (Tether)</option>
                         </select>
                       </div>
@@ -633,19 +672,19 @@ class Brut extends Component {
                         <div className="d-flex align-items-center justify-content-between flex-wrap">
                           <div className="price-content">
                             <span className="fs-18 d-block mb-2">Price</span>
-                            <h4 className="fs-20 font-w600">${this.state.precioBRUT}</h4>
+                            <h4 className="fs-20 font-w600">${precioBRUT}</h4>
                           </div>
                           <div className="price-content">
                             <span className="fs-14 d-block mb-2">24h% change</span>
-                            <h4 className="font-w600 text-success">{this.state.cambio24h}<i className="fa-solid fa-caret-up ms-1 text-success"></i></h4>
+                            <h4 className="font-w600 text-success">{cambio24h}<i className="fa-solid fa-caret-up ms-1 text-success"></i></h4>
                           </div>
                           <div className="price-content">
                             <span className="fs-14 d-block mb-2">Circulating</span>
-                            <h4 className="font-w600">{(this.state.tokensEmitidos * 1).toFixed(2)}</h4>
+                            <h4 className="font-w600">{(totalCirculando * 1).toFixed(2)}</h4>
                           </div>
                           <div className="price-content">
                             <span className="fs-14 d-block mb-2">Market Cap</span>
-                            <h4 className="font-w600">${(this.state.enBrutus * 1).toFixed(2)}</h4>
+                            <h4 className="font-w600">${(enBrutus * 1).toFixed(2)}</h4>
                           </div>
                         </div>
                       </div>
@@ -771,9 +810,30 @@ class Brut extends Component {
                     </div>
                   </div>
                 </div>
+
               </div>
             </div>
 
+          </div>
+        </div>
+        <div className="col-lg-12">
+          <div className="card">
+            <div className="card-header">
+              <h4 className="card-title">Smart Contracts </h4>
+            </div>
+            <div className="card-body">
+              <p>
+                <b>Token:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+contrato.BRUT.address+"/code"}>{contrato.BRUT.address}</a>
+                <br ></br>
+                <b>swap:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+contrato.BRUT_USDT.address+"/code"}>{contrato.BRUT_USDT.address}</a>
+              </p>
+            </div>
+            <div>
+              <button onClick={()=>{
+                alert("hola mundo")
+                this.ajustarRate()
+                }}>test</button>
+            </div>
           </div>
         </div>
       </div>

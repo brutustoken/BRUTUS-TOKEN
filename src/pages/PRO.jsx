@@ -45,7 +45,7 @@ const faqs = [
       </>
     )
   },
-  {
+  /*{
     question: <>What is it and how is my <span role="img" aria-label="orange">🍊</span> coefficient calculated?</>,
     answer: (
       <>
@@ -74,7 +74,7 @@ const faqs = [
         </p>
       </>
     )
-  },
+  },*/
 ];
 
 class ProviderPanel extends Component {
