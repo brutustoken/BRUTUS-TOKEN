@@ -730,20 +730,20 @@ class Brut extends Component {
                   <div className="card quick-trade">
                     <div className="card-header pb-0 border-0 flex-wrap">
                       <div>
-                        <h4 className="heading mb-0">Quick Trade</h4>
+                        <h4 className="heading mb-0">Quick Trade: BRUT{" <-> "}USDT</h4>
                         <p className="mb-0 fs-14">without fees</p>
                       </div>
                     </div>
                     <div className="card-body pb-0">
-                      <div className="basic-form">
-                        <form className="form-wrapper trade-form">
-                          <div className="input-group mb-3 ">
+
+                      <div className="row">
+                        <div className="col-6">
                             <input className="form-control form-control text-end" type="number" id="amountBRUT" onChange={this.handleChangeBRUT} placeholder={minventa} min={this.state.minventa} max={this.state.balanceBRUT} value={this.state.valueBRUT} step={0.5} ></input>
-                          </div>
-                          <div className="input-group mb-3 ">
+
+                        </div>
+                        <div className="col-6">
                             <input className="form-control form-control text-end" type="number" id="amountUSDT" onChange={this.handleChangeUSDT} placeholder={minCompra} min={this.state.minCompra} max={this.state.balanceUSDT} value={this.state.valueUSDT} ></input>
-                          </div>
-                        </form>
+                        </div>
                       </div>
                     </div>
                     <div className="card-footer border-0">
@@ -826,12 +826,6 @@ class Brut extends Component {
                 <br ></br>
                 <b>swap:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/"+contrato.BRUT_USDT.address+"/code"}>{contrato.BRUT_USDT.address}</a>
               </p>
-            </div>
-            <div>
-              <button onClick={()=>{
-                alert("hola mundo")
-                this.ajustarRate()
-                }}>test</button>
             </div>
           </div>
         </div>

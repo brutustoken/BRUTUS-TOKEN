@@ -756,13 +756,13 @@ class Staking extends Component {
     let energyOn = false;
     let energi = 0;
 
-    energyOn = await fetch( process.env.REACT_APP_BOT_URL)
+    energyOn = await fetch(process.env.REACT_APP_BOT_URL)
       .then((r) => r.json())
       .then((r) => r.available)
       .catch(() => false)
 
     if (energyOn) {
-      let consulta = await fetch( process.env.REACT_APP_BOT_URL + "available")
+      let consulta = await fetch(process.env.REACT_APP_BOT_URL + "available")
         .then((r) => r.json())
 
       if (consulta.av_energy.length > 0) {
@@ -814,7 +814,7 @@ class Staking extends Component {
       }
 
       let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      let consultaPrecio = await fetch( process.env.REACT_APP_BOT_URL + "prices", {
+      let consultaPrecio = await fetch(process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -1208,7 +1208,7 @@ class Staking extends Component {
 
     if (cantidad.toNumber() === 0) return new BigNumber(0);
 
-    let consulta = await fetch( process.env.REACT_APP_BOT_URL + "prices", {
+    let consulta = await fetch(process.env.REACT_APP_BOT_URL + "prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
@@ -2185,39 +2185,58 @@ class Staking extends Component {
                         <div className="media d-block">
                           <img
                             onClick={() => {
+
+                              const {tronWeb, accountAddress} = this.props
                               this.setState({
                                 ModalTitulo: t("brst.alert.donate", { returnObjects: true })[0],
                                 ModalBody: (
                                   <>
-                                    <select id="currencySelect" className="form-select mb-3">
-                                      <option value="TRX">TRX</option>
-                                      <option value="BRST">BRST</option>
-                                      <option value="USDT">USDT</option>
-                                      <option value="USDD">USDD</option>
-                                    </select>
-                                    TRX
+
+                                    TRX:
                                     <input type="number" id="trxD" className="form-control mb-3" placeholder="Amount"></input>
                                     <button
                                       type="button"
                                       className="btn btn-success w-100 mb-3"
-                                      onClick={() => {
+                                      onClick={async () => {
                                         let donacion = document.getElementById('trxD').value;
-                                        let currency = document.getElementById('currencySelect').value;
                                         donacion = new BigNumber(donacion).shiftedBy(6).dp(0);
-                                        if (currency === "TRX") {
-                                          contrato.BRST_TRX_Proxy['donate()']().send({ callValue: donacion })
-                                            .then(() => {
-                                              this.setState({
-                                                ModalTitulo: t("brst.alert.donate", { returnObjects: true })[1],
-                                                ModalBody: t("brst.alert.donate", { returnObjects: true })[2]
-                                              });
-                                              window.$("#mensaje-brst").modal("show");
-                                              this.estado();
-                                            });
-                                        } else if (currency === "USDT" || currency === "USDD" || currency === "BRST") {
-                                          // Aquí puedes agregar la lógica para manejar USDT y USDD
-                                          console.log("Donación en " + currency + ":" + donacion);
-                                        }
+
+                                        let inputs = [
+                                          //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+                                          //{type: 'uint256', value: '1000000'}
+                                        ]
+
+                                        let funcion = "donate()"
+                                        const options = { callValue: donacion }
+                                        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+                                        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+                                        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+                                          .catch((e) => {
+
+                                            this.setState({
+                                              ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
+                                              ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+                                            })
+
+                                            window.$("#mensaje-brst").modal("show");
+                                            return false
+                                          })
+                                        if (!transaction) return;
+                                        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+                                          .then(() => {
+                                            this.setState({
+                                              ModalTitulo: t("brst.alert.compra", { returnObjects: true })[0],
+                                              ModalBody: <>{t("brst.alert.compra", { returnObjects: true })[1]}
+                                                <br ></br><br ></br>
+                                                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
+                                              </>
+                                            })
+
+                                            window.$("#mensaje-brst").modal("show");
+                                          })
+
+
+
                                       }}
                                     >
                                       {t("brst.alert.donate", { returnObjects: true })[3]}
@@ -2227,9 +2246,47 @@ class Staking extends Component {
                                     <button
                                       type="button"
                                       className="btn btn-success w-100 mb-3"
-                                      onClick={() => {
+                                      onClick={async() => {
                                         let donacion = document.getElementById('brstD').value;
                                         donacion = new BigNumber(donacion).shiftedBy(6).dp(0);
+
+
+                                        let inputs = [
+                                          //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+                                          {type: 'uint256', value: donacion}
+                                        ]
+
+                                        let funcion = "donate(uint256)"
+                                        const options = { }
+                                        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+                                        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+                                        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+                                          .catch((e) => {
+
+                                            this.setState({
+                                              ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
+                                              ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+                                            })
+
+                                            window.$("#mensaje-brst").modal("show");
+                                            return false
+                                          })
+                                        if (!transaction) return;
+                                        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+                                          .then(() => {
+                                            this.setState({
+                                              ModalTitulo: t("brst.alert.compra", { returnObjects: true })[0],
+                                              ModalBody: <>{t("brst.alert.compra", { returnObjects: true })[1]}
+                                                <br ></br><br ></br>
+                                                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
+                                              </>
+                                            })
+
+                                            window.$("#mensaje-brst").modal("show");
+                                          })
+
+
+
                                         contrato.BRST_TRX_Proxy['donate(uint256)'](donacion.toString(10)).send()
                                           .then(() => {
                                             this.setState({
