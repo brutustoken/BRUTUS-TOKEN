@@ -365,6 +365,7 @@ class App extends Component {
         case "brlt":
           Retorno = <LOTERIA accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
           break;
+        case "rent":
         case "ebot":
           Retorno = (<>
             <SEO
@@ -380,8 +381,18 @@ class App extends Component {
         case "api":
           Retorno = <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink}  />
           break;
-        default:
+        case "portfolio":
+        case "wallet":
           Retorno = <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
+          break;
+        default:
+          Retorno = (<>
+            <SEO
+              title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
+              description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
+            />
+            <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb}  />
+          </>)
           break;
       }
 
