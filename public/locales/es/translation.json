@@ -135,7 +135,7 @@
     "calcullatorText": "Esta calculadora utiliza el promedio de los últimos {{days}} días de ganancias para generar una estimación cercana a la realidad, ya que las ganancias pueden fluctuar de un día a otro y no son fijas, sino variables."
   },
   "inicio": {
-    "tittle": "Panel",
+    "tittle": "My Wallet",
     "try": "¡Pruébalo ahora!",
     "position": "Mi posición",
     "name": "Nombre",
