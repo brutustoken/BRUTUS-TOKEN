@@ -135,7 +135,7 @@
     "calcullatorText": "This calculator uses the average of the last {{days}} days of earnings to generate an estimate that is closest to reality, since earnings can fluctuate from one day to the next and are not fixed but variable."
   },
   "inicio": {
-    "tittle": "Dashboard",
+    "tittle": "My Wallet",
     "try": "Try it now!",
     "position": "My Position",
     "name": "Name",
