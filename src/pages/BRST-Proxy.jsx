@@ -2225,8 +2225,8 @@ class Staking extends Component {
                                         transaction = await tronWeb.trx.sendRawTransaction(transaction)
                                           .then(() => {
                                             this.setState({
-                                              ModalTitulo: t("brst.alert.compra", { returnObjects: true })[0],
-                                              ModalBody: <>{t("brst.alert.compra", { returnObjects: true })[1]}
+                                              ModalTitulo: t("brst.donate.title", { returnObjects: true })[0],
+                                              ModalBody: <>{t("brst.donate.body", { returnObjects: true })[1]}
                                                 <br ></br><br ></br>
                                                 <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
                                               </>
@@ -2275,8 +2275,8 @@ class Staking extends Component {
                                         transaction = await tronWeb.trx.sendRawTransaction(transaction)
                                           .then(() => {
                                             this.setState({
-                                              ModalTitulo: t("brst.alert.compra", { returnObjects: true })[0],
-                                              ModalBody: <>{t("brst.alert.compra", { returnObjects: true })[1]}
+                                              ModalTitulo: t("brst.donate.title", { returnObjects: true })[0],
+                                              ModalBody: <>{t("brst.donate.body", { returnObjects: true })[1]}
                                                 <br ></br><br ></br>
                                                 <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
                                               </>
@@ -2285,17 +2285,6 @@ class Staking extends Component {
                                             window.$("#mensaje-brst").modal("show");
                                           })
 
-
-
-                                        contrato.BRST_TRX_Proxy['donate(uint256)'](donacion.toString(10)).send()
-                                          .then(() => {
-                                            this.setState({
-                                              ModalTitulo: t("brst.alert.donate", { returnObjects: true })[1],
-                                              ModalBody: t("brst.alert.donate", { returnObjects: true })[2]
-                                            });
-                                            window.$("#mensaje-brst").modal("show");
-                                            this.estado();
-                                          });
                                       }}
                                     >
                                       {t("brst.alert.donate", { returnObjects: true })[3]}
