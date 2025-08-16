@@ -132,7 +132,11 @@
     "yearly": "Anual",
     "likely": "probablemente",
     "estimated": "Estimado",
-    "calcullatorText": "Esta calculadora utiliza el promedio de los últimos {{days}} días de ganancias para generar una estimación cercana a la realidad, ya que las ganancias pueden fluctuar de un día a otro y no son fijas, sino variables."
+    "calcullatorText": "Esta calculadora utiliza el promedio de los últimos {{days}} días de ganancias para generar una estimación cercana a la realidad, ya que las ganancias pueden fluctuar de un día a otro y no son fijas, sino variables.",
+    "donate": {
+      "title": "Thank you ❤️",
+      "body": "Thanks for your TRX donation — it helps BRST grow!"
+    }
   },
   "inicio": {
     "tittle": "My Wallet",
