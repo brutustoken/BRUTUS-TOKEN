@@ -600,7 +600,6 @@ class Staking extends Component {
 
     this.setState({
       espera: tiempo,
-      solicitudes: globDepositos.length,
       dias: diasDeEspera,
 
     })
@@ -709,7 +708,9 @@ class Staking extends Component {
 
     total_required = total_required.shiftedBy(-6).toString(10)
 
-    let ownerPanel = (<><input type="text" id="wallet" placeholder="wallet to white list"></input> <button className="btn btn-warning" onClick={async () => {
+    let ownerPanel = (<>
+    <input type="text" id="wallet" placeholder="wallet to white list"></input> 
+    <button className="btn btn-warning" onClick={async () => {
       let inputs = [
         { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
         //{ type: 'uint256', value: 405 * 10 ** 6 }
@@ -732,20 +733,52 @@ class Staking extends Component {
         alert(error.toString())
       }
 
-    }}>ADD</button><br></br>
+    }}>ADD</button>
+    <button className="btn btn-danger" onClick={async () => {
+      let inputs = [
+        { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
+        //{ type: 'uint256', value: 405 * 10 ** 6 }
+      ]
+
+      let funcion = "whiteList_remove(address)"
+      try {
+
+        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+
+        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+
+        console.log(transaction)
+        alert("Transaction " + transaction.result + " hash: " + transaction.txid)
+
+      } catch (error) {
+        console.log(error)
+        alert(error.toString())
+      }
+
+    }}>REMOVE</button>
+    
+    <br></br>
       TRON_RR: {utils.normalizarNumero(await contrato.BRST_TRX_Proxy.TRON_RR().call())}
       <br></br>
 
 
     </>)
 
+    this.setState({
+      solicitudes: globDepositos.length
+    })
+
     if (isAdmin || isOwner) {
       globDepositos.push(<div key="admin-panel">
         {isOwner ? ownerPanel : <></>}
-        Balance Pool: {balance_Pool.toString(10)}
-
       </div>)
     }
+
+    globDepositos.push(<div key="balnce-panel">
+      Balance Pool: {balance_Pool.toString(10)} trx
+    </div>)
 
     this.setState({
       globDepositos,
@@ -2049,7 +2082,7 @@ class Staking extends Component {
   render() {
 
     const { contrato, t } = this.props
-    let { from, to, valueFrom, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty, retiroRapido, dias, balanceUSDT, balanceUSDD, balanceBRST, balanceTRX, valueTo } = this.state;
+    let { from, to, valueFrom, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, solicitudes, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty, retiroRapido, dias, balanceUSDT, balanceUSDD, balanceBRST, balanceTRX, valueTo } = this.state;
 
     minCompra = "Min. " + minCompra + " " + from.toUpperCase();
     minventa = "Min. " + minventa + " " + to.toUpperCase();
@@ -2186,7 +2219,7 @@ class Staking extends Component {
                           <img
                             onClick={() => {
 
-                              const {tronWeb, accountAddress} = this.props
+                              const { tronWeb, accountAddress } = this.props
                               this.setState({
                                 ModalTitulo: t("brst.alert.donate", { returnObjects: true })[0],
                                 ModalBody: (
@@ -2246,18 +2279,18 @@ class Staking extends Component {
                                     <button
                                       type="button"
                                       className="btn btn-success w-100 mb-3"
-                                      onClick={async() => {
+                                      onClick={async () => {
                                         let donacion = document.getElementById('brstD').value;
                                         donacion = new BigNumber(donacion).shiftedBy(6).dp(0);
 
 
                                         let inputs = [
                                           //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
-                                          {type: 'uint256', value: donacion}
+                                          { type: 'uint256', value: donacion }
                                         ]
 
                                         let funcion = "donate(uint256)"
-                                        const options = { }
+                                        const options = {}
                                         let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
                                         let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
                                         transaction = await window.tronLink.tronWeb.trx.sign(transaction)
@@ -2496,7 +2529,7 @@ class Staking extends Component {
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
-                <h4 className="fs-20 text-black">{t("brst.request", { returnObjects: true, number: isOwner || isAdmin ? globDepositos.length - 1 : globDepositos.length })[0]}
+                <h4 className="fs-20 text-black">{t("brst.request", { returnObjects: true, number: solicitudes })[0]}
                   <button className="btn  btn-success text-white" onClick={() => this.estado()}>
                     {t("brst.request", { returnObjects: true })[1]} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>

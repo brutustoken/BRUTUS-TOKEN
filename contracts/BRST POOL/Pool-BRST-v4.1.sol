@@ -225,96 +225,65 @@ contract PoolBRST_v4_1 {
         return _value;
     }
 
-    function solicitudRetiro(uint256 _value) public returns (bool, uint256) {
-        if (instaRetiro(_value)) {
-            return (true, 0);
-        } else {
-            return (false, esperaRetiro(_value));
-        }
+    function solicitudRetiro(uint256 _value) public {
+        esperaRetiro(_value);
     }
 
-    function esperaRetiro(uint256 _value) public returns (uint256 order) {
+    function esperaRetiro(uint256 _value) public {
         if (!BRST_Contract.transferFrom(msg.sender, address(this), _value))
             revert();
 
-        order = index;
+        uint256 precio = RATE();
 
-        peticiones[order] = Peticion({
+        peticiones[index] = Peticion({
             wallet: msg.sender,
             tiempo: block.timestamp,
-            precio: RATE(),
+            precio: precio,
             brst: _value
         });
 
         TRON_SOLICITADO = TRON_SOLICITADO.add(
-            _value.mul(RATE()).div(10 ** BRST_Contract.decimals())
+            _value.mul(precio).div(10 ** BRST_Contract.decimals())
         );
-        misSolicitudes[msg.sender].push(order);
+        misSolicitudes[msg.sender].push(index);
 
         index++;
     }
 
-    function retirarFrom(address _user) public returns (bool exitoso) {
-        uint256 pago;
-        uint256[] memory arr = todasSolicitudes(_user);
-        uint256[] memory nuevo;
-        uint256 totalBRST;
-
-        for (uint256 i = 0; i < arr.length; i++) {
-            if (
-                block.timestamp >= peticiones[arr[i]].tiempo.add(TIEMPO) 
-            ) {
-                pago = pago.add(
-                    peticiones[arr[i]].brst.mul(peticiones[arr[i]].precio).div(
-                        10 ** BRST_Contract.decimals()
-                    )
-                );
-                totalBRST = totalBRST.add(peticiones[arr[i]].brst);
-                completada[arr[i]] = true;
-            } else {
-                nuevo = nuevo.addArray(arr[i]);
-            }
+    function retirar(uint256 _id) public returns (bool exitoso) {
+        require(index > _id);
+        require(!completada[_id]);
+        Peticion memory onPeticion  = peticiones[_id];
+        if (msg.sender != owner()) {
+            if (block.timestamp < onPeticion.tiempo.add(TIEMPO))
+                revert("no time to claim");
         }
-        require(pago > 0 && totalBRST > 0);
+
+        uint256 pago = onPeticion.brst.mul(onPeticion.precio).div(
+            10 ** BRST_Contract.decimals()
+        );
+
         require(address(this).balance >= pago);
 
-        misSolicitudes[_user] = nuevo;
+        (bool success, uint256 i) = misSolicitudes[onPeticion.wallet].findIndexOf(_id);
 
-        payable(_user).transfer(pago);
-        BRST_Contract.redeem(totalBRST);
+        require(success);
+
+        misSolicitudes[onPeticion.wallet][i] = 
+        misSolicitudes[onPeticion.wallet][misSolicitudes[onPeticion.wallet].length - 1];
+        misSolicitudes[onPeticion.wallet].pop();
 
         _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
         TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
+        completada[_id] = true;
+
+        //payable(onPeticion.wallet).transfer(pago);
+        (bool sent, ) = payable(onPeticion.wallet).call{value: pago}("");
+        require(sent, "Pago fallido");
+
+        BRST_Contract.redeem(onPeticion.brst);
 
         exitoso = true;
-    }
-
-    function retirar(uint256 _id) public returns (bool exitoso) {
-        require(index > _id);
-        if (msg.sender != owner()) {
-            if (block.timestamp < peticiones[_id].tiempo.add(TIEMPO))revert("no time to claim");
-        }
-
-        uint256 pago = peticiones[_id].brst.mul(peticiones[_id].precio).div(
-            10 ** BRST_Contract.decimals()
-        );
-        
-        if (address(this).balance >= pago) {
-            (, uint256 i) = misSolicitudes[peticiones[_id].wallet].findIndexOf(_id);
-
-            misSolicitudes[peticiones[_id].wallet][i] = misSolicitudes[
-                peticiones[_id].wallet
-            ][misSolicitudes[peticiones[_id].wallet].length - 1];
-            misSolicitudes[peticiones[_id].wallet].pop();
-
-            payable(peticiones[_id].wallet).transfer(pago);
-            BRST_Contract.redeem(peticiones[_id].brst);
-
-            _WALLET_SR_BALANCE = _WALLET_SR_BALANCE.sub(pago);
-            TRON_SOLICITADO = TRON_SOLICITADO.sub(pago);
-            completada[_id] = true;
-            exitoso = true;
-        }
     }
 
     function asignarPerdida(uint256 _value) public {
