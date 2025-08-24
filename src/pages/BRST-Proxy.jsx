@@ -600,7 +600,6 @@ class Staking extends Component {
 
     this.setState({
       espera: tiempo,
-      solicitudes: globDepositos.length,
       dias: diasDeEspera,
 
     })
@@ -709,7 +708,9 @@ class Staking extends Component {
 
     total_required = total_required.shiftedBy(-6).toString(10)
 
-    let ownerPanel = (<><input type="text" id="wallet" placeholder="wallet to white list"></input> <button className="btn btn-warning" onClick={async () => {
+    let ownerPanel = (<>
+    <input type="text" id="wallet" placeholder="wallet to white list"></input> 
+    <button className="btn btn-warning" onClick={async () => {
       let inputs = [
         { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
         //{ type: 'uint256', value: 405 * 10 ** 6 }
@@ -732,20 +733,52 @@ class Staking extends Component {
         alert(error.toString())
       }
 
-    }}>ADD</button><br></br>
+    }}>ADD</button>
+    <button className="btn btn-danger" onClick={async () => {
+      let inputs = [
+        { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
+        //{ type: 'uint256', value: 405 * 10 ** 6 }
+      ]
+
+      let funcion = "whiteList_remove(address)"
+      try {
+
+        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+
+        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+
+        console.log(transaction)
+        alert("Transaction " + transaction.result + " hash: " + transaction.txid)
+
+      } catch (error) {
+        console.log(error)
+        alert(error.toString())
+      }
+
+    }}>REMOVE</button>
+    
+    <br></br>
       TRON_RR: {utils.normalizarNumero(await contrato.BRST_TRX_Proxy.TRON_RR().call())}
       <br></br>
 
 
     </>)
 
+    this.setState({
+      solicitudes: globDepositos.length
+    })
+
     if (isAdmin || isOwner) {
       globDepositos.push(<div key="admin-panel">
         {isOwner ? ownerPanel : <></>}
-        Balance Pool: {balance_Pool.toString(10)}
-
       </div>)
     }
+
+    globDepositos.push(<div key="balnce-panel">
+      Balance Pool: {balance_Pool.toString(10)} trx
+    </div>)
 
     this.setState({
       globDepositos,
@@ -756,13 +789,13 @@ class Staking extends Component {
     let energyOn = false;
     let energi = 0;
 
-    energyOn = await fetch( process.env.REACT_APP_BOT_URL)
+    energyOn = await fetch(process.env.REACT_APP_BOT_URL)
       .then((r) => r.json())
       .then((r) => r.available)
       .catch(() => false)
 
     if (energyOn) {
-      let consulta = await fetch( process.env.REACT_APP_BOT_URL + "available")
+      let consulta = await fetch(process.env.REACT_APP_BOT_URL + "available")
         .then((r) => r.json())
 
       if (consulta.av_energy.length > 0) {
@@ -814,7 +847,7 @@ class Staking extends Component {
       }
 
       let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      let consultaPrecio = await fetch( process.env.REACT_APP_BOT_URL + "prices", {
+      let consultaPrecio = await fetch(process.env.REACT_APP_BOT_URL + "prices", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -1208,7 +1241,7 @@ class Staking extends Component {
 
     if (cantidad.toNumber() === 0) return new BigNumber(0);
 
-    let consulta = await fetch( process.env.REACT_APP_BOT_URL + "prices", {
+    let consulta = await fetch(process.env.REACT_APP_BOT_URL + "prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
@@ -2049,7 +2082,7 @@ class Staking extends Component {
   render() {
 
     const { contrato, t } = this.props
-    let { from, to, valueFrom, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, isOwner, isAdmin, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty, retiroRapido, dias, balanceUSDT, balanceUSDD, balanceBRST, balanceTRX, valueTo } = this.state;
+    let { from, to, valueFrom, precioBrst, minCompra, minventa, days, diasCalc, temporalidad, tiempoPromediado, solicitudes, globDepositos, crecimientoPorcentual, userEnergy, rapida, penalty, retiroRapido, dias, balanceUSDT, balanceUSDD, balanceBRST, balanceTRX, valueTo } = this.state;
 
     minCompra = "Min. " + minCompra + " " + from.toUpperCase();
     minventa = "Min. " + minventa + " " + to.toUpperCase();
@@ -2185,39 +2218,58 @@ class Staking extends Component {
                         <div className="media d-block">
                           <img
                             onClick={() => {
+
+                              const { tronWeb, accountAddress } = this.props
                               this.setState({
                                 ModalTitulo: t("brst.alert.donate", { returnObjects: true })[0],
                                 ModalBody: (
                                   <>
-                                    <select id="currencySelect" className="form-select mb-3">
-                                      <option value="TRX">TRX</option>
-                                      <option value="BRST">BRST</option>
-                                      <option value="USDT">USDT</option>
-                                      <option value="USDD">USDD</option>
-                                    </select>
-                                    TRX
+
+                                    TRX:
                                     <input type="number" id="trxD" className="form-control mb-3" placeholder="Amount"></input>
                                     <button
                                       type="button"
                                       className="btn btn-success w-100 mb-3"
-                                      onClick={() => {
+                                      onClick={async () => {
                                         let donacion = document.getElementById('trxD').value;
-                                        let currency = document.getElementById('currencySelect').value;
                                         donacion = new BigNumber(donacion).shiftedBy(6).dp(0);
-                                        if (currency === "TRX") {
-                                          contrato.BRST_TRX_Proxy['donate()']().send({ callValue: donacion })
-                                            .then(() => {
-                                              this.setState({
-                                                ModalTitulo: t("brst.alert.donate", { returnObjects: true })[1],
-                                                ModalBody: t("brst.alert.donate", { returnObjects: true })[2]
-                                              });
-                                              window.$("#mensaje-brst").modal("show");
-                                              this.estado();
-                                            });
-                                        } else if (currency === "USDT" || currency === "USDD" || currency === "BRST") {
-                                          // Aquí puedes agregar la lógica para manejar USDT y USDD
-                                          console.log("Donación en " + currency + ":" + donacion);
-                                        }
+
+                                        let inputs = [
+                                          //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+                                          //{type: 'uint256', value: '1000000'}
+                                        ]
+
+                                        let funcion = "donate()"
+                                        const options = { callValue: donacion }
+                                        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+                                        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+                                        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+                                          .catch((e) => {
+
+                                            this.setState({
+                                              ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
+                                              ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+                                            })
+
+                                            window.$("#mensaje-brst").modal("show");
+                                            return false
+                                          })
+                                        if (!transaction) return;
+                                        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+                                          .then(() => {
+                                            this.setState({
+                                              ModalTitulo: t("brst.donate.title", { returnObjects: true })[0],
+                                              ModalBody: <>{t("brst.donate.body", { returnObjects: true })[1]}
+                                                <br ></br><br ></br>
+                                                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
+                                              </>
+                                            })
+
+                                            window.$("#mensaje-brst").modal("show");
+                                          })
+
+
+
                                       }}
                                     >
                                       {t("brst.alert.donate", { returnObjects: true })[3]}
@@ -2227,18 +2279,45 @@ class Staking extends Component {
                                     <button
                                       type="button"
                                       className="btn btn-success w-100 mb-3"
-                                      onClick={() => {
+                                      onClick={async () => {
                                         let donacion = document.getElementById('brstD').value;
                                         donacion = new BigNumber(donacion).shiftedBy(6).dp(0);
-                                        contrato.BRST_TRX_Proxy['donate(uint256)'](donacion.toString(10)).send()
+
+
+                                        let inputs = [
+                                          //{type: 'address', value: tronWeb.address.toHex("TTknL2PmKRSTgS8S3oKEayuNbznTobycvA")},
+                                          { type: 'uint256', value: donacion }
+                                        ]
+
+                                        let funcion = "donate(uint256)"
+                                        const options = {}
+                                        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy.address), funcion, options, inputs, tronWeb.address.toHex(accountAddress))
+                                        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+                                        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+                                          .catch((e) => {
+
+                                            this.setState({
+                                              ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
+                                              ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+                                            })
+
+                                            window.$("#mensaje-brst").modal("show");
+                                            return false
+                                          })
+                                        if (!transaction) return;
+                                        transaction = await tronWeb.trx.sendRawTransaction(transaction)
                                           .then(() => {
                                             this.setState({
-                                              ModalTitulo: t("brst.alert.donate", { returnObjects: true })[1],
-                                              ModalBody: t("brst.alert.donate", { returnObjects: true })[2]
-                                            });
+                                              ModalTitulo: t("brst.donate.title", { returnObjects: true })[0],
+                                              ModalBody: <>{t("brst.donate.body", { returnObjects: true })[1]}
+                                                <br ></br><br ></br>
+                                                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
+                                              </>
+                                            })
+
                                             window.$("#mensaje-brst").modal("show");
-                                            this.estado();
-                                          });
+                                          })
+
                                       }}
                                     >
                                       {t("brst.alert.donate", { returnObjects: true })[3]}
@@ -2450,7 +2529,7 @@ class Staking extends Component {
           <div className="card">
             <div className="card-header d-sm-flex d-block pb-0 border-0">
               <div>
-                <h4 className="fs-20 text-black">{t("brst.request", { returnObjects: true, number: isOwner || isAdmin ? globDepositos.length - 1 : globDepositos.length })[0]}
+                <h4 className="fs-20 text-black">{t("brst.request", { returnObjects: true, number: solicitudes })[0]}
                   <button className="btn  btn-success text-white" onClick={() => this.estado()}>
                     {t("brst.request", { returnObjects: true })[1]} <i className="bi bi-arrow-repeat"></i>
                   </button></h4>
