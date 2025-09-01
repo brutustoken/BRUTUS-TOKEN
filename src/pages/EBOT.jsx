@@ -286,6 +286,10 @@ class EnergyRental extends Component {
         duration: "14d",
         available: consulta.av_energy[4].available
       },
+       {
+        duration: "30d",
+        available: consulta.av_energy[5].available
+      },
 
     ]
 
@@ -313,6 +317,10 @@ class EnergyRental extends Component {
       {
         duration: "14d",
         available: consulta.av_band[4].available
+      },
+      {
+        duration: "30d",
+        available: consulta.av_band[5].available
       },
     ]
 
@@ -874,9 +882,10 @@ class EnergyRental extends Component {
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "7d" } }) }}>7d</button>
-                          <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
+                          <button type="button" className="btn btn-primary" style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "30d" } }) }}>
+                            30d
+                          </button>
                         </div>
                       </div>
 
