@@ -874,7 +874,7 @@ class EnergyRental extends Component {
                       <div className="col-12 mt-2 mb-2 ">
                         <div className="d-flex justify-content-xl-center">
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "5min" } }) }}>5min</button>
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "5min" } }) }}>5m</button>
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
                           <button type="button" className="btn btn-primary"
@@ -883,9 +883,8 @@ class EnergyRental extends Component {
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
-                          <button type="button" className="btn btn-primary" style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "30d" } }) }}>
-                            30d
-                          </button>
+                          <button type="button" className="btn btn-primary" 
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "30d" } }) }}>30d</button>
                         </div>
                       </div>
 

@@ -1647,16 +1647,38 @@ class Staking extends Component {
           })
         if (!transaction) return;
         transaction = await tronWeb.trx.sendRawTransaction(transaction)
-          .then(() => {
-            this.setState({
-              ModalTitulo: t("brst.alert.compra", { returnObjects: true })[0],
-              ModalBody: <>{t("brst.alert.compra", { returnObjects: true })[1]}
-                <br ></br><br ></br>
-                <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
-              </>
+          .then((r) => {
+
+            if(r.result){
+              this.setState({
+                ModalTitulo: t("brst.alert.compra", { returnObjects: true })[0],
+                ModalBody: <>{t("brst.alert.compra", { returnObjects: true })[1]}
+                  <br ></br><br ></br>
+                  <button type="button" className="btn btn-success" onClick={() => { window.$("#mensaje-brst").modal("hide") }}>{t("accept")}</button>
+                </>
+              })
+
+              window.$("#mensaje-brst").modal("show");
+            }else{
+               this.setState({
+              ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
+              ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + r.transaction.txID.toString()
             })
 
             window.$("#mensaje-brst").modal("show");
+            return false
+            }
+            
+          })
+          .catch((e) => {
+
+            this.setState({
+              ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
+              ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + e.toString()
+            })
+
+            window.$("#mensaje-brst").modal("show");
+            return false
           })
 
 

@@ -182,7 +182,6 @@ function numberToStringCero(n, s = 6) {
 }
 
 const hola = () => {
-  "use server"
   console.log("mundo")
 }
 
