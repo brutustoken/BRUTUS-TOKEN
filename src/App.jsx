@@ -35,7 +35,7 @@ const tronWeb = {}
 
 const adapter = new TronLinkAdapter();
 
-const adressDefault = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
+const addressDefault = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb"
 
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />
 
@@ -44,7 +44,7 @@ const cookies = new Cookies(null, { path: '/', maxAge: 60 * 60 * 24 * 30 });
 let theme = cookies.get('theme') || "light";
 document.documentElement.setAttribute("data-theme-version", theme);
 
-let tryes = 2
+let tries = 2
 function setDarkTheme() {
 
   if (theme === "light") {
@@ -67,7 +67,7 @@ class App extends Component {
 
     this.state = {
       ruta: "",
-      accountAddress: adressDefault,
+      accountAddress: addressDefault,
       tronlink: {
         installed: false,
         loggedIn: false,
@@ -101,7 +101,7 @@ class App extends Component {
 
     this.route = this.route.bind(this);
     this.loadContracts = this.loadContracts.bind(this);
-    this.selecionarIdioma = this.selecionarIdioma.bind(this);
+    this.seleccionarIdioma = this.seleccionarIdioma.bind(this);
 
   }
 
@@ -116,7 +116,7 @@ class App extends Component {
 
     intervalId = setInterval(() => {
       this.route();
-      this.selecionarIdioma();
+      this.seleccionarIdioma();
       if (Date.now() >= nextUpdate) {
 
         if (this.state.tronlink.installed && !this.state.tronlink.loggedIn) {
@@ -136,7 +136,7 @@ class App extends Component {
   }
 
 
-  async selecionarIdioma() {
+  async seleccionarIdioma() {
     const { i18n } = this.props
     try {
       lgSelector = document.getElementById("selectLng").value
@@ -153,14 +153,14 @@ class App extends Component {
 
   async conectar(billetera) {
 
-    if (!this.state.conexion && !adapter.connected && tryes > 0) {
+    if (!this.state.conexion && !adapter.connected && tries > 0) {
       this.setState({ conexion: true })
 
       await adapter.connect()
         .catch((e) => {
           console.log(e.toString())
           this.setState({ msj: { title: "Wallet connection error", message: e.toString() } })
-          tryes--;
+          tries--;
 
         })
 
@@ -195,9 +195,9 @@ class App extends Component {
 
     }
 
-    if (accountAddress !== adressDefault) {
-      let vierWallet = accountAddress.substring(0, 6) + "***" + accountAddress.substring(accountAddress.length - 6, accountAddress.length)
-      document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + striptags(accountAddress) + '" >' + striptags(vierWallet) + '</span>';
+    if (accountAddress !== addressDefault) {
+      let viewWallet = accountAddress.substring(0, 6) + "***" + accountAddress.substring(accountAddress.length - 6, accountAddress.length)
+      document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + striptags(accountAddress) + '" >' + striptags(viewWallet) + '</span>';
 
     } else {
       document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
@@ -324,9 +324,8 @@ class App extends Component {
     let { tronlink, contrato, accountAddress, tronWeb, msj, ruta } = this.state
 
     let Retorno = <></>
-
     if (window.tronLink === undefined) {
-      tronlink.loggedIn = true
+      tronlink.loggedIn = false
     }
 
     if (!contrato.ready && !tronlink.loggedIn) {

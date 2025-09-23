@@ -276,15 +276,19 @@ class EnergyRental extends Component {
       },
       {
         duration: "3d",
-        available: consulta.av_energy[1].available
+        available: consulta.av_energy[3].available
       },
       {
         duration: "7d",
-        available: consulta.av_energy[1].available
+        available: consulta.av_energy[4].available
       },
       {
         duration: "14d",
-        available: consulta.av_energy[1].available
+        available: consulta.av_energy[4].available
+      },
+       {
+        duration: "30d",
+        available: consulta.av_energy[5].available
       },
 
     ]
@@ -296,7 +300,7 @@ class EnergyRental extends Component {
       },
       {
         duration: "1h",
-        available: consulta.av_band[1].available
+        available: consulta.av_band[0].available
       },
       {
         duration: "1d",
@@ -304,15 +308,19 @@ class EnergyRental extends Component {
       },
       {
         duration: "3d",
-        available: consulta.av_band[1].available
+        available: consulta.av_band[3].available
       },
       {
         duration: "7d",
-        available: consulta.av_band[1].available
+        available: consulta.av_band[4].available
       },
       {
         duration: "14d",
-        available: consulta.av_band[1].available
+        available: consulta.av_band[4].available
+      },
+      {
+        duration: "30d",
+        available: consulta.av_band[5].available
       },
     ]
 
@@ -375,7 +383,15 @@ class EnergyRental extends Component {
           UE: new BigNumber(consulta.energy_one_day_100K).shiftedBy(1).dp(6).toNumber()
         },
         {
+          duration: "2",
+          UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).dp(6).toNumber()
+        },
+        {
           duration: "3",
+          UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).dp(6).toNumber()
+        },
+        {
+          duration: "4",
           UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).dp(6).toNumber()
         },
         {
@@ -385,6 +401,10 @@ class EnergyRental extends Component {
         {
           duration: "14",
           UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(14 / 3).dp(6).toNumber()
+        },
+        {
+          duration: "30",
+          UE: new BigNumber(consulta.energy_over_one_day_100K).shiftedBy(1).times(30 / 3).dp(6).toNumber()
         },
       ]
 
@@ -402,7 +422,15 @@ class EnergyRental extends Component {
           UE: new BigNumber(consulta.band_one_day_1000).times(1000).dp(6).toNumber()
         },
         {
+          duration: "2",
+          UE: new BigNumber(consulta.band_one_day_1000).times(1000).dp(6).toNumber()
+        },
+        {
           duration: "3",
+          UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).dp(6).toNumber()
+        },
+        {
+          duration: "4",
           UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).dp(6).toNumber()
         },
         {
@@ -412,6 +440,10 @@ class EnergyRental extends Component {
         {
           duration: "14",
           UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(14 / 3).dp(6).toNumber()
+        },
+        {
+          duration: "30",
+          UE: new BigNumber(consulta.band_over_one_day_1000).times(1000).times(30 / 3).dp(6).toNumber()
         },
       ]
 
@@ -842,7 +874,7 @@ class EnergyRental extends Component {
                       <div className="col-12 mt-2 mb-2 ">
                         <div className="d-flex justify-content-xl-center">
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "5min" } }) }}>5min</button>
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "5min" } }) }}>5m</button>
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "1h" } }) }}>1h</button>
                           <button type="button" className="btn btn-primary"
@@ -850,9 +882,9 @@ class EnergyRental extends Component {
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
                           <button type="button" className="btn btn-primary"
-                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "7d" } }) }}>7d</button>
-                          <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
+                          <button type="button" className="btn btn-primary" 
+                            style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "30d" } }) }}>30d</button>
                         </div>
                       </div>
 
