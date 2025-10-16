@@ -13,6 +13,7 @@ module.exports = {
     "@babel/plugin-transform-arrow-functions",
     "@babel/plugin-transform-shorthand-properties",
     "@babel/plugin-transform-template-literals",
-    "@babel/plugin-transform-classes"
+    "@babel/plugin-transform-classes",
+    "@babel/plugin-transform-class-properties"
   ]
 };
