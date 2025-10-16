@@ -6,9 +6,9 @@ import utils from "../utils";
 const BigNumber = require('bignumber.js');
 
 const amountsE = [
-  { amount: 32000, text: "32K" },
-  { amount: 100000, text: "100K" },
-  { amount: 160000, text: "160K" },
+  { amount: 65000, text: "65K" },
+  { amount: 130000, text: "130K" },
+  { amount: 200000, text: "200K" },
   { amount: 1000000, text: "1M" },
   { amount: 3000000, text: "3M" }
 ]
@@ -83,15 +83,14 @@ class EnergyRental extends Component {
 
     document.getElementById("tittle").innerText = t("ebot.tittle")
 
-
     setTimeout(() => {
       this.estado()
-    }, 5 * 1000)
+    }, 2 * 1000)
 
     intervalId = setInterval(() => {
       this.estado()
 
-    }, 20 * 1000)
+    }, 15 * 1000)
 
   }
 
@@ -286,9 +285,9 @@ class EnergyRental extends Component {
         duration: "14d",
         available: consulta.av_energy[4].available
       },
-       {
+      {
         duration: "30d",
-        available: consulta.av_energy[5].available
+        available: consulta.av_energy[4].available
       },
 
     ]
@@ -320,7 +319,7 @@ class EnergyRental extends Component {
       },
       {
         duration: "30d",
-        available: consulta.av_band[5].available
+        available: consulta.av_band[4].available
       },
     ]
 
@@ -761,7 +760,7 @@ class EnergyRental extends Component {
   }
 
   render() {
-    const {t} = this.props
+    const { t } = this.props
     let { unitEnergyPrice, amounts, recurso, av_energy, av_band } = this.state
 
     const amountButtons = amounts.map(amounts => <button key={"Amb-" + amounts.text} id="ra1" type="button" className="btn btn-primary"
@@ -883,7 +882,7 @@ class EnergyRental extends Component {
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "3d" } }) }}>3d</button>
                           <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "14d" } }) }}>14d</button>
-                          <button type="button" className="btn btn-primary" 
+                          <button type="button" className="btn btn-primary"
                             style={{ margin: "auto" }} onClick={() => { this.handleChangePeriodo({ target: { value: "30d" } }) }}>30d</button>
                         </div>
                       </div>
@@ -899,7 +898,7 @@ class EnergyRental extends Component {
                       </div>
 
                       <div className="col-xl-12 mb-3 mb-md-4">
-                        <p className="font-14">Send resources for another wallet</p>
+                        <p className="font-14">Send resources to this wallet {"⬇️"}</p>
 
                         <input name="dzFirstName" required type="text"
                           className="form-control" placeholder={this.props.accountAddress} onChange={this.handleChangeWallet} ></input>
@@ -919,7 +918,15 @@ class EnergyRental extends Component {
             <img src="images/ebot.png" width="170px" className="figure-img img-fluid rounded" alt="resource rental energy" ></img>
 
             <div className="info">
-              <p className="font-20">In Brutus Energy Bot, we've developed a app for a faster and secure resource rental experience on the Tron network. <br></br> <br></br> Innovatively simplifying the process, we ensure efficient management at competitive prices. Explore further through our <a href="https://t.me/BRUTUS_energy_bot">Telegram bot</a> or API for added accessibility. <br></br> <br></br>For additional information, reach out to us at <a href="mailto:support@brutus.finance">support@brutus.finance</a></p>
+              <p className="font-20 p-5">
+                In Brutus Energy Bot, we've developed an app for a faster and secure resource rental experience on the Tron network. <br></br>
+                <br></br>
+                Innovatively simplifying the process, we ensure efficient management at competitive prices. Explore further through our <a style={{ color: "purple", textDecoration: "underline" }} href="https://t.me/BRUTUS_energy_bot">Telegram bot</a> or API for added accessibility. <br></br>
+                <br></br>
+                For additional information, contact us via our <a style={{ color: "purple", textDecoration: "underline" }} href="https://t.me/brutus_comunidad_sr">Telegram group</a> or reach out to us at <a style={{ color: "purple", textDecoration: "underline" }} href="mailto:support@brutus.finance">support@brutus.finance</a><br></br>
+                <br></br>
+                Do you want to sell your energy/bandwidth and earn daily income? <a style={{ color: "purple", textDecoration: "underline" }} href="https://brutus.finance/provider/">Join us as a provider now!</a>
+              </p>
             </div>
 
             <div className="widget widget_about">
@@ -938,7 +945,7 @@ class EnergyRental extends Component {
             </div>
             <div className="card-body">
               <p>
-                <b>rental operator:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + process.env.REACT_APP_WALLET_API + "/code"}>{process.env.REACT_APP_WALLET_API}</a>
+                <b>Rental operator:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + process.env.REACT_APP_WALLET_API + "/code"}>{process.env.REACT_APP_WALLET_API}</a>
               </p>
             </div>
           </div>
