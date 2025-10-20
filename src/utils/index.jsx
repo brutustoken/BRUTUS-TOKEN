@@ -9,9 +9,9 @@ const BigNumber = require('bignumber.js');
 const env = process.env;
 
 const CryptoJS = require("crypto-js");
-
+//"https://cors.brutusservices.com/"
 let constantes = {}
-constantes.proxy = env.NODE_ENV === "development" ? "https://cors.brutusservices.com/": "";
+constantes.proxy = env.NODE_ENV === "development" ? "": "";
 constantes.BRUTUS_API = constantes.proxy + env.REACT_APP_API_URL + "api/v1/"
 constantes.apiProviders = constantes.proxy + "https://api-providers.brutusservices.com/main/"
 
