@@ -44,7 +44,6 @@ const cookies = new Cookies(null, { path: '/', maxAge: 60 * 60 * 24 * 30 });
 let theme = cookies.get('theme') || "light";
 document.documentElement.setAttribute("data-theme-version", theme);
 
-let tries = 2
 function setDarkTheme() {
 
   if (theme === "light") {
@@ -116,21 +115,20 @@ class App extends Component {
 
     document.documentElement.setAttribute("data-theme-version", theme);
 
-    let { walletConect } = this.state;
+    document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Conect Wallet"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+    document.getElementById("conectTL").onclick = () => { this.conectar() }
 
-    document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
-    document.getElementById("conectTL").onclick = () => { this.conectar(true); }
+    setTimeout(()=>{
+      this.conectar();
+    }, 7*1000);
 
     intervalId = setInterval(() => {
       this.route();
       this.seleccionarIdioma();
       if (Date.now() >= nextUpdate) {
 
-        if (this.state.tronlink.installed && !this.state.tronlink.loggedIn) {
-          nextUpdate = Date.now() + 3 * 1000;
-        } else {
-          nextUpdate = Date.now() + 60 * 1000;
-        }
+        nextUpdate = Date.now() + 60 * 1000;
+ 
         this.estado(true);
       }
 
@@ -160,14 +158,13 @@ class App extends Component {
 
   async conectar() {
 
-    if (!this.state.conexion && !adapter.connected && tries > 0) {
+    if (!this.state.conexion && !adapter.connected ) {
       this.setState({ conexion: true })
 
       await adapter.connect()
         .catch((e) => {
           console.log(e.toString())
           this.setState({ msj: { title: "Wallet connection error", message: e.toString() } })
-          tries--;
 
         })
 
@@ -191,8 +188,12 @@ class App extends Component {
       tronlink['installed'] = true;
     }
 
+    if(adapter.readyState === 'NotFound'){
+      return;
+    }
+
     if (!adapter.address) {
-      await this.conectar(true)
+      //await this.conectar(true)
     }
 
     if (adapter.address) {
@@ -208,8 +209,8 @@ class App extends Component {
       document.getElementById("login").innerHTML = '<span class="btn gradient-btn" title="' + striptags(accountAddress) + '" >' + striptags(viewWallet) + '</span>';
 
     } else {
-      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="' + striptags(walletConect) + '"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
-      document.getElementById("conectTL").onclick = () => { this.conectar(true); }
+      document.getElementById("login").innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Conect Wallet"> Conect Wallet </span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+      document.getElementById("conectTL").onclick = () => { this.conectar(); }
     }
 
     this.setState({
