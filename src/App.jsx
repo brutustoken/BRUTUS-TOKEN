@@ -202,7 +202,7 @@ const App = ({ i18n, t }) => {
     if (loginElement) {
       if (accountAddress !== addressDefault) {
         const viewWallet = accountAddress.substring(0, 6) + "***" + accountAddress.substring(accountAddress.length - 6);
-        loginElement.innerHTML = `<span class="btn gradient-btn" title="${striptags(accountAddress)}">${striptags(viewWallet)}</span>`;
+        loginElement.innerHTML = `<span class="btn gradient-secondary"  title="${striptags(accountAddress)}">${striptags(viewWallet)}</span>`;
       } else {
         loginElement.innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Conect Wallet">Conect Wallet</span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
         const conectBtn = document.getElementById("conectTL");
@@ -331,14 +331,14 @@ const App = ({ i18n, t }) => {
       }
 
       // Setup login button
-      const loginElement = document.getElementById("login");
+      /*const loginElement = document.getElementById("login");
       if (loginElement) {
         loginElement.innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Conect Wallet">Conect Wallet</span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
         const conectBtn = document.getElementById("conectTL");
         if (conectBtn) {
           conectBtn.onclick = () => conectar();
         }
-      }
+      }*/
 
       // Auto-connect after delay
       setTimeout(() => {
