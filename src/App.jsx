@@ -333,7 +333,7 @@ const App = ({ i18n, t }) => {
 
     const initialize = async () => {
       // Wait for TronWeb to be available
-      const tronWebInstance = await getTronWeb();
+      const tronWebInstance = await utils.getTronweb(accountAddress);
       
       if (!mountedRef.current) return;
 
