@@ -214,7 +214,7 @@ const App = ({ i18n, t }) => {
     if (loginElement) {
       if (accountAddress !== addressDefault && tronlink.loggedIn) {
         // User's connected wallet
-        const viewWallet = accountAddress.substring(0, 4) + "***" + accountAddress.substring(accountAddress.length - 4);
+        const viewWallet = accountAddress.substring(0, 6) + "***" + accountAddress.substring(accountAddress.length - 6);
         loginElement.innerHTML = `<span class="btn gradient-btn" title="${striptags(accountAddress)}">${striptags(viewWallet)}</span>`;
       } else {
         // Viewer mode or not connected
