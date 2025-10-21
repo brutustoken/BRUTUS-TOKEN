@@ -45,20 +45,7 @@ const setDarkTheme = () => {
   cookies.set('theme', newTheme);
 };
 
-// Wait for TronWeb to be available
-const getTronWeb = async () => {
-  if (typeof window === 'undefined') return null;
-  
-  let attempts = 0;
-  const maxAttempts = 50; // 5 seconds max wait
-  
-  while (typeof window.tronWeb === 'undefined' && attempts < maxAttempts) {
-    await new Promise(res => setTimeout(res, 100));
-    attempts++;
-  }
-  
-  return window.tronWeb || null;
-};
+
 
 // Initialize adapter outside component to prevent recreation
 let adapterInstance = null;
@@ -204,12 +191,6 @@ const App = ({ i18n, t }) => {
     const adapter = getAdapter();
     let tronlink = { ...state.tronlink };
     let accountAddress = state.accountAddress;
-
-    // Check if TronWeb is available
-    const tronWebInstance = await getTronWeb();
-    if (tronWebInstance) {
-      tronlink.installed = true;
-    }
 
     // Check adapter state
     if (adapter.readyState === 'NotFound') {
