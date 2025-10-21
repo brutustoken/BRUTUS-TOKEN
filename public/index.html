@@ -187,7 +187,7 @@
             <option value="pt">Portuguese</option>
             <!--option value="in">Indonesio</option-->
           </select>
-          <br></br> Version 2.5.1
+          <br></br> Version 2.6.0
         </p>
       </div>
     </div>
@@ -305,6 +305,23 @@
       r.src = t + h._hjSettings.hjid + j + h._hjSettings.hjsv;
       a.appendChild(r);
     })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+  </script>
+
+  <!-- Cargar TronWeb desde CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/tronweb/dist/TronWeb.js"></script>
+
+  <!-- Loader que espera a que TronWeb esté listo -->
+  <script>
+    window.waitForTronWeb = async function (maxAttempts = 50, interval = 200) {
+      for (let i = 0; i < maxAttempts; i++) {
+        if (window.tronWeb && globalThis.TronWebProto) {
+          console.log("✅ TronWeb listo");
+          return window.tronWeb;
+        }
+        await new Promise(r => setTimeout(r, interval));
+      }
+      throw new Error("⛔ TronWeb no se inicializó a tiempo");
+    };
   </script>
 
 </body>

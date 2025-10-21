@@ -1,4 +1,4 @@
-import { TronWeb } from 'tronweb';
+import {TronWeb} from 'tronweb';
 
 const abi_TOKEN = require("../assets/abi/TRC20-USDT.json")
 const abi_SUNSWAP = require("../assets/abi/SunswapV3.json")
