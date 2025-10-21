@@ -76,7 +76,7 @@ const App = ({ i18n, t }) => {
     tronlink: {
       installed: false,
       loggedIn: false,
-      viewer: false,
+      viewer: true, // Start in viewer mode with default wallet
       adapter: {}
     },
     tronWeb: {},
@@ -103,6 +103,8 @@ const App = ({ i18n, t }) => {
   const intervalRef = useRef(null);
   const nextUpdateRef = useRef(0);
   const mountedRef = useRef(true);
+  const autoConnectAttemptedRef = useRef(false);
+  const isConnectingRef = useRef(false);
 
   // Route handler
   const route = useCallback(() => {
@@ -144,28 +146,52 @@ const App = ({ i18n, t }) => {
   }, [i18n]);
 
   // Connect wallet
-  const conectar = useCallback(async () => {
+  const conectar = useCallback(async (isAutoConnect = false) => {
+    // Prevent multiple simultaneous connection attempts
+    if (isConnectingRef.current) {
+      console.log("Connection already in progress, skipping...");
+      return false;
+    }
+
     const adapter = getAdapter();
     
-    if (!state.conexion && !adapter.connected) {
+    // If already connected, just update state
+    if (adapter.connected) {
+      if (mountedRef.current) {
+        await estado();
+      }
+      return true;
+    }
+
+    // Don't attempt connection if not available
+    if (!adapter || adapter.readyState === 'NotFound') {
+      console.log("TronLink adapter not found");
+      return false;
+    }
+
+    if (!state.conexion) {
+      isConnectingRef.current = true;
       setState(prev => ({ ...prev, conexion: true }));
 
       try {
         await adapter.connect();
         if (adapter.connected && mountedRef.current) {
           await estado();
+          return true;
         }
       } catch (e) {
         console.log("Connection error:", e.toString());
-        if (mountedRef.current) {
-          setState(prev => ({ 
-            ...prev, 
-            msj: { title: "Wallet connection error", message: e.toString() } 
+        // Only show error message for manual connections
+        if (!isAutoConnect && mountedRef.current) {
+          setState(prev => ({
+            ...prev,
+            msj: { title: "Wallet connection error", message: e.toString() }
           }));
         }
       } finally {
         if (mountedRef.current) {
           setState(prev => ({ ...prev, conexion: false }));
+          isConnectingRef.current = false;
         }
       }
     }
@@ -193,21 +219,28 @@ const App = ({ i18n, t }) => {
     if (adapter.address) {
       tronlink.installed = true;
       tronlink.loggedIn = true;
+      tronlink.viewer = false; // User connected their own wallet
       tronlink.adapter = adapter;
       accountAddress = adapter.address;
+    } else {
+      // Keep viewer mode with default wallet
+      tronlink.viewer = true;
+      accountAddress = addressDefault;
     }
 
     // Update UI
     const loginElement = document.getElementById("login");
     if (loginElement) {
-      if (accountAddress !== addressDefault) {
-        const viewWallet = accountAddress.substring(0, 6) + "***" + accountAddress.substring(accountAddress.length - 6);
-        loginElement.innerHTML = `<span class="btn gradient-secondary"  title="${striptags(accountAddress)}">${striptags(viewWallet)}</span>`;
+      if (accountAddress !== addressDefault && tronlink.loggedIn) {
+        // User's connected wallet
+        const viewWallet = accountAddress.substring(0, 4) + "***" + accountAddress.substring(accountAddress.length - 4);
+        loginElement.innerHTML = `<span class="btn gradient-btn" title="${striptags(accountAddress)}">${striptags(viewWallet)}</span>`;
       } else {
-        loginElement.innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Conect Wallet">Conect Wallet</span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+        // Viewer mode or not connected
+        loginElement.innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Connect your wallet to perform transactions">Connect Wallet</span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
         const conectBtn = document.getElementById("conectTL");
         if (conectBtn) {
-          conectBtn.onclick = () => conectar();
+          conectBtn.onclick = () => conectar(false);
         }
       }
     }
@@ -319,33 +352,50 @@ const App = ({ i18n, t }) => {
 
     const initialize = async () => {
       // Wait for TronWeb to be available
-      await getTronWeb();
+      const tronWebInstance = await getTronWeb();
       
-      if (mountedRef.current) {
-        setState(prev => ({ ...prev, tronWebReady: true }));
-      }
+      if (!mountedRef.current) return;
+
+      setState(prev => ({ ...prev, tronWebReady: true }));
 
       // Set theme
       if (typeof document !== 'undefined') {
         document.documentElement.setAttribute("data-theme-version", initialTheme);
       }
 
-      // Setup login button
-      /*const loginElement = document.getElementById("login");
+      // Load contracts with default wallet for viewer mode
+      console.log("Loading contracts in viewer mode with default wallet...");
+      await loadContracts(addressDefault);
+
+      // Setup login button initially
+      const loginElement = document.getElementById("login");
       if (loginElement) {
-        loginElement.innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Conect Wallet">Conect Wallet</span> <img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
+        loginElement.innerHTML = '<span id="conectTL" class="btn btn-primary" style="cursor:pointer" title="Connect your wallet to perform transactions">Connect Wallet</span><img src="images/TronLinkLogo.png" height="40px" alt="TronLink logo" />';
         const conectBtn = document.getElementById("conectTL");
         if (conectBtn) {
-          conectBtn.onclick = () => conectar();
+          conectBtn.onclick = () => conectar(false);
         }
-      }*/
+      }
 
-      // Auto-connect after delay
-      setTimeout(() => {
-        if (mountedRef.current) {
-          conectar();
+      // Check if adapter is available and ready
+      const adapter = getAdapter();
+      if (adapter && adapter.readyState !== 'NotFound') {
+        // Single auto-connect attempt after ensuring TronWeb is ready
+        if (!autoConnectAttemptedRef.current && tronWebInstance) {
+          autoConnectAttemptedRef.current = true;
+          
+          // Wait a bit to ensure everything is loaded
+          setTimeout(async () => {
+            if (mountedRef.current && !adapter.connected) {
+              console.log("Attempting auto-connect...");
+              const connected = await conectar(true);
+              if (!connected) {
+                console.log("Auto-connect failed, staying in viewer mode");
+              }
+            }
+          }, 3000);
         }
-      }, 7000);
+      }
 
       // Setup interval for updates
       intervalRef.current = setInterval(() => {
@@ -356,9 +406,15 @@ const App = ({ i18n, t }) => {
         
         seleccionarIdioma();
 
+        // Periodic state check (not connection attempt)
         if (Date.now() >= nextUpdateRef.current) {
           nextUpdateRef.current = Date.now() + 60 * 1000;
-          estado();
+          
+          // Update estado regardless of connection status
+          const adapter = getAdapter();
+          if (adapter && adapter.connected) {
+            estado();
+          }
         }
       }, 3000);
     };
@@ -371,14 +427,15 @@ const App = ({ i18n, t }) => {
         clearInterval(intervalRef.current);
       }
     };
-  }, [conectar, estado, route, seleccionarIdioma]);
+  }, []); // Empty dependency array - only run once on mount
 
   // Render component based on route
   const renderContent = () => {
     const { tronlink, contrato, accountAddress, tronWeb, ruta } = state;
 
     // Show loading if TronWeb not ready or contracts not loaded
-    if (!state.tronWebReady || (!contrato.ready && !tronlink.loggedIn)) {
+    // Allow viewer mode to proceed even without wallet connection
+    if (!state.tronWebReady || !contrato.ready) {
       return (
         <div className="container">
           <div className="row">
@@ -388,6 +445,7 @@ const App = ({ i18n, t }) => {
                   <div className='col-sm-8'>
                     <h1>{t("preLoad", { returnObjects: true })?.[0] || "Loading"}{imgLoading}</h1>
                     <p>{t("preLoad", { returnObjects: true })?.[1] || "Please wait while we load the application..."}</p>
+                    {tronlink.viewer && <p style={{ fontSize: '0.9em', opacity: 0.8, marginTop: '1em' }}>Loading in viewer mode - Connect your wallet to perform transactions</p>}
                   </div>
                 </div>
               </div>
@@ -397,19 +455,28 @@ const App = ({ i18n, t }) => {
       );
     }
 
+    // Pass viewer mode status to all pages
+    const pageProps = {
+      accountAddress,
+      contrato,
+      tronWeb,
+      tronlink,
+      isViewerMode: tronlink.viewer && accountAddress === addressDefault
+    };
+
     // Route to appropriate page
     switch (ruta) {
       case "brut":
-        return <Brut accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />;
+        return <Brut {...pageProps} />;
       
       case "brst":
-        return <Brst accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />;
+        return <Brst {...pageProps} />;
       
       case "brgy":
-        return <Nft accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />;
+        return <Nft {...pageProps} />;
       
       case "brlt":
-        return <LOTERIA accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />;
+        return <LOTERIA {...pageProps} />;
       
       case "rent":
       case "ebot":
@@ -419,19 +486,19 @@ const App = ({ i18n, t }) => {
               title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
               description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
             />
-            <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />
+            <EBOT {...pageProps} />
           </>
         );
       
       case "pro":
-        return <PRO accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} />;
+        return <PRO {...pageProps} />;
       
       case "api":
-        return <API accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} tronlink={tronlink} />;
+        return <API {...pageProps} />;
       
       case "portfolio":
       case "wallet":
-        return <Home accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />;
+        return <Home {...pageProps} />;
       
       default:
         return (
@@ -440,7 +507,7 @@ const App = ({ i18n, t }) => {
               title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
               description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
             />
-            <EBOT accountAddress={accountAddress} contrato={contrato} tronWeb={tronWeb} />
+            <EBOT {...pageProps} />
           </>
         );
     }
