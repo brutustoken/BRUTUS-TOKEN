@@ -61,6 +61,13 @@ function setDarkTheme() {
 let nextUpdate = 0
 let intervalId = null
 
+async function getTronWeb() {
+  while (typeof window.tronWeb === 'undefined') {
+    await new Promise(res => setTimeout(res, 100));
+  }
+  return window.tronWeb;
+}
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -151,7 +158,7 @@ class App extends Component {
   }
 
 
-  async conectar(billetera) {
+  async conectar() {
 
     if (!this.state.conexion && !adapter.connected && tries > 0) {
       this.setState({ conexion: true })
@@ -180,7 +187,7 @@ class App extends Component {
 
     let { tronlink, accountAddress, walletConect } = this.state;
 
-    if (window.tronWeb) {
+    if (await getTronWeb()) {
       tronlink['installed'] = true;
     }
 
@@ -189,6 +196,7 @@ class App extends Component {
     }
 
     if (adapter.address) {
+      tronlink['installed'] = true;
       tronlink['loggedIn'] = true;
       tronlink['adapter'] = adapter;
       accountAddress = adapter.address
