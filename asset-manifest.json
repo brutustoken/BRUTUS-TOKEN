@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.js": "/static/js/main.6d2d6708.js",
+    "main.js": "/static/js/main.449a5578.js",
     "static/js/703.151c9b22.chunk.js": "/static/js/703.151c9b22.chunk.js",
     "static/media/Tron_pb.cjs": "/static/media/Tron_pb.47f9abd618e1f7f2dfb6.cjs",
     "static/media/balance_contract_pb.cjs": "/static/media/balance_contract_pb.aa7472a153034a19e073.cjs",
@@ -13,10 +13,10 @@
     "static/media/proposal_contract_pb.cjs": "/static/media/proposal_contract_pb.11c5652f762d76d76b5c.cjs",
     "index.html": "/index.html",
     "static/media/common_pb.cjs": "/static/media/common_pb.f501a3d0c73f0afd128b.cjs",
-    "main.6d2d6708.js.map": "/static/js/main.6d2d6708.js.map",
+    "main.449a5578.js.map": "/static/js/main.449a5578.js.map",
     "703.151c9b22.chunk.js.map": "/static/js/703.151c9b22.chunk.js.map"
   },
   "entrypoints": [
-    "static/js/main.6d2d6708.js"
+    "static/js/main.449a5578.js"
   ]
 }
