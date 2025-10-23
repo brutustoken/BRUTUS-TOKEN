@@ -1,476 +1,395 @@
-import React, { Component } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { withTranslation } from 'react-i18next';
 
 import utils from "../utils";
 
-
-/**
-class nftOficina extends Component {
-	constructor(props) {
-		super(props);
-
-		this.state = {
-			deposito: "Loading...",
-			wallet: this.props.accountAddress,
-			balanceBRUT: 0,
-			precioBRUT: 0
-
-		};
-
-		this.estado = this.estado.bind(this);
-		this.consultarPrecio = this.consultarPrecio.bind(this);
-	}
-
-	async componentDidMount() {
-		await utils.setContract(window.tronWeb, contractAddress);
-		this.estado();
-		setInterval(() => this.estado(), 3 * 1000);
-	};
-
-	async consultarPrecio() {
-
-		var precio = await utils.contract.RATE().call();
-		precio = parseInt(precio) / 10 ** 6;
-
-		this.setState({
-			precioBRUT: precio
-		});
-
-		return precio;
-
-	};
-
-	async estado() {
-
-		var contractMistery = await window.tronWeb.contract().at(cons.SC3);
-		var contractNFT = await window.tronWeb.contract().at(cons.BRGY);
-
-		var robots = [];
-
-
-		for (let index = 0; index < 25; index++) {
-			var conteo = await contractMistery.entregaNFT(this.props.accountAddress, index).call()
-				.then((conteo) => {
-					if (conteo) {
-						robots.push(parseInt(conteo)); return 1;
-					}
-				})
-				.catch(() => {
-					return 0;
-				})
-
-			if (conteo === 0) {
-				break;
-			}
-
-		}
-
-		var estonuevo = [];
-
-		for (let index = 0; index < robots.length; index++) {
-			let user = await contractNFT.ownerOf(robots[index]).call();
-			estonuevo[index] = window.tronWeb.address.fromHex(user) === this.props.accountAddress;
-		}
-
-		//console.log(estonuevo)
-
-		for (let index = 0; index < robots.length; index++) {
-
-			var URI = await contractNFT.tokenURI(robots[index]).call()
-
-			var metadata = JSON.parse(await (await fetch(cons.proxy + URI)).text());
-			metadata.numero = robots[index]
-
-			robots[index] = metadata;
-
-		}
-
-
-		var imagerobots = [];
-		var recBotton = (<></>)
-
-		for (let index = 0; index < robots.length; index++) {
-
-			if (!estonuevo[index]) {
-				recBotton = (
-					<button className="btn btn-success" onClick={async () => {
-						var contractMistery = await window.tronWeb.contract().at(cons.SC3);
-						await contractMistery.claimNFT_especifico(index).send();
-					}}>Claim</button>
-				)
-			} else {
-				recBotton = (<></>)
-			}
-
-			imagerobots[index] = (
-				<div className="col-xl-3 col-lg-6 col-sm-6" key={"robbrutN" + index}>
-					<div className="card">
-						<div className="card-body">
-							<div className="new-arrival-product">
-								<div className="new-arrivals-img-contnent">
-									<img src={robots[index].image} alt={robots[index].name} className="img-thumbnail"></img>
-								</div>
-								<div className="new-arrival-content text-center mt-3">
-									<h4>#{robots[index].numero} {robots[index].name}</h4>
-									{recBotton}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-			)
-		}
-
-		this.setState({
-			robots: robots,
-			imagerobots: imagerobots
-		});
-
-	}
-
-	render() {
-
-		return (
-
-			<div className=" container text-center">
-				<div className="row">
-
-					<div className="col-lg-12 p-2">
-						<div className="card">
-							<br /><br />
-
-							<h5 >
-								wallet:<br />
-								<strong>{this.props.accountAddress}</strong><br /><br />
-							</h5>
-
-
-						</div>
-
-					</div>
-
-				</div>
-
-				<div className="row">
-
-					{this.state.imagerobots}
-
-				</div>
-
-			</div>
-
-
-		);
-	}
-}
-
-class nftCrowdFunding extends Component {
-	constructor(props) {
-		super(props);
-
-		this.state = {
-
-			mc: "Loading...",
-			mb: "Loading..."
-		};
-
-		this.compra = this.compra.bind(this);
-		this.misterio = this.misterio.bind(this);
-
-
-	}
-
-	async componentDidMount() {
-
-		setInterval(() => {
-			this.misterio();
-		}, 7 * 1000)
-	}
-
-	async misterio() {
-
-		var contractNFT = await window.tronWeb.contract().at(cons.BRGY);
-		console.log(contractNFT)
-		var contractMistery = await window.tronWeb.contract().at(cons.SC3);
-
-		let mb = 0;
-		let mc = 0;
-
-		for (let index = 0; index < 25; index++) {
-			var conteo = await contractMistery.entregaNFT(this.props.accountAddress, index).call().catch(() => { return 0; });
-
-			if (conteo) {
-				mc++;
-				let nft = await contractMistery.entregaNFT(this.props.accountAddress, index).call();
-				let ownerNft = await contractNFT.ownerOf(parseInt(nft)).call();
-				ownerNft = window.tronWeb.address.fromHex(ownerNft);
-
-				if (ownerNft !== this.props.accountAddress) {
-					mb++;
-				}
-
-			} else {
-				break;
-			}
-
-		}
-
-		this.setState({
-			mc: mc,
-			mb: mb
-		})
-
-	}
-
-
-	async compra() {
-
-		var accountAddress = await window.tronWeb.trx.getAccount();
-		accountAddress = window.tronWeb.address.fromHex(accountAddress.address);
-
-		var contractMistery = await window.tronWeb.contract().at(cons.SC3);
-
-		var contractAPENFT = await window.tronWeb.contract().at(cons.APENFT);
-
-		var aprovado = await contractAPENFT.allowance(accountAddress, contractAddress).call();
-
-		if (aprovado.remaining) {
-			aprovado = aprovado.remaining;
-		}
-
-		aprovado = parseInt(aprovado);
-		aprovado = aprovado / 10 ** 6;
-
-
-		if (aprovado > 0) {
-
-			await contractMistery.buyMisteryBox().send();
-
-			window.alert("Mistery box buyed!");
-
-
-		} else {
-
-			await contractAPENFT.approve(contractAddress, "115792089237316195423570985008687907853269984665640564039457584007913129639935").send();
-
-
-		}
-
-		this.misterio();
-
-	};
-
-	render() {
-
-
-		return (
-
-
-			<div className="container text-center">
-
-				<div className="card">
-					<div className="row">
-
-						<div className="col-lg-12">
-							<img
-								className="img-fluid"
-								src="assets/img/MISTERY2.gif"
-								alt="mistery box brutus"
-							/>
-							<h2>Mistery box</h2>
-							<p>10'000.000 APENFT</p>
-							<button className="btn btn-success" style={{ "cursor": "pointer" }} onClick={() => this.compra()}>Buy Mistery Box</button>
-
-							<br></br><br></br>
-
-							Mistery Box buyed: {this.state.mc}
-
-							<br></br>
-
-							<button className="btn btn-warning" style={{ "cursor": "pointer" }} onClick={async () => {
-
-								if (false) {
-
-									window.alert("please wait to claim your NFT")
-
-								} else {
-									var contractMistery = await window.tronWeb.contract().at(cons.SC3);
-
-									await contractMistery.claimNFT().send()
-										.then(() => { window.alert("NFT's sended") })
-										.catch(() => { window.alert("Error to reclaim") })
-
-								}
-
-							}}>Open {this.state.mb} Mistery Box</button>
-						</div>
-
-					</div>
-
-				</div>
-
-
-			</div>
-
-
-		);
-	}
-}
- */
-
-let nextUpdate = 0
-let intervalId = null
-
-class Galeria extends Component {
-	constructor(props) {
-		super(props);
-
-		this.state = {
-			imagerobots: []
-
-		};
-
-		this.estado = this.estado.bind(this);
-
-	}
-
-
-	componentDidMount() {
-		document.title = "BRGY | Brutus.Finance"
-
-		intervalId = setInterval(() => {
-
-			if (Date.now() >= nextUpdate) {
-
-				if (!this.props.contrato.ready) {
-					nextUpdate = Date.now() + 3 * 1000;
-				} else {
-					nextUpdate = Date.now() + 60 * 1000;
-				}
-				this.estado();
-			}
-
-		}, 3 * 1000);
-	}
-
-	componentWillUnmount() {
-		clearInterval(intervalId)
-	}
-
-
-	async estado() {
-
-		let { contrato } = this.props
-
-		if (!contrato.ready) return;
-
-		let robots = [];
-
-		for (let index = 0; index < 25; index++) {
-			var conteo = await this.props.contrato.MBOX.entregaNFT(this.props.accountAddress, index).call()
-				.then((conteo) => {
-					if (conteo) {
-						robots.push(parseInt(conteo)); return 1;
-					}
-				})
-				.catch(() => {
-					return 0;
-				})
-
-			if (conteo === 0) {
-				break;
-			}
-
-		}
-
-		var estonuevo = [];
-
-		for (let index = 0; index < robots.length; index++) {
-			let user = await this.props.contrato.BRGY.ownerOf(robots[index]).call();
-			estonuevo[index] = window.tronWeb.address.fromHex(user) === this.props.accountAddress;
-		}
-
-		for (let index = 0; index < robots.length; index++) {
-
-			var URI = await this.props.contrato.BRGY.tokenURI(robots[index]).call()
-
-			var metadata = await fetch(utils.proxy + URI).then((res) => { return res.json() }).catch(console.error);
-			metadata.numero = robots[index]
-			robots[index] = metadata;
-
-		}
-
-		var imagerobots = [];
-		var recBotton = (<></>)
-
-		for (let index = 0; index < robots.length; index++) {
-
-			if (!estonuevo[index]) {
-				recBotton = (
-					<button className="btn btn-success" onClick={async () => {
-						await this.props.contrato.MBOX.claimNFT_especifico(index).send();
-					}}>Claim</button>
-				)
-			} else {
-				recBotton = (<></>)
-			}
-
-			imagerobots[index] = (
-				<div className="col-xl-3 col-lg-6 col-sm-6" key={"robbrutN" + index}>
-					<div className="card">
-						<div className="card-body">
-							<div className="new-arrival-product">
-								<div className="new-arrivals-img-contnent">
-									<a href={robots[index].image} rel="noopener noreferrer" target="_blank">
-										<img src={robots[index].image} alt={robots[index].name} className="img-thumbnail"></img>
-									</a>
-								</div>
-								<div className="new-arrival-content text-center mt-3">
-									<h4>#{robots[index].numero} {robots[index].name}</h4>
-									{recBotton}
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-
-			)
-		}
-
-		this.setState({
-			robots: robots,
-			imagerobots: imagerobots
-		});
-
-	}
-
-	render() {
-
-		return (
-			<>
-
-				<div className="row page-titles mx-0">
-					<div className="col-sm-6 p-md-0">
-						<div className="welcome-text">
-							<h4>My Colectibles</h4>
-							<p className="mb-0">BRGY</p>
-						</div>
-					</div>
-					<div className="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
-						<ol className="breadcrumb">
-							<li className="breadcrumb-item">All collection on </li>
-							<li className="breadcrumb-item active"><a href="https://bit.ly/Brutus-Gallery" rel="noopener noreferrer" target="_blank">APENFT</a></li>
-						</ol>
-					</div>
-				</div>
-				<div className="row">
-					{this.state.imagerobots}
-				</div>
-
-			</>
-		);
-	}
-}
+const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
+  const [state, setState] = useState({
+    imagerobots: [],
+    loading: true,
+    error: null
+  });
+
+  const mountedRef = useRef(true);
+  const intervalRef = useRef(null);
+  const nextUpdateRef = useRef(0);
+  const previousAddressRef = useRef(null);
+
+  // Fetch NFT data
+  const fetchNFTData = useCallback(async () => {
+    // Don't fetch if contracts aren't ready
+    if (!contrato?.ready || !contrato?.MBOX || !contrato?.BRGY) {
+      console.log("Contracts not ready yet");
+      return;
+    }
+
+    // Don't fetch if no account address
+    if (!accountAddress) {
+      console.log("No account address available");
+      return;
+    }
+
+    try {
+      setState(prev => ({ ...prev, loading: true, error: null }));
+
+      let robots = [];
+
+      // Fetch NFT IDs from mystery box contract
+      for (let index = 0; index < 25; index++) {
+        try {
+          const nftId = await contrato.MBOX.entregaNFT(accountAddress, index).call();
+          
+          if (nftId) {
+            robots.push(parseInt(nftId));
+          } else {
+            break;
+          }
+        } catch (error) {
+          // No more NFTs for this user
+          break;
+        }
+      }
+
+      // If no NFTs found, update state and return
+      if (robots.length === 0) {
+        if (mountedRef.current) {
+          setState({
+            imagerobots: [],
+            loading: false,
+            error: null
+          });
+        }
+        return;
+      }
+
+      // Check ownership status for each NFT
+      const ownershipChecks = await Promise.all(
+        robots.map(async (nftId) => {
+          try {
+            const owner = await contrato.BRGY.ownerOf(nftId).call();
+            const ownerAddress = window.tronWeb.address.fromHex(owner);
+            return ownerAddress === accountAddress;
+          } catch (error) {
+            console.error(`Error checking ownership for NFT ${nftId}:`, error);
+            return false;
+          }
+        })
+      );
+
+      // Fetch metadata for each NFT
+      const nftDataPromises = robots.map(async (nftId, index) => {
+        try {
+          const uri = await contrato.BRGY.tokenURI(nftId).call();
+          const response = await fetch(utils.proxy + uri);
+          const metadata = await response.json();
+          
+          return {
+            ...metadata,
+            numero: nftId,
+            isOwned: ownershipChecks[index]
+          };
+        } catch (error) {
+          console.error(`Error fetching metadata for NFT ${nftId}:`, error);
+          return {
+            numero: nftId,
+            name: `NFT #${nftId}`,
+            image: '',
+            isOwned: ownershipChecks[index],
+            error: true
+          };
+        }
+      });
+
+      const nftData = await Promise.all(nftDataPromises);
+
+      // Generate image components
+      const imagerobots = nftData.map((nft, index) => {
+        const claimButton = !nft.isOwned ? (
+          <button 
+            className="btn btn-success" 
+            onClick={async () => {
+              try {
+                await contrato.MBOX.claimNFT_especifico(index).send();
+                // Refresh data after claiming
+                setTimeout(() => fetchNFTData(), 3000);
+              } catch (error) {
+                console.error("Error claiming NFT:", error);
+              }
+            }}
+          >
+            Claim
+          </button>
+        ) : null;
+
+        return (
+          <div className="col-xl-3 col-lg-6 col-sm-6" key={`robbrutN${nft.numero}`}>
+            <div className="card">
+              <div className="card-body">
+                <div className="new-arrival-product">
+                  <div className="new-arrivals-img-contnent">
+                    {nft.image ? (
+                      <a href={nft.image} rel="noopener noreferrer" target="_blank">
+                        <img 
+                          src={nft.image} 
+                          alt={nft.name} 
+                          className="img-thumbnail"
+                          onError={(e) => {
+                            e.target.src = '/images/brgy.png';
+                          }}
+                        />
+                      </a>
+                    ) : (
+                      <img 
+                        src="/images/brgy.png" 
+                        alt={nft.name} 
+                        className="img-thumbnail"
+                      />
+                    )}
+                  </div>
+                  <div className="new-arrival-content text-center mt-3">
+                    <h4>#{nft.numero} {nft.name}</h4>
+                    {claimButton}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      });
+
+      if (mountedRef.current) {
+        setState({
+          imagerobots,
+          loading: false,
+          error: null
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching NFT data:", error);
+      if (mountedRef.current) {
+        setState(prev => ({
+          ...prev,
+          loading: false,
+          error: error.message || "Failed to load NFT data"
+        }));
+      }
+    }
+  }, [accountAddress, contrato]);
+
+  // Effect to handle wallet address changes
+  useEffect(() => {
+    // Check if wallet address has changed
+    if (previousAddressRef.current !== accountAddress) {
+      console.log(`Wallet address changed from ${previousAddressRef.current} to ${accountAddress}`);
+      previousAddressRef.current = accountAddress;
+      
+      // Immediately fetch data when wallet changes
+      if (contrato?.ready) {
+        fetchNFTData();
+      }
+    }
+  }, [accountAddress, contrato?.ready, fetchNFTData]);
+
+  // Effect to set up periodic updates
+  useEffect(() => {
+    mountedRef.current = true;
+
+    // Set document title
+    document.title = "BRGY | Brutus.Finance";
+
+    // Initial fetch
+    if (contrato?.ready && accountAddress) {
+      fetchNFTData();
+    }
+
+    // Set up interval for periodic updates
+    intervalRef.current = setInterval(() => {
+      if (!mountedRef.current) return;
+
+      const now = Date.now();
+      
+      // Update every 60 seconds if contracts are ready, otherwise every 3 seconds
+      const updateInterval = contrato?.ready ? 60 * 1000 : 3 * 1000;
+      
+      if (now >= nextUpdateRef.current) {
+        nextUpdateRef.current = now + updateInterval;
+        
+        if (contrato?.ready && accountAddress) {
+          fetchNFTData();
+        }
+      }
+    }, 3000);
+
+    // Cleanup function
+    return () => {
+      mountedRef.current = false;
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [contrato?.ready, accountAddress, fetchNFTData]);
+
+  // Render loading state
+  if (state.loading && state.imagerobots.length === 0) {
+    return (
+      <>
+        <div className="row page-titles mx-0">
+          <div className="col-sm-6 p-md-0">
+            <div className="welcome-text">
+              <h4>My Collectibles</h4>
+              <p className="mb-0">BRGY</p>
+            </div>
+          </div>
+          <div className="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+            <ol className="breadcrumb">
+              <li className="breadcrumb-item">All collection on </li>
+              <li className="breadcrumb-item active">
+                <a href="https://bit.ly/Brutus-Gallery" rel="noopener noreferrer" target="_blank">
+                  APENFT
+                </a>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body text-center py-5">
+                <img src="/images/cargando.gif" height="40px" alt="Loading..." />
+                <p className="mt-3">Loading your NFT collection...</p>
+                {isViewerMode && (
+                  <p className="text-muted" style={{ fontSize: '0.9em' }}>
+                    Connect your wallet to view your personal collection
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Render error state
+  if (state.error) {
+    return (
+      <>
+        <div className="row page-titles mx-0">
+          <div className="col-sm-6 p-md-0">
+            <div className="welcome-text">
+              <h4>My Collectibles</h4>
+              <p className="mb-0">BRGY</p>
+            </div>
+          </div>
+          <div className="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+            <ol className="breadcrumb">
+              <li className="breadcrumb-item">All collection on </li>
+              <li className="breadcrumb-item active">
+                <a href="https://bit.ly/Brutus-Gallery" rel="noopener noreferrer" target="_blank">
+                  APENFT
+                </a>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body text-center py-5">
+                <div className="alert alert-danger">
+                  <h5>Error Loading NFTs</h5>
+                  <p>{state.error}</p>
+                  <button 
+                    className="btn btn-primary mt-3" 
+                    onClick={() => fetchNFTData()}
+                  >
+                    Try Again
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Render empty state
+  if (state.imagerobots.length === 0) {
+    return (
+      <>
+        <div className="row page-titles mx-0">
+          <div className="col-sm-6 p-md-0">
+            <div className="welcome-text">
+              <h4>My Collectibles</h4>
+              <p className="mb-0">BRGY</p>
+            </div>
+          </div>
+          <div className="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+            <ol className="breadcrumb">
+              <li className="breadcrumb-item">All collection on </li>
+              <li className="breadcrumb-item active">
+                <a href="https://bit.ly/Brutus-Gallery" rel="noopener noreferrer" target="_blank">
+                  APENFT
+                </a>
+              </li>
+            </ol>
+          </div>
+        </div>
+        <div className="row">
+          <div className="col-12">
+            <div className="card">
+              <div className="card-body text-center py-5">
+                <img src="/images/brgy.png" alt="BRGY" style={{ maxWidth: '200px', opacity: 0.5 }} />
+                <h4 className="mt-4">No NFTs Found</h4>
+                <p className="text-muted">
+                  {isViewerMode 
+                    ? "Connect your wallet to view your NFT collection"
+                    : "You don't have any BRGY NFTs yet"}
+                </p>
+                <a 
+                  href="https://bit.ly/Brutus-Gallery" 
+                  rel="noopener noreferrer" 
+                  target="_blank"
+                  className="btn btn-primary mt-3"
+                >
+                  View Collection on APENFT
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Render NFT gallery
+  return (
+    <>
+      <div className="row page-titles mx-0">
+        <div className="col-sm-6 p-md-0">
+          <div className="welcome-text">
+            <h4>My Collectibles</h4>
+            <p className="mb-0">BRGY</p>
+          </div>
+        </div>
+        <div className="col-sm-6 p-md-0 justify-content-sm-end mt-2 mt-sm-0 d-flex">
+          <ol className="breadcrumb">
+            <li className="breadcrumb-item">All collection on </li>
+            <li className="breadcrumb-item active">
+              <a href="https://bit.ly/Brutus-Gallery" rel="noopener noreferrer" target="_blank">
+                APENFT
+              </a>
+            </li>
+          </ol>
+        </div>
+      </div>
+      <div className="row">
+        {state.imagerobots}
+      </div>
+    </>
+  );
+};
 
 export default withTranslation()(Galeria);

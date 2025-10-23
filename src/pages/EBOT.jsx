@@ -558,7 +558,17 @@ class EnergyRental extends Component {
   }
 
   async preCompra() {
-    const { t } = this.props
+    const { t, isViewerMode } = this.props
+
+    if(isViewerMode){
+      this.setState({
+        titulo: "To continue",
+        body: "Connect your wallet to perform this operation."
+      })
+
+      window.$("#mensaje-ebot").modal("show");
+      return;
+    }
 
     await this.recursos();
 
