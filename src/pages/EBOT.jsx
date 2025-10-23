@@ -145,7 +145,11 @@ class EnergyRental extends Component {
     if (amount) {
       cantidad = amount
       try {
-        document.getElementById("amount").value = amount
+        let elAmount = document.getElementById("amount")
+
+        if(elAmount){
+          elAmount.value = amount
+        }
 
       } catch (e) {
         console.log(e)
@@ -153,7 +157,11 @@ class EnergyRental extends Component {
 
     } else {
       try {
-        cantidad = document.getElementById("amount").value
+        let elAmount = document.getElementById("amount")
+
+        if(elAmount){
+          cantidad = elAmount.value
+        }
 
       } catch (e) {
         console.log(e)
@@ -323,7 +331,12 @@ class EnergyRental extends Component {
       },
     ]
 
-    let duration = document.getElementById("periodo").value
+    let elPeriodo = document.getElementById("periodo")
+    let duration = "5min"
+    if(elPeriodo){
+      duration = elPeriodo.value
+    }
+
     this.setState({ duration })
 
     let av_energy = available_energy.find(obj => obj.duration === duration)
@@ -558,7 +571,17 @@ class EnergyRental extends Component {
   }
 
   async preCompra() {
-    const { t } = this.props
+    const { t, isViewerMode } = this.props
+
+    if(isViewerMode){
+      this.setState({
+        titulo: "To continue",
+        body: "Connect your wallet to perform this operation."
+      })
+
+      window.$("#mensaje-ebot").modal("show");
+      return;
+    }
 
     await this.recursos();
 
