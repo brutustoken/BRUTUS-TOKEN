@@ -209,7 +209,7 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
       const now = Date.now();
       
       // Update every 60 seconds if contracts are ready, otherwise every 3 seconds
-      const updateInterval = contrato?.ready ? 60 * 1000 : 3 * 1000;
+      const updateInterval = contrato?.ready ? 120 * 1000 : 3 * 1000;
       
       if (now >= nextUpdateRef.current) {
         nextUpdateRef.current = now + updateInterval;
@@ -245,7 +245,7 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
             <ol className="breadcrumb">
               <li className="breadcrumb-item">All collection on </li>
               <li className="breadcrumb-item active">
-                <a href="https://bit.ly/Brutus-Gallery" rel="noopener noreferrer" target="_blank">
+                <a href="https://marketplace.ainft.com/#/collection/TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7" rel="noopener noreferrer" target="_blank">
                   APENFT
                 </a>
               </li>
@@ -286,7 +286,7 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
             <ol className="breadcrumb">
               <li className="breadcrumb-item">All collection on </li>
               <li className="breadcrumb-item active">
-                <a href="https://bit.ly/Brutus-Gallery" rel="noopener noreferrer" target="_blank">
+                <a href="https://marketplace.ainft.com/#/collection/TGpQ3qap18rN1vMJj3pveMfqTeXDaKaDE7" rel="noopener noreferrer" target="_blank">
                   APENFT
                 </a>
               </li>
