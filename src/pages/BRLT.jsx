@@ -171,7 +171,7 @@ class NFTs extends Component {
 
   async estado() {
 
-    const {contrato = null, accountAddress} = this.props
+    const { contrato = null, accountAddress } = this.props
 
     if (!contrato || !contrato.ready) return;
 
@@ -337,8 +337,8 @@ class NFTs extends Component {
 
   async compra() {
 
-    const {tronWeb,accountAddress, contrato} = this.props
-    const {comprarBRLT,total} = this.state
+    const { tronWeb, accountAddress, contrato } = this.props
+    const { comprarBRLT, total } = this.state
 
 
     let feelimit = 200 * 10 ** 6;
@@ -398,8 +398,8 @@ class NFTs extends Component {
 
   async sorteo() {
 
-    const {contrato} = this.props
-    const {prosort} = this.state
+    const { contrato } = this.props
+    const { prosort } = this.state
 
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
     let premio = parseInt(await contrato.loteria._premio().call())
@@ -515,7 +515,7 @@ class NFTs extends Component {
 
   render() {
 
-    const {porcentaje,onSale, days, hours, minutes, seconds, proximoSorteo, premio, totalNFT, LastWiner, tikets} = this.state
+    const { porcentaje, onSale, days, hours, minutes, seconds, proximoSorteo, premio, totalNFT, LastWiner, tikets } = this.state
 
     return (
       <>
@@ -551,10 +551,12 @@ class NFTs extends Component {
                               </div>
                               <div id="ticketSold"></div>
                             </div>
-                            <div className="progress mb-2" style={{ "height": "10px","box-shadow":" 0 0 8px rgba(128, 0, 128, 0.5)" }}>
-                              <div className="progress-bar progress-animated" style={{ "width": porcentaje + "%", "height": "10px",  "background": "rgba(128, 0, 128, 0.8)",
-  "animation": "stripeMove 1s linear infinite",
-  "background-image": "repeating-linear-gradient(45deg,rgba(255, 255, 255, 0.1),rgba(255, 255, 255, 0.1) 10px,rgba(255, 255, 255, 0.2) 10px,rgba(255, 255, 255, 0.2) 20px)" }} role="progressbar">
+                            <div className="progress mb-2" style={{ "height": "10px", "box-shadow": " 0 0 8px rgba(128, 0, 128, 0.5)" }}>
+                              <div className="progress-bar progress-animated" style={{
+                                "width": porcentaje + "%", "height": "10px", "background": "rgba(128, 0, 128, 0.8)",
+                                "animation": "stripeMove 1s linear infinite",
+                                "background-image": "repeating-linear-gradient(45deg,rgba(255, 255, 255, 0.1),rgba(255, 255, 255, 0.1) 10px,rgba(255, 255, 255, 0.2) 10px,rgba(255, 255, 255, 0.2) 20px)"
+                              }} role="progressbar">
                               </div>
                             </div>
                             <p>{proximoSorteo}</p>
@@ -584,7 +586,7 @@ class NFTs extends Component {
 
                               <h4 className="fs-18 font-w400">NFT Sold</h4>
                               <div className="d-flex align-items-center">
-                                <h2 className="count-num">{totalNFT-1}</h2>
+                                <h2 className="count-num">{totalNFT - 1}</h2>
                               </div>
                             </div>
                             <div id="totalInvoices"></div>
@@ -595,7 +597,7 @@ class NFTs extends Component {
                         <div className="card overflow-hidden">
                           <div className="card-body py-4 pt-4">
                             <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
-                              window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + LastWiner, '_blank')
+                              window.open("https://marketplace.ainft.com/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + LastWiner, '_blank')
                             }}>
 
                               <h4 className="fs-18 font-w400">Last Winner</h4>

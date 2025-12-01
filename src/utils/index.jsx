@@ -1,4 +1,4 @@
-import {TronWeb} from 'tronweb';
+import { TronWeb } from 'tronweb';
 
 const abi_TOKEN = require("../assets/abi/TRC20-USDT.json")
 const abi_SUNSWAP = require("../assets/abi/SunswapV3.json")
@@ -11,7 +11,7 @@ const env = process.env;
 const CryptoJS = require("crypto-js");
 //"https://cors.brutusservices.com/"
 let constantes = {}
-constantes.proxy = env.NODE_ENV === "development" ? "": "";
+constantes.proxy = env.NODE_ENV === "development" ? "" : "";
 constantes.BRUTUS_API = constantes.proxy + env.REACT_APP_API_URL + "api/v1/"
 constantes.apiProviders = constantes.proxy + "https://api-providers.brutusservices.com/main/"
 
@@ -91,7 +91,8 @@ async function keyQuery() {
 
 function getRed(index = 0) {
 
-  let tokenList = env.REACT_APP_LIST_TRONQL;
+  let tokenList = env.REACT_APP_LIST_TRONQL || "";
+  console.log(tokenList, (tokenList == false))
   tokenList = tokenList.split(",")
 
   if (index > tokenList.length) index = tokenList.length - 1;
@@ -163,10 +164,10 @@ async function rentResource(wallet_orden, recurso, cantidad, periodo, temporalid
     },
     body: JSON.stringify({ user: env.REACT_APP_USER_C, data })
   }).then((r) => r.json())
-  .catch((error) => {
-    console.log(error)
-    return { result: false, hash: signedTransaction.txID, msg: "API-Error: " + error.toString() }
-  })
+    .catch((error) => {
+      console.log(error)
+      return { result: false, hash: signedTransaction.txID, msg: "API-Error: " + error.toString() }
+    })
 
 
   return consulta
