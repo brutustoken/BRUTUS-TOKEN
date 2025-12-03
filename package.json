@@ -4,6 +4,7 @@
   "description": "Aplicacion web de brutus.finance",
   "scripts": {
     "start": "craco start",
+    "dev": "craco start",
     "build": "craco build && npx rimraf docs && npx move-cli build docs",
     "test": "craco test"
   },

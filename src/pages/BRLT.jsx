@@ -47,6 +47,10 @@ class NFTs extends Component {
 
       onSale: <>Loading NFT FOR SALE</>,
 
+      imagenSeleccionada: null,
+      mostrarModalImagen: false,
+      zoom: 0.5,
+
     };
 
     this.estado = this.estado.bind(this);
@@ -63,6 +67,14 @@ class NFTs extends Component {
     this.handleChangeSelect = this.handleChangeSelect.bind(this);
 
     this.updateCountdown = this.updateCountdown.bind(this);
+
+    this.abrirModalImagen = this.abrirModalImagen.bind(this);
+    this.cerrarModalImagen = this.cerrarModalImagen.bind(this);
+    this.zoomIn = this.zoomIn.bind(this);
+    this.zoomOut = this.zoomOut.bind(this);
+    this.compartirImagen = this.compartirImagen.bind(this);
+    this.descargarImagen = this.descargarImagen.bind(this);
+
 
 
   }
@@ -105,6 +117,49 @@ class NFTs extends Component {
     }
 
   }
+
+  abrirModalImagen = (imagen) => {
+    this.setState({
+      imagenSeleccionada: imagen,
+      mostrarModalImagen: true,
+      zoom: 0.5,
+    });
+  };
+
+  cerrarModalImagen = () => {
+    this.setState({
+      mostrarModalImagen: false,
+      imagenSeleccionada: null,
+      zoom: 0.5,
+    });
+  };
+
+  zoomIn = () => {
+    this.setState(prevState => ({ zoom: prevState.zoom + 0.1 }));
+  };
+
+  zoomOut = () => {
+    this.setState(prevState => ({ zoom: Math.max(0.1, prevState.zoom - 0.1) }));
+  };
+
+  compartirImagen = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'NFT Image',
+        url: this.state.imagenSeleccionada,
+      });
+    } else {
+      navigator.clipboard.writeText(this.state.imagenSeleccionada);
+      alert('Enlace copiado al portapapeles');
+    }
+  };
+
+  descargarImagen = () => {
+    const link = document.createElement('a');
+    link.href = this.state.imagenSeleccionada;
+    link.download = 'nft-image.png';
+    link.click();
+  };
 
   handleChange(e) {
     let value = parseInt(e.target.value);
@@ -222,7 +277,7 @@ class NFTs extends Component {
               <h4>Ticket #{totalNFT} FOR SALE</h4>
             </div>
             <div className="new-arrivals-img-contnent">
-              <img src={onSalemetadata.image} alt={onSalemetadata.name + " # " + onSalemetadata.number} className="img-thumbnail"></img>
+              <img src={onSalemetadata.image} alt={onSalemetadata.name + " # " + onSalemetadata.number} className="img-thumbnail" style={{ cursor: 'pointer' }} onClick={() => this.abrirModalImagen(onSalemetadata.image)}></img>
             </div>
             <button className="btn btn-primary mt-1" onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
           </div>
@@ -296,7 +351,7 @@ class NFTs extends Component {
 
       tikets[index] = (
 
-        <div className="col-3" key={"tiket-lottery-" + globalId}>
+        <div className="col-6 col-md-4 col-lg-3" key={"tiket-lottery-" + globalId}>
           <div className="card">
             <div className="card-body">
               <div className="new-arrival-product">
@@ -304,7 +359,7 @@ class NFTs extends Component {
                   <h4>Ticket #{globalId}</h4>
                 </div>
                 <div className="new-arrivals-img-contnent">
-                  <img src={metadata.image} alt={metadata.name + " # " + metadata.number} className="img-thumbnail"></img>
+                  <img src={metadata.image} alt={metadata.name + " # " + metadata.number} className="img-thumbnail" style={{ cursor: 'pointer' }} onClick={() => this.abrirModalImagen(metadata.image)}></img>
                 </div>
                 {button}
               </div>
@@ -741,6 +796,50 @@ class NFTs extends Component {
             </div>
           </div>
         </div>
+
+        {this.state.mostrarModalImagen && (
+          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.7)' }} tabIndex="-1" role="dialog" onClick={this.cerrarModalImagen}>
+            <div className="modal-dialog modal-lg" role="document" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Vista de Imagen NFT</h5>
+                  <button type="button" className="btn-close" onClick={this.cerrarModalImagen}>
+                  </button>
+                </div>
+                <div className="modal-body text-center" style={{ position: 'relative', minHeight: '400px' }}>
+                  <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+                    <button className="btn btn-secondary me-2" onClick={this.zoomOut}>-</button>
+                    <span style={{ color: 'white', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px' }}>Zoom: {Math.round(this.state.zoom * 100)}%</span>
+                    <button className="btn btn-secondary ms-2" onClick={this.zoomIn}>+</button>
+                  </div>
+                  <div style={{
+                    maxHeight: '60vh',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}>
+                    <img
+                      src={this.state.imagenSeleccionada}
+                      alt="NFT"
+                      style={{
+                        transform: `scale(${this.state.zoom})`,
+                        transition: 'transform 0.3s ease',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  </div>
+                  <div style={{ position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+                    <button className="btn btn-primary me-2" onClick={this.compartirImagen}>Compartir</button>
+                    <button className="btn btn-success" onClick={this.descargarImagen}>Descargar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
       </>
     );
