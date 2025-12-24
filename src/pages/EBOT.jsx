@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import { withTranslation } from 'react-i18next';
+import BigNumber from "bignumber.js";
 
-import utils from "../utils";
-
-const BigNumber = require('bignumber.js');
+import { config } from "../config/env";
+import utils from "../services";
 
 const amountsE = [
   { amount: 65000, text: "65K" },
@@ -147,7 +147,7 @@ class EnergyRental extends Component {
       try {
         let elAmount = document.getElementById("amount")
 
-        if(elAmount){
+        if (elAmount) {
           elAmount.value = amount
         }
 
@@ -159,7 +159,7 @@ class EnergyRental extends Component {
       try {
         let elAmount = document.getElementById("amount")
 
-        if(elAmount){
+        if (elAmount) {
           cantidad = elAmount.value
         }
 
@@ -247,7 +247,7 @@ class EnergyRental extends Component {
     let { energyOn, bandOn } = this.state
 
     let consulta = false
-    const URL = process.env.REACT_APP_BOT_URL
+    const URL = config.BOT_URL
 
     consulta = await fetch(URL)
       .then((r) => r.json())
@@ -283,19 +283,19 @@ class EnergyRental extends Component {
       },
       {
         duration: "3d",
-        available: consulta.av_energy[3].available
+        available: consulta.av_energy[2].available
       },
       {
         duration: "7d",
-        available: consulta.av_energy[4].available
+        available: consulta.av_energy[3].available
       },
       {
         duration: "14d",
-        available: consulta.av_energy[4].available
+        available: consulta.av_energy[3].available
       },
       {
         duration: "30d",
-        available: consulta.av_energy[4].available
+        available: consulta.av_energy[3].available
       },
 
     ]
@@ -315,25 +315,25 @@ class EnergyRental extends Component {
       },
       {
         duration: "3d",
-        available: consulta.av_band[3].available
+        available: consulta.av_band[2].available
       },
       {
         duration: "7d",
-        available: consulta.av_band[4].available
+        available: consulta.av_band[3].available
       },
       {
         duration: "14d",
-        available: consulta.av_band[4].available
+        available: consulta.av_band[3].available
       },
       {
         duration: "30d",
-        available: consulta.av_band[4].available
+        available: consulta.av_band[3].available
       },
     ]
 
     let elPeriodo = document.getElementById("periodo")
     let duration = "5min"
-    if(elPeriodo){
+    if (elPeriodo) {
       duration = elPeriodo.value
     }
 
@@ -365,7 +365,7 @@ class EnergyRental extends Component {
 
     let { precios, duration, recurso } = this.state
 
-    let url = process.env.REACT_APP_BOT_URL + "prices/all"
+    let url = config.BOT_URL + "prices/all"
 
     let consulta = await fetch(url, {
       method: "GET",
@@ -573,7 +573,7 @@ class EnergyRental extends Component {
   async preCompra() {
     const { t, isViewerMode } = this.props
 
-    if(isViewerMode){
+    if (isViewerMode) {
       this.setState({
         titulo: "To continue",
         body: "Connect your wallet to perform this operation."
@@ -733,7 +733,7 @@ class EnergyRental extends Component {
 
     window.$("#mensaje-ebot").modal("show");
 
-    const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, this.props.tronWeb.toSun(precio), this.props.accountAddress);
+    const unSignedTransaction = await this.props.tronWeb.transactionBuilder.sendTrx(config.WALLET_API, this.props.tronWeb.toSun(precio), this.props.accountAddress);
     // using adapter to sign the transaction
     const signedTransaction = await window.tronWeb.trx.sign(unSignedTransaction)
       .catch((e) => {
@@ -968,7 +968,7 @@ class EnergyRental extends Component {
             </div>
             <div className="card-body">
               <p>
-                <b>Rental operator:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + process.env.REACT_APP_WALLET_API + "/code"}>{process.env.REACT_APP_WALLET_API}</a>
+                <b>Rental operator:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.WALLET_API + "/code"}>{config.WALLET_API}</a>
               </p>
             </div>
           </div>
@@ -996,4 +996,6 @@ class EnergyRental extends Component {
   }
 }
 
-export default withTranslation()(EnergyRental);
+const EnergyRentalWithTranslation = withTranslation()(EnergyRental);
+
+export default EnergyRentalWithTranslation;

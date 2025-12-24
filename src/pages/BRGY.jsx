@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { withTranslation } from 'react-i18next';
 
-import utils from "../utils";
+import utils from "../services";
 
-const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
+const Galeria = ({ accountAddress, contrato, isViewerMode }) => {
   const [state, setState] = useState({
     imagerobots: [],
     loading: true,
@@ -38,14 +38,15 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
       for (let index = 0; index < 25; index++) {
         try {
           const nftId = await contrato.MBOX.entregaNFT(accountAddress, index).call();
-          
+
           if (nftId) {
             robots.push(parseInt(nftId));
           } else {
             break;
           }
-        } catch (error) {
+        } catch (e) {
           // No more NFTs for this user
+          console.log("No more NFTs for this user", e);
           break;
         }
       }
@@ -82,7 +83,7 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
           const uri = await contrato.BRGY.tokenURI(nftId).call();
           const response = await fetch(utils.proxy + uri);
           const metadata = await response.json();
-          
+
           return {
             ...metadata,
             numero: nftId,
@@ -105,8 +106,8 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
       // Generate image components
       const imagerobots = nftData.map((nft, index) => {
         const claimButton = !nft.isOwned ? (
-          <button 
-            className="btn btn-success" 
+          <button
+            className="btn btn-success"
             onClick={async () => {
               try {
                 await contrato.MBOX.claimNFT_especifico(index).send();
@@ -129,9 +130,9 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
                   <div className="new-arrivals-img-contnent">
                     {nft.image ? (
                       <a href={nft.image} rel="noopener noreferrer" target="_blank">
-                        <img 
-                          src={nft.image} 
-                          alt={nft.name} 
+                        <img
+                          src={nft.image}
+                          alt={nft.name}
                           className="img-thumbnail"
                           onError={(e) => {
                             e.target.src = '/images/brgy.png';
@@ -139,9 +140,9 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
                         />
                       </a>
                     ) : (
-                      <img 
-                        src="/images/brgy.png" 
-                        alt={nft.name} 
+                      <img
+                        src="/images/brgy.png"
+                        alt={nft.name}
                         className="img-thumbnail"
                       />
                     )}
@@ -182,7 +183,7 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
     if (previousAddressRef.current !== accountAddress) {
       console.log(`Wallet address changed from ${previousAddressRef.current} to ${accountAddress}`);
       previousAddressRef.current = accountAddress;
-      
+
       // Immediately fetch data when wallet changes
       if (contrato?.ready) {
         fetchNFTData();
@@ -207,13 +208,13 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
       if (!mountedRef.current) return;
 
       const now = Date.now();
-      
+
       // Update every 60 seconds if contracts are ready, otherwise every 3 seconds
       const updateInterval = contrato?.ready ? 120 * 1000 : 3 * 1000;
-      
+
       if (now >= nextUpdateRef.current) {
         nextUpdateRef.current = now + updateInterval;
-        
+
         if (contrato?.ready && accountAddress) {
           fetchNFTData();
         }
@@ -300,8 +301,8 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
                 <div className="alert alert-danger">
                   <h5>Error Loading NFTs</h5>
                   <p>{state.error}</p>
-                  <button 
-                    className="btn btn-primary mt-3" 
+                  <button
+                    className="btn btn-primary mt-3"
                     onClick={() => fetchNFTData()}
                   >
                     Try Again
@@ -344,13 +345,13 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
                 <img src="/images/brgy.png" alt="BRGY" style={{ maxWidth: '200px', opacity: 0.5 }} />
                 <h4 className="mt-4">No NFTs Found</h4>
                 <p className="text-muted">
-                  {isViewerMode 
+                  {isViewerMode
                     ? "Connect your wallet to view your NFT collection"
                     : "You don't have any BRGY NFTs yet"}
                 </p>
-                <a 
-                  href="https://bit.ly/Brutus-Gallery" 
-                  rel="noopener noreferrer" 
+                <a
+                  href="https://bit.ly/Brutus-Gallery"
+                  rel="noopener noreferrer"
                   target="_blank"
                   className="btn btn-primary mt-3"
                 >
@@ -392,4 +393,6 @@ const Galeria = ({ accountAddress, contrato, tronWeb, isViewerMode, t }) => {
   );
 };
 
-export default withTranslation()(Galeria);
+const GaleriaWithTranslation = withTranslation()(Galeria);
+
+export default GaleriaWithTranslation;

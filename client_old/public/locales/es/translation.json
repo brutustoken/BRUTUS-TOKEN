@@ -1,0 +1,175 @@
+{
+  "conect": "Conectar Billetera",
+  "gallery": "Galería",
+  "lottery": "Lotería",
+  "day_one": "Día",
+  "day_other": "Días",
+  "loading": "Cargando",
+  "claim": "Reclamar",
+  "close": "Cerrar",
+  "rentE": "Alquilar energía",
+  "accept": "Aceptar",
+  "error": "Error",
+  "tokenChart": "Gráfico {{token}}",
+  "dollar": "dólar",
+  "price": "Precio",
+  "circulating": "Circulación",
+  "endorse": "Respaldo",
+  "sell": "VENDER",
+  "buy": "COMPRAR",
+  "mya": "Mis Activos",
+  "token": "Token",
+  "amount": "Cantidad",
+  "showM": "Mostrar más",
+  "earned": "Ganado",
+  "calculating": "Calculando",
+  "preLoad": [
+    "Preparando aplicación ",
+    "Todos los contratos inteligentes están siendo cargados para que la aplicación funcione correctamente, por favor espere unos momentos"
+  ],
+  "brst": {
+    "tittle": "Staking TRX",
+    "description": "BRST es un token en la red de tron, que permite a sus poseedores generar rendimientos en TRX gracias al staking al alquiler de recursos, un 10% adicional de lo que generan todos los proveedores Brutus Energy Bot todo esto a interes compuesto automático. De esta forma conseguimos que los beneficios crezcan exponencialmente, de forma totalmente automática.",
+    "sale": "Venta N° {{number}}",
+    "price": "Precio por unidad:",
+    "aStaking": "Staking automático",
+    "unStaking": "Pedido en proceso de UnStaking durante los próximos {{days}} días, una vez finalizado este período, vuelve y reclama ",
+    "available": "Disponible en: ",
+    "alert": {
+      "energy": [
+        "Aviso de energía",
+        "Esta operación normalmente requiere ",
+        " energía ",
+        ", y tiene ",
+        " y necesita al menos ",
+        ", alquile para ",
+        " para realizar esta operación.",
+        "Alquilar energía"
+      ],
+      "renergy": [
+        "Confirmar transacción ",
+        "Por favor, confirme la transacción de su wallet"
+      ],
+      "renergy1": [
+        "Esperando al blockchain ",
+        "Estamos esperando que la blockchain procese y confirme su transferencia. Esto puede tardar entre 3 segundos y 1 minuto"
+      ],
+      "renergy2": [
+        "estamos verificando ",
+        "Estamos verificando que los importes y la dirección a la que se enviaron los fondos son la dirección correcta, por favor no cierre ni salga del sitio web ya que esto puede afectar a este proceso."
+      ],
+      "renergy3": [
+        "estamos asignando su energía ",
+        "Por favor, no cierre ni salga de la página, ya que esto causará un error en la asignación de energía."
+      ],
+      "error": [
+        "Contacta con el soporte técnico",
+        "Hash de soporte: {{hash}} | {{msg}}"
+      ],
+      "errorInput": [
+        "Input Error",
+        "Introduzca un importe válido"
+      ],
+      "energyNotice": [
+        "Aviso de energía",
+        "Esta operación normalmente requiere ",
+        "energía",
+        "y tiene ",
+        "y necesita al menos",
+        ", alquile para",
+        "para realizar esta operación."
+      ],
+      "tfail": [
+        "La transacción ha fallado"
+      ],
+      "done": [
+        "Completado con éxito",
+        "Alquiler de energía completado con éxito. ",
+        "Continúa el proceso"
+      ],
+      "compra": [
+        "¡Hecho!",
+        "Su apuesta automática de TRX ha comenzado"
+      ],
+      "nonEfective": [
+        "operación no efectiva",
+        "La transacción ha fallado, tiene problemas de conexión o ha tardado demasiado en registrarse, esto ha hecho que la transacción no tenga éxito, inténtelo de nuevo"
+      ],
+      "errGreater": [
+        "Por favor, introduzca una cantidad mayor que {{min}} TRX"
+      ],
+      "errFunds": [
+        "No tienes suficientes fondos en tu cuenta debes tener al menos {{min}} TRX"
+      ],
+      "donate": [
+        "Donar para hacer crecer BRST",
+        "Gracias por donar para hacer crecer BRST",
+        "Gracias por contribuir a este gran proyecto que hemos hecho para ayudar a que la comunidad crezca. Realmente lo apreciamos ❤️",
+        "Donar"
+      ]
+    },
+    "button": {
+      "readM": "Leer más"
+    },
+    "exchange": "Intercambio",
+    "energy": "Tu energía: {{e1}}",
+    "dailyG": "crecimiento diario",
+    "daysAgo": "hace {{days}} días",
+    "request": [
+      "Solicitudes en proceso ({{number}}) ",
+      "Actualización ",
+      "Vuelve cuando el tiempo haya terminado y reclama tu TRX"
+    ],
+    "estimate": "Estimar tus ganancias",
+    "mystaking": "Mi participación: ",
+    "hold": "Tienes",
+    "status": "Estado",
+    "estimateIn": "Ingresos estimados",
+    "growthR": "Tasa de crecimiento",
+    "calculated": "calculado",
+    "daily": "Diario",
+    "monthly": "Mensual",
+    "yearly": "Anual",
+    "likely": "probablemente",
+    "estimated": "Estimado",
+    "calcullatorText": "Esta calculadora utiliza el promedio de los últimos {{days}} días de ganancias para generar una estimación cercana a la realidad, ya que las ganancias pueden fluctuar de un día a otro y no son fijas, sino variables."
+  },
+  "inicio": {
+    "tittle": "Panel",
+    "try": "¡Pruébalo ahora!",
+    "position": "Mi posición",
+    "name": "Nombre",
+    "tokenB": "Balance",
+    "price": "Precio",
+    "changeH": "Cambio {{hours}}H",
+    "totalB": "Valor Total",
+    "usdValue": "Valor en USD"
+  },
+  "ebot": {
+    "tittle": "Energy Bot",
+    "subTittle": "Brutus Resources Rental",
+    "alert": {
+      "eTronlink": [
+        "Tronlink Error",
+        "Si tiene TRONLINK instalado, por favor abra la aplicación y conecte. Si no lo tiene, debe descargar la extensión TRONLINK para su navegador o TRONLINK GLOBAL desde su teléfono móvil."
+      ],
+      "soldOut": [
+        "Energía vendida",
+        "Disculpe, en este momento hemos vendido toda la energía disponible, por favor vuelva más tarde cuando nos hayamos recuperado."
+      ],
+      "eRange": [
+        "Error Range",
+        "Por favor, introduzca un rango de valores entre 1 hora y 14 días"
+      ],
+      "eRange2": "Sólo está disponible para operaciones de 1 hora",
+      "eResource": [
+        "Alerta de recursos",
+        "En este momento no tenemos recursos disponibles, por favor inténtalo de nuevo más tarde."
+      ],
+      "noFounds": [
+        "Insufficient Funds",
+        "Please top up your wallet with additional TRX to complete this operation."
+      ]
+    }
+  }
+}

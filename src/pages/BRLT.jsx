@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import { withTranslation } from 'react-i18next';
 
-import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
-import utils from "../utils";
+import BigNumber from "bignumber.js";
 
-const BigNumber = require('bignumber.js');
+import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
+import { config } from "../config/env";
 
 let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
 let intervalId = [];
@@ -266,8 +266,8 @@ class NFTs extends Component {
       LastWiner,
     })
 
-    let onSaleURI = "https://nft-metadata.brutusservices.com/v1/lottery?ticket=" + totalNFT
-    let onSalemetadata = JSON.parse(await (await fetch(utils.proxy + onSaleURI)).text());
+    let onSaleURI = config.NFT_API + "lottery?ticket=" + totalNFT
+    let onSalemetadata = JSON.parse(await (await fetch(onSaleURI)).text());
 
     let onSale = <div className="col-md-6 col-sm-12" key={"tiket-onsale-" + totalNFT}>
       <div className="card">
@@ -335,7 +335,7 @@ class NFTs extends Component {
       let globalId = parseInt((await contrato.BRLT.tokenOfOwnerByIndex(accountAddress, index).call()))
 
       let URI = await contrato.BRLT.tokenURI(globalId).call()
-      let metadata = JSON.parse(await (await fetch(utils.proxy + URI)).text());
+      let metadata = JSON.parse(await (await fetch(URI)).text());
 
       //console.log(metadata)
 
@@ -772,9 +772,9 @@ class NFTs extends Component {
                 </div>
                 <div className="card-body">
                   <p>
-                    <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.SC4 + "/code"}>{utils.SC4}</a>
+                    <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.SC4 + "/code"}>{config.SC4}</a>
                     <br></br>
-                    <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.BRLT + "/code"}>{utils.BRLT}</a>
+                    <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.BRLT + "/code"}>{config.BRLT}</a>
                   </p>
                 </div>
               </div>
@@ -846,4 +846,6 @@ class NFTs extends Component {
   }
 }
 
-export default withTranslation()(NFTs);
+const NFTsWithtranslation = withTranslation()(NFTs);
+
+export default NFTsWithtranslation;

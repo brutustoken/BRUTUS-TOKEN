@@ -1,5 +1,5 @@
 import React from 'react';
-import { Helmet } from 'react-helmet';
+import { Helmet } from 'react-helmet-async';
 
 const SEO = ({ title, description, image }) => (
   <Helmet>
@@ -7,8 +7,8 @@ const SEO = ({ title, description, image }) => (
     {description && <meta name="description" content={description} />}
 
     {title && <meta property="og:title" content={title} />}
-    {description &&<meta property="og:description" content={description} />}
-    {image && <meta property="og:image" content={"/images/"+image} />}
+    {description && <meta property="og:description" content={description} />}
+    {image && <meta property="og:image" content={"/images/" + image} />}
   </Helmet>
 );
 

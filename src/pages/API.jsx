@@ -2,15 +2,13 @@ import React, { Component } from "react";
 import { withTranslation } from 'react-i18next';
 
 import Cookies from 'universal-cookie';
-import utils from "../utils";
-
-import TronWeb from "tronweb";
 
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 
-var moment = require('moment-timezone');
-const BigNumber = require('bignumber.js');
+import moment from "moment-timezone";
+import BigNumber from "bignumber.js";
+import { config } from "../config/env";
 
 const cookies = new Cookies(null, { path: '/' });
 
@@ -105,10 +103,10 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, active: activate }
-            fetch(utils.apiProviders + "set/active", {
+            fetch(config.apiProviders + "set/active", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': import.meta.env.VITE_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -146,10 +144,10 @@ class ApiPanel extends Component {
             console.log(over)
             let body = { wallet: this.props.accountAddress, sellbandover: over }
 
-            fetch(utils.apiProviders + "set/sellbandover", {
+            fetch(config.apiProviders + "set/sellbandover", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': import.meta.env.VITE_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -160,10 +158,10 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, sellband: activate }
-            fetch(utils.apiProviders + "set/sellband", {
+            fetch(config.apiProviders + "set/sellband", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': import.meta.env.VITE_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -201,10 +199,10 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, burn: activate }
-            fetch(utils.apiProviders + "set/burn", {
+            fetch(config.apiProviders + "set/burn", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': import.meta.env.VITE_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -253,10 +251,10 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, allow_notifications: activate }
-            fetch(utils.apiProviders + "set/allow_notifications", {
+            fetch(config.apiProviders + "set/allow_notifications", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': import.meta.env.VITE_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -396,10 +394,10 @@ class ApiPanel extends Component {
   async setFreez(data) {
     try {
       let body = { wallet: this.props.accountAddress, autofreeze: data }
-      await fetch(utils.apiProviders + "set/autofreeze", {
+      await fetch(config.apiProviders + "set/autofreeze", {
         method: "POST",
         headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
+          'token-api': import.meta.env.VITE_TOKEN,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
@@ -418,10 +416,10 @@ class ApiPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, paymenthour: hour }
-      await fetch(utils.apiProviders + "set/paymenthour", {
+      await fetch(config.apiProviders + "set/paymenthour", {
         method: "POST",
         headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
+          'token-api': import.meta.env.VITE_TOKEN,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
@@ -440,10 +438,10 @@ class ApiPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, maxdays: days }
-      await fetch(utils.apiProviders + "set/maxdays", {
+      await fetch(config.apiProviders + "set/maxdays", {
         method: "POST",
         headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
+          'token-api': import.meta.env.VITE_TOKEN,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
@@ -462,10 +460,10 @@ class ApiPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, sr: wallet }
-      await fetch(utils.apiProviders + "set/sr", {
+      await fetch(config.apiProviders + "set/sr", {
         method: "POST",
         headers: {
-          'token-api': process.env.REACT_APP_TOKEN,
+          'token-api': import.meta.env.VITE_TOKEN,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(body)
@@ -485,7 +483,7 @@ class ApiPanel extends Component {
       tiempo: moment.tz.guess(true)
     })
 
-    var url = utils.apiProviders;
+    var url = config.apiProviders;
 
     let provider = { result: false };
 
@@ -642,7 +640,7 @@ class ApiPanel extends Component {
           historic = await fetch(url + "historic_payments", {
             method: "POST",
             headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
+              'token-api': import.meta.env.VITE_TOKEN,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ wallet: this.props.accountAddress })
@@ -670,7 +668,7 @@ class ApiPanel extends Component {
           allPayed = await fetch(url + "acum_payments", {
             method: "POST",
             headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
+              'token-api': import.meta.env.VITE_TOKEN,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({ wallet: this.props.accountAddress })
@@ -729,7 +727,7 @@ class ApiPanel extends Component {
           ongoins = await fetch(url + "ongoingdeals", {
             method: "POST",
             headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
+              'token-api': import.meta.env.VITE_TOKEN,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
@@ -744,7 +742,7 @@ class ApiPanel extends Component {
 
 
         } catch (error) {
-
+          console.error(error.toString())
         }
 
         let listWallets = []
@@ -798,7 +796,7 @@ class ApiPanel extends Component {
           completed = await fetch(url + "completed_deals", {
             method: "POST",
             headers: {
-              'token-api': process.env.REACT_APP_TOKEN,
+              'token-api': import.meta.env.VITE_TOKEN,
               'Content-Type': 'application/json'
             },
             body: JSON.stringify(body)
@@ -813,7 +811,7 @@ class ApiPanel extends Component {
 
 
         } catch (error) {
-
+          console.error(error.toString())
         }
 
 
@@ -1026,7 +1024,7 @@ class ApiPanel extends Component {
         </div>
 
 
-        if (this.state.voteSR !== "" && TronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
+        if (this.state.voteSR !== "" && this.props.tronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
 
           campoFreeze = (<>
             {campoFreeze}
@@ -1406,4 +1404,5 @@ class ApiPanel extends Component {
   }
 }
 
-export default withTranslation()(ApiPanel)
+const ApiPanelWithTranslation = withTranslation()(ApiPanel);
+export default ApiPanelWithTranslation;

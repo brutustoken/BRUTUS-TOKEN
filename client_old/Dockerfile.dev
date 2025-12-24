@@ -1,0 +1,18 @@
+# Dockerfile para desarrollo con Vite
+FROM node:20-alpine
+
+# Crear carpeta de trabajo
+WORKDIR /app
+
+# Copiar package.json y package-lock.json primero para aprovechar cache
+COPY client/package*.json ./
+RUN npm install --legacy-peer-deps
+
+# Copiar el resto del código
+COPY client/ .
+
+# Exponer puerto de Vite
+EXPOSE 3000
+
+# Arrancar la app en modo desarrollo
+CMD ["npm", "run", "dev"]
