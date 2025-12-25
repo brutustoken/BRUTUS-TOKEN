@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
+import { Buffer } from 'buffer'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -17,5 +18,16 @@ export default defineConfig({
         },
       }
     }
-  }
+  },
+  define: {
+    global: {},
+  },
+  resolve: {
+    alias: {
+      buffer: 'buffer',
+    },
+  },
+  optimizeDeps: {
+    include: ['buffer'],
+  },
 })

@@ -5,6 +5,12 @@ import App from './App.jsx'
 
 import './i18n.jsx';
 
+import { Buffer } from 'buffer'
+
+if (!window.Buffer) {
+  window.Buffer = Buffer
+}
+
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
