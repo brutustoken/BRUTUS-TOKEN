@@ -1,13 +1,14 @@
 import React, { Component } from "react";
 import { withTranslation } from 'react-i18next';
+import BigNumber from "bignumber.js";
 
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
 import am5themes_Animated from "@amcharts/amcharts5/themes/Animated";
 
-import utils from "../utils";
+import { config } from "../config/env";
+import utils from "../services";
 
-const BigNumber = require('bignumber.js');
 BigNumber.config({ DECIMAL_PLACES: 6, ROUNDING_MODE: BigNumber.ROUND_HALF_DOWN });
 
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." ></img>
@@ -491,7 +492,7 @@ class Staking extends Component {
     let useTrx = (await this.costEnergy(eenergy)).toString(10)
     this.setState({ useTrx })
 
-    fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=" + tiempoPromediado)
+    fetch(config.BRUTUS_API + "chartdata/brst?temporalidad=day&limite=" + tiempoPromediado)
       .then(async (r) => (await r.json()).Data)
       .then((consulta) => {
         if (consulta.length > 0) {
@@ -519,10 +520,10 @@ class Staking extends Component {
         }
 
       })
-      .catch((e) => { return false })
+      .catch((e) => { console.error(e); return false })
 
 
-    fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=day&limite=361")
+    fetch(config.BRUTUS_API + "chartdata/brst?temporalidad=day&limite=361")
       .then(async (r) => (await r.json()).Data)
       .then((consultaData) => {
         if (consultaData.length > 0) {
@@ -561,14 +562,14 @@ class Staking extends Component {
         this.setState({ depositoBRUT: utils.normalizarNumero(depositoBRUT) })
       })
 
-    fetch("https://brutusservices.com/api/v1/precio/usdt")
+    fetch(config.BRUTUS_API + "precio/usdt")
       .then((r) => r.json())
       .then((r) => {
         this.setState({ precioUSDT: new BigNumber(r.Data.oneTron) })
       })
       .catch((e) => { console.log(e) })
 
-    fetch("https://brutusservices.com/api/v1/precio/usdd")
+    fetch(config.BRUTUS_API + "precio/usdd")
       .then((r) => r.json())
       .then((r) => {
         this.setState({ precioUSDD: new BigNumber(r.Data.oneTron) })
@@ -709,57 +710,57 @@ class Staking extends Component {
     total_required = total_required.shiftedBy(-6).toString(10)
 
     let ownerPanel = (<>
-    <input type="text" id="wallet" placeholder="wallet to white list"></input> 
-    <button className="btn btn-warning" onClick={async () => {
-      let inputs = [
-        { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
-        //{ type: 'uint256', value: 405 * 10 ** 6 }
-      ]
+      <input type="text" id="wallet" placeholder="wallet to white list"></input>
+      <button className="btn btn-warning" onClick={async () => {
+        let inputs = [
+          { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
+          //{ type: 'uint256', value: 405 * 10 ** 6 }
+        ]
 
-      let funcion = "whiteList_add(address)"
-      try {
+        let funcion = "whiteList_add(address)"
+        try {
 
-        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
-        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+          let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+          let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+          transaction = await window.tronLink.tronWeb.trx.sign(transaction)
 
-        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+          transaction = await tronWeb.trx.sendRawTransaction(transaction)
 
-        console.log(transaction)
-        alert("Transaction " + transaction.result + " hash: " + transaction.txid)
+          console.log(transaction)
+          alert("Transaction " + transaction.result + " hash: " + transaction.txid)
 
-      } catch (error) {
-        console.log(error)
-        alert(error.toString())
-      }
+        } catch (error) {
+          console.log(error)
+          alert(error.toString())
+        }
 
-    }}>ADD</button>
-    <button className="btn btn-danger" onClick={async () => {
-      let inputs = [
-        { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
-        //{ type: 'uint256', value: 405 * 10 ** 6 }
-      ]
+      }}>ADD</button>
+      <button className="btn btn-danger" onClick={async () => {
+        let inputs = [
+          { type: 'address', value: tronWeb.address.toHex(document.getElementById('wallet')) },
+          //{ type: 'uint256', value: 405 * 10 ** 6 }
+        ]
 
-      let funcion = "whiteList_remove(address)"
-      try {
+        let funcion = "whiteList_remove(address)"
+        try {
 
-        let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
-        let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
-        transaction = await window.tronLink.tronWeb.trx.sign(transaction)
+          let trigger = await tronWeb.transactionBuilder.triggerSmartContract(tronWeb.address.toHex(contrato.BRST_TRX_Proxy_fast.address), funcion, {}, inputs, tronWeb.address.toHex(accountAddress))
+          let transaction = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+          transaction = await window.tronLink.tronWeb.trx.sign(transaction)
 
-        transaction = await tronWeb.trx.sendRawTransaction(transaction)
+          transaction = await tronWeb.trx.sendRawTransaction(transaction)
 
-        console.log(transaction)
-        alert("Transaction " + transaction.result + " hash: " + transaction.txid)
+          console.log(transaction)
+          alert("Transaction " + transaction.result + " hash: " + transaction.txid)
 
-      } catch (error) {
-        console.log(error)
-        alert(error.toString())
-      }
+        } catch (error) {
+          console.log(error)
+          alert(error.toString())
+        }
 
-    }}>REMOVE</button>
-    
-    <br></br>
+      }}>REMOVE</button>
+
+      <br></br>
       TRON_RR: {utils.normalizarNumero(await contrato.BRST_TRX_Proxy.TRON_RR().call())}
       <br></br>
 
@@ -789,13 +790,13 @@ class Staking extends Component {
     let energyOn = false;
     let energi = 0;
 
-    energyOn = await fetch(process.env.REACT_APP_BOT_URL)
+    energyOn = await fetch(config.BOT_URL)
       .then((r) => r.json())
       .then((r) => r.available)
       .catch(() => false)
 
     if (energyOn) {
-      let consulta = await fetch(process.env.REACT_APP_BOT_URL + "available")
+      let consulta = await fetch(config.BOT_URL + "available")
         .then((r) => r.json())
 
       if (consulta.av_energy.length > 0) {
@@ -847,7 +848,7 @@ class Staking extends Component {
       }
 
       let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      let consultaPrecio = await fetch(process.env.REACT_APP_BOT_URL + "prices", {
+      let consultaPrecio = await fetch(config.BOT_URL + "prices", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -1009,7 +1010,7 @@ class Staking extends Component {
 
   async consultaPrecio() {
 
-    return await fetch(process.env.REACT_APP_API_URL + 'api/v1/precio/brst')
+    return await fetch(config.BRUTUS_API + 'precio/brst')
       .then(async (r) => (await r.json()).Data)
       .then(r => {
 
@@ -1089,7 +1090,7 @@ class Staking extends Component {
         energyFactor = 1
       }
 
-      let contract_base_token = tronWeb.contract(utils.TOKEN_ABI, token)
+      let contract_base_token = tronWeb.contract(utils.abi_TOKEN, token)
       let decimals_base = parseInt(await contract_base_token.decimals().call())
 
       let aprove = await contract_base_token.allowance(accountAddress, sunswapRouter).call()
@@ -1241,7 +1242,7 @@ class Staking extends Component {
 
     if (cantidad.toNumber() === 0) return new BigNumber(0);
 
-    let consulta = await fetch(process.env.REACT_APP_BOT_URL + "prices", {
+    let consulta = await fetch(config.BOT_URL + "prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
@@ -1294,7 +1295,7 @@ class Staking extends Component {
 
     if (!precio) return false;
 
-    const unSignedTransaction = await tronWeb.transactionBuilder.sendTrx(process.env.REACT_APP_WALLET_API, tronWeb.toSun(precio), accountAddress);
+    const unSignedTransaction = await tronWeb.transactionBuilder.sendTrx(config.WALLET_API, tronWeb.toSun(precio), accountAddress);
     // using adapter to sign the transaction
     const signedTransaction = await window.tronWeb.trx.sign(unSignedTransaction)
       .catch((e) => {
@@ -1432,10 +1433,10 @@ class Staking extends Component {
 
     let sunswapRouter = "TCFNp179Lg46D16zKoumd4Poa2WFFdtqYj" // V3
 
-    let contrato = tronWeb.contract(utils.SUNSWAPV3_ABI, sunswapRouter)
+    let contrato = tronWeb.contract(utils.abi_SUNSWAP, sunswapRouter)
     //console.log(contrato)
 
-    let contract_base_token = tronWeb.contract(utils.TOKEN_ABI, token)
+    let contract_base_token = tronWeb.contract(utils.abi_TOKEN, token)
     let decimals_base = parseInt(await contract_base_token.decimals().call())
 
     let balance_usdt = new BigNumber(parseInt(await contract_base_token.balanceOf(accountAddress).call())).shiftedBy(-decimals_base)
@@ -1649,7 +1650,7 @@ class Staking extends Component {
         transaction = await tronWeb.trx.sendRawTransaction(transaction)
           .then((r) => {
 
-            if(r.result){
+            if (r.result) {
               this.setState({
                 ModalTitulo: t("brst.alert.compra", { returnObjects: true })[0],
                 ModalBody: <>{t("brst.alert.compra", { returnObjects: true })[1]}
@@ -1659,16 +1660,16 @@ class Staking extends Component {
               })
 
               window.$("#mensaje-brst").modal("show");
-            }else{
-               this.setState({
-              ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
-              ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + r.transaction.txID.toString()
-            })
+            } else {
+              this.setState({
+                ModalTitulo: t("brst.alert.nonEfective", { returnObjects: true })[0],
+                ModalBody: t("brst.alert.nonEfective", { returnObjects: true })[1] + " | " + r.transaction.txID.toString()
+              })
 
-            window.$("#mensaje-brst").modal("show");
-            return false
+              window.$("#mensaje-brst").modal("show");
+              return false
             }
-            
+
           })
           .catch((e) => {
 
@@ -1979,7 +1980,7 @@ class Staking extends Component {
 
     async function generateDatas(count) {
 
-      let consulta = await fetch(process.env.REACT_APP_API_URL + "api/v1/chartdata/brst?temporalidad=" + temporalidad + "&limite=" + count)
+      let consulta = await fetch(config.BRUTUS_API + "chartdata/brst?temporalidad=" + temporalidad + "&limite=" + count)
         .then(async (r) => (await r.json()).Data)
         .catch(() => { return false })
 
@@ -2184,6 +2185,7 @@ class Staking extends Component {
                       <div className="dropdown bootstrap-select">
 
                         <select className="image-select default-select dashboard-select" id="selector" aria-label="Default" tabIndex="0" style={{ background: "rgb(3 0 8 / 20%)" }} onInput={(r) => {
+                          console.log(r.target.value)
 
                           this.grafico(500, this.state.temporalidad, this.state.cantidadDatos, document.getElementById("selector").value);
                         }}>
@@ -2643,11 +2645,11 @@ class Staking extends Component {
             </div>
             <div className="card-body">
               <p>
-                <b>Token:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.BRST + "/code"}>{utils.BRST}</a>
+                <b>Token:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.BRST + "/code"}>{config.BRST}</a>
                 <br ></br>
-                <b>Regular withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC2 + "/code"}>{utils.ProxySC2}</a>
+                <b>Regular withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.ProxySC2 + "/code"}>{config.ProxySC2}</a>
                 <br ></br>
-                <b>Fast withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.ProxySC3 + "/code"}>{utils.ProxySC3}</a>
+                <b>Fast withdrawals:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.ProxySC3 + "/code"}>{config.ProxySC3}</a>
               </p>
             </div>
           </div>
@@ -2674,4 +2676,6 @@ class Staking extends Component {
   }
 }
 
-export default withTranslation()(Staking);
+const StakingComponent = withTranslation()(Staking);
+
+export default StakingComponent;

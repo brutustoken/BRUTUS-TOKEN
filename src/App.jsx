@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import Cookies from 'universal-cookie';
 import { withTranslation } from 'react-i18next';
 import striptags from 'striptags';
 
-import utils from "./utils/index.jsx";
+import utils from "./services/index.js";
 import SEO from "./components/SEO.jsx";
 import { TronLinkAdapter } from '@tronweb3/tronwallet-adapters';
 
@@ -22,6 +22,7 @@ import LOTERIA from "./pages/BRLT.jsx";
 import EBOT from "./pages/EBOT.jsx";
 import PRO from "./pages/PRO.jsx";
 import API from "./pages/API.jsx";
+import { config } from "./config/env.js";
 
 const addressDefault = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
 const imgLoading = <img src="images/cargando.gif" height="20px" alt="loading..." />;
@@ -38,7 +39,7 @@ if (typeof document !== 'undefined') {
 const setDarkTheme = () => {
   const currentTheme = cookies.get('theme') || "light";
   const newTheme = currentTheme === "light" ? "dark" : "light";
-  
+
   if (typeof document !== 'undefined') {
     document.documentElement.setAttribute("data-theme-version", newTheme);
   }
@@ -96,7 +97,7 @@ const App = ({ i18n, t }) => {
   // Route handler
   const route = useCallback(() => {
     let url = window.location.href;
-    
+
     if (url.indexOf("/?") >= 0) {
       url = (url.split("/?"))[1];
       if (url.indexOf("#") >= 0) url = (url.split("#"))[0];
@@ -141,7 +142,7 @@ const App = ({ i18n, t }) => {
     }
 
     const adapter = getAdapter();
-    
+
     // If already connected, just update state
     if (adapter.connected) {
       if (mountedRef.current) {
@@ -249,72 +250,72 @@ const App = ({ i18n, t }) => {
 
     try {
       // Load BRUT contract
-      if (contrato.BRUT === null && utils.BRUT !== "") {
+      if (contrato.BRUT === null && config.BRUT !== "") {
         web3Contracts = await utils.getTronweb(accountAddress, 1);
-        contrato.BRUT = web3Contracts.contract(utils.TOKEN_ABI, utils.BRUT);
+        contrato.BRUT = web3Contracts.contract(utils.abi_TOKEN, config.BRUT);
       }
 
       // Load USDT/USDD contracts
-      if (contrato.USDT === null && utils.USDT !== "") {
+      if (contrato.USDT === null && config.USDT !== "") {
         web3Contracts = await utils.getTronweb(accountAddress, 1);
-        contrato.USDT = web3Contracts.contract(utils.TOKEN_ABI, utils.USDT);
-        contrato.USDD = web3Contracts.contract(utils.TOKEN_ABI, utils.USDD);
+        contrato.USDT = web3Contracts.contract(utils.abi_TOKEN, config.USDT);
+        contrato.USDD = web3Contracts.contract(utils.abi_TOKEN, config.USDD);
       }
 
       // Load BRUT_USDT contract
-      if (contrato.BRUT_USDT === null && utils.SC !== "") {
-        contrato.BRUT_USDT = web3Contracts.contract(utils.ABI_SC, utils.SC);
+      if (contrato.BRUT_USDT === null && config.SC !== "") {
+        contrato.BRUT_USDT = web3Contracts.contract(utils.abi_BRST_USDT, config.SC);
       }
 
       // Load BRST_TRX contract
-      if (contrato.BRST_TRX === null && utils.SC2 !== "") {
+      if (contrato.BRST_TRX === null && config.SC2 !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.BRST_TRX = await web3Contracts.contract().at(utils.SC2);
+        contrato.BRST_TRX = await web3Contracts.contract().at(config.SC2);
       }
 
       // Load BRST_TRX_Proxy contract
-      if (contrato.BRST_TRX_Proxy === null && utils.ProxySC2 !== "") {
+      if (contrato.BRST_TRX_Proxy === null && config.ProxySC2 !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.Proxy = web3Contracts.contract(abi_PROXY, utils.ProxySC2);
-        contrato.BRST_TRX_Proxy = web3Contracts.contract(abi_POOLBRST, utils.ProxySC2);
+        contrato.Proxy = web3Contracts.contract(abi_PROXY, config.ProxySC2);
+        contrato.BRST_TRX_Proxy = web3Contracts.contract(abi_POOLBRST, config.ProxySC2);
       }
 
       // Load BRST_TRX_Proxy_fast contract
-      if (contrato.BRST_TRX_Proxy_fast === null && utils.ProxySC3 !== "") {
+      if (contrato.BRST_TRX_Proxy_fast === null && config.ProxySC3 !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.Proxy_fast = web3Contracts.contract(abi_PROXY, utils.ProxySC3);
-        contrato.BRST_TRX_Proxy_fast = web3Contracts.contract(abi_SimpleSwap, utils.ProxySC3);
+        contrato.Proxy_fast = web3Contracts.contract(abi_PROXY, config.ProxySC3);
+        contrato.BRST_TRX_Proxy_fast = web3Contracts.contract(abi_SimpleSwap, config.ProxySC3);
       }
 
       // Load BRST contract
-      if (contrato.BRST === null && utils.BRST !== "") {
+      if (contrato.BRST === null && config.BRST !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.BRST = web3Contracts.contract(utils.TOKEN_ABI, utils.BRST);
+        contrato.BRST = web3Contracts.contract(utils.abi_TOKEN, config.BRST);
       }
 
       // Load BRGY contract
-      if (contrato.BRGY === null && utils.BRGY !== "") {
+      if (contrato.BRGY === null && config.BRGY !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.BRGY = await web3Contracts.contract().at(utils.BRGY);
+        contrato.BRGY = await web3Contracts.contract().at(config.BRGY);
       }
 
       // Load MBOX contract
-      if (contrato.MBOX === null && utils.SC3 !== "") {
+      if (contrato.MBOX === null && config.SC3 !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.MBOX = await web3Contracts.contract().at(utils.SC3);
+        contrato.MBOX = await web3Contracts.contract().at(config.SC3);
       }
 
       // Load BRLT contract
-      if (contrato.BRLT === null && utils.BRLT !== "") {
+      if (contrato.BRLT === null && config.BRLT !== "") {
         web3Contracts = await utils.getTronweb(accountAddress, 2);
-        contrato.BRLT = await web3Contracts.contract().at(utils.BRLT);
+        contrato.BRLT = await web3Contracts.contract().at(config.BRLT);
       }
 
       // Load Lottery contract
-      if (contrato.loteria === null && utils.SC4 !== "") {
+      if (contrato.loteria === null && config.SC4 !== "") {
         web3Contracts = await utils.getTronweb(accountAddress, 2);
-        contrato.ProxyLoteria = web3Contracts.contract(abi_PROXY, utils.SC4);
-        contrato.loteria = web3Contracts.contract(abi_LOTERIA, utils.SC4);
+        contrato.ProxyLoteria = web3Contracts.contract(abi_PROXY, config.SC4);
+        contrato.loteria = web3Contracts.contract(abi_LOTERIA, config.SC4);
       }
 
       contrato.ready = true;
@@ -334,7 +335,7 @@ const App = ({ i18n, t }) => {
     const initialize = async () => {
       // Wait for TronWeb to be available
       const tronWebInstance = await utils.getTronweb(addressDefault);
-      
+
       if (!mountedRef.current) return;
 
       setState(prev => ({ ...prev, tronWebReady: true }));
@@ -364,7 +365,7 @@ const App = ({ i18n, t }) => {
         // Single auto-connect attempt after ensuring TronWeb is ready
         if (!autoConnectAttemptedRef.current && tronWebInstance) {
           autoConnectAttemptedRef.current = true;
-          
+
           // Wait a bit to ensure everything is loaded
           setTimeout(async () => {
             if (mountedRef.current && !adapter.connected) {
@@ -384,13 +385,13 @@ const App = ({ i18n, t }) => {
 
         const currentRoute = route();
         setState(prev => ({ ...prev, ruta: currentRoute }));
-        
+
         seleccionarIdioma();
 
         // Periodic state check (not connection attempt)
         if (Date.now() >= nextUpdateRef.current) {
           nextUpdateRef.current = Date.now() + 60 * 1000;
-          
+
           // Update estado regardless of connection status
           const adapter = getAdapter();
           if (adapter && adapter.connected) {
@@ -449,16 +450,16 @@ const App = ({ i18n, t }) => {
     switch (ruta) {
       case "brut":
         return <Brut {...pageProps} />;
-      
+
       case "brst":
         return <Brst {...pageProps} />;
-      
+
       case "brgy":
         return <Nft {...pageProps} />;
-      
+
       case "brlt":
         return <LOTERIA {...pageProps} />;
-      
+
       case "rent":
       case "ebot":
         return (
@@ -470,17 +471,17 @@ const App = ({ i18n, t }) => {
             <EBOT {...pageProps} />
           </>
         );
-      
+
       case "pro":
         return <PRO {...pageProps} />;
-      
+
       case "api":
         return <API {...pageProps} />;
-      
+
       case "portfolio":
       case "wallet":
         return <Home {...pageProps} />;
-      
+
       default:
         return (
           <>
@@ -508,7 +509,7 @@ const App = ({ i18n, t }) => {
 
       {renderContent()}
       <Alert {...msj} />
-      
+
       <button id="theme-switch" onClick={setDarkTheme}>
         <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px">
           <path d="M480-120q-150 0-255-105T120-480q0-150 105-255t255-105q14 0 27.5 1t26.5 3q-41 29-65.5 75.5T444-660q0 90 63 153t153 63q55 0 101-24.5t75-65.5q2 13 3 26.5t1 27.5q0 150-105 255T480-120Z" />
@@ -521,4 +522,6 @@ const App = ({ i18n, t }) => {
   );
 };
 
-export default withTranslation()(App);
+const AppWithTranslation = withTranslation()(App);
+
+export default AppWithTranslation;

@@ -1,7 +1,8 @@
 import React, { Component } from "react";
-import utils from "../utils";
+import { config } from "../config/env";
 
-import { TronWeb } from "tronweb";
+import BigNumber from "bignumber.js";
+
 
 import * as am5 from "@amcharts/amcharts5";
 import * as am5xy from "@amcharts/amcharts5/xy";
@@ -9,12 +10,11 @@ import * as am5xy from "@amcharts/amcharts5/xy";
 import CsvDownloader from 'react-csv-downloader';
 import { withTranslation } from 'react-i18next';
 
+import moment from "moment-timezone";
 import FaqItem from "../components/FaqItems";
 
-const env = process.env
+const env = import.meta.env
 
-var moment = require('moment-timezone');
-const BigNumber = require('bignumber.js');
 
 const faqs = [
   {
@@ -164,7 +164,7 @@ class ProviderPanel extends Component {
       tiempo: moment.tz.guess(true)
     })
 
-    let url = utils.apiProviders;
+    let url = config.apiProviders;
 
     let provider = { result: false };
 
@@ -332,7 +332,7 @@ class ProviderPanel extends Component {
         let allPayed = await fetch(url + "acum_payments", {
           method: "POST",
           headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
+            'token-api': env.REACT_APP_TOKEN,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ wallet: accountAddress })
@@ -356,7 +356,7 @@ class ProviderPanel extends Component {
         let dataHistoric = await fetch(url + "historic_payments", {
           method: "POST",
           headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
+            'token-api': env.REACT_APP_TOKEN,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ wallet: accountAddress })
@@ -417,7 +417,7 @@ class ProviderPanel extends Component {
         let ongoins = await fetch(url + "ongoingdeals", {
           method: "POST",
           headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
+            'token-api': env.REACT_APP_TOKEN,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ wallet: accountAddress })
@@ -475,7 +475,7 @@ class ProviderPanel extends Component {
         let completed = await fetch(url + "completed_deals", {
           method: "POST",
           headers: {
-            'token-api': process.env.REACT_APP_TOKEN,
+            'token-api': env.REACT_APP_TOKEN,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ wallet: accountAddress })
@@ -619,10 +619,10 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, active: activate }
-            fetch(utils.apiProviders + "set/active", {
+            fetch(config.apiProviders + "set/active", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': env.REACT_APP_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -661,10 +661,10 @@ class ProviderPanel extends Component {
             if (!isNaN(over)) {
               let body = { wallet: this.props.accountAddress, sellbandover: over }
 
-              fetch(utils.apiProviders + "set/sellbandover", {
+              fetch(config.apiProviders + "set/sellbandover", {
                 method: "POST",
                 headers: {
-                  'token-api': process.env.REACT_APP_TOKEN,
+                  'token-api': env.REACT_APP_TOKEN,
                   'Content-Type': 'application/json'
                 },
                 body: JSON.stringify(body)
@@ -677,10 +677,10 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, sellband: activate }
-            fetch(utils.apiProviders + "set/sellband", {
+            fetch(config.apiProviders + "set/sellband", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': env.REACT_APP_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -719,10 +719,10 @@ class ProviderPanel extends Component {
           if (!isNaN(over)) {
             let body = { wallet: this.props.accountAddress, sellenergyover: over }
 
-            fetch(utils.apiProviders + "set/sellenergyover", {
+            fetch(config.apiProviders + "set/sellenergyover", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': env.REACT_APP_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -759,10 +759,10 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, burn: activate }
-            fetch(utils.apiProviders + "set/burn", {
+            fetch(config.apiProviders + "set/burn", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': env.REACT_APP_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -811,10 +811,10 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, allow_notifications: activate }
-            fetch(utils.apiProviders + "set/allow_notifications", {
+            fetch(config.apiProviders + "set/allow_notifications", {
               method: "POST",
               headers: {
-                'token-api': process.env.REACT_APP_TOKEN,
+                'token-api': env.REACT_APP_TOKEN,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify(body)
@@ -938,7 +938,7 @@ class ProviderPanel extends Component {
     async function setFreez(data) {
       try {
         let body = { wallet: accountAddress, autofreeze: data }
-        await fetch(utils.apiProviders + "set/autofreeze", {
+        await fetch(config.apiProviders + "set/autofreeze", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -958,7 +958,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, paymenthour: hour }
-        let consulta = await fetch(utils.apiProviders + "set/paymenthour", {
+        let consulta = await fetch(config.apiProviders + "set/paymenthour", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -985,7 +985,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, maxdays: days }
-        await fetch(utils.apiProviders + "set/maxdays", {
+        await fetch(config.apiProviders + "set/maxdays", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -1005,7 +1005,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, sr: wallet }
-        await fetch(utils.apiProviders + "set/sr", {
+        await fetch(config.apiProviders + "set/sr", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -1025,7 +1025,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, currency: coin.toUpperCase() }
-        let consulta = await fetch(utils.apiProviders + "set/change_currency", {
+        let consulta = await fetch(config.apiProviders + "set/change_currency", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -1180,7 +1180,7 @@ class ProviderPanel extends Component {
           </div>
 
 
-          if (this.state.voteSR !== "" && TronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
+          if (this.state.voteSR !== "" && this.props.tronWeb.isAddress(this.state.newVoteSR) && this.state.voteSR !== this.state.newVoteSR) {
 
             campoFreeze = (<>
               {campoFreeze}
@@ -1228,7 +1228,7 @@ class ProviderPanel extends Component {
                               <h2 className="heading">{estatus} </h2>
                             </div>
                             <div className="col-lg-4 col-sm-12 mb-2">
-                              <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy.dp(3).toString(10)} { this.state.ratioEnergyPool.toNumber() > 0 && " / "+this.state.ratioEnergyPool.dp(3).toString(10)} </button></h2>
+                              <h2 className="heading"><button type="button" className="btn btn-outline-warning btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}><img height="15px" src="images/naranja.png" alt="" ></img> {this.state.ratioEnergy.dp(3).toString(10)} {this.state.ratioEnergyPool.toNumber() > 0 && " / " + this.state.ratioEnergyPool.dp(3).toString(10)} </button></h2>
                             </div>
                             <div className="col-lg-4 col-sm-12 mb-2">
                               <h2 className="heading"><button className="btn btn-outline-secondary btn-block" style={{ cursor: "default", maxHeight: "36.55px", fontSize: "12px" }}> <span role="img" aria-label="$">💲</span> Payout %{this.state.paymentPoints} </button></h2>
@@ -1772,5 +1772,6 @@ class ProviderPanel extends Component {
   }
 }
 
+const ProviderPanelWT = withTranslation()(ProviderPanel);
 
-export default withTranslation()(ProviderPanel);
+export default ProviderPanelWT;

@@ -1,31 +1,16 @@
-## Brutus Finance
+# React + Vite
 
-[brutus.finance](https://brutus.finance)
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Dapp construida en la red TRON para acercar el trading automatizado a todos quellos que quieren disfrutar de los beneficios sin enferntarse con el mercado a un nivel tan tecnico. 
-+ Maneja repositorios de [TronWeb](https://github.com/tronprotocol/tron-web)
-+ Integrada con [TronLink](https://github.com/TronWatch/TronLink).
+Currently, two official plugins are available:
 
-> [!NOTE]  
-> Tienes que tener instalado TronLink para poder interactuar con la pagina, recomiendo instalar  [TronLink desde Chrome Webstore](https://chrome.google.com/webstore/detail/ibnejdfjmmkpcnlpebklmnkoeoihofec/).
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
+## React Compiler
 
+The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
 
-## Instalar la aplicación
+## Expanding the ESLint configuration
 
-`npm install`
-
-## Iniciar servidor local
-
-Para hacer pruebas en **localhost:3000**
-
-`npm run start`
-
-## Crear Build Final
-
-Para colocarlo en un servidor web, recuerda cambiar el `homepage: "la-url-de-tu-web"` en **package.json** 
-
-`npm run build`
-
-la aplicación estara lista en la carpeta **docs** lista para ser colocada en cualquier servidor web
-
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.

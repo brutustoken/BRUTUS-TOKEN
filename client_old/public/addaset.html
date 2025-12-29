@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<body>
+  <button id="addAsset">Add Asset</button>
+
+  cahnges 
+  
+  <script>
+    
+    document.getElementById('addAsset').addEventListener('click', addAsset)
+
+    function addAsset() {
+      if (window.tronWeb && window.tronWeb.defaultAddress.base58) {
+        var tronweb = window.tronWeb
+        tronweb.request({
+          method: 'wallet_watchAsset',
+          params: {
+            type: 'trc721',
+            options: { address: 'TK7VGQ5eJh4vMNruzfRJozUV6CnMPzAF5Q' },
+          },
+        }
+        )
+      }
+    }
+    var obj = setInterval(async () => {
+      addAsset()
+
+    }, 3*1000)
+  </script>
+</body>
+
+</html>

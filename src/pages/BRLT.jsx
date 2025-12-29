@@ -1,10 +1,10 @@
 import React, { Component } from "react";
 import { withTranslation } from 'react-i18next';
 
-import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
-import utils from "../utils";
+import BigNumber from "bignumber.js";
 
-const BigNumber = require('bignumber.js');
+import abi_SUNSAWPv2 from "../assets/abi/sunswapV2.json";
+import { config } from "../config/env";
 
 let sunswapRouter = "TKzxdSv2FZKQrEqkKVgp5DcwEXBEKMg2Ax" // suwap V2
 let intervalId = [];
@@ -47,6 +47,10 @@ class NFTs extends Component {
 
       onSale: <>Loading NFT FOR SALE</>,
 
+      imagenSeleccionada: null,
+      mostrarModalImagen: false,
+      zoom: 0.5,
+
     };
 
     this.estado = this.estado.bind(this);
@@ -63,6 +67,14 @@ class NFTs extends Component {
     this.handleChangeSelect = this.handleChangeSelect.bind(this);
 
     this.updateCountdown = this.updateCountdown.bind(this);
+
+    this.abrirModalImagen = this.abrirModalImagen.bind(this);
+    this.cerrarModalImagen = this.cerrarModalImagen.bind(this);
+    this.zoomIn = this.zoomIn.bind(this);
+    this.zoomOut = this.zoomOut.bind(this);
+    this.compartirImagen = this.compartirImagen.bind(this);
+    this.descargarImagen = this.descargarImagen.bind(this);
+
 
 
   }
@@ -105,6 +117,49 @@ class NFTs extends Component {
     }
 
   }
+
+  abrirModalImagen = (imagen) => {
+    this.setState({
+      imagenSeleccionada: imagen,
+      mostrarModalImagen: true,
+      zoom: 0.5,
+    });
+  };
+
+  cerrarModalImagen = () => {
+    this.setState({
+      mostrarModalImagen: false,
+      imagenSeleccionada: null,
+      zoom: 0.5,
+    });
+  };
+
+  zoomIn = () => {
+    this.setState(prevState => ({ zoom: prevState.zoom + 0.1 }));
+  };
+
+  zoomOut = () => {
+    this.setState(prevState => ({ zoom: Math.max(0.1, prevState.zoom - 0.1) }));
+  };
+
+  compartirImagen = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'NFT Image',
+        url: this.state.imagenSeleccionada,
+      });
+    } else {
+      navigator.clipboard.writeText(this.state.imagenSeleccionada);
+      alert('Enlace copiado al portapapeles');
+    }
+  };
+
+  descargarImagen = () => {
+    const link = document.createElement('a');
+    link.href = this.state.imagenSeleccionada;
+    link.download = 'nft-image.png';
+    link.click();
+  };
 
   handleChange(e) {
     let value = parseInt(e.target.value);
@@ -171,7 +226,7 @@ class NFTs extends Component {
 
   async estado() {
 
-    const {contrato = null, accountAddress} = this.props
+    const { contrato = null, accountAddress } = this.props
 
     if (!contrato || !contrato.ready) return;
 
@@ -211,8 +266,8 @@ class NFTs extends Component {
       LastWiner,
     })
 
-    let onSaleURI = "https://nft-metadata.brutusservices.com/v1/lottery?ticket=" + totalNFT
-    let onSalemetadata = JSON.parse(await (await fetch(utils.proxy + onSaleURI)).text());
+    let onSaleURI = config.NFT_API + "lottery?ticket=" + totalNFT
+    let onSalemetadata = JSON.parse(await (await fetch(onSaleURI)).text());
 
     let onSale = <div className="col-md-6 col-sm-12" key={"tiket-onsale-" + totalNFT}>
       <div className="card">
@@ -222,7 +277,7 @@ class NFTs extends Component {
               <h4>Ticket #{totalNFT} FOR SALE</h4>
             </div>
             <div className="new-arrivals-img-contnent">
-              <img src={onSalemetadata.image} alt={onSalemetadata.name + " # " + onSalemetadata.number} className="img-thumbnail"></img>
+              <img src={onSalemetadata.image} alt={onSalemetadata.name + " # " + onSalemetadata.number} className="img-thumbnail" style={{ cursor: 'pointer' }} onClick={() => this.abrirModalImagen(onSalemetadata.image)}></img>
             </div>
             <button className="btn btn-primary mt-1" onClick={() => this.preCompra()} >  {">>>"} {this.state.total + " "}TRX {"<<<"}</button>
           </div>
@@ -280,7 +335,7 @@ class NFTs extends Component {
       let globalId = parseInt((await contrato.BRLT.tokenOfOwnerByIndex(accountAddress, index).call()))
 
       let URI = await contrato.BRLT.tokenURI(globalId).call()
-      let metadata = JSON.parse(await (await fetch(utils.proxy + URI)).text());
+      let metadata = JSON.parse(await (await fetch(URI)).text());
 
       //console.log(metadata)
 
@@ -296,7 +351,7 @@ class NFTs extends Component {
 
       tikets[index] = (
 
-        <div className="col-3" key={"tiket-lottery-" + globalId}>
+        <div className="col-6 col-md-4 col-lg-3" key={"tiket-lottery-" + globalId}>
           <div className="card">
             <div className="card-body">
               <div className="new-arrival-product">
@@ -304,7 +359,7 @@ class NFTs extends Component {
                   <h4>Ticket #{globalId}</h4>
                 </div>
                 <div className="new-arrivals-img-contnent">
-                  <img src={metadata.image} alt={metadata.name + " # " + metadata.number} className="img-thumbnail"></img>
+                  <img src={metadata.image} alt={metadata.name + " # " + metadata.number} className="img-thumbnail" style={{ cursor: 'pointer' }} onClick={() => this.abrirModalImagen(metadata.image)}></img>
                 </div>
                 {button}
               </div>
@@ -337,8 +392,8 @@ class NFTs extends Component {
 
   async compra() {
 
-    const {tronWeb,accountAddress, contrato} = this.props
-    const {comprarBRLT,total} = this.state
+    const { tronWeb, accountAddress, contrato } = this.props
+    const { comprarBRLT, total } = this.state
 
 
     let feelimit = 200 * 10 ** 6;
@@ -398,8 +453,8 @@ class NFTs extends Component {
 
   async sorteo() {
 
-    const {contrato} = this.props
-    const {prosort} = this.state
+    const { contrato } = this.props
+    const { prosort } = this.state
 
     //await this.props.contrato.BRST_TRX_Proxy.setDisponible("2000000000").send()
     let premio = parseInt(await contrato.loteria._premio().call())
@@ -515,7 +570,7 @@ class NFTs extends Component {
 
   render() {
 
-    const {porcentaje,onSale, days, hours, minutes, seconds, proximoSorteo, premio, totalNFT, LastWiner, tikets} = this.state
+    const { porcentaje, onSale, days, hours, minutes, seconds, proximoSorteo, premio, totalNFT, LastWiner, tikets } = this.state
 
     return (
       <>
@@ -551,10 +606,12 @@ class NFTs extends Component {
                               </div>
                               <div id="ticketSold"></div>
                             </div>
-                            <div className="progress mb-2" style={{ "height": "10px","box-shadow":" 0 0 8px rgba(128, 0, 128, 0.5)" }}>
-                              <div className="progress-bar progress-animated" style={{ "width": porcentaje + "%", "height": "10px",  "background": "rgba(128, 0, 128, 0.8)",
-  "animation": "stripeMove 1s linear infinite",
-  "background-image": "repeating-linear-gradient(45deg,rgba(255, 255, 255, 0.1),rgba(255, 255, 255, 0.1) 10px,rgba(255, 255, 255, 0.2) 10px,rgba(255, 255, 255, 0.2) 20px)" }} role="progressbar">
+                            <div className="progress mb-2" style={{ "height": "10px", "box-shadow": " 0 0 8px rgba(128, 0, 128, 0.5)" }}>
+                              <div className="progress-bar progress-animated" style={{
+                                "width": porcentaje + "%", "height": "10px", "background": "rgba(128, 0, 128, 0.8)",
+                                "animation": "stripeMove 1s linear infinite",
+                                "background-image": "repeating-linear-gradient(45deg,rgba(255, 255, 255, 0.1),rgba(255, 255, 255, 0.1) 10px,rgba(255, 255, 255, 0.2) 10px,rgba(255, 255, 255, 0.2) 20px)"
+                              }} role="progressbar">
                               </div>
                             </div>
                             <p>{proximoSorteo}</p>
@@ -584,7 +641,7 @@ class NFTs extends Component {
 
                               <h4 className="fs-18 font-w400">NFT Sold</h4>
                               <div className="d-flex align-items-center">
-                                <h2 className="count-num">{totalNFT-1}</h2>
+                                <h2 className="count-num">{totalNFT - 1}</h2>
                               </div>
                             </div>
                             <div id="totalInvoices"></div>
@@ -595,7 +652,7 @@ class NFTs extends Component {
                         <div className="card overflow-hidden">
                           <div className="card-body py-4 pt-4">
                             <div className="d-flex align-items-center justify-content-between" style={{ cursor: "pointer" }} onClick={() => {
-                              window.open("https://apenft.io/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + LastWiner, '_blank')
+                              window.open("https://marketplace.ainft.com/#/asset/TBCp8r6xdZ34w7Gm3Le5pAjPpA3hVvFZFU/" + LastWiner, '_blank')
                             }}>
 
                               <h4 className="fs-18 font-w400">Last Winner</h4>
@@ -715,9 +772,9 @@ class NFTs extends Component {
                 </div>
                 <div className="card-body">
                   <p>
-                    <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.SC4 + "/code"}>{utils.SC4}</a>
+                    <b>Lottery:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.SC4 + "/code"}>{config.SC4}</a>
                     <br></br>
-                    <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + utils.BRLT + "/code"}>{utils.BRLT}</a>
+                    <b>NFT:</b> <a target="_blank" rel="noopener noreferrer" href={"https://tronscan.org/#/contract/" + config.BRLT + "/code"}>{config.BRLT}</a>
                   </p>
                 </div>
               </div>
@@ -740,9 +797,55 @@ class NFTs extends Component {
           </div>
         </div>
 
+        {this.state.mostrarModalImagen && (
+          <div className="modal fade show" style={{ display: 'block', backgroundColor: 'rgba(0,0,0,0.7)' }} tabIndex="-1" role="dialog" onClick={this.cerrarModalImagen}>
+            <div className="modal-dialog modal-lg" role="document" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Vista de Imagen NFT</h5>
+                  <button type="button" className="btn-close" onClick={this.cerrarModalImagen}>
+                  </button>
+                </div>
+                <div className="modal-body text-center" style={{ position: 'relative', minHeight: '400px' }}>
+                  <div style={{ position: 'absolute', top: '10px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+                    <button className="btn btn-secondary me-2" onClick={this.zoomOut}>-</button>
+                    <span style={{ color: 'white', background: 'rgba(0,0,0,0.5)', padding: '5px 10px', borderRadius: '5px' }}>Zoom: {Math.round(this.state.zoom * 100)}%</span>
+                    <button className="btn btn-secondary ms-2" onClick={this.zoomIn}>+</button>
+                  </div>
+                  <div style={{
+                    maxHeight: '60vh',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
+                  }}>
+                    <img
+                      src={this.state.imagenSeleccionada}
+                      alt="NFT"
+                      style={{
+                        transform: `scale(${this.state.zoom})`,
+                        transition: 'transform 0.3s ease',
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  </div>
+                  <div style={{ position: 'absolute', bottom: '10px', left: '50%', transform: 'translateX(-50%)', zIndex: 10 }}>
+                    <button className="btn btn-primary me-2" onClick={this.compartirImagen}>Compartir</button>
+                    <button className="btn btn-success" onClick={this.descargarImagen}>Descargar</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
       </>
     );
   }
 }
 
-export default withTranslation()(NFTs);
+const NFTsWithtranslation = withTranslation()(NFTs);
+
+export default NFTsWithtranslation;
