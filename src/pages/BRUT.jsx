@@ -195,7 +195,7 @@ const BrutComponent = (props) => {
     }
 
     async function generateDatas(count) {
-      let consulta = (await (await fetch(config.BRUTUS_API + "chartdata/brut?temporalidad=" + temporalidad + "&limite=" + count)).json()).Data
+      let consulta = (await (await fetch(config.BRUTUS_API + "/chartdata/brut?temporalidad=" + temporalidad + "&limite=" + count)).json()).Data
       let data = []
 
       for (var i = consulta.length - 1; i >= 0; --i) {

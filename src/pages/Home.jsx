@@ -123,7 +123,7 @@ class Inicio extends Component {
 	}
 
 	async consultaPrecios() {
-		await fetch(config.BRUTUS_API + 'api/v1/precio/brut')
+		await fetch(config.BRUTUS_API + '/precio/brut')
 			.then(response => { return response.json(); })
 			.then(data => {
 
@@ -137,7 +137,7 @@ class Inicio extends Component {
 
 			});
 
-		await fetch(config.BRUTUS_API + 'api/v1/precio/brst')
+		await fetch(config.BRUTUS_API + '/precio/brst')
 			.then(async (r) => (await r.json()).Data)
 			.then((r) => {
 				//console.log(r)

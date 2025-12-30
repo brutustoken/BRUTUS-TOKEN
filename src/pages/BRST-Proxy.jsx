@@ -492,7 +492,7 @@ class Staking extends Component {
     let useTrx = (await this.costEnergy(eenergy)).toString(10)
     this.setState({ useTrx })
 
-    fetch(config.BRUTUS_API + "chartdata/brst?temporalidad=day&limite=" + tiempoPromediado)
+    fetch(config.BRUTUS_API + "/chartdata/brst?temporalidad=day&limite=" + tiempoPromediado)
       .then(async (r) => (await r.json()).Data)
       .then((consulta) => {
         if (consulta.length > 0) {
@@ -523,7 +523,7 @@ class Staking extends Component {
       .catch((e) => { console.error(e); return false })
 
 
-    fetch(config.BRUTUS_API + "chartdata/brst?temporalidad=day&limite=361")
+    fetch(config.BRUTUS_API + "/chartdata/brst?temporalidad=day&limite=361")
       .then(async (r) => (await r.json()).Data)
       .then((consultaData) => {
         if (consultaData.length > 0) {
@@ -562,14 +562,14 @@ class Staking extends Component {
         this.setState({ depositoBRUT: utils.normalizarNumero(depositoBRUT) })
       })
 
-    fetch(config.BRUTUS_API + "precio/usdt")
+    fetch(config.BRUTUS_API + "/precio/usdt")
       .then((r) => r.json())
       .then((r) => {
         this.setState({ precioUSDT: new BigNumber(r.Data.oneTron) })
       })
       .catch((e) => { console.log(e) })
 
-    fetch(config.BRUTUS_API + "precio/usdd")
+    fetch(config.BRUTUS_API + "/precio/usdd")
       .then((r) => r.json())
       .then((r) => {
         this.setState({ precioUSDD: new BigNumber(r.Data.oneTron) })
@@ -796,7 +796,7 @@ class Staking extends Component {
       .catch(() => false)
 
     if (energyOn) {
-      let consulta = await fetch(config.BOT_URL + "available")
+      let consulta = await fetch(config.BOT_URL + "/available")
         .then((r) => r.json())
 
       if (consulta.av_energy.length > 0) {
@@ -848,7 +848,7 @@ class Staking extends Component {
       }
 
       let body = { "resource": "energy", "amount": requerido, "duration": "5min" }
-      let consultaPrecio = await fetch(config.BOT_URL + "prices", {
+      let consultaPrecio = await fetch(config.BOT_URL + "/prices", {
         method: "POST",
         headers: {
           'Content-Type': 'application/json'
@@ -1010,7 +1010,7 @@ class Staking extends Component {
 
   async consultaPrecio() {
 
-    return await fetch(config.BRUTUS_API + 'precio/brst')
+    return await fetch(config.BRUTUS_API + '/precio/brst')
       .then(async (r) => (await r.json()).Data)
       .then(r => {
 
@@ -1242,7 +1242,7 @@ class Staking extends Component {
 
     if (cantidad.toNumber() === 0) return new BigNumber(0);
 
-    let consulta = await fetch(config.BOT_URL + "prices", {
+    let consulta = await fetch(config.BOT_URL + "/prices", {
       method: "POST",
       headers: {
         'Content-Type': 'application/json'
@@ -1980,7 +1980,7 @@ class Staking extends Component {
 
     async function generateDatas(count) {
 
-      let consulta = await fetch(config.BRUTUS_API + "chartdata/brst?temporalidad=" + temporalidad + "&limite=" + count)
+      let consulta = await fetch(config.BRUTUS_API + "/chartdata/brst?temporalidad=" + temporalidad + "&limite=" + count)
         .then(async (r) => (await r.json()).Data)
         .catch(() => { return false })
 

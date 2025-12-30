@@ -11,8 +11,6 @@ export let config = {
 
     LIST_TRONQL: env.VITE_LIST_TRONQL,
 
-    RED: env.VITE_RED,
-
     SC: "TMGnBtzQufLp4GvCMBqFQGcV6nsXFNrWcs",//contrato BRUT/USDT
     SC2: "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6",//contrato N°2 POOL Staking  BRST/TRX
     ProxySC2: "TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55",// POOL Staking  BRST/TRX Proxy
@@ -53,7 +51,7 @@ export let config = {
 */
 
 // Validar variables requeridas
-const requiredEnvVars = ['VITE_API_URL', 'VITE_BOT_URL', 'VITE_API_PROVIDERS_URL', 'VITE_RED', 'VITE_WALLET_API']
+const requiredEnvVars = ['VITE_API_URL', 'VITE_BOT_URL', 'VITE_API_PROVIDERS_URL', 'VITE_WALLET_API']
 
 requiredEnvVars.forEach(varName => {
     if (!import.meta.env[varName]) {

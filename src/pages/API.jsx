@@ -103,7 +103,7 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, active: activate }
-            fetch(config.apiProviders + "set/active", {
+            fetch(config.apiProviders + "/set/active", {
               method: "POST",
               headers: {
                 'token-api': import.meta.env.VITE_TOKEN,
@@ -144,7 +144,7 @@ class ApiPanel extends Component {
             console.log(over)
             let body = { wallet: this.props.accountAddress, sellbandover: over }
 
-            fetch(config.apiProviders + "set/sellbandover", {
+            fetch(config.apiProviders + "/set/sellbandover", {
               method: "POST",
               headers: {
                 'token-api': import.meta.env.VITE_TOKEN,
@@ -158,7 +158,7 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, sellband: activate }
-            fetch(config.apiProviders + "set/sellband", {
+            fetch(config.apiProviders + "/set/sellband", {
               method: "POST",
               headers: {
                 'token-api': import.meta.env.VITE_TOKEN,
@@ -199,7 +199,7 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, burn: activate }
-            fetch(config.apiProviders + "set/burn", {
+            fetch(config.apiProviders + "/set/burn", {
               method: "POST",
               headers: {
                 'token-api': import.meta.env.VITE_TOKEN,
@@ -251,7 +251,7 @@ class ApiPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, allow_notifications: activate }
-            fetch(config.apiProviders + "set/allow_notifications", {
+            fetch(config.apiProviders + "/set/allow_notifications", {
               method: "POST",
               headers: {
                 'token-api': import.meta.env.VITE_TOKEN,
@@ -394,7 +394,7 @@ class ApiPanel extends Component {
   async setFreez(data) {
     try {
       let body = { wallet: this.props.accountAddress, autofreeze: data }
-      await fetch(config.apiProviders + "set/autofreeze", {
+      await fetch(config.apiProviders + "/set/autofreeze", {
         method: "POST",
         headers: {
           'token-api': import.meta.env.VITE_TOKEN,
@@ -416,7 +416,7 @@ class ApiPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, paymenthour: hour }
-      await fetch(config.apiProviders + "set/paymenthour", {
+      await fetch(config.apiProviders + "/set/paymenthour", {
         method: "POST",
         headers: {
           'token-api': import.meta.env.VITE_TOKEN,
@@ -438,7 +438,7 @@ class ApiPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, maxdays: days }
-      await fetch(config.apiProviders + "set/maxdays", {
+      await fetch(config.apiProviders + "/set/maxdays", {
         method: "POST",
         headers: {
           'token-api': import.meta.env.VITE_TOKEN,
@@ -460,7 +460,7 @@ class ApiPanel extends Component {
 
     try {
       let body = { wallet: this.props.accountAddress, sr: wallet }
-      await fetch(config.apiProviders + "set/sr", {
+      await fetch(config.apiProviders + "/set/sr", {
         method: "POST",
         headers: {
           'token-api': import.meta.env.VITE_TOKEN,
@@ -488,7 +488,7 @@ class ApiPanel extends Component {
     let provider = { result: false };
 
     try {
-      provider = await fetch(url + "provider?wallet=" + this.props.accountAddress)
+      provider = await fetch(url + "/provider?wallet=" + this.props.accountAddress)
         .then((r) => {
           return r.json();
         })
@@ -533,7 +533,7 @@ class ApiPanel extends Component {
 
         try {
 
-          info = await fetch(url + "status?wallet=" + this.props.accountAddress)
+          info = await fetch(url + "/status?wallet=" + this.props.accountAddress)
             .then((r) => {
               return r.json();
             })
@@ -637,7 +637,7 @@ class ApiPanel extends Component {
         let historic = {}
         try {
 
-          historic = await fetch(url + "historic_payments", {
+          historic = await fetch(url + "/historic_payments", {
             method: "POST",
             headers: {
               'token-api': import.meta.env.VITE_TOKEN,
@@ -665,7 +665,7 @@ class ApiPanel extends Component {
 
         try {
 
-          allPayed = await fetch(url + "acum_payments", {
+          allPayed = await fetch(url + "/acum_payments", {
             method: "POST",
             headers: {
               'token-api': import.meta.env.VITE_TOKEN,
@@ -724,7 +724,7 @@ class ApiPanel extends Component {
 
           let body = { wallet: this.props.accountAddress }
 
-          ongoins = await fetch(url + "ongoingdeals", {
+          ongoins = await fetch(url + "/ongoingdeals", {
             method: "POST",
             headers: {
               'token-api': import.meta.env.VITE_TOKEN,
@@ -793,7 +793,7 @@ class ApiPanel extends Component {
 
           let body = { wallet: this.props.accountAddress }
 
-          completed = await fetch(url + "completed_deals", {
+          completed = await fetch(url + "/completed_deals", {
             method: "POST",
             headers: {
               'token-api': import.meta.env.VITE_TOKEN,
