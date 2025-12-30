@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { withTranslation } from 'react-i18next';
 
-import utils from "../services";
-
 const Galeria = ({ accountAddress, contrato, isViewerMode }) => {
   const [state, setState] = useState({
     imagerobots: [],
@@ -81,7 +79,7 @@ const Galeria = ({ accountAddress, contrato, isViewerMode }) => {
       const nftDataPromises = robots.map(async (nftId, index) => {
         try {
           const uri = await contrato.BRGY.tokenURI(nftId).call();
-          const response = await fetch(utils.proxy + uri);
+          const response = await fetch(uri);
           const metadata = await response.json();
 
           return {

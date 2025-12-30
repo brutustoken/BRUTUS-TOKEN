@@ -259,7 +259,7 @@ class EnergyRental extends Component {
     energyOn = consulta.available
     bandOn = consulta.available
 
-    consulta = await fetch(URL + "available")
+    consulta = await fetch(URL + "/available")
       .then((r) => r.json())
       .catch((e) => {
         console.log(e)
@@ -365,7 +365,7 @@ class EnergyRental extends Component {
 
     let { precios, duration, recurso } = this.state
 
-    let url = config.BOT_URL + "prices/all"
+    let url = config.BOT_URL + "/prices/all"
 
     let consulta = await fetch(url, {
       method: "GET",

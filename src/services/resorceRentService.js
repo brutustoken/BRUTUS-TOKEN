@@ -43,7 +43,7 @@ export const rentResource = async (wallet_orden, recurso, cantidad, periodo, tem
     // Encrypt
     const DATA_ENCRYPT = encryptData(data)
 
-    let consulta = await fetch(config.BRUTUS_API + "rent/energy", {
+    let consulta = await fetch(config.BRUTUS_API + "/rent/energy", {
         method: "POST",
         headers: {
             'Accept': 'application/json',

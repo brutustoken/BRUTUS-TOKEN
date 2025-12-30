@@ -266,7 +266,7 @@ class NFTs extends Component {
       LastWiner,
     })
 
-    let onSaleURI = config.NFT_API + "lottery?ticket=" + totalNFT
+    let onSaleURI = config.NFT_API + "/lottery?ticket=" + totalNFT
     let onSalemetadata = JSON.parse(await (await fetch(onSaleURI)).text());
 
     let onSale = <div className="col-md-6 col-sm-12" key={"tiket-onsale-" + totalNFT}>

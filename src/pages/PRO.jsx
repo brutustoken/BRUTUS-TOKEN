@@ -169,7 +169,7 @@ class ProviderPanel extends Component {
     let provider = { result: false };
 
     try {
-      provider = await fetch(url + "provider?wallet=" + accountAddress)
+      provider = await fetch(url + "/provider?wallet=" + accountAddress)
         .then((r) => {
           return r.json();
         })
@@ -220,7 +220,7 @@ class ProviderPanel extends Component {
 
         try {
 
-          info = await fetch(url + "status?wallet=" + accountAddress)
+          info = await fetch(url + "/status?wallet=" + accountAddress)
             .then((r) => {
               return r.json();
             })
@@ -329,7 +329,7 @@ class ProviderPanel extends Component {
 
         })
 
-        let allPayed = await fetch(url + "acum_payments", {
+        let allPayed = await fetch(url + "/acum_payments", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -353,7 +353,7 @@ class ProviderPanel extends Component {
         this.setState({ allPayed: allPayed })
 
 
-        let dataHistoric = await fetch(url + "historic_payments", {
+        let dataHistoric = await fetch(url + "/historic_payments", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -414,7 +414,7 @@ class ProviderPanel extends Component {
           totalPayed30: totalPayed30.join(" + ")
         })
 
-        let ongoins = await fetch(url + "ongoingdeals", {
+        let ongoins = await fetch(url + "/ongoingdeals", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -472,7 +472,7 @@ class ProviderPanel extends Component {
         });
 
 
-        let completed = await fetch(url + "completed_deals", {
+        let completed = await fetch(url + "/completed_deals", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -619,7 +619,7 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, active: activate }
-            fetch(config.apiProviders + "set/active", {
+            fetch(config.apiProviders + "/set/active", {
               method: "POST",
               headers: {
                 'token-api': env.REACT_APP_TOKEN,
@@ -661,7 +661,7 @@ class ProviderPanel extends Component {
             if (!isNaN(over)) {
               let body = { wallet: this.props.accountAddress, sellbandover: over }
 
-              fetch(config.apiProviders + "set/sellbandover", {
+              fetch(config.apiProviders + "/set/sellbandover", {
                 method: "POST",
                 headers: {
                   'token-api': env.REACT_APP_TOKEN,
@@ -677,7 +677,7 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, sellband: activate }
-            fetch(config.apiProviders + "set/sellband", {
+            fetch(config.apiProviders + "/set/sellband", {
               method: "POST",
               headers: {
                 'token-api': env.REACT_APP_TOKEN,
@@ -719,7 +719,7 @@ class ProviderPanel extends Component {
           if (!isNaN(over)) {
             let body = { wallet: this.props.accountAddress, sellenergyover: over }
 
-            fetch(config.apiProviders + "set/sellenergyover", {
+            fetch(config.apiProviders + "/set/sellenergyover", {
               method: "POST",
               headers: {
                 'token-api': env.REACT_APP_TOKEN,
@@ -759,7 +759,7 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, burn: activate }
-            fetch(config.apiProviders + "set/burn", {
+            fetch(config.apiProviders + "/set/burn", {
               method: "POST",
               headers: {
                 'token-api': env.REACT_APP_TOKEN,
@@ -811,7 +811,7 @@ class ProviderPanel extends Component {
 
           try {
             let body = { wallet: this.props.accountAddress, allow_notifications: activate }
-            fetch(config.apiProviders + "set/allow_notifications", {
+            fetch(config.apiProviders + "/set/allow_notifications", {
               method: "POST",
               headers: {
                 'token-api': env.REACT_APP_TOKEN,
@@ -938,7 +938,7 @@ class ProviderPanel extends Component {
     async function setFreez(data) {
       try {
         let body = { wallet: accountAddress, autofreeze: data }
-        await fetch(config.apiProviders + "set/autofreeze", {
+        await fetch(config.apiProviders + "/set/autofreeze", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -958,7 +958,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, paymenthour: hour }
-        let consulta = await fetch(config.apiProviders + "set/paymenthour", {
+        let consulta = await fetch(config.apiProviders + "/set/paymenthour", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -985,7 +985,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, maxdays: days }
-        await fetch(config.apiProviders + "set/maxdays", {
+        await fetch(config.apiProviders + "/set/maxdays", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -1005,7 +1005,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, sr: wallet }
-        await fetch(config.apiProviders + "set/sr", {
+        await fetch(config.apiProviders + "/set/sr", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,
@@ -1025,7 +1025,7 @@ class ProviderPanel extends Component {
 
       try {
         let body = { wallet: accountAddress, currency: coin.toUpperCase() }
-        let consulta = await fetch(config.apiProviders + "set/change_currency", {
+        let consulta = await fetch(config.apiProviders + "/set/change_currency", {
           method: "POST",
           headers: {
             'token-api': env.REACT_APP_TOKEN,

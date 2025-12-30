@@ -3,7 +3,7 @@ import { config } from '../config/env';
 
 export const keyQuery = async () => {
 
-    let KEY = await fetch(config.BRUTUS_API + 'selector/apikey')
+    let KEY = await fetch(config.BRUTUS_API + '/selector/apikey')
         .then(response => { return response.json(); })
         .then(data => {
             let API_KEY = ""
