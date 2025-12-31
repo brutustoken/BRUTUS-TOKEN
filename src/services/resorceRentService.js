@@ -20,6 +20,8 @@ export const rentResource = async (wallet_orden, recurso, cantidad, periodo, tem
         time = periodo + "min"
     }
 
+    const tronweb = await getTronweb()
+
     let data = {
         "wallet": wallet_orden,
         "resource": recurso,
@@ -28,7 +30,7 @@ export const rentResource = async (wallet_orden, recurso, cantidad, periodo, tem
 
         "transaction": signedTransaction,
         "to_address": config.WALLET_API,
-        "precio": await getTronweb.toSun(precio),
+        "precio": tronweb.toSun(precio),
 
         "expire": Date.now() + (500 * 1000),
 
