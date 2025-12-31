@@ -38,7 +38,7 @@ const getRed = (index = 0) => {
     return url;
 }
 
-export const getTronweb = async (wallet, red = 0) => {
+export const getTronweb = async (wallet = config.WALLET_DEFAULT, red = 0) => {
 
     const tronWeb = new TronWeb({
         fullHost: getRed(red),
