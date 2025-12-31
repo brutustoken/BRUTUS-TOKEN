@@ -51,7 +51,7 @@ export const rentResource = async (wallet_orden, recurso, cantidad, periodo, tem
             'Accept': 'application/json',
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ user: import.meta.env.VITE_USER_C, DATA_ENCRYPT })
+        body: JSON.stringify({ user: import.meta.env.VITE_USER_C, data: DATA_ENCRYPT })
     }).then((r) => r.json())
         .catch((error) => {
             console.error(error)
