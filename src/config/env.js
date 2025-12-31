@@ -1,5 +1,6 @@
 const env = import.meta.env;
 export let config = {
+    WALLET_DEFAULT: "TWVVi4x2QNhRJyhqa7qrwM4aSXnXoUDDwY",
     WALLET_API: env.VITE_WALLET_API,
     BOT_URL: env.VITE_BOT_URL,
     BRUTUS_API: env.VITE_API_URL,
