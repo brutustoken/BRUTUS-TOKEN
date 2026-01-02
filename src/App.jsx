@@ -253,19 +253,24 @@ const App = ({ i18n, t }) => {
     try {
       // Load BRUT contract
       if (contrato.BRUT === null && config.BRUT !== "") {
-        //web3Contracts = await utils.getTronweb(accountAddress, 1);
+        web3Contracts = await utils.getTronweb(accountAddress);
+
         contrato.BRUT = web3Contracts.contract(abi_TOKEN, config.BRUT);
       }
 
       // Load USDT/USDD contracts
       if (contrato.USDT === null && config.USDT !== "") {
-        //web3Contracts = await utils.getTronweb(accountAddress, 1);
+        web3Contracts = await utils.getTronweb(accountAddress);
+
         contrato.USDT = web3Contracts.contract(abi_TOKEN, config.USDT);
+        web3Contracts = await utils.getTronweb(accountAddress);
+
         contrato.USDD = web3Contracts.contract(abi_TOKEN, config.USDD);
       }
 
       // Load BRUT_USDT contract
       if (contrato.BRUT_USDT === null && config.SC !== "") {
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.BRUT_USDT = web3Contracts.contract(abi_BRST_USDT, config.SC);
       }
 
@@ -277,15 +282,19 @@ const App = ({ i18n, t }) => {
 
       // Load BRST_TRX_Proxy contract
       if (contrato.BRST_TRX_Proxy === null && config.ProxySC2 !== "") {
-        //web3Contracts = await utils.getTronweb(accountAddress);
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.Proxy = web3Contracts.contract(abi_PROXY, config.ProxySC2);
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.BRST_TRX_Proxy = web3Contracts.contract(abi_POOLBRST, config.ProxySC2);
       }
 
       // Load BRST_TRX_Proxy_fast contract
       if (contrato.BRST_TRX_Proxy_fast === null && config.ProxySC3 !== "") {
-        //web3Contracts = await utils.getTronweb(accountAddress);
+
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.Proxy_fast = web3Contracts.contract(abi_PROXY, config.ProxySC3);
+
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.BRST_TRX_Proxy_fast = web3Contracts.contract(abi_SimpleSwap, config.ProxySC3);
       }
 
@@ -315,8 +324,10 @@ const App = ({ i18n, t }) => {
 
       // Load Lottery contract
       if (contrato.loteria === null && config.SC4 !== "") {
-        //web3Contracts = await utils.getTronweb(accountAddress, 2);
+        web3Contracts = await utils.getTronweb(accountAddress, 2);
         contrato.ProxyLoteria = web3Contracts.contract(abi_PROXY, config.SC4);
+
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.loteria = web3Contracts.contract(abi_LOTERIA, config.SC4);
       }
 
