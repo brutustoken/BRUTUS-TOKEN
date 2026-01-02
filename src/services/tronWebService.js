@@ -3,50 +3,62 @@ import { config } from '../config/env';
 
 export const keyQuery = async () => {
 
-    let KEY = await fetch(config.BRUTUS_API + '/selector/apikey')
-        .then(response => { return response.json(); })
-        .then(data => {
-            let API_KEY = ""
+    try {
 
-            if (data.ok) {
-                if (data.apikey) {
-                    API_KEY = data.apikey
-                }
+        let consulta = await fetch(config.BRUTUS_API + '/selector/apikey')
+            .then(r => r.json())
 
-            }
-            return API_KEY
+        return consulta.apikey
 
-        }).catch(err => {
-            console.log(err);
-            return ""
-        });
 
-    return KEY
+    } catch (e) {
+        console.error(e)
+        throw new Error("Error obteniendo API key para trongrid desde el servidor ")
+    }
+
 
 }
 
 const getRed = (index = 0) => {
 
-    let tokenList = config.LIST_TRONQL || "";
-    //console.log(tokenList, (tokenList == false))
-    tokenList = tokenList.split(",")
+    try {
 
-    if (index > tokenList.length) index = tokenList.length - 1;
+        let tokenList = config.LIST_TRONQL || "";
+        //console.log(tokenList, (tokenList == false))
+        tokenList = tokenList.split(",")
 
-    let url = "https://" + tokenList[index] + ".mainnet.tron.tronql.com/"
+        if (index > tokenList.length) index = tokenList.length - 1;
 
-    return url;
+        let url = "https://" + tokenList[index] + ".mainnet.tron.tronql.com/"
+
+        return url;
+
+    } catch (e) {
+        console.error(e)
+        throw new Error("Error al obtener red de tronql")
+    }
+
 }
 
 export const getTronweb = async (wallet = config.WALLET_DEFAULT, red = 0) => {
 
-    const tronWeb = new TronWeb({
-        fullHost: getRed(red),
-        //headers: { "TRON-PRO-API-KEY": await keyQuery() }
-    })
+    try {
 
-    tronWeb.setAddress(wallet)
+        const tronWeb = new TronWeb({
+            fullHost: getRed(red),
+            //headers: { "TRON-PRO-API-KEY": await keyQuery() }
+        })
 
-    return tronWeb
+        tronWeb.setAddress(wallet)
+
+        return tronWeb
+
+
+    } catch (e) {
+        console.error(e)
+        throw new Error("Error al crear objeto TronWeb")
+    }
+
+
 
 }

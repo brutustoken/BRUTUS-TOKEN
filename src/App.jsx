@@ -254,17 +254,15 @@ const App = ({ i18n, t }) => {
       // Load BRUT contract
       if (contrato.BRUT === null && config.BRUT !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-
         contrato.BRUT = web3Contracts.contract(abi_TOKEN, config.BRUT);
       }
 
       // Load USDT/USDD contracts
       if (contrato.USDT === null && config.USDT !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-
         contrato.USDT = web3Contracts.contract(abi_TOKEN, config.USDT);
-        web3Contracts = await utils.getTronweb(accountAddress);
 
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.USDD = web3Contracts.contract(abi_TOKEN, config.USDD);
       }
 
@@ -284,6 +282,7 @@ const App = ({ i18n, t }) => {
       if (contrato.BRST_TRX_Proxy === null && config.ProxySC2 !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
         contrato.Proxy = web3Contracts.contract(abi_PROXY, config.ProxySC2);
+
         web3Contracts = await utils.getTronweb(accountAddress);
         contrato.BRST_TRX_Proxy = web3Contracts.contract(abi_POOLBRST, config.ProxySC2);
       }
@@ -318,13 +317,13 @@ const App = ({ i18n, t }) => {
 
       // Load BRLT contract
       if (contrato.BRLT === null && config.BRLT !== "") {
-        web3Contracts = await utils.getTronweb(accountAddress, 2);
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.BRLT = await web3Contracts.contract().at(config.BRLT);
       }
 
       // Load Lottery contract
       if (contrato.loteria === null && config.SC4 !== "") {
-        web3Contracts = await utils.getTronweb(accountAddress, 2);
+        web3Contracts = await utils.getTronweb(accountAddress);
         contrato.ProxyLoteria = web3Contracts.contract(abi_PROXY, config.SC4);
 
         web3Contracts = await utils.getTronweb(accountAddress);
@@ -338,6 +337,7 @@ const App = ({ i18n, t }) => {
       }
     } catch (error) {
       console.error("Error loading contracts:", error);
+      //throw new Error("")
     }
   }, [state.contrato]);
 
