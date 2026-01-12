@@ -11,9 +11,11 @@ import { TronLinkAdapter } from '@tronweb3/tronwallet-adapters';
 import abi_TOKEN from "./assets/abi/TRC20-USDT.json"
 import abi_PROXY from "./assets/abi/Proxy";
 import abi_POOLBRST from "./assets/abi/PoolBRSTv4";
+import { entrys as abi_POOL_BRST_TRX } from "./assets/abi/BRST_TRX.json";
 import abi_BRST_USDT from "./assets/abi/Brst-Usdt.json"
 import abi_SimpleSwap from "./assets/abi/SimpleSwapV2";
 import abi_LOTERIA from "./assets/abi/Lottery";
+import { entrys as abi_BRLT } from "./assets/abi/BRLT.json"
 
 import Alert from "./components/Alert.jsx";
 import Home from "./pages/Home.jsx";
@@ -275,7 +277,7 @@ const App = ({ i18n, t }) => {
       // Load BRST_TRX contract
       if (contrato.BRST_TRX === null && config.SC2 !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.BRST_TRX = await web3Contracts.contract().at(config.SC2);
+        contrato.BRST_TRX = web3Contracts.contract(abi_POOL_BRST_TRX, config.SC2);
       }
 
       // Load BRST_TRX_Proxy contract
@@ -318,7 +320,7 @@ const App = ({ i18n, t }) => {
       // Load BRLT contract
       if (contrato.BRLT === null && config.BRLT !== "") {
         web3Contracts = await utils.getTronweb(accountAddress);
-        contrato.BRLT = await web3Contracts.contract().at(config.BRLT);
+        contrato.BRLT = await web3Contracts.contract(abi_BRLT, config.BRLT);
       }
 
       // Load Lottery contract

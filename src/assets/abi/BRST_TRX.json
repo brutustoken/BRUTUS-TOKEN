@@ -1,0 +1,83 @@
+{
+  "entrys": [
+    { "inputs": [{ "name": "_cantidadTRX", "type": "uint256" }], "stateMutability": "Nonpayable", "type": "Constructor" },
+    {
+      "inputs": [
+        { "indexed": true, "name": "previousOwner", "type": "address" },
+        { "indexed": true, "name": "newOwner", "type": "address" }
+      ],
+      "name": "OwnershipTransferred",
+      "type": "Event"
+    },
+    { "stateMutability": "Payable", "type": "Fallback" },
+    { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "_tokenTRC20", "type": "address" }], "name": "ChangeToken", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "_tokenTRC20", "type": "address" }], "name": "ChangeTokenOTRO", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "MIN_DEPOSIT", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "address" }], "name": "NoValido", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "RATE", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "TIEMPO", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "TRON_BALANCE", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "TRON_GANANCIAS", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "TRON_PAY_BALANCE", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "TRON_SOLICITADO", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "TRON_TOTAL_BALANCE", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "TRON_WALLET_BALANCE", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256[]" }], "inputs": [{ "name": "oldArray", "type": "uint256[]" }], "name": "actualizarArray", "stateMutability": "Pure", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "asignarGanacia", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "asignarPerdida", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "_index", "type": "uint256" }], "name": "completarSolicitud", "stateMutability": "Payable", "type": "Function" },
+    { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "crearBRTS", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "dias_de_pago", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "gananciaDirecta", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "index", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_user", "type": "address" }], "name": "largoSolicitudes", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "_newowner", "type": "address" }], "name": "newOwnerBRTS", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "address" }], "name": "owner", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "pagarGanacias", "stateMutability": "Nonpayable", "type": "Function" },
+    {
+      "outputs": [{ "type": "bool" }, { "type": "uint256" }],
+      "inputs": [{ "name": "_value", "type": "uint256" }],
+      "name": "quemarBRTS",
+      "stateMutability": "Nonpayable",
+      "type": "Function"
+    },
+    { "outputs": [{ "type": "uint256" }], "name": "redimBRTS01", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "redimBRTS02", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "redimOTRO01", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "redimTRX", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "redimTRX", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "restarGanacia", "stateMutability": "Nonpayable", "type": "Function" },
+    { "inputs": [{ "name": "_id", "type": "uint256" }], "name": "retirar", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "_dias", "type": "uint256" }], "name": "setDias", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "bool" }], "inputs": [{ "name": "_unidades", "type": "uint256" }], "name": "setUnidadesTiempo", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "type": "uint256" }], "name": "solicitudInterna", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "inputs": [{ "name": "_value", "type": "uint256" }], "name": "solicitudRetiro", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "address" }], "inputs": [{ "type": "uint256" }], "name": "solicitudesEnProgreso", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256[]" }], "name": "solicitudesPendientesGlobales", "stateMutability": "View", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "staking", "stateMutability": "Payable", "type": "Function" },
+    {
+      "outputs": [
+        { "name": "id", "type": "uint256[]" },
+        { "name": "tiempo", "type": "uint256[]" },
+        { "name": "trxx", "type": "uint256[]" },
+        { "name": "brst", "type": "uint256[]" },
+        { "name": "completado", "type": "bool[]" },
+        { "name": "partner", "type": "address[]" }
+      ],
+      "inputs": [{ "name": "_user", "type": "address" }],
+      "name": "todasSolicitudes",
+      "stateMutability": "View",
+      "type": "Function"
+    },
+    { "inputs": [{ "name": "newOwner", "type": "address" }], "name": "transferOwnership", "stateMutability": "Nonpayable", "type": "Function" },
+    { "outputs": [{ "type": "uint256" }], "name": "unidades_tiempo", "stateMutability": "View", "type": "Function" },
+    {
+      "outputs": [{ "type": "bool" }, { "type": "uint256" }, { "type": "uint256" }, { "type": "uint256" }, { "type": "address" }],
+      "inputs": [{ "name": "_id", "type": "uint256" }],
+      "name": "verSolicitudPendiente",
+      "stateMutability": "View",
+      "type": "Function"
+    },
+    { "stateMutability": "Payable", "type": "Receive" }
+  ]
+}
