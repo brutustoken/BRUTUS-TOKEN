@@ -41,30 +41,42 @@ export const rentResource = async (wallet_orden, recurso, cantidad, periodo, tem
 
             "dApp": referral ? 1 : 0,
             "referral": referral ? referral : 0,
-            "dapp_identif": import.meta.env.VITE_IDENTF || 0
+            "dapp_identif": import.meta.env.VITE_IDENTF ?? 0
         }
 
         // Encrypt
         const DATA_ENCRYPT = encryptData(data)
 
-        let consulta = await fetch(config.BRUTUS_API + "/rent/energy", {
+        const response = await fetch(config.BRUTUS_API + "/rent/energy", {
             method: "POST",
             headers: {
                 'Accept': 'application/json',
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ user: import.meta.env.VITE_USER_C, data: DATA_ENCRYPT })
-        }).then((r) => r.json())
-            .catch((error) => {
-                console.error(error)
-                return { result: false, hash: signedTransaction.txID, msg: "API-Error: " + error.toString() }
-            })
+        })
 
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Error servidor (${response.status}): ${errorText}`);
+        }
+
+        const consulta = await response.json();
+
+        if (consulta.error) {
+            throw new Error(consulta.msg);
+        }
 
         return consulta
 
-    } catch {
-        throw new Error("Error al rentar recursos")
+    } catch (error) {
+        console.error("Error en rentResource:", error);
+        // Devolvemos un objeto con el mismo formato para no romper el flujo de la UI
+        return {
+            result: false,
+            hash: signedTransaction?.txID || null,
+            msg: error.message || "Error desconocido al rentar"
+        };
     }
 
 }
