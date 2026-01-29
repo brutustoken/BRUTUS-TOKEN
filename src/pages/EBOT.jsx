@@ -762,7 +762,7 @@ class EnergyRental extends Component {
 
       this.setState({
         titulo: "Completed successfully",
-        body: <>Energy rental completed successfully.<br ></br><br ></br> <button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
+        body: <>Rental of {recurso} is completed successfully.<br ></br><br ></br> <button type="button" data-bs-dismiss="modal" className="btn btn-success">Thank you!</button></>
       })
 
       window.$("#mensaje-ebot").modal("show");
