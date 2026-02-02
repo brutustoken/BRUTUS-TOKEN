@@ -555,9 +555,9 @@ class Staking extends Component {
             dias = consulta.length;
           }
 
-          let crecimientoDiario = (valorFinal / valorInicial) ^ (1 / dias - 1);
+          let crecimientoDiario = (valorFinal / valorInicial) ** (1 / dias - 1);
 
-          const APY = (1 + crecimientoDiario) ^ (365 - 1);
+          let APY = (1 + crecimientoDiario) ** (365 - 1);
 
           let interesCompuesto =
             (1 + crecimientoPorcentual / 100) ** tiempoPromediado;
