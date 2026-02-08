@@ -90,6 +90,7 @@ export const rentResource = async (
   } catch (error) {
     console.error("Error en rentResource:", error);
     // Devolvemos un objeto con el mismo formato para no romper el flujo de la UI
+    // si
     return {
       result: false,
       hash: signedTransaction?.txID || null,
