@@ -12,6 +12,12 @@ export let config = {
 
     LIST_TRONQL: env.VITE_LIST_TRONQL,
 
+    // sistema de renta de recursos
+    ID_RENT: import.meta.env.VITE_USER_ID,
+    TOKEN_RENT: import.meta.env.VITE_TOKEN,
+    // verificacion de conexion
+    USER_RENT: env.VITE_USER_C,
+
     SC: "TMGnBtzQufLp4GvCMBqFQGcV6nsXFNrWcs",//contrato BRUT/USDT
     SC2: "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6",//contrato N°2 POOL Staking  BRST/TRX
     ProxySC2: "TRSWzPDgkEothRpgexJv7Ewsqo66PCqQ55",// POOL Staking  BRST/TRX Proxy

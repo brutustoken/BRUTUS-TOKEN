@@ -52,8 +52,8 @@ export const rentResource = async (
 
       expire: Date.now() + 500 * 1000,
 
-      id_api: import.meta.env.VITE_USER_ID,
-      token: import.meta.env.VITE_TOKEN,
+      id_api: config.ID_RENT,
+      token: config.TOKEN_RENT,
 
       dApp: referral ? 1 : 0,
       referral: referral ? referral : 0,
@@ -70,7 +70,7 @@ export const rentResource = async (
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        user: import.meta.env.VITE_USER_C,
+        user: config.USER_RENT,
         data: DATA_ENCRYPT,
       }),
     });
