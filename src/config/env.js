@@ -17,6 +17,7 @@ export let config = {
     TOKEN_RENT: import.meta.env.VITE_TOKEN,
     // verificacion de conexion
     USER_RENT: env.VITE_USER_C,
+    SECRET_RENT: env.VITE_SECRET,
 
     SC: "TMGnBtzQufLp4GvCMBqFQGcV6nsXFNrWcs",//contrato BRUT/USDT
     SC2: "TMzxRLeBwfhm8miqm5v2qPw3P8rVZUa3x6",//contrato N°2 POOL Staking  BRST/TRX
