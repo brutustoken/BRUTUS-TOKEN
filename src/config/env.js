@@ -30,29 +30,9 @@ export let config = {
     SUNSWAPV3: "TXF1xDbVGdxFGbovmmmXvBGu8ZiE3Lq4mR"//contrato SUNSWAPV3
 }
 
-/*
-
-  constantes.RED = "https://nile.trongrid.io"
-
-  constantes.SC = "TADgHFAqjTeTRthrkGcP1m7TtX221pmPH1";//pool USDT_BUT
-  constantes.SC2 = "TMt5zzCgpWDUVpw3fiqBZgqQDYCYViZCVC"; //Pool BRST_TRX
-  constantes.ProxySC2 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE"; // Pool_BRST_TRX Prox
-  constantes.ProxySC3 = "TH4xHxyecwZJJ5SXouUYJ3KW4zPw5BtNSE----"; // Pool_BRST_TRX Prox retiradas rapidas 
-
-  constantes.SC3 = "";//pool APENFT_NFT
-  constantes.SC4 = "TYtAGrdr6VDopFqrWRbZPXYT9yyMXsZ4zR";// Loteria Contract NFT_BRST_TRX PROXY
-
-  constantes.USDT = "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf";//token USDT
-  constantes.BRUT = "TTBZHmxP5H2FW8zaJgCR2x2WeB82rJo3xb";//token trc20 BRUT
-  constantes.BRST = "TVF78ZDkPL2eJgUqs7pDusTgyMtw9WA4tq";//token trc20 BRST
-  constantes.APENFT = "TMaG566bcktJkjxQpQxshewfTqATzxmtPX";//token de venta de mixtery box
-  constantes.BRGY = "TMEmo4xexAEu3zSmSrzPJoA1FE6AEfgVyW";//token NFT  BRGY 
-  constantes.BRLT = "TPJ8chq5pHGkWsyDrrVVKQQbS2ECK5UZd5";//NFT LOTERIA
-
-*/
 
 // Validar variables requeridas
-const requiredEnvVars = ['VITE_API_URL', 'VITE_BOT_URL', 'VITE_API_PROVIDERS_URL', 'VITE_WALLET_API']
+const requiredEnvVars = ['VITE_API_URL', 'VITE_BOT_URL', 'VITE_API_PROVIDERS_URL', 'VITE_WALLET_API', 'VITE_LIST_TRONQL', 'VITE_API_NFT']
 
 requiredEnvVars.forEach(varName => {
     if (!import.meta.env[varName]) {

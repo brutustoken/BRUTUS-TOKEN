@@ -610,7 +610,7 @@ class NFTs extends Component {
                               <div className="progress-bar progress-animated" style={{
                                 "width": porcentaje + "%", "height": "10px", "background": "rgba(128, 0, 128, 0.8)",
                                 "animation": "stripeMove 1s linear infinite",
-                                "background-image": "repeating-linear-gradient(45deg,rgba(255, 255, 255, 0.1),rgba(255, 255, 255, 0.1) 10px,rgba(255, 255, 255, 0.2) 10px,rgba(255, 255, 255, 0.2) 20px)"
+                                "backgroundImage": "repeating-linear-gradient(45deg,rgba(255, 255, 255, 0.1),rgba(255, 255, 255, 0.1) 10px,rgba(255, 255, 255, 0.2) 10px,rgba(255, 255, 255, 0.2) 20px)"
                               }} role="progressbar">
                               </div>
                             </div>
@@ -756,7 +756,10 @@ class NFTs extends Component {
                     </p>
 
                     <p className="text-center" >
-                      <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf" className="btn btn-primary">{"--> "}Read all Terms and Conditions {" <--"}</a>
+                      <span className="btn btn-primary" onClick={() => this.preCompra()}>{"---> "} Buy an NFT to unlocks endless opportunities {" <---"}</span>
+                      <br />
+                      <a href="https://brutus.finance/docs/Terms-and-Conditions-Brutus-Lottery.pdf" >Read all Terms and Conditions</a>
+
                     </p>
                   </div>
                 </div>
