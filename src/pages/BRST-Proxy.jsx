@@ -564,7 +564,7 @@ class Staking extends Component {
 
           let crecimientoDiario = (valorFinal / valorInicial) ** (1 / dias - 1);
 
-          let APY = (1 + crecimientoDiario) ** (365 - 1);
+          let APY = new BigNumber((1 + crecimientoDiario) ** (365 - 1)).dp(2).toString(10);
 
           let interesCompuesto =
             (1 + crecimientoPorcentual / 100) ** tiempoPromediado;
