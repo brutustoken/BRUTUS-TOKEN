@@ -495,10 +495,17 @@ class Staking extends Component {
     let loteria = utils.normalizarNumero(
       (await contrato.loteria._premio().call())[0],
     );
-    let retiroRapido = parseInt(
+
+    let retiroRapido = utils.normalizarNumero(
       await contrato.BRST_TRX_Proxy_fast.balance_token_1().call(),
     );
-    retiroRapido = new BigNumber(retiroRapido).shiftedBy(-6).minus(loteria);
+
+    retiroRapido = new BigNumber(retiroRapido).minus(loteria)
+
+    if (accountAddress !== "TZJSXstGQcCVT1PeVp7iybt5bANcU2bDda") {
+      retiroRapido = retiroRapido.minus(2500)
+    }
+
     if (retiroRapido < 0) retiroRapido = new BigNumber(0);
     this.setState({ retiroRapido });
 
@@ -526,8 +533,8 @@ class Staking extends Component {
 
     fetch(
       config.BRUTUS_API +
-        "chartdata/brst?temporalidad=day&limite=" +
-        tiempoPromediado,
+      "chartdata/brst?temporalidad=day&limite=" +
+      tiempoPromediado,
     )
       .then(async (r) => (await r.json()).Data)
       .then((consulta) => {
@@ -855,9 +862,9 @@ class Staking extends Component {
               console.log(transaction);
               alert(
                 "Transaction " +
-                  transaction.result +
-                  " hash: " +
-                  transaction.txid,
+                transaction.result +
+                " hash: " +
+                transaction.txid,
               );
             } catch (error) {
               console.log(error);
@@ -900,9 +907,9 @@ class Staking extends Component {
               console.log(transaction);
               alert(
                 "Transaction " +
-                  transaction.result +
-                  " hash: " +
-                  transaction.txid,
+                transaction.result +
+                " hash: " +
+                transaction.txid,
               );
             } catch (error) {
               console.log(error);
@@ -1420,10 +1427,10 @@ class Staking extends Component {
 
       let consulta = await fetch(
         "https://rot.endjgfsv.link/swap/router?fromToken=" +
-          token +
-          "&toToken=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb&amountIn=" +
-          monto +
-          "&typeList=SUNSWAP_V3,SUNSWAP_V2,WTRX",
+        token +
+        "&toToken=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb&amountIn=" +
+        monto +
+        "&typeList=SUNSWAP_V3,SUNSWAP_V2,WTRX",
       )
         .then((r) => r.json())
         .then((r) => r.data[0]);
@@ -1948,10 +1955,10 @@ class Staking extends Component {
 
     let consulta = await fetch(
       "https://rot.endjgfsv.link/swap/router?fromToken=" +
-        token +
-        "&toToken=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb&amountIn=" +
-        monto.shiftedBy(decimals_base).dp(0).toString(10) +
-        "&typeList=SUNSWAP_V3,SUNSWAP_V2,WTRX",
+      token +
+      "&toToken=T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb&amountIn=" +
+      monto.shiftedBy(decimals_base).dp(0).toString(10) +
+      "&typeList=SUNSWAP_V3,SUNSWAP_V2,WTRX",
     )
       .then((r) => r.json())
       .then((r) => r.data[0]);
@@ -2513,10 +2520,10 @@ class Staking extends Component {
     async function generateDatas(count) {
       let consulta = await fetch(
         config.BRUTUS_API +
-          "chartdata/brst?temporalidad=" +
-          temporalidad +
-          "&limite=" +
-          count,
+        "chartdata/brst?temporalidad=" +
+        temporalidad +
+        "&limite=" +
+        count,
       )
         .then(async (r) => (await r.json()).Data)
         .catch(() => {
@@ -3352,8 +3359,8 @@ class Staking extends Component {
                                 <td>
                                   {new BigNumber(
                                     this.state.balanceBRST *
-                                      this.state.precioBrst *
-                                      this.state.precioUSDD,
+                                    this.state.precioBrst *
+                                    this.state.precioUSDD,
                                   )
                                     .dp(2)
                                     .toNumber()
@@ -3372,7 +3379,7 @@ class Staking extends Component {
                                 <td>
                                   {new BigNumber(
                                     this.state.balanceTRX *
-                                      this.state.precioUSDD,
+                                    this.state.precioUSDD,
                                   )
                                     .dp(2)
                                     .toNumber()

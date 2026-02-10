@@ -27,15 +27,6 @@ const EBOT = React.lazy(() => import("./pages/EBOT.jsx"));
 const PRO = React.lazy(() => import("./pages/PRO.jsx"));
 const API = React.lazy(() => import("./pages/API.jsx"));
 
-//import Alert from "./components/Alert.jsx";
-//import Home from "./pages/Home.jsx";
-//import Brut from "./pages/BRUT.jsx";
-//import Brst from "./pages/BRST-Proxy.jsx";
-//import Nft from "./pages/BRGY.jsx";
-//import LOTERIA from "./pages/BRLT.jsx";
-//import EBOT from "./pages/EBOT.jsx";
-//import PRO from "./pages/PRO.jsx";
-//import API from "./pages/API.jsx";
 import { config } from "./config/env.js";
 
 const addressDefault = "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb";
