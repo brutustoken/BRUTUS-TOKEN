@@ -557,17 +557,20 @@ class Staking extends Component {
             valorFinal = consulta[0].value; // Ultimo valor del rango
 
             crecimientoPorcentual =
-              ((valorFinal - valorInicial) / valorInicial) * 100;
+              ((valorFinal - valorInicial) / valorInicial);
             crecimientoPorcentual = crecimientoPorcentual / consulta.length;
+
             dias = consulta.length;
           }
 
-          let crecimientoDiario = (valorFinal / valorInicial) ** (1 / dias - 1);
+          let crecimientoDiario = ((valorFinal / valorInicial) ** (1 / dias)) - 1;
 
           let APY = new BigNumber((1 + crecimientoDiario) ** (365 - 1)).dp(2).toString(10);
 
           let interesCompuesto =
             (1 + crecimientoPorcentual / 100) ** tiempoPromediado;
+
+          crecimientoPorcentual = crecimientoPorcentual * 100
 
           this.setState({
             promE7to1day,
