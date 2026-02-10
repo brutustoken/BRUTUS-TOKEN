@@ -3510,7 +3510,7 @@ class Staking extends Component {
               <div className="card-header">
                 <h4 className="card-title">
                   {t("brst.estimate")} <br />
-                  APY: ~{APY}%
+                  APY: {APY}%
                 </h4>
                 <br />
 
