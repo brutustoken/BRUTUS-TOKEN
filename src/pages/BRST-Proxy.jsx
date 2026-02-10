@@ -137,7 +137,7 @@ class Staking extends Component {
       userEnergy: 0,
       ModalTitulo: "",
       ModalBody: "",
-      tiempoPromediado: 30,
+      tiempoPromediado: 90,
       promE7to1day: 0,
       resultCalc: 0,
       diasCalc: 360,
@@ -3510,8 +3510,7 @@ class Staking extends Component {
               <div className="card-header">
                 <h4 className="card-title">
                   {t("brst.estimate")} <br />
-                  APR: {APR} % <br />
-                  APY: {APY}%
+                  APY: ~{APY}%
                 </h4>
                 <br />
 
