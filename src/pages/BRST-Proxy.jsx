@@ -103,6 +103,7 @@ class Staking extends Component {
     const { t } = this.props;
 
     this.state = {
+      APR: 0,
       APY: 0,
       minCompra: 1,
       minventa: 1,
@@ -565,7 +566,8 @@ class Staking extends Component {
 
           let crecimientoDiario = ((valorFinal / valorInicial) ** (1 / dias)) - 1;
 
-          let APY = new BigNumber((1 + crecimientoDiario) ** (365 - 1)).dp(2).toString(10);
+          const APR = new BigNumber(crecimientoDiario * 365 * 100).dp(2).toString(10)
+          const APY = new BigNumber(((1 + crecimientoDiario) ** (365)) - 1).multipliedBy(100).dp(2).toString(10);
 
           let interesCompuesto =
             (1 + crecimientoPorcentual / 100) ** tiempoPromediado;
@@ -577,6 +579,7 @@ class Staking extends Component {
             crecimientoPorcentual,
             crecimientoDiario,
             interesCompuesto,
+            APR,
             APY,
           });
         }
@@ -2653,6 +2656,7 @@ class Staking extends Component {
   render() {
     const { contrato, t } = this.props;
     let {
+      APR,
       APY,
       from,
       to,
@@ -3506,7 +3510,7 @@ class Staking extends Component {
               <div className="card-header">
                 <h4 className="card-title">
                   {t("brst.estimate")} <br />
-                  APR: {(crecimientoPorcentual * 360).toFixed(3)} % <br />
+                  APR: {APR} % <br />
                   APY: {APY}%
                 </h4>
                 <br />
