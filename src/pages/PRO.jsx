@@ -250,8 +250,6 @@ class ProviderPanel extends Component {
           console.log(error.toString());
         }
 
-        //console.log(info)
-
         let naranja = new BigNumber((info.ratio_e - info.ratio_e_pool) * 100)
           .dp(3)
           .toNumber();
@@ -319,8 +317,6 @@ class ProviderPanel extends Component {
         }
 
         info.coin = info.currency;
-
-        //console.log(info)
 
         this.setState({
           ...info,
