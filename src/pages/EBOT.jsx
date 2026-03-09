@@ -5,6 +5,18 @@ import BigNumber from "bignumber.js";
 import { config } from "../config/env";
 import utils from "../services";
 
+const imgLoading = (
+  <img src="images/cargando.gif" height="20px" alt="loading..."></img>
+);
+
+const imgBotLoading = (
+  <img
+    src="images/loading-energy.gif"
+    width="100%"
+    alt="robot indicate loading energy"
+  ></img>
+);
+
 const amountsE = [
   { amount: 65000, text: "65K" },
   { amount: 130000, text: "130K" },
@@ -71,6 +83,7 @@ class EnergyRental extends Component {
 
     this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
+
   }
 
   async componentDidMount() {
@@ -814,10 +827,6 @@ class EnergyRental extends Component {
       referral,
     } = this.state;
 
-    const imgLoading = (
-      <img src="images/cargando.gif" height="20px" alt="loading..."></img>
-    );
-
     this.setState({
       titulo: <>Confirm transaction {imgLoading}</>,
       body: <>Please confirm the transaction from your wallet </>,
@@ -836,8 +845,8 @@ class EnergyRental extends Component {
       .sign(unSignedTransaction)
       .catch((e) => {
         this.setState({
-          ModalTitulo: "Transaction failed",
-          ModalBody: (
+          titulo: "Transaction failed",
+          body: (
             <>
               {e.toString()}
               <br></br>
@@ -846,7 +855,7 @@ class EnergyRental extends Component {
                 type="button"
                 className="btn btn-danger"
                 onClick={() => {
-                  window.$("#mensaje-brst").modal("hide");
+                  window.$("#mensaje-ebot").modal("hide");
                 }}
               >
                 Close
@@ -855,7 +864,7 @@ class EnergyRental extends Component {
           ),
         });
 
-        window.$("#mensaje-brst").modal("show");
+        window.$("#mensaje-ebot").modal("show");
         return false;
       });
 
@@ -867,16 +876,13 @@ class EnergyRental extends Component {
       titulo: <>Your order is being processed {imgLoading}</>,
       body: (
         <>
-          <img
-            src="images/loading-energy.gif"
-            width="80%"
-            alt="robot indicate loading energy"
-          ></img>
+          {imgBotLoading}
           <br></br>Wait while one of our robots attends to your recharge, we try
           to be as fast as possible.
         </>
       ),
     });
+    window.$("#mensaje-ebot").modal("show");
 
     let consulta2 = await utils.rentResource(
       wallet_orden,
