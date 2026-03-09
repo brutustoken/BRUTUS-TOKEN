@@ -865,7 +865,17 @@ class EnergyRental extends Component {
 
     this.setState({
       titulo: <>Your order is being processed {imgLoading}</>,
-      body: "Wait while one of our robots attends to your recharge, we try to be as fast as possible.",
+      body: (
+        <>
+          <img
+            src="images/loading-energy.gif"
+            width="80%"
+            alt="robot indicate loading energy"
+          ></img>
+          <br></br>Wait while one of our robots attends to your recharge, we try
+          to be as fast as possible.
+        </>
+      ),
     });
 
     let consulta2 = await utils.rentResource(
