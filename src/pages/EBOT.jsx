@@ -253,8 +253,7 @@ class EnergyRental extends Component {
         body: (
           <>
             {imgBotLoading}
-            <br></br>Wait while one of our robots attends to your recharge, we try
-            to be as fast as possible.
+            <br></br>Please wait while one of our robots processes your recharge. We try to be as fast as possible, but this may take up to 2 minutes for large orders.
           </>
         ),
       },
