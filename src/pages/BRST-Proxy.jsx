@@ -162,7 +162,7 @@ class Staking extends Component {
       to: "brst",
       par: "trx_brst",
       selector: "trx",
-      rapida: true,
+      rapida: false,
       valueFrom: new BigNumber(0),
       valueTo: new BigNumber(0),
     };
@@ -2704,19 +2704,6 @@ class Staking extends Component {
           <div className="col-12 text-center">
             <input
               type="checkbox"
-              checked={rapida}
-              readOnly
-              onClick={() => {
-                this.setState({ rapida: !rapida });
-              }}
-              style={{ cursor: "pointer" }}
-            ></input>{" "}
-            <b>Quick:</b> request up to{" "}
-            <b>{retiroRapido.dp(1).toString(10)} TRX</b> with a{" "}
-            <b>{penalty}% fee.</b>
-            <br></br>
-            <input
-              type="checkbox"
               checked={!rapida}
               readOnly
               onClick={() => {
@@ -2724,8 +2711,23 @@ class Staking extends Component {
               }}
               style={{ cursor: "pointer" }}
             ></input>{" "}
-            <b>Regular:</b> request the <b>total</b> with a <b>{dias} days</b>{" "}
+            <b>Normal:</b> request the <b>total</b> with a <b>{dias} days</b>{" "}
             waiting period.
+            <br></br>
+            <input
+              type="checkbox"
+              checked={rapida}
+              readOnly
+              onClick={() => {
+                this.setState({ rapida: !rapida });
+              }}
+              style={{ cursor: "pointer" }}
+            ></input>{" "}
+            <b>Pool: </b> request up to{" "}
+            <b> {retiroRapido.dp(1).toString(10)} TRX</b> with a{" "}
+            <b> {penalty}% penalty for early withdrawal.</b>
+
+
           </div>
         </div>
       );

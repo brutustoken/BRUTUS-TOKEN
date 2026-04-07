@@ -5,6 +5,18 @@ import BigNumber from "bignumber.js";
 import { config } from "../config/env";
 import utils from "../services";
 
+const imgLoading = (
+  <img src="images/cargando.gif" height="20px" alt="loading..."></img>
+);
+
+const imgBotLoading = (
+  <img
+    src="images/loading-energy.gif"
+    width="100%"
+    alt="robot indicate loading energy"
+  ></img>
+);
+
 const amountsE = [
   { amount: 65000, text: "65K" },
   { amount: 130000, text: "130K" },
@@ -22,6 +34,26 @@ const amountB = [
 ];
 
 let intervalId;
+
+// Constantes para tipos de mensajes
+const MESSAGE_TYPES = {
+  CONNECT_WALLET: 'connectWallet',
+  ERANGE: 'eRange',
+  ERANGE2: 'eRange2',
+  ERESOURCE: 'eResource',
+  SOLD_OUT_ENERGY: 'soldOutEnergy',
+  SOLD_OUT: 'soldOut',
+  ERROR_PRICE: 'errorPrice',
+  NO_FUNDS: 'noFunds',
+  ETRONLINK: 'eTronlink',
+  INSUFFICIENT_RESOURCES: 'insufficientResources',
+  CONFIRM_ORDER: 'confirmOrder',
+  CONFIRM_TRANSACTION: 'confirmTransaction',
+  TRANSACTION_FAILED: 'transactionFailed',
+  PROCESSING_ORDER: 'processingOrder',
+  COMPLETED_SUCCESS: 'completedSuccess',
+  CONTACT_SUPPORT: 'contactSupport',
+};
 
 class EnergyRental extends Component {
   constructor(props) {
@@ -71,6 +103,205 @@ class EnergyRental extends Component {
 
     this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
+    this.showMessage = this.showMessage.bind(this);
+    this.getMessageContent = this.getMessageContent.bind(this);
+  }
+
+  /**
+   * Función centralizada para obtener el contenido de los mensajes
+   * @param {string} messageType - Tipo de mensaje de MESSAGE_TYPES
+   * @param {object} params - Parámetros adicionales para el mensaje
+   * @returns {object} - Objeto con titulo y body del mensaje
+   */
+  getMessageContent(messageType, params = {}) {
+    const { t, i18n } = this.props;
+    const { recurso, cantidad, periodo, temporalidad, wallet_orden, precio } = this.state;
+
+    const messages = {
+      [MESSAGE_TYPES.CONNECT_WALLET]: {
+        titulo: "To continue",
+        body: "Connect your wallet to perform this operation.",
+      },
+      [MESSAGE_TYPES.ERANGE]: {
+        titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
+        body: t("ebot.alert.eRange", { returnObjects: true })[1],
+      },
+      [MESSAGE_TYPES.ERANGE2]: {
+        titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
+        body: t("ebot.alert.eRange2"),
+      },
+      [MESSAGE_TYPES.ERESOURCE]: {
+        titulo: i18n.t("ebot.alert.eResource", { returnObjects: true })[0],
+        body: (
+          <span>
+            {i18n.t("ebot.alert.eResource", { returnObjects: true })[1]}
+          </span>
+        ),
+      },
+      [MESSAGE_TYPES.SOLD_OUT_ENERGY]: {
+        titulo: <>{t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
+        body: (
+          <>
+            {" "}
+            <img
+              src="/images/alerts/recarge_energy.jpeg"
+              alt="Energy sold out"
+              style={{ borderRadius: "15px", width: "100%" }}
+            ></img>{" "}
+            <br></br>
+            <br></br>
+            {t("ebot.alert.soldOut", { returnObjects: true })[1]}
+          </>
+        ),
+      },
+      [MESSAGE_TYPES.SOLD_OUT]: {
+        titulo: t("ebot.alert.soldOut", { returnObjects: true })[0],
+        body: t("ebot.alert.soldOut", { returnObjects: true })[1],
+      },
+      [MESSAGE_TYPES.ERROR_PRICE]: {
+        titulo: "Error",
+        body: "error to calculating price of resource",
+      },
+      [MESSAGE_TYPES.NO_FUNDS]: {
+        titulo: i18n.t("ebot.alert.noFounds", { returnObjects: true })[0],
+        body: (
+          <span>
+            {i18n.t("ebot.alert.noFounds", { returnObjects: true })[1]}
+          </span>
+        ),
+      },
+      [MESSAGE_TYPES.ETRONLINK]: {
+        titulo: i18n.t("ebot.alert.eTronlink", { returnObjects: true })[0],
+        body: (
+          <span>
+            {i18n.t("ebot.alert.eTronlink", { returnObjects: true })[1]}
+            <br></br>
+            <button className="btn btn-danger" data-bs-dismiss="modal">
+              Ok
+            </button>
+          </span>
+        ),
+      },
+      [MESSAGE_TYPES.INSUFFICIENT_RESOURCES]: {
+        titulo: "Error",
+        body: "insufficient resources to cover this order try a lower value or try again later.",
+      },
+      [MESSAGE_TYPES.CONFIRM_ORDER]: {
+        titulo: <>Confirm order information</>,
+        body: (
+          <span>
+            <b>Buy: </b> {cantidad + " " + recurso + " " + periodo + temporalidad}
+            <br></br>
+            <b>For: </b> {params.pagas} TRX<br></br>
+            <b>To: </b> {wallet_orden}
+            <br></br>
+            <br></br>
+            <br></br>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={() => {
+                window.$("#mensaje-ebot").modal("hide");
+              }}
+            >
+              Cancel <i className="bi bi-x-circle"></i>
+            </button>{" "}
+            <button
+              type="button"
+              className="btn btn-success"
+              onClick={() => {
+                this.compra(
+                  cantidad,
+                  periodo,
+                  temporalidad,
+                  recurso,
+                  wallet_orden,
+                  params.pagas,
+                );
+              }}
+            >
+              Confirm <i className="bi bi-bag-check"></i>
+            </button>
+          </span>
+        ),
+      },
+      [MESSAGE_TYPES.CONFIRM_TRANSACTION]: {
+        titulo: <>Confirm transaction {imgLoading}</>,
+        body: <>Please confirm the transaction from your wallet </>,
+      },
+      [MESSAGE_TYPES.TRANSACTION_FAILED]: {
+        titulo: "Transaction failed",
+        body: (
+          <>
+            {params.error?.toString()}
+            <br></br>
+            <br></br>
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={() => {
+                window.$("#mensaje-ebot").modal("hide");
+              }}
+            >
+              Close
+            </button>
+          </>
+        ),
+      },
+      [MESSAGE_TYPES.PROCESSING_ORDER]: {
+        titulo: <>Your order is being processed {imgLoading}</>,
+        body: (
+          <>
+            {imgBotLoading}
+            <br></br>Please wait while one of our robots processes your recharge. We try to be as fast as possible, but this may take up to 2 minutes for large orders.
+          </>
+        ),
+      },
+      [MESSAGE_TYPES.COMPLETED_SUCCESS]: {
+        titulo: "Completed successfully",
+        body: (
+          <>
+            Rental of {recurso} is completed successfully.<br></br>
+            <br></br>{" "}
+            <button
+              type="button"
+              data-bs-dismiss="modal"
+              className="btn btn-success"
+            >
+              Thank you!
+            </button>
+          </>
+        ),
+      },
+      [MESSAGE_TYPES.CONTACT_SUPPORT]: {
+        titulo: "Contact support",
+        body: "Support hash: " + params.hash + " | " + params.msg,
+      },
+    };
+
+    return messages[messageType] || {
+      titulo: "Information",
+      body: "An action has been performed.",
+    };
+  }
+
+  /**
+   * Función centralizada para mostrar mensajes al usuario
+   * @param {string} messageType - Tipo de mensaje de MESSAGE_TYPES
+   * @param {object} params - Parámetros adicionales para el mensaje
+   * @param {boolean} showModal - Si se debe mostrar el modal automáticamente (default: true)
+   */
+  showMessage(messageType, params = {}, showModal = true) {
+    const { titulo, body } = this.getMessageContent(messageType, params);
+
+    this.setState({
+      titulo,
+      body,
+    });
+
+    if (showModal) {
+      window.$("#mensaje-ebot").modal("show");
+    }
   }
 
   async componentDidMount() {
@@ -512,8 +743,6 @@ class EnergyRental extends Component {
   }
 
   async calcularRecurso() {
-    let { t } = this.props;
-
     this.calcularPrecios();
 
     let { recurso, montoMin, precio, duration } = this.state;
@@ -524,14 +753,8 @@ class EnergyRental extends Component {
 
     if (duration.indexOf("d") >= 0) {
       if (parseInt(duration[0]) < 1 || parseInt(duration[0]) > 14) {
-        this.setState({
-          titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
-          body: t("ebot.alert.eRange", { returnObjects: true })[1],
-        });
-
+        this.showMessage(MESSAGE_TYPES.ERANGE);
         ok = false;
-
-        window.$("#mensaje-ebot").modal("show");
       }
 
       duration = duration.split("d")[0];
@@ -539,15 +762,9 @@ class EnergyRental extends Component {
 
     if (duration.indexOf("h") >= 0) {
       if (parseInt(duration[0]) !== 1) {
-        this.setState({
-          titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
-          body: t("ebot.alert.eRange2"),
-          periodo: "1",
-        });
-
+        this.showMessage(MESSAGE_TYPES.ERANGE2);
+        this.setState({ periodo: "1" });
         ok = false;
-
-        window.$("#mensaje-ebot").modal("show");
       }
 
       duration = "1h";
@@ -555,15 +772,9 @@ class EnergyRental extends Component {
 
     if (duration.indexOf("m") >= 0) {
       if (parseInt(duration[0]) !== 5) {
-        this.setState({
-          titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
-          body: t("ebot.alert.eRange2"),
-          periodo: "5",
-        });
-
+        this.showMessage(MESSAGE_TYPES.ERANGE2);
+        this.setState({ periodo: "5" });
         ok = false;
-
-        window.$("#mensaje-ebot").modal("show");
       }
 
       duration = "5min";
@@ -597,15 +808,10 @@ class EnergyRental extends Component {
   }
 
   async preCompra() {
-    const { t, isViewerMode } = this.props;
+    const { isViewerMode } = this.props;
 
     if (isViewerMode) {
-      this.setState({
-        titulo: "To continue",
-        body: "Connect your wallet to perform this operation.",
-      });
-
-      window.$("#mensaje-ebot").modal("show");
+      this.showMessage(MESSAGE_TYPES.CONNECT_WALLET);
       return;
     }
 
@@ -614,8 +820,6 @@ class EnergyRental extends Component {
     let {
       wallet_orden,
       cantidad,
-      periodo,
-      temporalidad,
       recurso,
       energyOn,
       bandOn,
@@ -624,19 +828,10 @@ class EnergyRental extends Component {
       total_energy_pool,
       total_bandwidth_pool,
     } = this.state;
-    let { accountAddress, tronWeb, i18n } = this.props;
+    let { accountAddress, tronWeb } = this.props;
 
     if (!energyOn || !bandOn) {
-      this.setState({
-        titulo: i18n.t("ebot.alert.eResource", { returnObjects: true })[0],
-        body: (
-          <span>
-            {i18n.t("ebot.alert.eResource", { returnObjects: true })[1]}
-          </span>
-        ),
-      });
-
-      window.$("#mensaje-ebot").modal("show");
+      this.showMessage(MESSAGE_TYPES.ERESOURCE);
       return;
     }
 
@@ -644,48 +839,21 @@ class EnergyRental extends Component {
       energyOn = false;
 
       if (recurso === "energy") {
-        this.setState({
-          titulo: <>{t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
-          body: (
-            <>
-              {" "}
-              <img
-                src="/images/alerts/recarge_energy.jpeg"
-                alt="Energy sold out"
-                style={{ borderRadius: "15px", width: "100%" }}
-              ></img>{" "}
-              <br></br>
-              <br></br>
-              {t("ebot.alert.soldOut", { returnObjects: true })[1]}
-            </>
-          ),
-        });
-
-        window.$("#mensaje-ebot").modal("show");
+        this.showMessage(MESSAGE_TYPES.SOLD_OUT_ENERGY);
       }
     }
 
     if (av_band.toNumber() < total_bandwidth_pool * 0.005) {
       bandOn = false;
       if (recurso !== "energy") {
-        this.setState({
-          titulo: t("ebot.alert.soldOut", { returnObjects: true })[0],
-          body: t("ebot.alert.soldOut", { returnObjects: true })[1],
-        });
-
-        window.$("#mensaje-ebot").modal("show");
+        this.showMessage(MESSAGE_TYPES.SOLD_OUT);
       }
     }
 
     let pagas = (await this.calcularRecurso()).toNumber();
 
     if (isNaN(pagas)) {
-      this.setState({
-        titulo: "Error",
-        body: "error to calculating price of resource",
-      });
-
-      window.$("#mensaje-ebot").modal("show");
+      this.showMessage(MESSAGE_TYPES.ERROR_PRICE);
       return;
     }
 
@@ -701,16 +869,7 @@ class EnergyRental extends Component {
         .shiftedBy(-6)
         .toNumber()
     ) {
-      this.setState({
-        titulo: i18n.t("ebot.alert.noFounds", { returnObjects: true })[0],
-        body: (
-          <span>
-            {i18n.t("ebot.alert.noFounds", { returnObjects: true })[1]}
-          </span>
-        ),
-      });
-
-      window.$("#mensaje-ebot").modal("show");
+      this.showMessage(MESSAGE_TYPES.NO_FUNDS);
       return;
     }
 
@@ -721,86 +880,23 @@ class EnergyRental extends Component {
     }
 
     if (wallet_orden === "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
-      this.setState({
-        titulo: i18n.t("ebot.alert.eTronlink", { returnObjects: true })[0],
-        body: (
-          <span>
-            {i18n.t("ebot.alert.eTronlink", { returnObjects: true })[1]}
-            <br></br>
-            <button className="btn btn-danger" data-bs-dismiss="modal">
-              Ok
-            </button>
-          </span>
-        ),
-      });
-
-      window.$("#mensaje-ebot").modal("show");
+      this.showMessage(MESSAGE_TYPES.ETRONLINK);
       return;
     }
 
     if (recurso === "energy") {
       if (cantidad > av_energy.toNumber()) {
-        this.setState({
-          titulo: "Error",
-          body: "insufficient resources to cover this order try a lower value or try again later.",
-        });
-
-        window.$("#mensaje-ebot").modal("show");
+        this.showMessage(MESSAGE_TYPES.INSUFFICIENT_RESOURCES);
         return;
       }
     } else {
       if (cantidad > av_band.toNumber()) {
-        this.setState({
-          titulo: "Error",
-          body: "insufficient resources to cover this order try a lower value or try again later.",
-        });
-
-        window.$("#mensaje-ebot").modal("show");
+        this.showMessage(MESSAGE_TYPES.INSUFFICIENT_RESOURCES);
         return;
       }
     }
 
-    this.setState({
-      titulo: <>Confirm order information</>,
-      body: (
-        <span>
-          <b>Buy: </b> {cantidad + " " + recurso + " " + periodo + temporalidad}
-          <br></br>
-          <b>For: </b> {pagas} TRX<br></br>
-          <b>To: </b> {this.state.wallet_orden}
-          <br></br>
-          <br></br>
-          <br></br>
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={() => {
-              window.$("#mensaje-ebot").modal("hide");
-            }}
-          >
-            Cancel <i className="bi bi-x-circle"></i>
-          </button>{" "}
-          <button
-            type="button"
-            className="btn btn-success"
-            onClick={() => {
-              this.compra(
-                cantidad,
-                periodo,
-                temporalidad,
-                recurso,
-                wallet_orden,
-                pagas,
-              );
-            }}
-          >
-            Confirm <i className="bi bi-bag-check"></i>
-          </button>
-        </span>
-      ),
-    });
-
-    window.$("#mensaje-ebot").modal("show");
+    this.showMessage(MESSAGE_TYPES.CONFIRM_ORDER, { pagas });
   }
 
   async compra() {
@@ -814,16 +910,7 @@ class EnergyRental extends Component {
       referral,
     } = this.state;
 
-    const imgLoading = (
-      <img src="images/cargando.gif" height="20px" alt="loading..."></img>
-    );
-
-    this.setState({
-      titulo: <>Confirm transaction {imgLoading}</>,
-      body: <>Please confirm the transaction from your wallet </>,
-    });
-
-    window.$("#mensaje-ebot").modal("show");
+    this.showMessage(MESSAGE_TYPES.CONFIRM_TRANSACTION);
 
     const unSignedTransaction =
       await this.props.tronWeb.transactionBuilder.sendTrx(
@@ -835,27 +922,7 @@ class EnergyRental extends Component {
     const signedTransaction = await window.tronWeb.trx
       .sign(unSignedTransaction)
       .catch((e) => {
-        this.setState({
-          ModalTitulo: "Transaction failed",
-          ModalBody: (
-            <>
-              {e.toString()}
-              <br></br>
-              <br></br>
-              <button
-                type="button"
-                className="btn btn-danger"
-                onClick={() => {
-                  window.$("#mensaje-brst").modal("hide");
-                }}
-              >
-                Close
-              </button>
-            </>
-          ),
-        });
-
-        window.$("#mensaje-brst").modal("show");
+        this.showMessage(MESSAGE_TYPES.TRANSACTION_FAILED, { error: e });
         return false;
       });
 
@@ -863,10 +930,7 @@ class EnergyRental extends Component {
       return false;
     }
 
-    this.setState({
-      titulo: <>Your order is being processed {imgLoading}</>,
-      body: "Wait while one of our robots attends to your recharge, we try to be as fast as possible.",
-    });
+    this.showMessage(MESSAGE_TYPES.PROCESSING_ORDER);
 
     let consulta2 = await utils.rentResource(
       wallet_orden,
@@ -880,33 +944,13 @@ class EnergyRental extends Component {
     );
 
     if (consulta2.result) {
-      this.setState({
-        titulo: "Completed successfully",
-        body: (
-          <>
-            Rental of {recurso} is completed successfully.<br></br>
-            <br></br>{" "}
-            <button
-              type="button"
-              data-bs-dismiss="modal"
-              className="btn btn-success"
-            >
-              Thank you!
-            </button>
-          </>
-        ),
-      });
-
-      window.$("#mensaje-ebot").modal("show");
+      this.showMessage(MESSAGE_TYPES.COMPLETED_SUCCESS);
     } else {
       console.log(consulta2);
-
-      this.setState({
-        titulo: "Contact support",
-        body: "Support hash: " + consulta2.hash + " | " + consulta2.msg,
+      this.showMessage(MESSAGE_TYPES.CONTACT_SUPPORT, {
+        hash: consulta2.hash,
+        msg: consulta2.msg
       });
-
-      window.$("#mensaje-ebot").modal("show");
     }
   }
 
