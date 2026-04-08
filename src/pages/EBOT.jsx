@@ -1353,6 +1353,337 @@ class EnergyRental extends Component {
           </div>
         </div>
 
+        <div className="row ">
+          <div className="col-md-12 text-center">
+            <h1>Bulk Token Send</h1>
+          </div>
+
+          <div className="col-lg-6 col-sm-12">
+            <div className="contact-box">
+              <div className="card">
+                <div className="card-body">
+                  <div className="mb-4">
+                    <div className="row">
+                      <div className="col-6">
+                        <h4>Rental {this.state.recurso}</h4>
+                      </div>
+                      <div className="col-6">
+                        <div className="d-flex justify-content-sm-end">
+                          <div className="btn-group" role="group">
+                            <button
+                              id="btnGroupDrop1"
+                              type="button"
+                              className="btn btn-primary dropdown-toggle"
+                              data-bs-toggle="dropdown"
+                              aria-expanded="false"
+                            >
+                              Resource
+                            </button>
+                            <ul
+                              className="dropdown-menu"
+                              aria-labelledby="btnGroupDrop1"
+                            >
+                              <li
+                                onClick={async () => {
+                                  await this.setState({
+                                    cantidad: 32000,
+                                    recurso: "energy",
+                                    amounts: amountsE,
+                                  });
+
+                                  this.updateAmount(32000);
+
+                                  await this.estado();
+                                }}
+                              >
+                                <button className="dropdown-item">
+                                  Energy
+                                </button>
+                              </li>
+
+                              <li
+                                onClick={async () => {
+                                  await this.setState({
+                                    cantidad: 1000,
+                                    recurso: "bandwidth",
+                                    amounts: amountB,
+                                  });
+                                  this.updateAmount(1000);
+                                  await this.estado();
+                                }}
+                              >
+                                <button className="dropdown-item">
+                                  Bandwidth
+                                </button>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+
+                      <form className="dzForm" method="" action="">
+                        <div className="dzFormMsg"></div>
+                        <input
+                          type="hidden"
+                          className="form-control"
+                          name="dzToDo"
+                          value="Contact"
+                        ></input>
+                        {medidor}
+
+                        <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
+                          <p
+                            style={{ marginTop: "auto", marginRight: "10px" }}
+                            className="font-14"
+                          >
+                            Amount
+                          </p>
+                          <input
+                            style={{
+                              textAlign: "end",
+                              border: "lightgray  solid",
+                            }}
+                            id="amount"
+                            name="dzLastName"
+                            type="text"
+                            onInput={() => this.calcularRecurso()}
+                            className="form-control mb-1"
+                            placeholder={this.state.montoMin}
+                          ></input>
+                        </div>
+                        <div className="col-xl-12 mt-2 mb-2">
+                          <div className="d-flex justify-content-xl-center">
+                            {amountButtons}
+                          </div>
+                        </div>
+
+                        <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
+                          <p
+                            style={{ marginTop: "auto", marginRight: "10px" }}
+                            className="font-14"
+                          >
+                            Duration
+                          </p>
+                          <input
+                            style={{
+                              textAlign: "end",
+                              border: "lightgray  solid",
+                              cursor: "not-allowed",
+                            }}
+                            id="periodo"
+                            required
+                            type="text"
+                            className="form-control mb-1"
+                            onChange={this.handleChangePeriodo}
+                            placeholder={"Default: 5m (five minutes)"}
+                            defaultValue="5min"
+                            readOnly
+                          ></input>
+                        </div>
+                        <div className="col-12 mt-2 mb-2 ">
+                          <div className="d-flex justify-content-xl-center">
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              style={{ margin: "auto" }}
+                              onClick={() => {
+                                this.handleChangePeriodo({
+                                  target: { value: "5min" },
+                                });
+                              }}
+                            >
+                              5m
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              style={{ margin: "auto" }}
+                              onClick={() => {
+                                this.handleChangePeriodo({
+                                  target: { value: "1h" },
+                                });
+                              }}
+                            >
+                              1h
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              style={{ margin: "auto" }}
+                              onClick={() => {
+                                this.handleChangePeriodo({
+                                  target: { value: "1d" },
+                                });
+                              }}
+                            >
+                              1d
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              style={{ margin: "auto" }}
+                              onClick={() => {
+                                this.handleChangePeriodo({
+                                  target: { value: "3d" },
+                                });
+                              }}
+                            >
+                              3d
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              style={{ margin: "auto" }}
+                              onClick={() => {
+                                this.handleChangePeriodo({
+                                  target: { value: "14d" },
+                                });
+                              }}
+                            >
+                              14d
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary"
+                              style={{ margin: "auto" }}
+                              onClick={() => {
+                                this.handleChangePeriodo({
+                                  target: { value: "30d" },
+                                });
+                              }}
+                            >
+                              30d
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="col-12 mt-2 mb-2 justify-content-center align-items-center">
+                          {capitalizarPrimeraLetra(this.state.recurso)} Unit:{" "}
+                          {unitEnergyPrice.toString(10)} SUN<br></br>
+                          <button
+                            name="submit"
+                            type="button"
+                            value="Submit"
+                            className="btn btn-secondary"
+                            style={{
+                              width: "100%",
+                              height: "40px",
+                              marginTop: "5px",
+                            }}
+                            onClick={() => this.preCompra()}
+                          >
+                            {" "}
+                            Complete Purchase - Total:{" "}
+                            {this.state.precio.toString(10)} TRX
+                          </button>
+                        </div>
+
+                        <div className="col-xl-12 mb-3 mb-md-4">
+                          <p className="font-14">
+                            Send resources to this wallet {"⬇️"}
+                          </p>
+
+                          <input
+                            name="dzFirstName"
+                            required
+                            type="text"
+                            className="form-control"
+                            placeholder={this.props.accountAddress}
+                            onChange={this.handleChangeWallet}
+                          ></input>
+                        </div>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="col-lg-6 pt-4 mt-5 col-sm-12 m-b30">
+            <div className="info-box text-center">
+              <img
+                src="images/ebot.png"
+                width="170px"
+                className="figure-img img-fluid rounded"
+                alt="resource rental energy"
+              ></img>
+
+              <div className="info">
+                <p className="font-20 p-5">
+                  In Brutus Energy Bot, we've developed an app for a faster and
+                  secure resource rental experience on the Tron network.{" "}
+                  <br></br>
+                  <br></br>
+                  Innovatively simplifying the process, we ensure efficient
+                  management at competitive prices. Explore further through our{" "}
+                  <a
+                    style={{ color: "purple", textDecoration: "underline" }}
+                    href="https://t.me/BRUTUS_energy_bot"
+                  >
+                    Telegram bot
+                  </a>{" "}
+                  or API for added accessibility. <br></br>
+                  <br></br>
+                  For additional information, contact us via our{" "}
+                  <a
+                    style={{ color: "purple", textDecoration: "underline" }}
+                    href="https://t.me/brutus_comunidad_sr"
+                  >
+                    Telegram group
+                  </a>{" "}
+                  or reach out to us at{" "}
+                  <a
+                    style={{ color: "purple", textDecoration: "underline" }}
+                    href="mailto:support@brutus.finance"
+                  >
+                    support@brutus.finance
+                  </a>
+                  <br></br>
+                  <br></br>
+                  Do you want to sell your energy/bandwidth and earn daily
+                  income?{" "}
+                  <a
+                    style={{ color: "purple", textDecoration: "underline" }}
+                    href="https://brutus.finance/provider/"
+                  >
+                    Join us as a provider now!
+                  </a>
+                </p>
+              </div>
+
+              <div className="widget widget_about">
+                <div className="widget widget_getintuch"></div>
+              </div>
+              <div className="social-box dz-social-icon style-3"></div>
+            </div>
+          </div>
+
+          <div className="col-lg-12">
+            <div className="card">
+              <div className="card-header">
+                <h4 className="card-title">Smart Contracts </h4>
+              </div>
+              <div className="card-body">
+                <p>
+                  <b>Rental operator:</b>{" "}
+                  <a
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    href={
+                      "https://tronscan.org/#/contract/" +
+                      config.WALLET_API +
+                      "/code"
+                    }
+                  >
+                    {config.WALLET_API}
+                  </a>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div className="modal fade" id="mensaje-ebot">
           <div className="modal-dialog" role="document">
             <div className="modal-content">
