@@ -145,6 +145,8 @@ class EnergyRental extends Component {
       bulk_recipients: [{ address: "", amount: "" }],
       bulk_sending: false,
       bulk_results: [],   // { address, amount, status, txid }
+      bulk_rentResources: false,  // whether to auto-rent via Brutus before sending
+      bulk_rentDone: false,       // flag: rental already executed this session
     };
 
     this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
@@ -215,6 +217,34 @@ class EnergyRental extends Component {
     }
   }
 
+  /**
+   * Estimate energy & bandwidth needed for the current bulk send list.
+   * Returns { energyNeeded, bandwidthNeeded, txCount }
+   *
+   * Typical TRON costs (conservative estimates):
+   *   TRC-20 transfer  → ~32,000 energy  + ~268 bandwidth
+   *   TRX transfer     → 0 energy        + ~268 bandwidth
+   */
+  bulkEstimateResources() {
+    const { bulk_recipients, bulk_token } = this.state;
+    const validRows = bulk_recipients.filter(
+      (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
+    );
+
+    const isTRX = bulk_token.address === "TRX";
+    // Energy per TRC-20 tx (USDT / standard token): ~32 000; TRX: 0
+    const ENERGY_PER_TX = isTRX ? 0 : 32000;
+    // Bandwidth per tx (signature + data)
+    const BANDWIDTH_PER_TX = isTRX ? 268 : 350;
+
+    return {
+      energyNeeded: ENERGY_PER_TX * validRows.length,
+      bandwidthNeeded: BANDWIDTH_PER_TX * validRows.length,
+      txCount: validRows.length,
+      isTRX,
+    };
+  }
+
   async bulkSend() {
     const { isViewerMode, tronWeb, accountAddress } = this.props;
 
@@ -228,6 +258,7 @@ class EnergyRental extends Component {
       bulk_customAddress,
       bulk_customDecimals,
       bulk_recipients,
+      bulk_rentResources,
     } = this.state;
 
     // Resolve token info
@@ -262,10 +293,24 @@ class EnergyRental extends Component {
       return;
     }
 
-    // Confirm before sending
+    // Confirm before sending — include rental note if opted-in
     const totalAmount = validRows
       .reduce((s, r) => s.plus(new BigNumber(r.amount || 0)), new BigNumber(0))
       .toFixed(decimals > 6 ? 6 : decimals);
+
+    const estimate = this.bulkEstimateResources();
+
+    // Compute costs for confirmation dialog
+    const { precios } = this.state;
+    const brutusUnitPrice = (() => {
+      const list = precios.energy || [];
+      const found = list.find((p) => p.duration === "5min");
+      return found ? new BigNumber(found.UE) : new BigNumber(0);
+    })();
+    const rentalCostTRX = brutusUnitPrice
+      .times(estimate.energyNeeded)
+      .shiftedBy(-6)
+      .dp(4);
 
     this.setState({
       titulo: "Confirm Bulk Send",
@@ -277,6 +322,16 @@ class EnergyRental extends Component {
           <b>Recipients:</b> {validRows.length}
           <br />
           <b>Total:</b> {totalAmount} {bulk_token.symbol}
+          {bulk_rentResources && estimate.energyNeeded > 0 && (
+            <>
+              <br />
+              <span style={{ color: "#5a2d82" }}>
+                <i className="bi bi-lightning-charge-fill"></i>{" "}
+                <b>Brutus rental:</b> {estimate.energyNeeded.toLocaleString()} energy
+                (~{rentalCostTRX.toString()} TRX) will be rented first.
+              </span>
+            </>
+          )}
           <br /><br />
           <button
             type="button"
@@ -290,7 +345,11 @@ class EnergyRental extends Component {
             className="btn btn-success"
             onClick={() => {
               window.$("#mensaje-ebot").modal("hide");
-              this._executeBulkSend(tokenAddress, decimals, validRows);
+              if (bulk_rentResources && estimate.energyNeeded > 0) {
+                this._rentThenBulkSend(estimate, tokenAddress, decimals, validRows);
+              } else {
+                this._executeBulkSend(tokenAddress, decimals, validRows);
+              }
             }}
           >
             Confirm <i className="bi bi-bag-check"></i>
@@ -299,6 +358,140 @@ class EnergyRental extends Component {
       ),
     });
     window.$("#mensaje-ebot").modal("show");
+  }
+
+  /**
+   * Rent energy from Brutus for the connected wallet, then execute bulk send.
+   */
+  async _rentThenBulkSend(estimate, tokenAddress, decimals, validRows) {
+    const { tronWeb, accountAddress } = this.props;
+
+    // Show rental confirmation
+    this.setState({
+      titulo: <>Renting energy… {imgLoading}</>,
+      body: (
+        <>
+          {imgBotLoading}
+          <br />
+          Renting <b>{estimate.energyNeeded.toLocaleString()} energy</b> for 5 minutes
+          to cover this bulk send.
+          <br />Please confirm the payment in TronLink.
+        </>
+      ),
+    });
+    window.$("#mensaje-ebot").modal("show");
+
+    // Calculate the price for this energy amount
+    const { precios } = this.state;
+    const brutusUnitPrice = (() => {
+      const list = precios.energy || [];
+      const found = list.find((p) => p.duration === "5min");
+      return found ? new BigNumber(found.UE) : new BigNumber(0);
+    })();
+    const precioPagar = brutusUnitPrice
+      .times(estimate.energyNeeded)
+      .shiftedBy(-6)
+      .dp(6);
+
+    try {
+      const unSignedTransaction = await tronWeb.transactionBuilder.sendTrx(
+        config.WALLET_API,
+        tronWeb.toSun(precioPagar.toNumber()),
+        accountAddress,
+      );
+      const signedTransaction = await window.tronWeb.trx
+        .sign(unSignedTransaction)
+        .catch((e) => { throw e; });
+
+      this.setState({
+        titulo: <>Processing rental… {imgLoading}</>,
+        body: (
+          <>
+            {imgBotLoading}
+            <br />
+            Sending energy rental order to Brutus…
+          </>
+        ),
+      });
+
+      const utils = (await import("../services")).default;
+      const rentResult = await utils.rentResource(
+        accountAddress,
+        "energy",
+        estimate.energyNeeded,
+        5,
+        "m",
+        precioPagar,
+        signedTransaction,
+        false,
+      );
+
+      if (!rentResult.result) {
+        this.setState({
+          titulo: "Rental failed",
+          body: (
+            <>
+              Could not rent energy: {rentResult.msg || "unknown error"}
+              <br /><br />
+              <button
+                type="button"
+                className="btn btn-warning"
+                onClick={() => {
+                  window.$("#mensaje-ebot").modal("hide");
+                  this._executeBulkSend(tokenAddress, decimals, validRows);
+                }}
+              >
+                Continue without rental
+              </button>{" "}
+              <button
+                type="button"
+                className="btn btn-danger"
+                data-bs-dismiss="modal"
+              >
+                Cancel
+              </button>
+            </>
+          ),
+        });
+        window.$("#mensaje-ebot").modal("show");
+        return;
+      }
+
+      // Give a brief moment for energy to propagate on-chain
+      await new Promise((r) => setTimeout(r, 3000));
+    } catch (e) {
+      this.setState({
+        titulo: "Rental transaction cancelled",
+        body: (
+          <>
+            {e?.message || e?.toString() || "Transaction was rejected."}
+            <br /><br />
+            <button
+              type="button"
+              className="btn btn-warning"
+              onClick={() => {
+                window.$("#mensaje-ebot").modal("hide");
+                this._executeBulkSend(tokenAddress, decimals, validRows);
+              }}
+            >
+              Continue without rental
+            </button>{" "}
+            <button
+              type="button"
+              className="btn btn-danger"
+              data-bs-dismiss="modal"
+            >
+              Cancel
+            </button>
+          </>
+        ),
+      });
+      window.$("#mensaje-ebot").modal("show");
+      return;
+    }
+
+    // Energy rented — proceed with bulk send
+    this._executeBulkSend(tokenAddress, decimals, validRows);
   }
 
   async _executeBulkSend(tokenAddress, decimals, validRows) {
@@ -1826,8 +2019,126 @@ class EnergyRental extends Component {
                   </tbody>
                 </table>
 
+                {/* ── Rent resources option ── */}
+                {(() => {
+                  const est = this.bulkEstimateResources();
+                  const { precios, bulk_rentResources } = this.state;
+
+                  // Brutus 5-min unit price (SUN per energy unit)
+                  const brutusUnitSun = (() => {
+                    const list = precios.energy || [];
+                    const found = list.find((p) => p.duration === "5min");
+                    return found ? new BigNumber(found.UE) : new BigNumber(0);
+                  })();
+
+                  // Cost to rent from Brutus (TRX)
+                  const brutusCostTRX = brutusUnitSun
+                    .times(est.energyNeeded)
+                    .shiftedBy(-6)
+                    .dp(4);
+
+                  // TRON network burn cost without rental:
+                  // TRON burns ~280 SUN per energy unit when no staked energy available.
+                  // Reference: https://developers.tron.network/docs/resource-model
+                  const TRON_BURN_SUN_PER_ENERGY = new BigNumber(280);
+                  const burnCostTRX = TRON_BURN_SUN_PER_ENERGY
+                    .times(est.energyNeeded)
+                    .shiftedBy(-6)
+                    .dp(4);
+
+                  const savings = burnCostTRX.minus(brutusCostTRX);
+                  const savingsPct = burnCostTRX.gt(0)
+                    ? savings.div(burnCostTRX).times(100).dp(1)
+                    : new BigNumber(0);
+
+                  return est.energyNeeded > 0 ? (
+                    <div
+                      className="mt-3 p-3 rounded"
+                      style={{ background: "#f8f4ff", border: "1px solid #c9a0e0" }}
+                    >
+                      {/* Savings comparison */}
+                      <h6 style={{ color: "#5a2d82" }}>
+                        <i className="bi bi-lightning-charge-fill"></i> Resource
+                        Cost Comparison — {est.txCount} tx
+                      </h6>
+                      <table className="table table-sm mb-2" style={{ fontSize: "0.88em" }}>
+                        <thead>
+                          <tr style={{ background: "#ede0f7" }}>
+                            <th>Method</th>
+                            <th>Energy needed</th>
+                            <th>Bandwidth</th>
+                            <th>Cost (TRX)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <span style={{ color: "#c0392b" }}>
+                                <i className="bi bi-x-circle-fill"></i>
+                              </span>{" "}
+                              TRX burn (no rental)
+                            </td>
+                            <td>{est.energyNeeded.toLocaleString()}</td>
+                            <td>{est.bandwidthNeeded.toLocaleString()}</td>
+                            <td style={{ color: "#c0392b", fontWeight: "bold" }}>
+                              ~{burnCostTRX.toString()} TRX
+                            </td>
+                          </tr>
+                          <tr style={{ background: "#edfaf1" }}>
+                            <td>
+                              <span style={{ color: "#27ae60" }}>
+                                <i className="bi bi-check-circle-fill"></i>
+                              </span>{" "}
+                              Brutus rental (5 min)
+                            </td>
+                            <td>{est.energyNeeded.toLocaleString()}</td>
+                            <td>{est.bandwidthNeeded.toLocaleString()}</td>
+                            <td style={{ color: "#27ae60", fontWeight: "bold" }}>
+                              ~{brutusCostTRX.toString()} TRX
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      {savings.gt(0) && (
+                        <p className="mb-2" style={{ fontSize: "0.9em", color: "#5a2d82" }}>
+                          <strong>
+                            Save ~{savings.toString()} TRX ({savingsPct.toString()}%)
+                          </strong>{" "}
+                          by renting energy with Brutus instead of burning TRX.
+                        </p>
+                      )}
+
+                      {/* Checkbox opt-in */}
+                      <div className="form-check form-switch">
+                        <input
+                          className="form-check-input"
+                          type="checkbox"
+                          id="bulk_rent_check"
+                          checked={bulk_rentResources}
+                          onChange={(e) =>
+                            this.setState({ bulk_rentResources: e.target.checked })
+                          }
+                          disabled={this.state.bulk_sending}
+                        />
+                        <label
+                          className="form-check-label font-14"
+                          htmlFor="bulk_rent_check"
+                          style={{ cursor: "pointer" }}
+                        >
+                          <strong>Rent {est.energyNeeded.toLocaleString()} energy</strong> with Brutus before sending
+                          {brutusCostTRX.gt(0) && (
+                            <span style={{ color: "#888" }}>
+                              {" "}(~{brutusCostTRX.toString()} TRX)
+                            </span>
+                          )}
+                        </label>
+                      </div>
+                    </div>
+                  ) : null;
+                })()}
+
                 {/* ── Actions ── */}
-                <div className="d-flex gap-2 flex-wrap mt-2">
+                <div className="d-flex gap-2 flex-wrap mt-3">
                   <button
                     type="button"
                     className="btn btn-outline-primary btn-sm"
@@ -1853,12 +2164,20 @@ class EnergyRental extends Component {
 
                   <button
                     type="button"
-                    className="btn btn-success ms-auto"
+                    className={`btn ms-auto ${this.state.bulk_rentResources ? "btn-warning" : "btn-success"}`}
                     disabled={this.state.bulk_sending}
                     onClick={this.bulkSend}
                   >
                     {this.state.bulk_sending ? (
                       <>{imgLoading} Sending…</>
+                    ) : this.state.bulk_rentResources ? (
+                      <>
+                        <i className="bi bi-lightning-charge-fill"></i> Rent &amp; Send (
+                        {this.state.bulk_recipients.filter(
+                          (r) => r.address && parseFloat(r.amount) > 0,
+                        ).length}{" "}
+                        recipients)
+                      </>
                     ) : (
                       <>
                         <i className="bi bi-send-fill"></i> Send all (
@@ -1884,6 +2203,10 @@ class EnergyRental extends Component {
                   <li>Choose a token (USDT, BRUT, BTT… or paste a custom TRC-20 address).</li>
                   <li>Add recipients manually or paste a CSV block.</li>
                   <li>
+                    Optionally enable <b>Rent with Brutus</b> to pre-rent energy
+                    and pay much less in fees.
+                  </li>
+                  <li>
                     Click <b>Send all</b> — each transfer is signed individually
                     by your connected TronLink wallet.
                   </li>
@@ -1891,8 +2214,9 @@ class EnergyRental extends Component {
                 </ol>
                 <hr />
                 <p className="font-14" style={{ color: "#888" }}>
-                  <i className="bi bi-info-circle"></i> Each transaction consumes
-                  energy/bandwidth. Rent resources above if needed before sending.
+                  <i className="bi bi-info-circle"></i> USDT / TRC-20 transfers
+                  consume ~32 000 energy each. Without staked/rented energy TRON
+                  burns ~280 SUN per energy unit from your TRX balance.
                 </p>
                 <hr />
                 <p className="font-14">
