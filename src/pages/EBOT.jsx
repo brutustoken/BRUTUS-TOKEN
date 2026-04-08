@@ -2,6 +2,55 @@ import React, { Component } from "react";
 import { withTranslation } from "react-i18next";
 import BigNumber from "bignumber.js";
 
+// Minimal TRC-20 ABI – only the functions we need
+const TRC20_ABI = [
+  {
+    constant: false,
+    inputs: [
+      { name: "_to", type: "address" },
+      { name: "_value", type: "uint256" },
+    ],
+    name: "transfer",
+    outputs: [{ name: "", type: "bool" }],
+    payable: false,
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [{ name: "_owner", type: "address" }],
+    name: "balanceOf",
+    outputs: [{ name: "balance", type: "uint256" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    constant: true,
+    inputs: [],
+    name: "decimals",
+    outputs: [{ name: "", type: "uint8" }],
+    payable: false,
+    stateMutability: "view",
+    type: "function",
+  },
+];
+
+// Well-known tokens on TRON mainnet
+const KNOWN_TOKENS = [
+  { symbol: "TRX", address: "TRX", decimals: 6 },
+  { symbol: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6 },
+  { symbol: "USDD", address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz", decimals: 18 },
+  { symbol: "BRUT", address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU", decimals: 6 },
+  { symbol: "BRST", address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3", decimals: 6 },
+  { symbol: "APENFT", address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq", decimals: 6 },
+  // BTT TRC-20
+  { symbol: "BTT", address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", decimals: 18 },
+  // WBTC bridged on TRON (BitTorrent bridge / JustLend WBTC)
+  { symbol: "BTC (WBTC)", address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9", decimals: 8 },
+  { symbol: "Custom…", address: "custom", decimals: 6 },
+];
+
 import { config } from "../config/env";
 import utils from "../services";
 
@@ -88,6 +137,14 @@ class EnergyRental extends Component {
       precios: { energy: [], bandwidth: [] },
 
       referral: false,
+
+      // ── Bulk Token Send state ──────────────────────────────────────────────
+      bulk_token: KNOWN_TOKENS[1], // default: USDT
+      bulk_customAddress: "",
+      bulk_customDecimals: "6",
+      bulk_recipients: [{ address: "", amount: "" }],
+      bulk_sending: false,
+      bulk_results: [],   // { address, amount, status, txid }
     };
 
     this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
@@ -105,6 +162,250 @@ class EnergyRental extends Component {
     this.compra = this.compra.bind(this);
     this.showMessage = this.showMessage.bind(this);
     this.getMessageContent = this.getMessageContent.bind(this);
+
+    // Bulk send bindings
+    this.bulkAddRow = this.bulkAddRow.bind(this);
+    this.bulkRemoveRow = this.bulkRemoveRow.bind(this);
+    this.bulkUpdateRow = this.bulkUpdateRow.bind(this);
+    this.bulkPasteCSV = this.bulkPasteCSV.bind(this);
+    this.bulkSend = this.bulkSend.bind(this);
+  }
+
+  // ── Bulk Token Send helpers ────────────────────────────────────────────────
+
+  bulkAddRow() {
+    this.setState((prev) => ({
+      bulk_recipients: [...prev.bulk_recipients, { address: "", amount: "" }],
+    }));
+  }
+
+  bulkRemoveRow(index) {
+    this.setState((prev) => {
+      const rows = [...prev.bulk_recipients];
+      rows.splice(index, 1);
+      return { bulk_recipients: rows.length > 0 ? rows : [{ address: "", amount: "" }] };
+    });
+  }
+
+  bulkUpdateRow(index, field, value) {
+    this.setState((prev) => {
+      const rows = [...prev.bulk_recipients];
+      rows[index] = { ...rows[index], [field]: value };
+      return { bulk_recipients: rows };
+    });
+  }
+
+  /** Parse a pasted CSV block: each line = "address,amount" */
+  bulkPasteCSV(text) {
+    const lines = text
+      .split(/[\n\r]+/)
+      .map((l) => l.trim())
+      .filter(Boolean);
+
+    const parsed = lines.map((line) => {
+      const parts = line.split(/[,;\t]+/);
+      return {
+        address: (parts[0] || "").trim(),
+        amount: (parts[1] || "").trim(),
+      };
+    });
+
+    if (parsed.length > 0) {
+      this.setState({ bulk_recipients: parsed });
+    }
+  }
+
+  async bulkSend() {
+    const { isViewerMode, tronWeb, accountAddress } = this.props;
+
+    if (isViewerMode) {
+      this.showMessage(MESSAGE_TYPES.CONNECT_WALLET);
+      return;
+    }
+
+    const {
+      bulk_token,
+      bulk_customAddress,
+      bulk_customDecimals,
+      bulk_recipients,
+    } = this.state;
+
+    // Resolve token info
+    let tokenAddress = bulk_token.address;
+    let decimals = bulk_token.decimals;
+
+    if (bulk_token.address === "custom") {
+      tokenAddress = bulk_customAddress.trim();
+      decimals = parseInt(bulk_customDecimals) || 6;
+
+      if (!tronWeb.isAddress(tokenAddress)) {
+        this.setState({
+          titulo: "Invalid token address",
+          body: "Please enter a valid TRC-20 contract address for the custom token.",
+        });
+        window.$("#mensaje-ebot").modal("show");
+        return;
+      }
+    }
+
+    // Validate recipients
+    const validRows = bulk_recipients.filter(
+      (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
+    );
+
+    if (validRows.length === 0) {
+      this.setState({
+        titulo: "No valid recipients",
+        body: "Add at least one recipient with a valid address and amount.",
+      });
+      window.$("#mensaje-ebot").modal("show");
+      return;
+    }
+
+    // Confirm before sending
+    const totalAmount = validRows
+      .reduce((s, r) => s.plus(new BigNumber(r.amount || 0)), new BigNumber(0))
+      .toFixed(decimals > 6 ? 6 : decimals);
+
+    this.setState({
+      titulo: "Confirm Bulk Send",
+      body: (
+        <span>
+          <b>Token:</b> {bulk_token.symbol}
+          {bulk_token.address === "custom" ? ` (${tokenAddress})` : ""}
+          <br />
+          <b>Recipients:</b> {validRows.length}
+          <br />
+          <b>Total:</b> {totalAmount} {bulk_token.symbol}
+          <br /><br />
+          <button
+            type="button"
+            className="btn btn-danger"
+            onClick={() => window.$("#mensaje-ebot").modal("hide")}
+          >
+            Cancel <i className="bi bi-x-circle"></i>
+          </button>{" "}
+          <button
+            type="button"
+            className="btn btn-success"
+            onClick={() => {
+              window.$("#mensaje-ebot").modal("hide");
+              this._executeBulkSend(tokenAddress, decimals, validRows);
+            }}
+          >
+            Confirm <i className="bi bi-bag-check"></i>
+          </button>
+        </span>
+      ),
+    });
+    window.$("#mensaje-ebot").modal("show");
+  }
+
+  async _executeBulkSend(tokenAddress, decimals, validRows) {
+    const { tronWeb, accountAddress } = this.props;
+    const isTRX = tokenAddress === "TRX";
+
+    this.setState({ bulk_sending: true, bulk_results: [] });
+
+    let contract;
+    if (!isTRX) {
+      try {
+        contract = await tronWeb.contract(TRC20_ABI, tokenAddress);
+      } catch (e) {
+        this.setState({
+          titulo: "Contract error",
+          body: "Could not load the token contract: " + e.toString(),
+          bulk_sending: false,
+        });
+        window.$("#mensaje-ebot").modal("show");
+        return;
+      }
+    }
+
+    const results = [];
+
+    for (let i = 0; i < validRows.length; i++) {
+      const row = validRows[i];
+      const toAddr = row.address.trim();
+      const amountHuman = new BigNumber(row.amount);
+      const amountSun = amountHuman.shiftedBy(decimals).dp(0).toFixed(0);
+
+      let status = "pending";
+      let txid = "";
+      let errMsg = "";
+
+      try {
+        // Update UI with current progress
+        this.setState({
+          titulo: <>Sending… {imgLoading}</>,
+          body: (
+            <>
+              {imgBotLoading}
+              <br />
+              Processing {i + 1} / {validRows.length}
+              <br />
+              Sending {amountHuman.toFixed()} to {toAddr}
+            </>
+          ),
+        });
+        window.$("#mensaje-ebot").modal("show");
+
+        if (isTRX) {
+          // TRX native transfer
+          const unsigned = await tronWeb.transactionBuilder.sendTrx(
+            toAddr,
+            tronWeb.toSun(amountHuman.toNumber()),
+            accountAddress,
+          );
+          const signed = await window.tronWeb.trx.sign(unsigned);
+          const receipt = await tronWeb.trx.sendRawTransaction(signed);
+          txid = receipt.txid || receipt.transaction?.txID || "";
+          status = receipt.result ? "ok" : "failed";
+        } else {
+          // TRC-20 transfer
+          const receipt = await contract.transfer(toAddr, amountSun).send({
+            feeLimit: 50_000_000,
+            from: accountAddress,
+          });
+          txid = typeof receipt === "string" ? receipt : receipt?.txid || "";
+          status = txid ? "ok" : "failed";
+        }
+      } catch (e) {
+        status = "error";
+        errMsg = e?.message || e?.toString() || "unknown error";
+      }
+
+      results.push({ address: toAddr, amount: row.amount, status, txid, errMsg });
+      this.setState({ bulk_results: [...results] });
+
+      // Small delay between txs to avoid nonce issues
+      if (i < validRows.length - 1) {
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
+
+    const okCount = results.filter((r) => r.status === "ok").length;
+    const failCount = results.length - okCount;
+
+    this.setState({
+      bulk_sending: false,
+      titulo: "Bulk Send Completed",
+      body: (
+        <>
+          <b>{okCount}</b> transaction(s) succeeded,{" "}
+          <b>{failCount}</b> failed.
+          <br /><br />
+          <button
+            type="button"
+            data-bs-dismiss="modal"
+            className="btn btn-success"
+          >
+            Close
+          </button>
+        </>
+      ),
+    });
+    window.$("#mensaje-ebot").modal("show");
   }
 
   /**
@@ -1353,332 +1654,267 @@ class EnergyRental extends Component {
           </div>
         </div>
 
-        <div className="row ">
-          <div className="col-md-12 text-center">
+        {/* ══════════════════════════════════════════════════════════
+             BULK TOKEN SEND
+             ══════════════════════════════════════════════════════════ */}
+        <div className="row mt-5">
+          <div className="col-md-12 text-center mb-3">
             <h1>Bulk Token Send</h1>
+            <p className="font-14" style={{ color: "#888" }}>
+              Send tokens to multiple addresses in one session — no smart-contract required.
+            </p>
           </div>
 
-          <div className="col-lg-6 col-sm-12">
-            <div className="contact-box">
-              <div className="card">
-                <div className="card-body">
-                  <div className="mb-4">
-                    <div className="row">
-                      <div className="col-6">
-                        <h4>Rental {this.state.recurso}</h4>
-                      </div>
-                      <div className="col-6">
-                        <div className="d-flex justify-content-sm-end">
-                          <div className="btn-group" role="group">
-                            <button
-                              id="btnGroupDrop1"
-                              type="button"
-                              className="btn btn-primary dropdown-toggle"
-                              data-bs-toggle="dropdown"
-                              aria-expanded="false"
-                            >
-                              Resource
-                            </button>
-                            <ul
-                              className="dropdown-menu"
-                              aria-labelledby="btnGroupDrop1"
-                            >
-                              <li
-                                onClick={async () => {
-                                  await this.setState({
-                                    cantidad: 32000,
-                                    recurso: "energy",
-                                    amounts: amountsE,
-                                  });
-
-                                  this.updateAmount(32000);
-
-                                  await this.estado();
-                                }}
-                              >
-                                <button className="dropdown-item">
-                                  Energy
-                                </button>
-                              </li>
-
-                              <li
-                                onClick={async () => {
-                                  await this.setState({
-                                    cantidad: 1000,
-                                    recurso: "bandwidth",
-                                    amounts: amountB,
-                                  });
-                                  this.updateAmount(1000);
-                                  await this.estado();
-                                }}
-                              >
-                                <button className="dropdown-item">
-                                  Bandwidth
-                                </button>
-                              </li>
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-
-                      <form className="dzForm" method="" action="">
-                        <div className="dzFormMsg"></div>
-                        <input
-                          type="hidden"
-                          className="form-control"
-                          name="dzToDo"
-                          value="Contact"
-                        ></input>
-                        {medidor}
-
-                        <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
-                          <p
-                            style={{ marginTop: "auto", marginRight: "10px" }}
-                            className="font-14"
-                          >
-                            Amount
-                          </p>
-                          <input
-                            style={{
-                              textAlign: "end",
-                              border: "lightgray  solid",
-                            }}
-                            id="amount"
-                            name="dzLastName"
-                            type="text"
-                            onInput={() => this.calcularRecurso()}
-                            className="form-control mb-1"
-                            placeholder={this.state.montoMin}
-                          ></input>
-                        </div>
-                        <div className="col-xl-12 mt-2 mb-2">
-                          <div className="d-flex justify-content-xl-center">
-                            {amountButtons}
-                          </div>
-                        </div>
-
-                        <div className="col-12 mt-2 mb-2 d-flex justify-content-center align-items-center">
-                          <p
-                            style={{ marginTop: "auto", marginRight: "10px" }}
-                            className="font-14"
-                          >
-                            Duration
-                          </p>
-                          <input
-                            style={{
-                              textAlign: "end",
-                              border: "lightgray  solid",
-                              cursor: "not-allowed",
-                            }}
-                            id="periodo"
-                            required
-                            type="text"
-                            className="form-control mb-1"
-                            onChange={this.handleChangePeriodo}
-                            placeholder={"Default: 5m (five minutes)"}
-                            defaultValue="5min"
-                            readOnly
-                          ></input>
-                        </div>
-                        <div className="col-12 mt-2 mb-2 ">
-                          <div className="d-flex justify-content-xl-center">
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              style={{ margin: "auto" }}
-                              onClick={() => {
-                                this.handleChangePeriodo({
-                                  target: { value: "5min" },
-                                });
-                              }}
-                            >
-                              5m
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              style={{ margin: "auto" }}
-                              onClick={() => {
-                                this.handleChangePeriodo({
-                                  target: { value: "1h" },
-                                });
-                              }}
-                            >
-                              1h
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              style={{ margin: "auto" }}
-                              onClick={() => {
-                                this.handleChangePeriodo({
-                                  target: { value: "1d" },
-                                });
-                              }}
-                            >
-                              1d
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              style={{ margin: "auto" }}
-                              onClick={() => {
-                                this.handleChangePeriodo({
-                                  target: { value: "3d" },
-                                });
-                              }}
-                            >
-                              3d
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              style={{ margin: "auto" }}
-                              onClick={() => {
-                                this.handleChangePeriodo({
-                                  target: { value: "14d" },
-                                });
-                              }}
-                            >
-                              14d
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-primary"
-                              style={{ margin: "auto" }}
-                              onClick={() => {
-                                this.handleChangePeriodo({
-                                  target: { value: "30d" },
-                                });
-                              }}
-                            >
-                              30d
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="col-12 mt-2 mb-2 justify-content-center align-items-center">
-                          {capitalizarPrimeraLetra(this.state.recurso)} Unit:{" "}
-                          {unitEnergyPrice.toString(10)} SUN<br></br>
-                          <button
-                            name="submit"
-                            type="button"
-                            value="Submit"
-                            className="btn btn-secondary"
-                            style={{
-                              width: "100%",
-                              height: "40px",
-                              marginTop: "5px",
-                            }}
-                            onClick={() => this.preCompra()}
-                          >
-                            {" "}
-                            Complete Purchase - Total:{" "}
-                            {this.state.precio.toString(10)} TRX
-                          </button>
-                        </div>
-
-                        <div className="col-xl-12 mb-3 mb-md-4">
-                          <p className="font-14">
-                            Send resources to this wallet {"⬇️"}
-                          </p>
-
-                          <input
-                            name="dzFirstName"
-                            required
-                            type="text"
-                            className="form-control"
-                            placeholder={this.props.accountAddress}
-                            onChange={this.handleChangeWallet}
-                          ></input>
-                        </div>
-                      </form>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="col-lg-6 pt-4 mt-5 col-sm-12 m-b30">
-            <div className="info-box text-center">
-              <img
-                src="images/ebot.png"
-                width="170px"
-                className="figure-img img-fluid rounded"
-                alt="resource rental energy"
-              ></img>
-
-              <div className="info">
-                <p className="font-20 p-5">
-                  In Brutus Energy Bot, we've developed an app for a faster and
-                  secure resource rental experience on the Tron network.{" "}
-                  <br></br>
-                  <br></br>
-                  Innovatively simplifying the process, we ensure efficient
-                  management at competitive prices. Explore further through our{" "}
-                  <a
-                    style={{ color: "purple", textDecoration: "underline" }}
-                    href="https://t.me/BRUTUS_energy_bot"
-                  >
-                    Telegram bot
-                  </a>{" "}
-                  or API for added accessibility. <br></br>
-                  <br></br>
-                  For additional information, contact us via our{" "}
-                  <a
-                    style={{ color: "purple", textDecoration: "underline" }}
-                    href="https://t.me/brutus_comunidad_sr"
-                  >
-                    Telegram group
-                  </a>{" "}
-                  or reach out to us at{" "}
-                  <a
-                    style={{ color: "purple", textDecoration: "underline" }}
-                    href="mailto:support@brutus.finance"
-                  >
-                    support@brutus.finance
-                  </a>
-                  <br></br>
-                  <br></br>
-                  Do you want to sell your energy/bandwidth and earn daily
-                  income?{" "}
-                  <a
-                    style={{ color: "purple", textDecoration: "underline" }}
-                    href="https://brutus.finance/provider/"
-                  >
-                    Join us as a provider now!
-                  </a>
-                </p>
-              </div>
-
-              <div className="widget widget_about">
-                <div className="widget widget_getintuch"></div>
-              </div>
-              <div className="social-box dz-social-icon style-3"></div>
-            </div>
-          </div>
-
-          <div className="col-lg-12">
+          <div className="col-lg-8 col-sm-12">
             <div className="card">
-              <div className="card-header">
-                <h4 className="card-title">Smart Contracts </h4>
-              </div>
               <div className="card-body">
-                <p>
-                  <b>Rental operator:</b>{" "}
-                  <a
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    href={
-                      "https://tronscan.org/#/contract/" +
-                      config.WALLET_API +
-                      "/code"
+
+                {/* ── Token selector ── */}
+                <div className="row mb-3 align-items-end">
+                  <div className="col-md-5">
+                    <label className="form-label font-14">Token</label>
+                    <select
+                      className="form-select"
+                      value={this.state.bulk_token.address}
+                      onChange={(e) => {
+                        const found = KNOWN_TOKENS.find(
+                          (t) => t.address === e.target.value,
+                        );
+                        this.setState({ bulk_token: found });
+                      }}
+                    >
+                      {KNOWN_TOKENS.map((tk) => (
+                        <option key={tk.address} value={tk.address}>
+                          {tk.symbol}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {this.state.bulk_token.address === "custom" && (
+                    <>
+                      <div className="col-md-5">
+                        <label className="form-label font-14">
+                          Contract address (TRC-20)
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="T…"
+                          value={this.state.bulk_customAddress}
+                          onChange={(e) =>
+                            this.setState({ bulk_customAddress: e.target.value })
+                          }
+                        />
+                      </div>
+                      <div className="col-md-2">
+                        <label className="form-label font-14">Decimals</label>
+                        <input
+                          type="number"
+                          className="form-control"
+                          min="0"
+                          max="18"
+                          value={this.state.bulk_customDecimals}
+                          onChange={(e) =>
+                            this.setState({ bulk_customDecimals: e.target.value })
+                          }
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {/* ── CSV paste helper ── */}
+                <div className="mb-3">
+                  <label className="form-label font-14">
+                    Paste CSV{" "}
+                    <span style={{ color: "#888" }}>
+                      (one line per recipient: address,amount)
+                    </span>
+                  </label>
+                  <textarea
+                    className="form-control"
+                    rows={3}
+                    placeholder={"TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U,100\nTAnotherAddr,50"}
+                    onBlur={(e) => {
+                      if (e.target.value.trim()) {
+                        this.bulkPasteCSV(e.target.value);
+                        e.target.value = "";
+                      }
+                    }}
+                  />
+                </div>
+
+                {/* ── Recipients table ── */}
+                <table className="table table-sm table-bordered">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Recipient address</th>
+                      <th>
+                        Amount ({this.state.bulk_token.symbol === "Custom…"
+                          ? "tokens"
+                          : this.state.bulk_token.symbol})
+                      </th>
+                      <th>Status</th>
+                      <th></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {this.state.bulk_recipients.map((row, idx) => {
+                      const result = this.state.bulk_results[idx];
+                      return (
+                        <tr key={idx}>
+                          <td style={{ verticalAlign: "middle" }}>{idx + 1}</td>
+                          <td>
+                            <input
+                              type="text"
+                              className="form-control form-control-sm"
+                              placeholder="T…"
+                              value={row.address}
+                              onChange={(e) =>
+                                this.bulkUpdateRow(idx, "address", e.target.value)
+                              }
+                            />
+                          </td>
+                          <td>
+                            <input
+                              type="number"
+                              className="form-control form-control-sm"
+                              min="0"
+                              placeholder="0"
+                              value={row.amount}
+                              onChange={(e) =>
+                                this.bulkUpdateRow(idx, "amount", e.target.value)
+                              }
+                            />
+                          </td>
+                          <td style={{ verticalAlign: "middle", minWidth: "90px" }}>
+                            {result ? (
+                              result.status === "ok" ? (
+                                <a
+                                  href={`https://tronscan.org/#/transaction/${result.txid}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: "green" }}
+                                >
+                                  <i className="bi bi-check-circle-fill"></i> OK
+                                </a>
+                              ) : (
+                                <span style={{ color: "red" }} title={result.errMsg}>
+                                  <i className="bi bi-x-circle-fill"></i>{" "}
+                                  {result.status}
+                                </span>
+                              )
+                            ) : (
+                              <span style={{ color: "#bbb" }}>—</span>
+                            )}
+                          </td>
+                          <td style={{ verticalAlign: "middle" }}>
+                            <button
+                              type="button"
+                              className="btn btn-sm btn-outline-danger"
+                              onClick={() => this.bulkRemoveRow(idx)}
+                              disabled={this.state.bulk_sending}
+                            >
+                              <i className="bi bi-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+
+                {/* ── Actions ── */}
+                <div className="d-flex gap-2 flex-wrap mt-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary btn-sm"
+                    onClick={this.bulkAddRow}
+                    disabled={this.state.bulk_sending}
+                  >
+                    <i className="bi bi-plus-circle"></i> Add row
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary btn-sm"
+                    disabled={this.state.bulk_sending}
+                    onClick={() =>
+                      this.setState({
+                        bulk_recipients: [{ address: "", amount: "" }],
+                        bulk_results: [],
+                      })
                     }
                   >
-                    {config.WALLET_API}
-                  </a>
+                    <i className="bi bi-arrow-counterclockwise"></i> Clear
+                  </button>
+
+                  <button
+                    type="button"
+                    className="btn btn-success ms-auto"
+                    disabled={this.state.bulk_sending}
+                    onClick={this.bulkSend}
+                  >
+                    {this.state.bulk_sending ? (
+                      <>{imgLoading} Sending…</>
+                    ) : (
+                      <>
+                        <i className="bi bi-send-fill"></i> Send all (
+                        {this.state.bulk_recipients.filter(
+                          (r) => r.address && parseFloat(r.amount) > 0,
+                        ).length}{" "}
+                        recipients)
+                      </>
+                    )}
+                  </button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {/* ── Info panel ── */}
+          <div className="col-lg-4 pt-2 col-sm-12">
+            <div className="card h-100">
+              <div className="card-body">
+                <h5>How it works</h5>
+                <ol className="font-14" style={{ paddingLeft: "1.2rem" }}>
+                  <li>Choose a token (USDT, BRUT, BTT… or paste a custom TRC-20 address).</li>
+                  <li>Add recipients manually or paste a CSV block.</li>
+                  <li>
+                    Click <b>Send all</b> — each transfer is signed individually
+                    by your connected TronLink wallet.
+                  </li>
+                  <li>Track results inline; click a green checkmark to view the tx on TronScan.</li>
+                </ol>
+                <hr />
+                <p className="font-14" style={{ color: "#888" }}>
+                  <i className="bi bi-info-circle"></i> Each transaction consumes
+                  energy/bandwidth. Rent resources above if needed before sending.
                 </p>
+                <hr />
+                <p className="font-14">
+                  <b>Supported tokens:</b>
+                </p>
+                <ul className="font-14" style={{ paddingLeft: "1.2rem" }}>
+                  {KNOWN_TOKENS.filter((t) => t.address !== "custom").map((t) => (
+                    <li key={t.address}>
+                      <b>{t.symbol}</b>
+                      {t.address !== "TRX" && (
+                        <>{" — "}<a
+                          href={`https://tronscan.org/#/token20/${t.address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ fontSize: "0.8em", color: "purple" }}
+                        >
+                          {t.address.slice(0, 8)}…
+                        </a></>
+                      )}
+                    </li>
+                  ))}
+                </ul>
               </div>
             </div>
           </div>
