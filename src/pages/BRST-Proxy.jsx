@@ -2723,7 +2723,7 @@ class Staking extends Component {
               }}
               style={{ cursor: "pointer" }}
             ></input>{" "}
-            <b>Pool: </b> request up to{" "}
+            <b>Fast: </b> request up to{" "}
             <b> {retiroRapido.dp(1).toString(10)} TRX</b> with a{" "}
             <b> {penalty}% penalty for early withdrawal.</b>
 
