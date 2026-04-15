@@ -162,7 +162,7 @@ class Staking extends Component {
       to: "brst",
       par: "trx_brst",
       selector: "trx",
-      rapida: false,
+      rapida: true,
       valueFrom: new BigNumber(0),
       valueTo: new BigNumber(0),
     };
