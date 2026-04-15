@@ -706,8 +706,82 @@ class EnergyRental extends Component {
           },
         }));
       } catch (e) {
-        // TronWeb can throw on timeout even when the tx was already broadcast.
-        // Attempt to recover a txid from the error object before marking failed.
+        // ── Detect TronLink user rejection ────────────────────────────────
+        // TronLink throws a plain string or an object whose message matches
+        // well-known rejection phrases when the user clicks "Reject".
+        const eStr = (e?.message || e?.toString() || "").toLowerCase();
+        const isUserRejection =
+          eStr.includes("declined") ||
+          eStr.includes("rejected") ||
+          eStr.includes("cancel") ||
+          eStr.includes("user denied") ||
+          eStr.includes("user rejected") ||
+          eStr === "confirmation declined by user";
+
+        if (isUserRejection) {
+          // User deliberately cancelled — do not treat as a system error.
+          status = "cancelled";
+          errMsg = "Cancelled by user in TronLink";
+
+          this.setState((prev) => ({
+            bulk_progress: {
+              ...prev.bulk_progress,
+              phase: "cancelled",
+              step: `Tx ${i + 1}/${validRows.length} — cancelled by user. Remaining transactions skipped.`,
+            },
+          }));
+
+          // Record this entry then stop — no point asking the user to sign
+          // the remaining transactions if they already declined.
+          const cancelledEntry = {
+            id: `${sessionId}-${i}`,
+            timestamp: Date.now(),
+            token: tokenSymbol,
+            tokenAddress,
+            from: accountAddress,
+            to: toAddr,
+            amount: amountHuman.toFixed(),
+            status: "cancelled",
+            txid: "",
+            errMsg,
+          };
+          historyEntries.push(cancelledEntry);
+          results.push({ address: toAddr, amount: row.amount, status: "cancelled", txid: "", errMsg });
+          this.setState({ bulk_results: [...results] });
+
+          // Mark all remaining rows as cancelled too
+          for (let j = i + 1; j < validRows.length; j++) {
+            const remaining = validRows[j];
+            const skippedEntry = {
+              id: `${sessionId}-${j}`,
+              timestamp: Date.now(),
+              token: tokenSymbol,
+              tokenAddress,
+              from: accountAddress,
+              to: remaining.address.trim(),
+              amount: new BigNumber(remaining.amount).toFixed(),
+              status: "cancelled",
+              txid: "",
+              errMsg: "Skipped — previous transaction cancelled by user",
+            };
+            historyEntries.push(skippedEntry);
+            results.push({
+              address: remaining.address.trim(),
+              amount: remaining.amount,
+              status: "cancelled",
+              txid: "",
+              errMsg: "Skipped — previous transaction cancelled by user",
+            });
+          }
+          this.setState({ bulk_results: [...results] });
+
+          // Exit the loop early
+          break;
+        }
+
+        // ── Not a user rejection — technical error ────────────────────────
+        // TronWeb can throw on polling timeout even when the tx was broadcast.
+        // Try to recover a txid from the error object before marking as error.
         const eTxid =
           e?.transaction?.txID ||
           e?.txid ||
@@ -736,25 +810,28 @@ class EnergyRental extends Component {
         }));
       }
 
-      const entry = {
-        id: `${sessionId}-${i}`,
-        timestamp: Date.now(),
-        token: tokenSymbol,
-        tokenAddress,
-        from: accountAddress,
-        to: toAddr,
-        amount: amountHuman.toFixed(),
-        status,   // 'ok' | 'sent' | 'failed' | 'error'
-        txid,
-        errMsg,
-      };
-
-      historyEntries.push(entry);
-      results.push({ address: toAddr, amount: row.amount, status, txid, errMsg });
-      this.setState({ bulk_results: [...results] });
+      // Only push entry here for non-cancellation paths
+      // (cancellation already pushed above and broke the loop)
+      if (status !== "cancelled") {
+        const entry = {
+          id: `${sessionId}-${i}`,
+          timestamp: Date.now(),
+          token: tokenSymbol,
+          tokenAddress,
+          from: accountAddress,
+          to: toAddr,
+          amount: amountHuman.toFixed(),
+          status,   // 'ok' | 'sent' | 'failed' | 'error'
+          txid,
+          errMsg,
+        };
+        historyEntries.push(entry);
+        results.push({ address: toAddr, amount: row.amount, status, txid, errMsg });
+        this.setState({ bulk_results: [...results] });
+      }
 
       // Small delay between txs to avoid nonce issues
-      if (i < validRows.length - 1) {
+      if (status !== "cancelled" && i < validRows.length - 1) {
         await new Promise((r) => setTimeout(r, 1500));
       }
     }
@@ -763,19 +840,22 @@ class EnergyRental extends Component {
     appendTxHistory(historyEntries);
     const freshHistory = loadTxHistory();
 
-    console.log(results)
+    const okCount         = results.filter((r) => r.status === "ok" || r.status === "sent").length;
+    const failCount       = results.filter((r) => r.status === "failed" || r.status === "error").length;
+    const cancelledCount  = results.filter((r) => r.status === "cancelled").length;
 
-    const okCount = results.filter((r) => r.status === "ok" || r.status === "sent").length;
-    const failCount = results.filter((r) => r.status === "failed" || r.status === "error").length;
+    const wasAborted = cancelledCount > 0;
 
     this.setState({
       bulk_sending: false,
       bulk_txHistory: freshHistory,
       bulk_progress: {
-        current: validRows.length,
+        current: results.length,
         total: validRows.length,
-        phase: "done",
-        step: `Completed: ${okCount} sent, ${failCount} failed. Results saved to history.`,
+        phase: wasAborted ? "cancelled" : "done",
+        step: wasAborted
+          ? `Aborted: ${okCount} sent, ${cancelledCount} cancelled by user, ${failCount} failed.`
+          : `Completed: ${okCount} sent, ${failCount} failed. Results saved to history.`,
       },
     });
   }
@@ -2183,6 +2263,13 @@ class EnergyRental extends Component {
                                 >
                                   <i className="bi bi-broadcast"></i> Sent~
                                 </a>
+                              ) : result.status === "cancelled" ? (
+                                <span
+                                  style={{ color: "#7f8c8d", fontStyle: "italic" }}
+                                  title={result.errMsg}
+                                >
+                                  <i className="bi bi-slash-circle"></i> Cancelled
+                                </span>
                               ) : (
                                 <span style={{ color: "#c0392b" }} title={result.errMsg}>
                                   <i className="bi bi-x-circle-fill"></i>{" "}
@@ -2387,12 +2474,13 @@ class EnergyRental extends Component {
                   if (!prog) return null;
 
                   const phaseColors = {
-                    renting: { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
-                    signing: { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill", color: "#1565c0" },
-                    broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast", color: "#2e7d32" },
-                    waiting: { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split", color: "#6a1b9a" },
-                    error: { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
-                    done: { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all", color: "#1b5e20" },
+                    renting:      { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
+                    signing:      { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill",              color: "#1565c0" },
+                    broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast",             color: "#2e7d32" },
+                    waiting:      { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split",       color: "#6a1b9a" },
+                    error:        { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
+                    cancelled:    { bg: "#f5f5f5", border: "#95a5a6", icon: "bi-slash-circle",          color: "#7f8c8d" },
+                    done:         { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all",            color: "#1b5e20" },
                   };
 
                   const theme = phaseColors[prog.phase] || phaseColors.signing;
@@ -2420,12 +2508,13 @@ class EnergyRental extends Component {
                           style={{ color: theme.color, fontSize: "1.2rem" }}
                         ></i>
                         <strong style={{ color: theme.color }}>
-                          {prog.phase === "renting" && "Renting energy…"}
-                          {prog.phase === "signing" && "Waiting for wallet signature…"}
+                          {prog.phase === "renting"      && "Renting energy…"}
+                          {prog.phase === "signing"      && "Waiting for wallet signature…"}
                           {prog.phase === "broadcasting" && "Broadcasting to TRON network…"}
-                          {prog.phase === "waiting" && "Waiting for confirmation…"}
-                          {prog.phase === "error" && "Transaction error"}
-                          {prog.phase === "done" && "Completed"}
+                          {prog.phase === "waiting"      && "Waiting for confirmation…"}
+                          {prog.phase === "error"        && "Transaction error"}
+                          {prog.phase === "cancelled"    && "Cancelled by user"}
+                          {prog.phase === "done"         && "Completed"}
                         </strong>
                         <span className="ms-auto" style={{ fontSize: "0.85em", color: "#555" }}>
                           {prog.current} / {prog.total} tx
@@ -2466,7 +2555,7 @@ class EnergyRental extends Component {
 
                       {/* Mini counters */}
                       {prog.total > 1 && (
-                        <div className="d-flex gap-3" style={{ fontSize: "0.82em" }}>
+                        <div className="d-flex gap-3 flex-wrap" style={{ fontSize: "0.82em" }}>
                           <span style={{ color: "#27ae60" }}>
                             <i className="bi bi-check-circle-fill"></i>{" "}
                             {this.state.bulk_results.filter((r) => r.status === "ok" || r.status === "sent").length} sent
@@ -2475,14 +2564,19 @@ class EnergyRental extends Component {
                             <i className="bi bi-x-circle-fill"></i>{" "}
                             {this.state.bulk_results.filter((r) => r.status === "failed" || r.status === "error").length} failed
                           </span>
+                          <span style={{ color: "#7f8c8d" }}>
+                            <i className="bi bi-slash-circle"></i>{" "}
+                            {this.state.bulk_results.filter((r) => r.status === "cancelled").length} cancelled
+                          </span>
                           <span style={{ color: "#888" }}>
-                            <i className="bi bi-hourglass"></i> {prog.total - this.state.bulk_results.length} pending
+                            <i className="bi bi-hourglass"></i>{" "}
+                            {Math.max(0, prog.total - this.state.bulk_results.length)} pending
                           </span>
                         </div>
                       )}
 
-                      {/* Dismiss button only when done */}
-                      {prog.phase === "done" && (
+                      {/* Dismiss button when done or cancelled */}
+                      {(prog.phase === "done" || prog.phase === "cancelled") && (
                         <button
                           type="button"
                           className="btn btn-sm btn-outline-secondary mt-2"
@@ -2492,8 +2586,8 @@ class EnergyRental extends Component {
                         </button>
                       )}
 
-                      {/* Warning: do not close tab */}
-                      {prog.phase !== "done" && (
+                      {/* Warning: do not close tab (only while actively running) */}
+                      {prog.phase !== "done" && prog.phase !== "cancelled" && (
                         <p
                           className="mb-0 mt-2"
                           style={{
@@ -2571,8 +2665,9 @@ class EnergyRental extends Component {
           const { bulk_txHistory, bulk_historyFilter } = this.state;
 
           const filtered = bulk_txHistory.filter((tx) => {
-            if (bulk_historyFilter === "ok") return tx.status === "ok" || tx.status === "sent";
-            if (bulk_historyFilter === "error") return tx.status === "failed" || tx.status === "error";
+            if (bulk_historyFilter === "ok")        return tx.status === "ok" || tx.status === "sent";
+            if (bulk_historyFilter === "error")     return tx.status === "failed" || tx.status === "error";
+            if (bulk_historyFilter === "cancelled") return tx.status === "cancelled";
             return true;
           });
 
@@ -2588,6 +2683,13 @@ class EnergyRental extends Component {
               return (
                 <span className="badge" style={{ background: "#e67e22" }}>
                   <i className="bi bi-broadcast"></i> Sent~
+                </span>
+              );
+            }
+            if (tx.status === "cancelled") {
+              return (
+                <span className="badge" style={{ background: "#95a5a6" }} title={tx.errMsg}>
+                  <i className="bi bi-slash-circle"></i> Cancelled
                 </span>
               );
             }
@@ -2612,9 +2714,10 @@ class EnergyRental extends Component {
                     {/* Filter tabs */}
                     <div className="ms-auto d-flex gap-1 flex-wrap">
                       {[
-                        { key: "all", label: "All" },
-                        { key: "ok", label: "✓ Sent" },
-                        { key: "error", label: "✗ Failed" },
+                        { key: "all",       label: "All" },
+                        { key: "ok",        label: "✓ Sent" },
+                        { key: "error",     label: "✗ Failed" },
+                        { key: "cancelled", label: "⊘ Cancelled" },
                       ].map(({ key, label }) => (
                         <button
                           key={key}
