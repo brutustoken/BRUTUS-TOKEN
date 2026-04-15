@@ -39,17 +39,17 @@ const TRC20_ABI = [
 // Well-known tokens on TRON mainnet
 // energyPerTx: conservative estimate of energy consumed per TRC-20 transfer
 const KNOWN_TOKENS = [
-  { symbol: "TRX",        address: "TRX",                                    decimals: 6,  energyPerTx: 0     },
-  { symbol: "USDT",       address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",    decimals: 6,  energyPerTx: 32000 },
-  { symbol: "USDD",       address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz",    decimals: 18, energyPerTx: 65000 },
-  { symbol: "BRUT",       address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU",    decimals: 6,  energyPerTx: 32000 },
-  { symbol: "BRST",       address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3",    decimals: 6,  energyPerTx: 32000 },
-  { symbol: "APENFT",     address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq",    decimals: 6,  energyPerTx: 32000 },
+  { symbol: "TRX", address: "TRX", decimals: 6, energyPerTx: 0 },
+  { symbol: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6, energyPerTx: 65000 },
+  { symbol: "USDD", address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz", decimals: 18, energyPerTx: 65000 },
+  { symbol: "BRUT", address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU", decimals: 6, energyPerTx: 32000 },
+  { symbol: "BRST", address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3", decimals: 6, energyPerTx: 32000 },
+  { symbol: "APENFT", address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq", decimals: 6, energyPerTx: 32000 },
   // BTT TRC-20
-  { symbol: "BTT",        address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4",    decimals: 18, energyPerTx: 65000 },
+  { symbol: "BTT", address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", decimals: 18, energyPerTx: 65000 },
   // WBTC bridged on TRON (BitTorrent bridge / JustLend WBTC)
-  { symbol: "BTC (WBTC)", address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",    decimals: 8,  energyPerTx: 32000 },
-  { symbol: "Custom…",    address: "custom",                                  decimals: 6,  energyPerTx: 65000 },
+  { symbol: "BTC (WBTC)", address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9", decimals: 8, energyPerTx: 32000 },
+  { symbol: "Custom…", address: "custom", decimals: 6, energyPerTx: 65000 },
 ];
 
 import { config } from "../config/env";
@@ -683,6 +683,8 @@ class EnergyRental extends Component {
 
           const receipt = await tronWeb.trx.sendRawTransaction(transaction);
 
+          console.log(receipt)
+
           // sendRawTransaction returns { result: true/false, txid: '...' }
           txid = receipt.txid || receipt.transaction?.txID || "";
           status = receipt.result ? "ok" : "failed";
@@ -761,7 +763,9 @@ class EnergyRental extends Component {
     appendTxHistory(historyEntries);
     const freshHistory = loadTxHistory();
 
-    const okCount   = results.filter((r) => r.status === "ok" || r.status === "sent").length;
+    console.log(results)
+
+    const okCount = results.filter((r) => r.status === "ok" || r.status === "sent").length;
     const failCount = results.filter((r) => r.status === "failed" || r.status === "error").length;
 
     this.setState({
@@ -2383,12 +2387,12 @@ class EnergyRental extends Component {
                   if (!prog) return null;
 
                   const phaseColors = {
-                    renting:      { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
-                    signing:      { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill",              color: "#1565c0" },
-                    broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast",             color: "#2e7d32" },
-                    waiting:      { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split",       color: "#6a1b9a" },
-                    error:        { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
-                    done:         { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all",            color: "#1b5e20" },
+                    renting: { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
+                    signing: { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill", color: "#1565c0" },
+                    broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast", color: "#2e7d32" },
+                    waiting: { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split", color: "#6a1b9a" },
+                    error: { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
+                    done: { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all", color: "#1b5e20" },
                   };
 
                   const theme = phaseColors[prog.phase] || phaseColors.signing;
@@ -2396,7 +2400,7 @@ class EnergyRental extends Component {
                     ? Math.round((prog.current / prog.total) * 100)
                     : 0;
 
-                  const okCount   = this.state.bulk_results.filter((r) => r.status === "ok").length;
+                  const okCount = this.state.bulk_results.filter((r) => r.status === "ok").length;
                   const failCount = this.state.bulk_results.filter((r) => r.status === "error" || r.status === "failed").length;
                   const pendCount = prog.total - this.state.bulk_results.length;
 
@@ -2416,12 +2420,12 @@ class EnergyRental extends Component {
                           style={{ color: theme.color, fontSize: "1.2rem" }}
                         ></i>
                         <strong style={{ color: theme.color }}>
-                          {prog.phase === "renting"      && "Renting energy…"}
-                          {prog.phase === "signing"      && "Waiting for wallet signature…"}
+                          {prog.phase === "renting" && "Renting energy…"}
+                          {prog.phase === "signing" && "Waiting for wallet signature…"}
                           {prog.phase === "broadcasting" && "Broadcasting to TRON network…"}
-                          {prog.phase === "waiting"      && "Waiting for confirmation…"}
-                          {prog.phase === "error"        && "Transaction error"}
-                          {prog.phase === "done"         && "Completed"}
+                          {prog.phase === "waiting" && "Waiting for confirmation…"}
+                          {prog.phase === "error" && "Transaction error"}
+                          {prog.phase === "done" && "Completed"}
                         </strong>
                         <span className="ms-auto" style={{ fontSize: "0.85em", color: "#555" }}>
                           {prog.current} / {prog.total} tx
@@ -2567,7 +2571,7 @@ class EnergyRental extends Component {
           const { bulk_txHistory, bulk_historyFilter } = this.state;
 
           const filtered = bulk_txHistory.filter((tx) => {
-            if (bulk_historyFilter === "ok")    return tx.status === "ok" || tx.status === "sent";
+            if (bulk_historyFilter === "ok") return tx.status === "ok" || tx.status === "sent";
             if (bulk_historyFilter === "error") return tx.status === "failed" || tx.status === "error";
             return true;
           });
@@ -2608,8 +2612,8 @@ class EnergyRental extends Component {
                     {/* Filter tabs */}
                     <div className="ms-auto d-flex gap-1 flex-wrap">
                       {[
-                        { key: "all",   label: "All" },
-                        { key: "ok",    label: "✓ Sent" },
+                        { key: "all", label: "All" },
+                        { key: "ok", label: "✓ Sent" },
                         { key: "error", label: "✗ Failed" },
                       ].map(({ key, label }) => (
                         <button
