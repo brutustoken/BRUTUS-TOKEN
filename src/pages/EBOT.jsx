@@ -85,7 +85,34 @@ const amountB = [
 
 let intervalId;
 
-// Constantes para tipos de mensajes
+// ── Local transaction history helpers ─────────────────────────────────────────
+const TX_HISTORY_KEY = "brutus_bulk_tx_history";
+const TX_HISTORY_MAX = 200;
+
+function loadTxHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(TX_HISTORY_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveTxHistory(entries) {
+  try {
+    // Keep newest first, cap at MAX
+    localStorage.setItem(
+      TX_HISTORY_KEY,
+      JSON.stringify(entries.slice(0, TX_HISTORY_MAX)),
+    );
+  } catch { /* storage full — ignore */ }
+}
+
+function appendTxHistory(newEntries) {
+  const existing = loadTxHistory();
+  saveTxHistory([...newEntries, ...existing]);
+}
+
+// ── Constantes para tipos de mensajes ─────────────────────────────────────────
 const MESSAGE_TYPES = {
   CONNECT_WALLET: 'connectWallet',
   ERANGE: 'eRange',
@@ -152,6 +179,10 @@ class EnergyRental extends Component {
       // Progress tracking during bulk send
       bulk_progress: null,        // null | { current, total, step, phase }
       // phase: 'renting' | 'signing' | 'broadcasting' | 'waiting' | 'done'
+
+      // Persistent local transaction history (loaded from localStorage)
+      bulk_txHistory: loadTxHistory(),
+      bulk_historyFilter: "all",  // 'all' | 'ok' | 'error'
     };
 
     this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
@@ -176,6 +207,7 @@ class EnergyRental extends Component {
     this.bulkUpdateRow = this.bulkUpdateRow.bind(this);
     this.bulkPasteCSV = this.bulkPasteCSV.bind(this);
     this.bulkSend = this.bulkSend.bind(this);
+    this.bulkClearHistory = this.bulkClearHistory.bind(this);
   }
 
   // ── Bulk Token Send helpers ────────────────────────────────────────────────
@@ -200,6 +232,11 @@ class EnergyRental extends Component {
       rows[index] = { ...rows[index], [field]: value };
       return { bulk_recipients: rows };
     });
+  }
+
+  bulkClearHistory() {
+    localStorage.removeItem(TX_HISTORY_KEY);
+    this.setState({ bulk_txHistory: [] });
   }
 
   /** Parse a pasted CSV block: each line = "address,amount" */
@@ -503,6 +540,12 @@ class EnergyRental extends Component {
     const { tronWeb, accountAddress } = this.props;
     const isTRX = tokenAddress === "TRX";
 
+    // Resolve token symbol for history
+    const tokenSymbol = (() => {
+      const found = KNOWN_TOKENS.find((t) => t.address === tokenAddress);
+      return found ? found.symbol : tokenAddress.slice(0, 8) + "…";
+    })();
+
     this.setState({
       bulk_sending: true,
       bulk_results: [],
@@ -531,6 +574,8 @@ class EnergyRental extends Component {
     }
 
     const results = [];
+    const historyEntries = [];
+    const sessionId = Date.now();
 
     for (let i = 0; i < validRows.length; i++) {
       const row = validRows[i];
@@ -548,7 +593,7 @@ class EnergyRental extends Component {
           current: i + 1,
           total: validRows.length,
           phase: "signing",
-          step: `Tx ${i + 1}/${validRows.length} — confirm in TronLink: ${amountHuman.toFixed()} → ${toAddr.slice(0, 12)}…`,
+          step: `Tx ${i + 1}/${validRows.length} — confirm in TronLink: ${amountHuman.toFixed()} ${tokenSymbol} → ${toAddr.slice(0, 14)}…`,
         },
       });
 
@@ -561,9 +606,11 @@ class EnergyRental extends Component {
             sunAmount,
             accountAddress,
           );
-          const signed = await window.tronWeb.trx.sign(unsigned);
 
-          // ── Step: broadcasting ─────────────────────────────────────────
+          // Extract txid BEFORE signing so we have it even if broadcast errors
+          const pendingTxid = unsigned?.txID || unsigned?.transaction?.txID || "";
+
+          // ── Step: broadcasting ──────────────────────────────────────────
           this.setState((prev) => ({
             bulk_progress: {
               ...prev.bulk_progress,
@@ -572,47 +619,109 @@ class EnergyRental extends Component {
             },
           }));
 
+          const signed = await window.tronWeb.trx.sign(unsigned);
           const receipt = await tronWeb.trx.sendRawTransaction(signed);
-          txid = receipt.txid || receipt.transaction?.txID || "";
+
+          // receipt.result === true means the node accepted it
+          txid = receipt.txid || receipt.transaction?.txID || pendingTxid;
           status = receipt.result ? "ok" : "failed";
+          if (status === "failed") {
+            errMsg = receipt.message
+              ? Buffer.from(receipt.message, "hex").toString("utf8")
+              : "Node rejected the transaction";
+          }
         } else {
           // TRC-20 transfer
-          // amountSun is already a decimal string (e.g. "1000000"); TronWeb accepts
-          // strings for uint256 — correct for large numbers (BTT, USDD 18dec).
+          // amountSun is a decimal string; TronWeb accepts strings for uint256.
+          // shouldPollResponse: false → returns txid immediately without waiting
+          // for on-chain confirmation (avoids false "timeout" errors).
+
+          // ── Step: broadcasting ──────────────────────────────────────────
+          this.setState((prev) => ({
+            bulk_progress: {
+              ...prev.bulk_progress,
+              phase: "broadcasting",
+              step: `Tx ${i + 1}/${validRows.length} — broadcasting to TRON network…`,
+            },
+          }));
+
           const receipt = await contract.transfer(toAddr, amountSun).send({
             feeLimit: 150_000_000,   // 150 TRX — covers high-energy tokens (USDD, BTT)
             from: accountAddress,
             shouldPollResponse: false,
           });
 
-          // ── Step: broadcast result ─────────────────────────────────────
-          // TronWeb v5/v6 .send() returns the txid string directly
-          txid = typeof receipt === "string" ? receipt : (receipt?.txid ?? receipt?.transaction?.txID ?? "");
-          status = txid ? "ok" : "failed";
+          // TronWeb v5/v6: .send() with shouldPollResponse:false returns txid string.
+          // If it returns an object it means something went wrong at the RPC level.
+          if (typeof receipt === "string" && receipt.length >= 60) {
+            txid = receipt;
+            status = "ok";
+          } else if (receipt && typeof receipt === "object") {
+            // Could be { code: 'SIGERROR', message: '...' } — real failure
+            txid = receipt.txid || receipt.transaction?.txID || "";
+            errMsg = receipt.message || receipt.code || "Unknown error from node";
+            status = txid ? "ok" : "failed";
+          } else {
+            status = "failed";
+            errMsg = "Empty response from node";
+          }
         }
 
-        // ── Step: confirmed / failed ───────────────────────────────────────
+        // ── Step: result feedback ──────────────────────────────────────────
         this.setState((prev) => ({
           bulk_progress: {
             ...prev.bulk_progress,
             phase: status === "ok" ? "broadcasting" : "error",
             step: status === "ok"
-              ? `Tx ${i + 1}/${validRows.length} ✓ broadcast — txid: ${txid.slice(0, 16)}…`
-              : `Tx ${i + 1}/${validRows.length} ✗ broadcast failed`,
+              ? `Tx ${i + 1}/${validRows.length} ✓ sent — ${txid.slice(0, 20)}…`
+              : `Tx ${i + 1}/${validRows.length} ✗ ${errMsg.slice(0, 60)}`,
           },
         }));
       } catch (e) {
-        status = "error";
-        errMsg = e?.message || e?.toString() || "unknown error";
+        // TronWeb sometimes throws on timeout even when the tx was broadcast.
+        // Try to extract a txid from the error object before marking as failed.
+        const eTxid =
+          e?.transaction?.txID ||
+          e?.txid ||
+          (typeof e?.message === "string" && /^[0-9a-f]{64}$/i.test(e.message.trim())
+            ? e.message.trim()
+            : "");
+
+        if (eTxid) {
+          // Tx was broadcast but polling timed out — mark as "sent" (unconfirmed)
+          txid = eTxid;
+          status = "sent";
+          errMsg = "Broadcast OK but confirmation timed out — check TronScan";
+        } else {
+          status = "error";
+          errMsg = e?.message || e?.toString() || "unknown error";
+        }
+
         this.setState((prev) => ({
           bulk_progress: {
             ...prev.bulk_progress,
-            phase: "error",
-            step: `Tx ${i + 1}/${validRows.length} ✗ ${errMsg.slice(0, 80)}`,
+            phase: status === "sent" ? "broadcasting" : "error",
+            step: status === "sent"
+              ? `Tx ${i + 1}/${validRows.length} ~ sent (unconfirmed) — ${txid.slice(0, 20)}…`
+              : `Tx ${i + 1}/${validRows.length} ✗ ${errMsg.slice(0, 60)}`,
           },
         }));
       }
 
+      const entry = {
+        id: `${sessionId}-${i}`,
+        timestamp: Date.now(),
+        token: tokenSymbol,
+        tokenAddress,
+        from: accountAddress,
+        to: toAddr,
+        amount: amountHuman.toFixed(),
+        status,   // 'ok' | 'sent' | 'failed' | 'error'
+        txid,
+        errMsg,
+      };
+
+      historyEntries.push(entry);
       results.push({ address: toAddr, amount: row.amount, status, txid, errMsg });
       this.setState({ bulk_results: [...results] });
 
@@ -622,16 +731,21 @@ class EnergyRental extends Component {
       }
     }
 
-    const okCount = results.filter((r) => r.status === "ok").length;
-    const failCount = results.length - okCount;
+    // Persist history
+    appendTxHistory(historyEntries);
+    const freshHistory = loadTxHistory();
+
+    const okCount   = results.filter((r) => r.status === "ok" || r.status === "sent").length;
+    const failCount = results.filter((r) => r.status === "failed" || r.status === "error").length;
 
     this.setState({
       bulk_sending: false,
+      bulk_txHistory: freshHistory,
       bulk_progress: {
         current: validRows.length,
         total: validRows.length,
         phase: "done",
-        step: `Completed: ${okCount} succeeded, ${failCount} failed.`,
+        step: `Completed: ${okCount} sent, ${failCount} failed. Results saved to history.`,
       },
     });
   }
@@ -2017,21 +2131,32 @@ class EnergyRental extends Component {
                               }
                             />
                           </td>
-                          <td style={{ verticalAlign: "middle", minWidth: "90px" }}>
+                          <td style={{ verticalAlign: "middle", minWidth: "120px" }}>
                             {result ? (
                               result.status === "ok" ? (
                                 <a
                                   href={`https://tronscan.org/#/transaction/${result.txid}`}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  style={{ color: "green" }}
+                                  style={{ color: "#27ae60", fontWeight: "bold" }}
+                                  title={result.txid}
                                 >
                                   <i className="bi bi-check-circle-fill"></i> OK
                                 </a>
+                              ) : result.status === "sent" ? (
+                                <a
+                                  href={`https://tronscan.org/#/transaction/${result.txid}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: "#e67e22", fontWeight: "bold" }}
+                                  title={result.errMsg || result.txid}
+                                >
+                                  <i className="bi bi-broadcast"></i> Sent~
+                                </a>
                               ) : (
-                                <span style={{ color: "red" }} title={result.errMsg}>
+                                <span style={{ color: "#c0392b" }} title={result.errMsg}>
                                   <i className="bi bi-x-circle-fill"></i>{" "}
-                                  {result.status}
+                                  {result.status === "failed" ? "Failed" : "Error"}
                                 </span>
                               )
                             ) : (
@@ -2313,13 +2438,15 @@ class EnergyRental extends Component {
                       {prog.total > 1 && (
                         <div className="d-flex gap-3" style={{ fontSize: "0.82em" }}>
                           <span style={{ color: "#27ae60" }}>
-                            <i className="bi bi-check-circle-fill"></i> {okCount} ok
+                            <i className="bi bi-check-circle-fill"></i>{" "}
+                            {this.state.bulk_results.filter((r) => r.status === "ok" || r.status === "sent").length} sent
                           </span>
                           <span style={{ color: "#c0392b" }}>
-                            <i className="bi bi-x-circle-fill"></i> {failCount} failed
+                            <i className="bi bi-x-circle-fill"></i>{" "}
+                            {this.state.bulk_results.filter((r) => r.status === "failed" || r.status === "error").length} failed
                           </span>
                           <span style={{ color: "#888" }}>
-                            <i className="bi bi-hourglass"></i> {pendCount} pending
+                            <i className="bi bi-hourglass"></i> {prog.total - this.state.bulk_results.length} pending
                           </span>
                         </div>
                       )}
@@ -2406,6 +2533,167 @@ class EnergyRental extends Component {
             </div>
           </div>
         </div>
+
+        {/* ══════════════════════════════════════════════════════════
+             TRANSACTION HISTORY
+             ══════════════════════════════════════════════════════════ */}
+        {this.state.bulk_txHistory.length > 0 && (() => {
+          const { bulk_txHistory, bulk_historyFilter } = this.state;
+
+          const filtered = bulk_txHistory.filter((tx) => {
+            if (bulk_historyFilter === "ok")    return tx.status === "ok" || tx.status === "sent";
+            if (bulk_historyFilter === "error") return tx.status === "failed" || tx.status === "error";
+            return true;
+          });
+
+          const statusBadge = (tx) => {
+            if (tx.status === "ok") {
+              return (
+                <span className="badge" style={{ background: "#27ae60" }}>
+                  <i className="bi bi-check-circle-fill"></i> OK
+                </span>
+              );
+            }
+            if (tx.status === "sent") {
+              return (
+                <span className="badge" style={{ background: "#e67e22" }}>
+                  <i className="bi bi-broadcast"></i> Sent~
+                </span>
+              );
+            }
+            return (
+              <span className="badge bg-danger" title={tx.errMsg}>
+                <i className="bi bi-x-circle-fill"></i>{" "}
+                {tx.status === "failed" ? "Failed" : "Error"}
+              </span>
+            );
+          };
+
+          return (
+            <div className="row mt-4">
+              <div className="col-12">
+                <div className="card">
+                  <div className="card-header d-flex align-items-center gap-2 flex-wrap">
+                    <h5 className="mb-0">
+                      <i className="bi bi-clock-history"></i> Transaction History
+                    </h5>
+                    <span className="badge bg-secondary ms-1">{bulk_txHistory.length}</span>
+
+                    {/* Filter tabs */}
+                    <div className="ms-auto d-flex gap-1 flex-wrap">
+                      {[
+                        { key: "all",   label: "All" },
+                        { key: "ok",    label: "✓ Sent" },
+                        { key: "error", label: "✗ Failed" },
+                      ].map(({ key, label }) => (
+                        <button
+                          key={key}
+                          type="button"
+                          className={`btn btn-sm ${bulk_historyFilter === key ? "btn-primary" : "btn-outline-secondary"}`}
+                          onClick={() => this.setState({ bulk_historyFilter: key })}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        className="btn btn-sm btn-outline-danger"
+                        onClick={this.bulkClearHistory}
+                        title="Clear all history (local only)"
+                      >
+                        <i className="bi bi-trash"></i> Clear
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="card-body p-0">
+                    <div style={{ overflowX: "auto" }}>
+                      <table className="table table-sm table-hover mb-0" style={{ fontSize: "0.82em" }}>
+                        <thead style={{ background: "#f4f4f4" }}>
+                          <tr>
+                            <th style={{ whiteSpace: "nowrap" }}>Date / Time</th>
+                            <th>Token</th>
+                            <th>Amount</th>
+                            <th>Recipient</th>
+                            <th>Status</th>
+                            <th>Tx Hash</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {filtered.length === 0 ? (
+                            <tr>
+                              <td colSpan={6} className="text-center text-muted py-3">
+                                No transactions match the selected filter.
+                              </td>
+                            </tr>
+                          ) : (
+                            filtered.map((tx) => {
+                              const dt = new Date(tx.timestamp);
+                              const dateStr = dt.toLocaleDateString();
+                              const timeStr = dt.toLocaleTimeString();
+                              return (
+                                <tr key={tx.id}>
+                                  <td style={{ whiteSpace: "nowrap", color: "#555" }}>
+                                    {dateStr}<br />
+                                    <span style={{ color: "#999" }}>{timeStr}</span>
+                                  </td>
+                                  <td>
+                                    <strong>{tx.token}</strong>
+                                  </td>
+                                  <td style={{ fontFamily: "monospace" }}>
+                                    {tx.amount}
+                                  </td>
+                                  <td style={{ fontFamily: "monospace" }}>
+                                    <a
+                                      href={`https://tronscan.org/#/address/${tx.to}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      style={{ color: "#555" }}
+                                      title={tx.to}
+                                    >
+                                      {tx.to.slice(0, 8)}…{tx.to.slice(-6)}
+                                    </a>
+                                  </td>
+                                  <td>{statusBadge(tx)}</td>
+                                  <td style={{ fontFamily: "monospace" }}>
+                                    {tx.txid ? (
+                                      <a
+                                        href={`https://tronscan.org/#/transaction/${tx.txid}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{ color: "purple" }}
+                                        title={tx.txid}
+                                      >
+                                        {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}
+                                        {" "}<i className="bi bi-box-arrow-up-right" style={{ fontSize: "0.75em" }}></i>
+                                      </a>
+                                    ) : (
+                                      <span style={{ color: "#bbb" }} title={tx.errMsg}>
+                                        — <small>{tx.errMsg?.slice(0, 30)}</small>
+                                      </span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p
+                      className="text-muted px-3 py-2 mb-0"
+                      style={{ fontSize: "0.75em", borderTop: "1px solid #eee" }}
+                    >
+                      <i className="bi bi-info-circle"></i>{" "}
+                      History is stored locally in your browser. Clearing browser data will erase it.
+                      Max {TX_HISTORY_MAX} entries kept (newest first).
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
         {/* data-bs-backdrop/keyboard are disabled while a bulk op is running */}
         <div
