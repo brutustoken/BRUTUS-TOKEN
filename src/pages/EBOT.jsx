@@ -37,18 +37,19 @@ const TRC20_ABI = [
 ];
 
 // Well-known tokens on TRON mainnet
+// energyPerTx: conservative estimate of energy consumed per TRC-20 transfer
 const KNOWN_TOKENS = [
-  { symbol: "TRX", address: "TRX", decimals: 6 },
-  { symbol: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6 },
-  { symbol: "USDD", address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz", decimals: 18 },
-  { symbol: "BRUT", address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU", decimals: 6 },
-  { symbol: "BRST", address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3", decimals: 6 },
-  { symbol: "APENFT", address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq", decimals: 6 },
+  { symbol: "TRX",        address: "TRX",                                    decimals: 6,  energyPerTx: 0     },
+  { symbol: "USDT",       address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",    decimals: 6,  energyPerTx: 32000 },
+  { symbol: "USDD",       address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz",    decimals: 18, energyPerTx: 65000 },
+  { symbol: "BRUT",       address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU",    decimals: 6,  energyPerTx: 32000 },
+  { symbol: "BRST",       address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3",    decimals: 6,  energyPerTx: 32000 },
+  { symbol: "APENFT",     address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq",    decimals: 6,  energyPerTx: 32000 },
   // BTT TRC-20
-  { symbol: "BTT", address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", decimals: 18 },
+  { symbol: "BTT",        address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4",    decimals: 18, energyPerTx: 65000 },
   // WBTC bridged on TRON (BitTorrent bridge / JustLend WBTC)
-  { symbol: "BTC (WBTC)", address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9", decimals: 8 },
-  { symbol: "Custom…", address: "custom", decimals: 6 },
+  { symbol: "BTC (WBTC)", address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",    decimals: 8,  energyPerTx: 32000 },
+  { symbol: "Custom…",    address: "custom",                                  decimals: 6,  energyPerTx: 65000 },
 ];
 
 import { config } from "../config/env";
@@ -147,6 +148,10 @@ class EnergyRental extends Component {
       bulk_results: [],   // { address, amount, status, txid }
       bulk_rentResources: false,  // whether to auto-rent via Brutus before sending
       bulk_rentDone: false,       // flag: rental already executed this session
+
+      // Progress tracking during bulk send
+      bulk_progress: null,        // null | { current, total, step, phase }
+      // phase: 'renting' | 'signing' | 'broadcasting' | 'waiting' | 'done'
     };
 
     this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
@@ -232,8 +237,8 @@ class EnergyRental extends Component {
     );
 
     const isTRX = bulk_token.address === "TRX";
-    // Energy per TRC-20 tx (USDT / standard token): ~32 000; TRX: 0
-    const ENERGY_PER_TX = isTRX ? 0 : 32000;
+    // Use the per-token energy estimate; fall back to 65 000 for unknown custom tokens
+    const ENERGY_PER_TX = isTRX ? 0 : (bulk_token.energyPerTx ?? 65000);
     // Bandwidth per tx (signature + data)
     const BANDWIDTH_PER_TX = isTRX ? 268 : 350;
 
@@ -366,20 +371,15 @@ class EnergyRental extends Component {
   async _rentThenBulkSend(estimate, tokenAddress, decimals, validRows) {
     const { tronWeb, accountAddress } = this.props;
 
-    // Show rental confirmation
+    // ── Phase: renting ────────────────────────────────────────────────────────
     this.setState({
-      titulo: <>Renting energy… {imgLoading}</>,
-      body: (
-        <>
-          {imgBotLoading}
-          <br />
-          Renting <b>{estimate.energyNeeded.toLocaleString()} energy</b> for 5 minutes
-          to cover this bulk send.
-          <br />Please confirm the payment in TronLink.
-        </>
-      ),
+      bulk_progress: {
+        current: 0,
+        total: validRows.length,
+        phase: "renting",
+        step: `Renting ${estimate.energyNeeded.toLocaleString()} energy — please confirm in TronLink`,
+      },
     });
-    window.$("#mensaje-ebot").modal("show");
 
     // Calculate the price for this energy amount
     const { precios } = this.state;
@@ -403,18 +403,14 @@ class EnergyRental extends Component {
         .sign(unSignedTransaction)
         .catch((e) => { throw e; });
 
-      this.setState({
-        titulo: <>Processing rental… {imgLoading}</>,
-        body: (
-          <>
-            {imgBotLoading}
-            <br />
-            Sending energy rental order to Brutus…
-          </>
-        ),
-      });
+      this.setState((prev) => ({
+        bulk_progress: {
+          ...prev.bulk_progress,
+          phase: "renting",
+          step: "Sending energy rental order to Brutus…",
+        },
+      }));
 
-      const utils = (await import("../services")).default;
       const rentResult = await utils.rentResource(
         accountAddress,
         "energy",
@@ -427,7 +423,9 @@ class EnergyRental extends Component {
       );
 
       if (!rentResult.result) {
+        // Rental failed — offer to continue anyway
         this.setState({
+          bulk_progress: null,
           titulo: "Rental failed",
           body: (
             <>
@@ -458,9 +456,16 @@ class EnergyRental extends Component {
       }
 
       // Give a brief moment for energy to propagate on-chain
+      this.setState((prev) => ({
+        bulk_progress: {
+          ...prev.bulk_progress,
+          step: "Energy rented ✓ — waiting for on-chain propagation (3 s)…",
+        },
+      }));
       await new Promise((r) => setTimeout(r, 3000));
     } catch (e) {
       this.setState({
+        bulk_progress: null,
         titulo: "Rental transaction cancelled",
         body: (
           <>
@@ -498,7 +503,16 @@ class EnergyRental extends Component {
     const { tronWeb, accountAddress } = this.props;
     const isTRX = tokenAddress === "TRX";
 
-    this.setState({ bulk_sending: true, bulk_results: [] });
+    this.setState({
+      bulk_sending: true,
+      bulk_results: [],
+      bulk_progress: {
+        current: 0,
+        total: validRows.length,
+        phase: "signing",
+        step: "Loading token contract…",
+      },
+    });
 
     let contract;
     if (!isTRX) {
@@ -506,9 +520,10 @@ class EnergyRental extends Component {
         contract = await tronWeb.contract(TRC20_ABI, tokenAddress);
       } catch (e) {
         this.setState({
+          bulk_sending: false,
+          bulk_progress: null,
           titulo: "Contract error",
           body: "Could not load the token contract: " + e.toString(),
-          bulk_sending: false,
         });
         window.$("#mensaje-ebot").modal("show");
         return;
@@ -527,45 +542,75 @@ class EnergyRental extends Component {
       let txid = "";
       let errMsg = "";
 
-      try {
-        // Update UI with current progress
-        this.setState({
-          titulo: <>Sending… {imgLoading}</>,
-          body: (
-            <>
-              {imgBotLoading}
-              <br />
-              Processing {i + 1} / {validRows.length}
-              <br />
-              Sending {amountHuman.toFixed()} to {toAddr}
-            </>
-          ),
-        });
-        window.$("#mensaje-ebot").modal("show");
+      // ── Step: waiting for wallet signature ───────────────────────────────
+      this.setState({
+        bulk_progress: {
+          current: i + 1,
+          total: validRows.length,
+          phase: "signing",
+          step: `Tx ${i + 1}/${validRows.length} — confirm in TronLink: ${amountHuman.toFixed()} → ${toAddr.slice(0, 12)}…`,
+        },
+      });
 
+      try {
         if (isTRX) {
-          // TRX native transfer
+          // TRX native transfer — use string to avoid float precision loss
+          const sunAmount = amountHuman.shiftedBy(6).dp(0).toFixed(0);
           const unsigned = await tronWeb.transactionBuilder.sendTrx(
             toAddr,
-            tronWeb.toSun(amountHuman.toNumber()),
+            sunAmount,
             accountAddress,
           );
           const signed = await window.tronWeb.trx.sign(unsigned);
+
+          // ── Step: broadcasting ─────────────────────────────────────────
+          this.setState((prev) => ({
+            bulk_progress: {
+              ...prev.bulk_progress,
+              phase: "broadcasting",
+              step: `Tx ${i + 1}/${validRows.length} — broadcasting to TRON network…`,
+            },
+          }));
+
           const receipt = await tronWeb.trx.sendRawTransaction(signed);
           txid = receipt.txid || receipt.transaction?.txID || "";
           status = receipt.result ? "ok" : "failed";
         } else {
           // TRC-20 transfer
+          // amountSun is already a decimal string (e.g. "1000000"); TronWeb accepts
+          // strings for uint256 — correct for large numbers (BTT, USDD 18dec).
           const receipt = await contract.transfer(toAddr, amountSun).send({
-            feeLimit: 50_000_000,
+            feeLimit: 150_000_000,   // 150 TRX — covers high-energy tokens (USDD, BTT)
             from: accountAddress,
+            shouldPollResponse: false,
           });
-          txid = typeof receipt === "string" ? receipt : receipt?.txid || "";
+
+          // ── Step: broadcast result ─────────────────────────────────────
+          // TronWeb v5/v6 .send() returns the txid string directly
+          txid = typeof receipt === "string" ? receipt : (receipt?.txid ?? receipt?.transaction?.txID ?? "");
           status = txid ? "ok" : "failed";
         }
+
+        // ── Step: confirmed / failed ───────────────────────────────────────
+        this.setState((prev) => ({
+          bulk_progress: {
+            ...prev.bulk_progress,
+            phase: status === "ok" ? "broadcasting" : "error",
+            step: status === "ok"
+              ? `Tx ${i + 1}/${validRows.length} ✓ broadcast — txid: ${txid.slice(0, 16)}…`
+              : `Tx ${i + 1}/${validRows.length} ✗ broadcast failed`,
+          },
+        }));
       } catch (e) {
         status = "error";
         errMsg = e?.message || e?.toString() || "unknown error";
+        this.setState((prev) => ({
+          bulk_progress: {
+            ...prev.bulk_progress,
+            phase: "error",
+            step: `Tx ${i + 1}/${validRows.length} ✗ ${errMsg.slice(0, 80)}`,
+          },
+        }));
       }
 
       results.push({ address: toAddr, amount: row.amount, status, txid, errMsg });
@@ -582,23 +627,13 @@ class EnergyRental extends Component {
 
     this.setState({
       bulk_sending: false,
-      titulo: "Bulk Send Completed",
-      body: (
-        <>
-          <b>{okCount}</b> transaction(s) succeeded,{" "}
-          <b>{failCount}</b> failed.
-          <br /><br />
-          <button
-            type="button"
-            data-bs-dismiss="modal"
-            className="btn btn-success"
-          >
-            Close
-          </button>
-        </>
-      ),
+      bulk_progress: {
+        current: validRows.length,
+        total: validRows.length,
+        phase: "done",
+        step: `Completed: ${okCount} succeeded, ${failCount} failed.`,
+      },
     });
-    window.$("#mensaje-ebot").modal("show");
   }
 
   /**
@@ -2156,6 +2191,7 @@ class EnergyRental extends Component {
                       this.setState({
                         bulk_recipients: [{ address: "", amount: "" }],
                         bulk_results: [],
+                        bulk_progress: null,
                       })
                     }
                   >
@@ -2189,6 +2225,133 @@ class EnergyRental extends Component {
                     )}
                   </button>
                 </div>
+
+                {/* ── Inline progress panel ── */}
+                {(() => {
+                  const prog = this.state.bulk_progress;
+                  if (!prog) return null;
+
+                  const phaseColors = {
+                    renting:      { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
+                    signing:      { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill",              color: "#1565c0" },
+                    broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast",             color: "#2e7d32" },
+                    waiting:      { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split",       color: "#6a1b9a" },
+                    error:        { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
+                    done:         { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all",            color: "#1b5e20" },
+                  };
+
+                  const theme = phaseColors[prog.phase] || phaseColors.signing;
+                  const pct = prog.total > 0
+                    ? Math.round((prog.current / prog.total) * 100)
+                    : 0;
+
+                  const okCount   = this.state.bulk_results.filter((r) => r.status === "ok").length;
+                  const failCount = this.state.bulk_results.filter((r) => r.status === "error" || r.status === "failed").length;
+                  const pendCount = prog.total - this.state.bulk_results.length;
+
+                  return (
+                    <div
+                      className="mt-3 p-3 rounded"
+                      style={{
+                        background: theme.bg,
+                        border: `1.5px solid ${theme.border}`,
+                        position: "relative",
+                      }}
+                    >
+                      {/* Header row */}
+                      <div className="d-flex align-items-center gap-2 mb-2">
+                        <i
+                          className={`bi ${theme.icon}`}
+                          style={{ color: theme.color, fontSize: "1.2rem" }}
+                        ></i>
+                        <strong style={{ color: theme.color }}>
+                          {prog.phase === "renting"      && "Renting energy…"}
+                          {prog.phase === "signing"      && "Waiting for wallet signature…"}
+                          {prog.phase === "broadcasting" && "Broadcasting to TRON network…"}
+                          {prog.phase === "waiting"      && "Waiting for confirmation…"}
+                          {prog.phase === "error"        && "Transaction error"}
+                          {prog.phase === "done"         && "Completed"}
+                        </strong>
+                        <span className="ms-auto" style={{ fontSize: "0.85em", color: "#555" }}>
+                          {prog.current} / {prog.total} tx
+                        </span>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div
+                        className="progress mb-2"
+                        style={{ height: "10px", backgroundColor: "#ddd" }}
+                      >
+                        <div
+                          className="progress-bar progress-bar-striped progress-bar-animated"
+                          role="progressbar"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: theme.color,
+                            transition: "width 0.4s ease",
+                          }}
+                          aria-valuenow={pct}
+                          aria-valuemin="0"
+                          aria-valuemax="100"
+                        ></div>
+                      </div>
+
+                      {/* Current step text */}
+                      <p
+                        className="mb-2"
+                        style={{
+                          fontSize: "0.85em",
+                          color: "#333",
+                          wordBreak: "break-all",
+                          fontFamily: "monospace",
+                        }}
+                      >
+                        {prog.step}
+                      </p>
+
+                      {/* Mini counters */}
+                      {prog.total > 1 && (
+                        <div className="d-flex gap-3" style={{ fontSize: "0.82em" }}>
+                          <span style={{ color: "#27ae60" }}>
+                            <i className="bi bi-check-circle-fill"></i> {okCount} ok
+                          </span>
+                          <span style={{ color: "#c0392b" }}>
+                            <i className="bi bi-x-circle-fill"></i> {failCount} failed
+                          </span>
+                          <span style={{ color: "#888" }}>
+                            <i className="bi bi-hourglass"></i> {pendCount} pending
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Dismiss button only when done */}
+                      {prog.phase === "done" && (
+                        <button
+                          type="button"
+                          className="btn btn-sm btn-outline-secondary mt-2"
+                          onClick={() => this.setState({ bulk_progress: null })}
+                        >
+                          <i className="bi bi-x"></i> Dismiss
+                        </button>
+                      )}
+
+                      {/* Warning: do not close tab */}
+                      {prog.phase !== "done" && (
+                        <p
+                          className="mb-0 mt-2"
+                          style={{
+                            fontSize: "0.78em",
+                            color: "#c0392b",
+                            fontWeight: "bold",
+                          }}
+                        >
+                          <i className="bi bi-exclamation-triangle-fill"></i>{" "}
+                          Do not close or refresh this tab — transactions are in progress.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })()}
 
               </div>
             </div>
@@ -2244,19 +2407,60 @@ class EnergyRental extends Component {
           </div>
         </div>
 
-        <div className="modal fade" id="mensaje-ebot">
+        {/* data-bs-backdrop/keyboard are disabled while a bulk op is running */}
+        <div
+          className="modal fade"
+          id="mensaje-ebot"
+          data-bs-backdrop={this.state.bulk_sending ? "static" : "true"}
+          data-bs-keyboard={this.state.bulk_sending ? "false" : "true"}
+        >
           <div className="modal-dialog" role="document">
             <div className="modal-content">
               <div className="modal-header">
                 <h5 className="modal-title">{this.state.titulo}</h5>
-                <button
-                  type="button"
-                  className="btn-close"
-                  data-bs-dismiss="modal"
-                ></button>
+                {/* Hide close button while sending to prevent accidental dismissal */}
+                {!this.state.bulk_sending && (
+                  <button
+                    type="button"
+                    className="btn-close"
+                    data-bs-dismiss="modal"
+                  ></button>
+                )}
               </div>
               <div className="modal-body">
                 <p>{this.state.body}</p>
+                {/* Inline mini-progress inside modal when sending */}
+                {this.state.bulk_sending && this.state.bulk_progress && (
+                  <div className="mt-2">
+                    <div
+                      className="progress"
+                      style={{ height: "8px", backgroundColor: "#ddd" }}
+                    >
+                      <div
+                        className="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                        role="progressbar"
+                        style={{
+                          width: `${this.state.bulk_progress.total > 0
+                            ? Math.round((this.state.bulk_progress.current / this.state.bulk_progress.total) * 100)
+                            : 0}%`,
+                        }}
+                      ></div>
+                    </div>
+                    <p
+                      className="mt-1 mb-0"
+                      style={{ fontSize: "0.78em", color: "#555", fontFamily: "monospace" }}
+                    >
+                      {this.state.bulk_progress.step}
+                    </p>
+                    <p
+                      className="mt-1 mb-0"
+                      style={{ fontSize: "0.75em", color: "#c0392b", fontWeight: "bold" }}
+                    >
+                      <i className="bi bi-exclamation-triangle-fill"></i>{" "}
+                      Do not close this window.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
