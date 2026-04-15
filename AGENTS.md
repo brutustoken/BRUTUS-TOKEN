@@ -157,3 +157,90 @@ When modifying this project, agents should:
 8. **Solidity contracts**: The project does not include Hardhat/Truffle in this repo. Compiled ABIs and deployed addresses are tracked manually. Do not introduce a compile pipeline without discussion.
 9. **Translations**: All user-facing strings must use `t('key')` from `react-i18next`. Add keys to all three locale files simultaneously.
 10. **Charts**: Use AmCharts 5 patterns already established in `BRUT.jsx` and `BRST-Proxy.jsx` as reference for new chart implementations.
+
+---
+
+## Canonical TronLink Transaction Signing Pattern
+
+**CRITICAL**: All on-chain write transactions (transfers, contract calls, staking, approvals) **must** use this exact 4-step flow. Do **not** use `contract.method().send()` — it bypasses TronLink, cannot display the confirmation popup to the user, and misreports status.
+
+### TRC-20 / Smart Contract call
+
+```js
+// props available in every page: { tronWeb, accountAddress, contrato }
+
+// Step 1 — Build the unsigned transaction via triggerSmartContract
+const trigger = await tronWeb.transactionBuilder.triggerSmartContract(
+  tronWeb.address.toHex(CONTRACT_ADDRESS),   // contract in hex (41…)
+  "functionName(type1,type2)",               // ABI function signature string
+  { feeLimit: 150_000_000 },                 // options: feeLimit in SUN (150 TRX max)
+  [                                          // ABI-encoded parameters
+    { type: "address", value: tronWeb.address.toHex(someAddress) },
+    { type: "uint256", value: amountString },// BigNumber.toFixed(0) or toString(10)
+  ],
+  tronWeb.address.toHex(accountAddress),     // caller (fee payer) in hex
+);
+
+// Step 2 — Extend expiration so the user has time to review in TronLink
+let transaction = await tronWeb.transactionBuilder.extendExpiration(
+  trigger.transaction,
+  180,   // extra seconds (180 = 3 min)
+);
+
+// Step 3 — Sign via TronLink (opens the TronLink confirmation popup)
+transaction = await window.tronLink.tronWeb.trx
+  .sign(transaction)
+  .catch((e) => { throw e; });   // re-throw so caller can handle rejection
+
+// Step 4 — Broadcast to the TRON network
+const receipt = await tronWeb.trx.sendRawTransaction(transaction);
+
+// receipt shape: { result: true|false, txid: '…64-char hex…', message: '…hex…' }
+const txid   = receipt.txid || "";
+const ok     = receipt.result === true;
+const errMsg = !ok && receipt.message
+  ? Buffer.from(receipt.message, "hex").toString("utf8")
+  : "";
+```
+
+### TRX native transfer
+
+```js
+// Step 1 — Build
+const unsigned = await tronWeb.transactionBuilder.sendTrx(
+  recipientAddress,                        // base58 TRON address
+  amountBigNumber.shiftedBy(6).dp(0).toFixed(0),  // amount in SUN (string)
+  accountAddress,
+);
+
+// Step 2 — Extend expiration
+const extended = await tronWeb.transactionBuilder.extendExpiration(unsigned, 180);
+
+// Step 3 — Sign via TronLink
+const signed = await window.tronLink.tronWeb.trx
+  .sign(extended)
+  .catch((e) => { throw e; });
+
+// Step 4 — Broadcast
+const receipt = await tronWeb.trx.sendRawTransaction(signed);
+const txid = receipt.txid || "";
+const ok   = receipt.result === true;
+```
+
+### Rules
+
+- **Always use `window.tronLink.tronWeb.trx.sign()`** — not `window.tronWeb.trx.sign()`. The `window.tronLink` object is the authoritative TronLink injected instance; `window.tronWeb` is an alias that can point to a read-only RPC node in some configurations.
+- **Never use `contract.method().send()`** — this route does not invoke TronLink's approval UI and produces inconsistent `txid` / status reporting.
+- **Amount encoding**: use `BigNumber.js` with `.shiftedBy(decimals).dp(0).toFixed(0)` (or `.toString(10)`). Never use `parseInt()` or `Number()` for on-chain token amounts — they lose precision for 18-decimal tokens (BTT, USDD).
+- **feeLimit**: set `150_000_000` SUN (150 TRX) for TRC-20 transfers to cover high-energy tokens (USDD ~65 000 energy, BTT ~65 000 energy). Use `10_000_000_000` SUN (10 000 TRX) only for complex multi-step DeFi operations.
+- **Error recovery**: after `sendRawTransaction`, if `receipt.result === false`, decode `receipt.message` from hex to UTF-8 for the human-readable error.
+- **Catch pattern**: `.sign()` throws a plain string (e.g. `"Confirmation declined by user"`) when the user rejects in TronLink — catch it with `.catch((e) => { throw e; })` and display `e.toString()` to the user.
+
+### Reference implementations
+
+| File | Function / context | What it does |
+|---|---|---|
+| `src/pages/BRST-Proxy.jsx:1132` | `retirar()` | Smart contract call with uint256 param |
+| `src/pages/BRST-Proxy.jsx:1908` | `approve()` | TRC-20 approval before swap |
+| `src/pages/BRST-Proxy.jsx:864` | admin whitelist | Simple address param |
+| `src/pages/EBOT.jsx:_executeBulkSend` | bulk TRC-20 + TRX | Both transfer types with progress tracking |

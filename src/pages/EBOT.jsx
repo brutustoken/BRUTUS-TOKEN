@@ -599,31 +599,40 @@ class EnergyRental extends Component {
 
       try {
         if (isTRX) {
-          // TRX native transfer — use string to avoid float precision loss
+          // ── TRX native transfer ─────────────────────────────────────────
+          // Pattern: transactionBuilder → extendExpiration →
+          //          window.tronLink.tronWeb.trx.sign → tronWeb.trx.sendRawTransaction
           const sunAmount = amountHuman.shiftedBy(6).dp(0).toFixed(0);
+
           const unsigned = await tronWeb.transactionBuilder.sendTrx(
             toAddr,
             sunAmount,
             accountAddress,
           );
+          // Extend tx TTL so the user has time to confirm in TronLink
+          const extended = await tronWeb.transactionBuilder.extendExpiration(
+            unsigned,
+            180,
+          );
 
-          // Extract txid BEFORE signing so we have it even if broadcast errors
-          const pendingTxid = unsigned?.txID || unsigned?.transaction?.txID || "";
+          // Sign via TronLink (window.tronLink.tronWeb.trx.sign)
+          const signed = await window.tronLink.tronWeb.trx
+            .sign(extended)
+            .catch((e) => { throw e; });
 
           // ── Step: broadcasting ──────────────────────────────────────────
           this.setState((prev) => ({
             bulk_progress: {
               ...prev.bulk_progress,
               phase: "broadcasting",
-              step: `Tx ${i + 1}/${validRows.length} — broadcasting to TRON network…`,
+              step: `Tx ${i + 1}/${validRows.length} — broadcasting TRX transfer…`,
             },
           }));
 
-          const signed = await window.tronWeb.trx.sign(unsigned);
           const receipt = await tronWeb.trx.sendRawTransaction(signed);
 
-          // receipt.result === true means the node accepted it
-          txid = receipt.txid || receipt.transaction?.txID || pendingTxid;
+          // receipt.result === true → node accepted
+          txid = receipt.txid || receipt.transaction?.txID || "";
           status = receipt.result ? "ok" : "failed";
           if (status === "failed") {
             errMsg = receipt.message
@@ -631,39 +640,56 @@ class EnergyRental extends Component {
               : "Node rejected the transaction";
           }
         } else {
-          // TRC-20 transfer
-          // amountSun is a decimal string; TronWeb accepts strings for uint256.
-          // shouldPollResponse: false → returns txid immediately without waiting
-          // for on-chain confirmation (avoids false "timeout" errors).
+          // ── TRC-20 transfer ─────────────────────────────────────────────
+          // Pattern: transactionBuilder.triggerSmartContract → extendExpiration →
+          //          window.tronLink.tronWeb.trx.sign → tronWeb.trx.sendRawTransaction
+          //
+          // This is the canonical signing flow used across all pages in this app.
+          // Do NOT use contract.method().send() — it bypasses TronLink and can
+          // silently fail or misreport status.
+
+          const inputs = [
+            { type: "address", value: tronWeb.address.toHex(toAddr) },
+            { type: "uint256", value: amountSun },
+          ];
+
+          const trigger = await tronWeb.transactionBuilder.triggerSmartContract(
+            tronWeb.address.toHex(tokenAddress),
+            "transfer(address,uint256)",
+            { feeLimit: 150_000_000 },  // 150 TRX — covers high-energy tokens (USDD, BTT)
+            inputs,
+            tronWeb.address.toHex(accountAddress),
+          );
+
+          // Extend TTL so the user has enough time to confirm in TronLink
+          let transaction = await tronWeb.transactionBuilder.extendExpiration(
+            trigger.transaction,
+            180,
+          );
+
+          // Sign via TronLink — this opens the TronLink confirmation popup
+          transaction = await window.tronLink.tronWeb.trx
+            .sign(transaction)
+            .catch((e) => { throw e; });
 
           // ── Step: broadcasting ──────────────────────────────────────────
           this.setState((prev) => ({
             bulk_progress: {
               ...prev.bulk_progress,
               phase: "broadcasting",
-              step: `Tx ${i + 1}/${validRows.length} — broadcasting to TRON network…`,
+              step: `Tx ${i + 1}/${validRows.length} — broadcasting TRC-20 transfer…`,
             },
           }));
 
-          const receipt = await contract.transfer(toAddr, amountSun).send({
-            feeLimit: 150_000_000,   // 150 TRX — covers high-energy tokens (USDD, BTT)
-            from: accountAddress,
-            shouldPollResponse: false,
-          });
+          const receipt = await tronWeb.trx.sendRawTransaction(transaction);
 
-          // TronWeb v5/v6: .send() with shouldPollResponse:false returns txid string.
-          // If it returns an object it means something went wrong at the RPC level.
-          if (typeof receipt === "string" && receipt.length >= 60) {
-            txid = receipt;
-            status = "ok";
-          } else if (receipt && typeof receipt === "object") {
-            // Could be { code: 'SIGERROR', message: '...' } — real failure
-            txid = receipt.txid || receipt.transaction?.txID || "";
-            errMsg = receipt.message || receipt.code || "Unknown error from node";
-            status = txid ? "ok" : "failed";
-          } else {
-            status = "failed";
-            errMsg = "Empty response from node";
+          // sendRawTransaction returns { result: true/false, txid: '...' }
+          txid = receipt.txid || receipt.transaction?.txID || "";
+          status = receipt.result ? "ok" : "failed";
+          if (status === "failed") {
+            errMsg = receipt.message
+              ? Buffer.from(receipt.message, "hex").toString("utf8")
+              : "Node rejected the transaction";
           }
         }
 
@@ -678,8 +704,8 @@ class EnergyRental extends Component {
           },
         }));
       } catch (e) {
-        // TronWeb sometimes throws on timeout even when the tx was broadcast.
-        // Try to extract a txid from the error object before marking as failed.
+        // TronWeb can throw on timeout even when the tx was already broadcast.
+        // Attempt to recover a txid from the error object before marking failed.
         const eTxid =
           e?.transaction?.txID ||
           e?.txid ||
