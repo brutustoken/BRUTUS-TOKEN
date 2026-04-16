@@ -279,8 +279,10 @@ class EnergyRental extends Component {
       rows[index] = { ...rows[index], [field]: value };
       return { bulk_recipients: rows };
     });
-    // Only re-simulate when the address changes (amount doesn't affect energy)
-    if (field === "address") this._scheduleEstimate();
+    // Re-simulate on any field change:
+    // - address: may affect energy (new account vs existing — first transfer costs more)
+    // - amount:  affects the simulated amountSun which can alter energy_used on some tokens
+    this._scheduleEstimate();
   }
 
   bulkClearHistory() {
@@ -310,14 +312,18 @@ class EnergyRental extends Component {
   }
 
   /**
-   * Debounce wrapper: waits 800 ms after the last change before running the
+   * Debounce wrapper: waits 600 ms after the last change before running the
    * simulation, so we don't spam triggerConstantContract on every keystroke.
+   * Uses a closure over `this` so _refreshExactEstimate always reads the
+   * freshest this.state at execution time (after React has flushed all pending
+   * setState calls from the triggering event).
    */
   _scheduleEstimate() {
     if (this._estimateDebounceTimer) clearTimeout(this._estimateDebounceTimer);
     this._estimateDebounceTimer = setTimeout(() => {
+      this._estimateDebounceTimer = null;
       this._refreshExactEstimate();
-    }, 800);
+    }, 600);
   }
 
   /**
@@ -416,13 +422,18 @@ class EnergyRental extends Component {
   }
 
   /**
-   * Simulate a single TRC-20 transfer via triggerConstantContract to get the
-   * exact energy_used the network would charge, then multiply by txCount.
+   * Simulate a TRC-20 transfer via triggerConstantContract to get the exact
+   * energy_used the network would charge, then multiply by txCount.
    *
-   * Mirrors the pattern used in BRST-Proxy.jsx:preClaim() and
-   * BRST-Proxy.jsx:calculoEnergy().
+   * The monto (amount) matters because:
+   *   - Sending to a new account (zero balance) activates a storage slot,
+   *     which costs extra energy on certain tokens.
+   *   - Some tokens implement transfer hooks whose gas varies with the value.
    *
-   * Falls back to the static per-token estimate when simulation fails.
+   * Strategy: simulate using the first valid row (real address + real amount).
+   * If that fails, fall back to the token's static energyPerTx estimate.
+   *
+   * Mirrors the pattern used in BRST-Proxy.jsx:preClaim() and calculoEnergy().
    *
    * Returns { energyPerTx, totalEnergy, source }
    *   source: 'simulation' | 'fallback'
@@ -438,9 +449,20 @@ class EnergyRental extends Component {
 
     const FALLBACK_PER_TX = bulk_token.energyPerTx ?? 65000;
 
+    // Pick the first row that has both a valid address AND a positive amount
+    const sampleRow = validRows.find(
+      (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
+    );
+
+    if (!sampleRow) {
+      return {
+        energyPerTx: FALLBACK_PER_TX,
+        totalEnergy: FALLBACK_PER_TX * validRows.length,
+        source: 'fallback',
+      };
+    }
+
     try {
-      // Use the first valid row as a representative sample
-      const sampleRow = validRows[0];
       const amountSun = new BigNumber(sampleRow.amount)
         .shiftedBy(decimals)
         .dp(0)
@@ -2643,17 +2665,21 @@ class EnergyRental extends Component {
                     bulk_burnSunPerEnergy,
                   } = this.state;
 
-                  // Use simulated energy if available, fall back to static
-                  const energyNeeded = bulk_exactEstimate
-                    ? bulk_exactEstimate.totalEnergy
-                    : staticEst.energyNeeded;
+                  // txCount is always taken from the live synchronous estimate so
+                  // the header updates immediately as the user fills in rows.
+                  const txCount = staticEst.txCount;
+
+                  // Use simulated energy if available; fall back to static.
+                  // Recalculate totalEnergy from the simulated energyPerTx × current
+                  // txCount so the panel stays in sync even before a new simulation
+                  // fires (e.g. user just added a new row with a valid amount).
                   const energyPerTx = bulk_exactEstimate
                     ? bulk_exactEstimate.energyPerTx
-                    : staticEst.energyNeeded / Math.max(staticEst.txCount, 1);
+                    : (staticEst.txCount > 0
+                        ? staticEst.energyNeeded / staticEst.txCount
+                        : (this.state.bulk_token.energyPerTx ?? 65000));
+                  const energyNeeded = Math.round(energyPerTx) * txCount;
                   const energySource = bulk_exactEstimate ? bulk_exactEstimate.source : 'static';
-                  const txCount = bulk_exactEstimate
-                    ? bulk_exactEstimate.txCount
-                    : staticEst.txCount;
 
                   // Brutus 5-min unit price (SUN per energy unit)
                   const brutusUnitSun = (() => {
