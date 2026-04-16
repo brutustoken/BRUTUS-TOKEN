@@ -112,6 +112,41 @@ function appendTxHistory(newEntries) {
   saveTxHistory([...newEntries, ...existing]);
 }
 
+// ── Post-broadcast tx verification ────────────────────────────────────────────
+/**
+ * Poll tronWeb until the tx is confirmed or reverted on-chain.
+ * Returns: 'confirmed' | 'reverted' | 'timeout'
+ *
+ * Strategy:
+ *   - getTransaction  → tx shows up in the network  (accepted by node)
+ *   - getTransactionInfo → receipt available (mined in a block)
+ *     - receipt.result === 'SUCCESS'  → confirmed
+ *     - receipt.result === 'FAILED'   → reverted
+ * Polls every 3 s, gives up after maxWaitMs (default 60 s).
+ */
+async function verifyTx(txid, tronWeb, maxWaitMs = 60000) {
+  const POLL_INTERVAL = 3000;
+  const deadline = Date.now() + maxWaitMs;
+
+  while (Date.now() < deadline) {
+    try {
+      const info = await tronWeb.trx.getTransactionInfo(txid);
+      // getTransactionInfo returns {} until the tx is mined
+      if (info && info.id) {
+        // receipt is available
+        if (info.receipt && info.receipt.result) {
+          return info.receipt.result === 'SUCCESS' ? 'confirmed' : 'reverted';
+        }
+        // id present but no receipt yet — still being processed
+      }
+    } catch (_) { /* not yet available */ }
+
+    await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+  }
+
+  return 'timeout';
+}
+
 // ── Constantes para tipos de mensajes ─────────────────────────────────────────
 const MESSAGE_TYPES = {
   CONNECT_WALLET: 'connectWallet',
@@ -261,11 +296,11 @@ class EnergyRental extends Component {
 
   /**
    * Estimate energy & bandwidth needed for the current bulk send list.
-   * Returns { energyNeeded, bandwidthNeeded, txCount }
+   * Uses the static per-token estimate as a fast synchronous approximation
+   * for the UI savings panel.  For the actual pre-flight check before sending
+   * use bulkEstimateEnergyExact() which simulates via triggerConstantContract.
    *
-   * Typical TRON costs (conservative estimates):
-   *   TRC-20 transfer  → ~32,000 energy  + ~268 bandwidth
-   *   TRX transfer     → 0 energy        + ~268 bandwidth
+   * Returns { energyNeeded, bandwidthNeeded, txCount, isTRX }
    */
   bulkEstimateResources() {
     const { bulk_recipients, bulk_token } = this.state;
@@ -285,6 +320,75 @@ class EnergyRental extends Component {
       txCount: validRows.length,
       isTRX,
     };
+  }
+
+  /**
+   * Simulate a single TRC-20 transfer via triggerConstantContract to get the
+   * exact energy_used the network would charge, then multiply by txCount.
+   *
+   * Mirrors the pattern used in BRST-Proxy.jsx:preClaim() and
+   * BRST-Proxy.jsx:calculoEnergy().
+   *
+   * Falls back to the static per-token estimate when simulation fails.
+   *
+   * Returns { energyPerTx, totalEnergy, source }
+   *   source: 'simulation' | 'fallback'
+   */
+  async bulkEstimateEnergyExact(tokenAddress, decimals, validRows) {
+    const { tronWeb, accountAddress } = this.props;
+    const { bulk_token } = this.state;
+
+    const isTRX = tokenAddress === "TRX";
+    if (isTRX || validRows.length === 0) {
+      return { energyPerTx: 0, totalEnergy: 0, source: 'simulation' };
+    }
+
+    const FALLBACK_PER_TX = bulk_token.energyPerTx ?? 65000;
+
+    try {
+      // Use the first valid row as a representative sample
+      const sampleRow = validRows[0];
+      const amountSun = new BigNumber(sampleRow.amount)
+        .shiftedBy(decimals)
+        .dp(0)
+        .toFixed(0);
+
+      const inputs = [
+        { type: "address", value: tronWeb.address.toHex(sampleRow.address.trim()) },
+        { type: "uint256", value: amountSun },
+      ];
+
+      const simulation = await tronWeb.transactionBuilder
+        .triggerConstantContract(
+          tronWeb.address.toHex(tokenAddress),
+          "transfer(address,uint256)",
+          { feeLimit: 150_000_000 },
+          inputs,
+          tronWeb.address.toHex(accountAddress),
+        )
+        .catch(() => null);
+
+      let energyPerTx = FALLBACK_PER_TX;
+      let source = 'fallback';
+
+      if (simulation && simulation.energy_used) {
+        // Add a small safety margin (+10%) to avoid borderline shortfalls
+        energyPerTx = Math.ceil(simulation.energy_used * 1.1);
+        source = 'simulation';
+      }
+
+      return {
+        energyPerTx,
+        totalEnergy: energyPerTx * validRows.length,
+        source,
+      };
+    } catch (_) {
+      return {
+        energyPerTx: FALLBACK_PER_TX,
+        totalEnergy: FALLBACK_PER_TX * validRows.length,
+        source: 'fallback',
+      };
+    }
   }
 
   async bulkSend() {
@@ -340,7 +444,29 @@ class EnergyRental extends Component {
       .reduce((s, r) => s.plus(new BigNumber(r.amount || 0)), new BigNumber(0))
       .toFixed(decimals > 6 ? 6 : decimals);
 
-    const estimate = this.bulkEstimateResources();
+    // ── Exact energy simulation ──────────────────────────────────────────────
+    // Show a "simulating…" notice while we run triggerConstantContract
+    this.setState({
+      titulo: "Estimating energy…",
+      body: (
+        <span>
+          <img src="images/cargando.gif" height="20px" alt="loading..." />{" "}
+          Simulating transaction to calculate exact energy needed…
+        </span>
+      ),
+    });
+    window.$("#mensaje-ebot").modal("show");
+
+    // Simulate via triggerConstantContract (same pattern as BRST-Proxy.jsx)
+    const exactEst = await this.bulkEstimateEnergyExact(tokenAddress, decimals, validRows);
+    // Static estimate for bandwidth (unchanged — not affected by simulation)
+    const staticEst = this.bulkEstimateResources();
+    const estimate = {
+      ...staticEst,
+      energyNeeded: exactEst.totalEnergy,
+      energyPerTx:  exactEst.energyPerTx,
+      energySource: exactEst.source,
+    };
 
     // Compute costs for confirmation dialog
     const { precios } = this.state;
@@ -364,6 +490,13 @@ class EnergyRental extends Component {
           <b>Recipients:</b> {validRows.length}
           <br />
           <b>Total:</b> {totalAmount} {bulk_token.symbol}
+          <br />
+          <span style={{ color: "#555", fontSize: "0.9em" }}>
+            <i className="bi bi-lightning-charge-fill"></i>{" "}
+            <b>Energy per tx:</b> {estimate.energyPerTx.toLocaleString()}
+            {" "}({estimate.energySource === 'simulation' ? '✓ simulated' : '⚠ estimated'})
+            {" — "}total: {estimate.energyNeeded.toLocaleString()}
+          </span>
           {bulk_rentResources && estimate.energyNeeded > 0 && (
             <>
               <br />
@@ -399,14 +532,51 @@ class EnergyRental extends Component {
         </span>
       ),
     });
-    window.$("#mensaje-ebot").modal("show");
+    // Modal is already open — just update its content (no second show() needed)
   }
 
   /**
    * Rent energy from Brutus for the connected wallet, then execute bulk send.
+   *
+   * Uses the exact energy figure from simulation.  Subtracts the user's current
+   * available energy so we only rent the actual deficit — matching the approach
+   * in BRST-Proxy.jsx:preClaim().
    */
   async _rentThenBulkSend(estimate, tokenAddress, decimals, validRows) {
     const { tronWeb, accountAddress } = this.props;
+
+    // ── Query user's current available energy ──────────────────────────────────
+    let userAvailableEnergy = 0;
+    try {
+      const resources = await tronWeb.trx.getAccountResources(accountAddress);
+      const limit = resources.EnergyLimit || 0;
+      const used  = resources.EnergyUsed  || 0;
+      userAvailableEnergy = Math.max(0, limit - used);
+    } catch (_) { /* fall through with 0 */ }
+
+    // Only rent the deficit — same logic as BRST-Proxy:preClaim
+    let energyDeficit = estimate.energyNeeded - userAvailableEnergy;
+    if (energyDeficit <= 0) {
+      // User already has enough energy — skip rental and go straight to send
+      this.setState({
+        bulk_progress: {
+          current: 0,
+          total: validRows.length,
+          phase: "signing",
+          step: "Sufficient energy available — skipping rental.",
+        },
+      });
+      await new Promise((r) => setTimeout(r, 800));
+      this._executeBulkSend(tokenAddress, decimals, validRows);
+      return;
+    }
+
+    // Apply minimum rental floor (32 000) + safety buffer
+    if (energyDeficit < 32000) {
+      energyDeficit = 32000;
+    } else {
+      energyDeficit = Math.ceil(energyDeficit * 1.05); // +5% safety margin
+    }
 
     // ── Phase: renting ────────────────────────────────────────────────────────
     this.setState({
@@ -414,7 +584,7 @@ class EnergyRental extends Component {
         current: 0,
         total: validRows.length,
         phase: "renting",
-        step: `Renting ${estimate.energyNeeded.toLocaleString()} energy — please confirm in TronLink`,
+        step: `Wallet has ${userAvailableEnergy.toLocaleString()} energy — renting ${energyDeficit.toLocaleString()} more — please confirm in TronLink`,
       },
     });
 
@@ -426,7 +596,7 @@ class EnergyRental extends Component {
       return found ? new BigNumber(found.UE) : new BigNumber(0);
     })();
     const precioPagar = brutusUnitPrice
-      .times(estimate.energyNeeded)
+      .times(energyDeficit)
       .shiftedBy(-6)
       .dp(6);
 
@@ -451,7 +621,7 @@ class EnergyRental extends Component {
       const rentResult = await utils.rentResource(
         accountAddress,
         "energy",
-        estimate.energyNeeded,
+        energyDeficit,
         5,
         "m",
         precioPagar,
@@ -683,8 +853,6 @@ class EnergyRental extends Component {
 
           const receipt = await tronWeb.trx.sendRawTransaction(transaction);
 
-          console.log(receipt)
-
           // sendRawTransaction returns { result: true/false, txid: '...' }
           txid = receipt.txid || receipt.transaction?.txID || "";
           status = receipt.result ? "ok" : "failed";
@@ -695,16 +863,48 @@ class EnergyRental extends Component {
           }
         }
 
-        // ── Step: result feedback ──────────────────────────────────────────
+        // ── Step: result feedback (node-level) ────────────────────────────
         this.setState((prev) => ({
           bulk_progress: {
             ...prev.bulk_progress,
-            phase: status === "ok" ? "broadcasting" : "error",
+            phase: status === "ok" ? "waiting" : "error",
             step: status === "ok"
-              ? `Tx ${i + 1}/${validRows.length} ✓ sent — ${txid.slice(0, 20)}…`
+              ? `Tx ${i + 1}/${validRows.length} ✓ broadcast — waiting for on-chain confirmation… ${txid.slice(0, 20)}…`
               : `Tx ${i + 1}/${validRows.length} ✗ ${errMsg.slice(0, 60)}`,
           },
         }));
+
+        // ── Step: on-chain confirmation poll ──────────────────────────────
+        // Only poll when the node accepted the tx (status === 'ok') and we
+        // have a txid.  TRX transfers: fast; TRC-20: may take a few seconds.
+        let confirmedStatus = "pending"; // 'confirmed' | 'reverted' | 'timeout' | 'pending'
+        if (status === "ok" && txid) {
+          confirmedStatus = await verifyTx(txid, tronWeb, 60000);
+
+          if (confirmedStatus === "reverted") {
+            // The contract execution succeeded at node level (receipt.result=true)
+            // but the EVM reverted — treat as failed.
+            status = "reverted";
+            errMsg = "Transaction was broadcast but reverted on-chain (check energy/allowance)";
+          } else if (confirmedStatus === "confirmed") {
+            status = "confirmed";
+          }
+          // 'timeout' keeps status as 'ok' / 'sent' — we just note it in history
+
+          this.setState((prev) => ({
+            bulk_progress: {
+              ...prev.bulk_progress,
+              phase: confirmedStatus === "reverted" ? "error"
+                   : confirmedStatus === "confirmed" ? "broadcasting"
+                   : "broadcasting",
+              step: confirmedStatus === "confirmed"
+                ? `Tx ${i + 1}/${validRows.length} ✓ confirmed on-chain — ${txid.slice(0, 20)}…`
+                : confirmedStatus === "reverted"
+                ? `Tx ${i + 1}/${validRows.length} ✗ REVERTED on-chain — ${txid.slice(0, 20)}…`
+                : `Tx ${i + 1}/${validRows.length} ~ broadcast, confirmation timed out — ${txid.slice(0, 20)}…`,
+            },
+          }));
+        }
       } catch (e) {
         // ── Detect TronLink user rejection ────────────────────────────────
         // TronLink throws a plain string or an object whose message matches
@@ -821,12 +1021,19 @@ class EnergyRental extends Component {
           from: accountAddress,
           to: toAddr,
           amount: amountHuman.toFixed(),
-          status,   // 'ok' | 'sent' | 'failed' | 'error'
+          // status: 'confirmed' | 'reverted' | 'ok' | 'sent' | 'failed' | 'error'
+          // 'confirmed' = node accepted + on-chain SUCCESS receipt
+          // 'reverted'  = node accepted + on-chain FAILED receipt
+          // 'ok'/'sent' = node accepted, chain confirmation timed out
+          // 'failed'    = node rejected at broadcast
+          // 'error'     = local/signing error
+          status,
+          confirmedStatus, // 'confirmed' | 'reverted' | 'timeout' | 'pending'
           txid,
           errMsg,
         };
         historyEntries.push(entry);
-        results.push({ address: toAddr, amount: row.amount, status, txid, errMsg });
+        results.push({ address: toAddr, amount: row.amount, status, confirmedStatus, txid, errMsg });
         this.setState({ bulk_results: [...results] });
       }
 
@@ -840,11 +1047,20 @@ class EnergyRental extends Component {
     appendTxHistory(historyEntries);
     const freshHistory = loadTxHistory();
 
+    const confirmedCount  = results.filter((r) => r.status === "confirmed").length;
+    const revertedCount   = results.filter((r) => r.status === "reverted").length;
     const okCount         = results.filter((r) => r.status === "ok" || r.status === "sent").length;
     const failCount       = results.filter((r) => r.status === "failed" || r.status === "error").length;
     const cancelledCount  = results.filter((r) => r.status === "cancelled").length;
 
     const wasAborted = cancelledCount > 0;
+
+    const summaryParts = [];
+    if (confirmedCount > 0)  summaryParts.push(`${confirmedCount} confirmed`);
+    if (okCount > 0)         summaryParts.push(`${okCount} broadcast (unconfirmed)`);
+    if (revertedCount > 0)   summaryParts.push(`${revertedCount} reverted`);
+    if (failCount > 0)       summaryParts.push(`${failCount} failed`);
+    if (cancelledCount > 0)  summaryParts.push(`${cancelledCount} cancelled`);
 
     this.setState({
       bulk_sending: false,
@@ -852,10 +1068,8 @@ class EnergyRental extends Component {
       bulk_progress: {
         current: results.length,
         total: validRows.length,
-        phase: wasAborted ? "cancelled" : "done",
-        step: wasAborted
-          ? `Aborted: ${okCount} sent, ${cancelledCount} cancelled by user, ${failCount} failed.`
-          : `Completed: ${okCount} sent, ${failCount} failed. Results saved to history.`,
+        phase: wasAborted ? "cancelled" : revertedCount > 0 || failCount > 0 ? "error" : "done",
+        step: (wasAborted ? "Aborted: " : "Completed: ") + summaryParts.join(", ") + ". Results saved to history.",
       },
     });
   }
@@ -2243,7 +2457,17 @@ class EnergyRental extends Component {
                           </td>
                           <td style={{ verticalAlign: "middle", minWidth: "120px" }}>
                             {result ? (
-                              result.status === "ok" ? (
+                              result.status === "confirmed" ? (
+                                <a
+                                  href={`https://tronscan.org/#/transaction/${result.txid}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: "#1a7a3c", fontWeight: "bold" }}
+                                  title={result.txid}
+                                >
+                                  <i className="bi bi-check2-circle"></i> Confirmed
+                                </a>
+                              ) : result.status === "ok" ? (
                                 <a
                                   href={`https://tronscan.org/#/transaction/${result.txid}`}
                                   target="_blank"
@@ -2251,7 +2475,7 @@ class EnergyRental extends Component {
                                   style={{ color: "#27ae60", fontWeight: "bold" }}
                                   title={result.txid}
                                 >
-                                  <i className="bi bi-check-circle-fill"></i> OK
+                                  <i className="bi bi-check-circle-fill"></i> Broadcast
                                 </a>
                               ) : result.status === "sent" ? (
                                 <a
@@ -2262,6 +2486,16 @@ class EnergyRental extends Component {
                                   title={result.errMsg || result.txid}
                                 >
                                   <i className="bi bi-broadcast"></i> Sent~
+                                </a>
+                              ) : result.status === "reverted" ? (
+                                <a
+                                  href={`https://tronscan.org/#/transaction/${result.txid}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ color: "#c0392b", fontWeight: "bold" }}
+                                  title={result.errMsg}
+                                >
+                                  <i className="bi bi-arrow-counterclockwise"></i> Reverted
                                 </a>
                               ) : result.status === "cancelled" ? (
                                 <span
@@ -2488,10 +2722,6 @@ class EnergyRental extends Component {
                     ? Math.round((prog.current / prog.total) * 100)
                     : 0;
 
-                  const okCount = this.state.bulk_results.filter((r) => r.status === "ok").length;
-                  const failCount = this.state.bulk_results.filter((r) => r.status === "error" || r.status === "failed").length;
-                  const pendCount = prog.total - this.state.bulk_results.length;
-
                   return (
                     <div
                       className="mt-3 p-3 rounded"
@@ -2556,9 +2786,17 @@ class EnergyRental extends Component {
                       {/* Mini counters */}
                       {prog.total > 1 && (
                         <div className="d-flex gap-3 flex-wrap" style={{ fontSize: "0.82em" }}>
+                          <span style={{ color: "#1a7a3c" }}>
+                            <i className="bi bi-check2-circle"></i>{" "}
+                            {this.state.bulk_results.filter((r) => r.status === "confirmed").length} confirmed
+                          </span>
                           <span style={{ color: "#27ae60" }}>
                             <i className="bi bi-check-circle-fill"></i>{" "}
-                            {this.state.bulk_results.filter((r) => r.status === "ok" || r.status === "sent").length} sent
+                            {this.state.bulk_results.filter((r) => r.status === "ok" || r.status === "sent").length} broadcast
+                          </span>
+                          <span style={{ color: "#c0392b" }}>
+                            <i className="bi bi-arrow-counterclockwise"></i>{" "}
+                            {this.state.bulk_results.filter((r) => r.status === "reverted").length} reverted
                           </span>
                           <span style={{ color: "#c0392b" }}>
                             <i className="bi bi-x-circle-fill"></i>{" "}
@@ -2575,8 +2813,8 @@ class EnergyRental extends Component {
                         </div>
                       )}
 
-                      {/* Dismiss button when done or cancelled */}
-                      {(prog.phase === "done" || prog.phase === "cancelled") && (
+                      {/* Dismiss button when done, cancelled, or error (not actively running) */}
+                      {(prog.phase === "done" || prog.phase === "cancelled" || (prog.phase === "error" && !this.state.bulk_sending)) && (
                         <button
                           type="button"
                           className="btn btn-sm btn-outline-secondary mt-2"
@@ -2587,7 +2825,7 @@ class EnergyRental extends Component {
                       )}
 
                       {/* Warning: do not close tab (only while actively running) */}
-                      {prog.phase !== "done" && prog.phase !== "cancelled" && (
+                      {prog.phase !== "done" && prog.phase !== "cancelled" && prog.phase !== "error" && (
                         <p
                           className="mb-0 mt-2"
                           style={{
@@ -2665,17 +2903,24 @@ class EnergyRental extends Component {
           const { bulk_txHistory, bulk_historyFilter } = this.state;
 
           const filtered = bulk_txHistory.filter((tx) => {
-            if (bulk_historyFilter === "ok")        return tx.status === "ok" || tx.status === "sent";
-            if (bulk_historyFilter === "error")     return tx.status === "failed" || tx.status === "error";
+            if (bulk_historyFilter === "ok")        return tx.status === "confirmed" || tx.status === "ok" || tx.status === "sent";
+            if (bulk_historyFilter === "error")     return tx.status === "failed" || tx.status === "error" || tx.status === "reverted";
             if (bulk_historyFilter === "cancelled") return tx.status === "cancelled";
             return true;
           });
 
           const statusBadge = (tx) => {
+            if (tx.status === "confirmed") {
+              return (
+                <span className="badge" style={{ background: "#1a7a3c" }}>
+                  <i className="bi bi-check2-circle"></i> Confirmed
+                </span>
+              );
+            }
             if (tx.status === "ok") {
               return (
                 <span className="badge" style={{ background: "#27ae60" }}>
-                  <i className="bi bi-check-circle-fill"></i> OK
+                  <i className="bi bi-check-circle-fill"></i> Broadcast
                 </span>
               );
             }
@@ -2683,6 +2928,13 @@ class EnergyRental extends Component {
               return (
                 <span className="badge" style={{ background: "#e67e22" }}>
                   <i className="bi bi-broadcast"></i> Sent~
+                </span>
+              );
+            }
+            if (tx.status === "reverted") {
+              return (
+                <span className="badge bg-danger" title={tx.errMsg}>
+                  <i className="bi bi-arrow-counterclockwise"></i> Reverted
                 </span>
               );
             }
@@ -2715,8 +2967,8 @@ class EnergyRental extends Component {
                     <div className="ms-auto d-flex gap-1 flex-wrap">
                       {[
                         { key: "all",       label: "All" },
-                        { key: "ok",        label: "✓ Sent" },
-                        { key: "error",     label: "✗ Failed" },
+                        { key: "ok",        label: "✓ Success" },
+                        { key: "error",     label: "✗ Failed / Reverted" },
                         { key: "cancelled", label: "⊘ Cancelled" },
                       ].map(({ key, label }) => (
                         <button
