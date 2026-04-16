@@ -218,6 +218,14 @@ class EnergyRental extends Component {
       // Persistent local transaction history (loaded from localStorage)
       bulk_txHistory: loadTxHistory(),
       bulk_historyFilter: "all",  // 'all' | 'ok' | 'error'
+
+      // ── Exact energy estimate for the comparison panel ─────────────────────
+      // Updated asynchronously whenever recipients or token change
+      bulk_exactEstimate: null,   // null | { energyPerTx, totalEnergy, txCount, source }
+      bulk_estimating: false,     // true while simulation is running
+      // Real on-chain burn rate (SUN per energy unit) from chain parameters.
+      // Default 420 SUN — current mainnet value as of 2025 (updateEnergyLimit).
+      bulk_burnSunPerEnergy: new BigNumber(420),
     };
 
     this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
@@ -243,6 +251,8 @@ class EnergyRental extends Component {
     this.bulkPasteCSV = this.bulkPasteCSV.bind(this);
     this.bulkSend = this.bulkSend.bind(this);
     this.bulkClearHistory = this.bulkClearHistory.bind(this);
+    this._refreshExactEstimate = this._refreshExactEstimate.bind(this);
+    this._estimateDebounceTimer = null;
   }
 
   // ── Bulk Token Send helpers ────────────────────────────────────────────────
@@ -251,6 +261,7 @@ class EnergyRental extends Component {
     this.setState((prev) => ({
       bulk_recipients: [...prev.bulk_recipients, { address: "", amount: "" }],
     }));
+    this._scheduleEstimate();
   }
 
   bulkRemoveRow(index) {
@@ -259,6 +270,7 @@ class EnergyRental extends Component {
       rows.splice(index, 1);
       return { bulk_recipients: rows.length > 0 ? rows : [{ address: "", amount: "" }] };
     });
+    this._scheduleEstimate();
   }
 
   bulkUpdateRow(index, field, value) {
@@ -267,6 +279,8 @@ class EnergyRental extends Component {
       rows[index] = { ...rows[index], [field]: value };
       return { bulk_recipients: rows };
     });
+    // Only re-simulate when the address changes (amount doesn't affect energy)
+    if (field === "address") this._scheduleEstimate();
   }
 
   bulkClearHistory() {
@@ -291,6 +305,85 @@ class EnergyRental extends Component {
 
     if (parsed.length > 0) {
       this.setState({ bulk_recipients: parsed });
+      this._scheduleEstimate();
+    }
+  }
+
+  /**
+   * Debounce wrapper: waits 800 ms after the last change before running the
+   * simulation, so we don't spam triggerConstantContract on every keystroke.
+   */
+  _scheduleEstimate() {
+    if (this._estimateDebounceTimer) clearTimeout(this._estimateDebounceTimer);
+    this._estimateDebounceTimer = setTimeout(() => {
+      this._refreshExactEstimate();
+    }, 800);
+  }
+
+  /**
+   * Run triggerConstantContract for one representative transfer and update
+   * bulk_exactEstimate + bulk_burnSunPerEnergy in state.
+   *
+   * Also fetches the real on-chain energy burn rate from chain parameters
+   * (getEnergyFee) so the "TRX burn" column shows the current network price.
+   */
+  async _refreshExactEstimate() {
+    const { tronWeb, isViewerMode } = this.props;
+    // Skip if wallet not connected — we can't call triggerConstantContract
+    if (isViewerMode || !tronWeb) return;
+
+    const { bulk_token, bulk_customAddress, bulk_customDecimals, bulk_recipients } = this.state;
+
+    // Resolve token
+    let tokenAddress = bulk_token.address;
+    let decimals = bulk_token.decimals;
+    if (bulk_token.address === "custom") {
+      tokenAddress = bulk_customAddress.trim();
+      decimals = parseInt(bulk_customDecimals) || 6;
+      if (!tronWeb.isAddress(tokenAddress)) return;
+    }
+
+    const validRows = bulk_recipients.filter(
+      (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
+    );
+
+    if (validRows.length === 0) {
+      this.setState({ bulk_exactEstimate: null });
+      return;
+    }
+
+    this.setState({ bulk_estimating: true });
+
+    try {
+      // ── 1. Simulate energy cost via triggerConstantContract ───────────────
+      const exactEst = await this.bulkEstimateEnergyExact(tokenAddress, decimals, validRows);
+
+      // ── 2. Fetch real on-chain burn rate (getEnergyFee chain parameter) ───
+      // getEnergyFee is the SUN cost per 1 energy unit when burned from TRX.
+      // On TRON mainnet it is currently 420 SUN (raised from 280 in late 2023).
+      let burnSunPerEnergy = this.state.bulk_burnSunPerEnergy; // keep last known value
+      try {
+        const chainParams = await tronWeb.trx.getChainParameters();
+        if (Array.isArray(chainParams)) {
+          const param = chainParams.find((p) => p.key === "getEnergyFee");
+          if (param && param.value) {
+            burnSunPerEnergy = new BigNumber(param.value);
+          }
+        }
+      } catch (_) { /* keep default */ }
+
+      this.setState({
+        bulk_exactEstimate: {
+          energyPerTx: exactEst.energyPerTx,
+          totalEnergy: exactEst.totalEnergy,
+          txCount: validRows.length,
+          source: exactEst.source,
+        },
+        bulk_burnSunPerEnergy: burnSunPerEnergy,
+        bulk_estimating: false,
+      });
+    } catch (_) {
+      this.setState({ bulk_estimating: false });
     }
   }
 
@@ -1287,6 +1380,7 @@ class EnergyRental extends Component {
 
   componentWillUnmount() {
     clearInterval(intervalId);
+    if (this._estimateDebounceTimer) clearTimeout(this._estimateDebounceTimer);
   }
 
   handleChangeWallet(event) {
@@ -2346,7 +2440,11 @@ class EnergyRental extends Component {
                         const found = KNOWN_TOKENS.find(
                           (t) => t.address === e.target.value,
                         );
-                        this.setState({ bulk_token: found });
+                        this.setState({
+                          bulk_token: found,
+                          bulk_exactEstimate: null, // invalidate old simulation
+                        });
+                        this._scheduleEstimate();
                       }}
                     >
                       {KNOWN_TOKENS.map((tk) => (
@@ -2368,9 +2466,13 @@ class EnergyRental extends Component {
                           className="form-control"
                           placeholder="T…"
                           value={this.state.bulk_customAddress}
-                          onChange={(e) =>
-                            this.setState({ bulk_customAddress: e.target.value })
-                          }
+                          onChange={(e) => {
+                            this.setState({
+                              bulk_customAddress: e.target.value,
+                              bulk_exactEstimate: null,
+                            });
+                            this._scheduleEstimate();
+                          }}
                         />
                       </div>
                       <div className="col-md-2">
@@ -2532,8 +2634,26 @@ class EnergyRental extends Component {
 
                 {/* ── Rent resources option ── */}
                 {(() => {
-                  const est = this.bulkEstimateResources();
-                  const { precios, bulk_rentResources } = this.state;
+                  const staticEst = this.bulkEstimateResources();
+                  const {
+                    precios,
+                    bulk_rentResources,
+                    bulk_exactEstimate,
+                    bulk_estimating,
+                    bulk_burnSunPerEnergy,
+                  } = this.state;
+
+                  // Use simulated energy if available, fall back to static
+                  const energyNeeded = bulk_exactEstimate
+                    ? bulk_exactEstimate.totalEnergy
+                    : staticEst.energyNeeded;
+                  const energyPerTx = bulk_exactEstimate
+                    ? bulk_exactEstimate.energyPerTx
+                    : staticEst.energyNeeded / Math.max(staticEst.txCount, 1);
+                  const energySource = bulk_exactEstimate ? bulk_exactEstimate.source : 'static';
+                  const txCount = bulk_exactEstimate
+                    ? bulk_exactEstimate.txCount
+                    : staticEst.txCount;
 
                   // Brutus 5-min unit price (SUN per energy unit)
                   const brutusUnitSun = (() => {
@@ -2542,18 +2662,16 @@ class EnergyRental extends Component {
                     return found ? new BigNumber(found.UE) : new BigNumber(0);
                   })();
 
-                  // Cost to rent from Brutus (TRX)
+                  // Cost to rent from Brutus (TRX) — using real unit price from API
                   const brutusCostTRX = brutusUnitSun
-                    .times(est.energyNeeded)
+                    .times(energyNeeded)
                     .shiftedBy(-6)
                     .dp(4);
 
-                  // TRON network burn cost without rental:
-                  // TRON burns ~280 SUN per energy unit when no staked energy available.
-                  // Reference: https://developers.tron.network/docs/resource-model
-                  const TRON_BURN_SUN_PER_ENERGY = new BigNumber(280);
-                  const burnCostTRX = TRON_BURN_SUN_PER_ENERGY
-                    .times(est.energyNeeded)
+                  // TRX burn cost — uses real on-chain getEnergyFee chain parameter
+                  // (fetched by _refreshExactEstimate; default 420 SUN/energy)
+                  const burnCostTRX = bulk_burnSunPerEnergy
+                    .times(energyNeeded)
                     .shiftedBy(-6)
                     .dp(4);
 
@@ -2562,21 +2680,40 @@ class EnergyRental extends Component {
                     ? savings.div(burnCostTRX).times(100).dp(1)
                     : new BigNumber(0);
 
-                  return est.energyNeeded > 0 ? (
+                  // Show panel when there's any non-TRX energy to estimate
+                  if (energyNeeded <= 0 && !bulk_estimating) return null;
+
+                  return (
                     <div
                       className="mt-3 p-3 rounded"
                       style={{ background: "#f8f4ff", border: "1px solid #c9a0e0" }}
                     >
-                      {/* Savings comparison */}
-                      <h6 style={{ color: "#5a2d82" }}>
-                        <i className="bi bi-lightning-charge-fill"></i> Resource
-                        Cost Comparison — {est.txCount} tx
+                      {/* Header */}
+                      <h6 style={{ color: "#5a2d82" }} className="d-flex align-items-center gap-2">
+                        <i className="bi bi-lightning-charge-fill"></i>
+                        Resource Cost Comparison — {txCount} tx
+                        {bulk_estimating && (
+                          <span style={{ fontSize: "0.8em", color: "#888", fontWeight: "normal" }}>
+                            <img src="images/cargando.gif" height="14px" alt="" />{" "}
+                            simulating…
+                          </span>
+                        )}
+                        {!bulk_estimating && bulk_exactEstimate && (
+                          <span style={{ fontSize: "0.78em", color: energySource === 'simulation' ? "#27ae60" : "#e67e22", fontWeight: "normal" }}>
+                            {energySource === 'simulation'
+                              ? <><i className="bi bi-check-circle-fill"></i> simulated</>
+                              : <><i className="bi bi-exclamation-triangle-fill"></i> estimated</>
+                            }
+                          </span>
+                        )}
                       </h6>
+
                       <table className="table table-sm mb-2" style={{ fontSize: "0.88em" }}>
                         <thead>
                           <tr style={{ background: "#ede0f7" }}>
                             <th>Method</th>
-                            <th>Energy needed</th>
+                            <th>Energy / tx</th>
+                            <th>Total energy</th>
                             <th>Bandwidth</th>
                             <th>Cost (TRX)</th>
                           </tr>
@@ -2589,10 +2726,19 @@ class EnergyRental extends Component {
                               </span>{" "}
                               TRX burn (no rental)
                             </td>
-                            <td>{est.energyNeeded.toLocaleString()}</td>
-                            <td>{est.bandwidthNeeded.toLocaleString()}</td>
+                            <td style={{ fontFamily: "monospace" }}>
+                              {Math.round(energyPerTx).toLocaleString()}
+                            </td>
+                            <td style={{ fontFamily: "monospace" }}>
+                              {energyNeeded.toLocaleString()}
+                            </td>
+                            <td>{staticEst.bandwidthNeeded.toLocaleString()}</td>
                             <td style={{ color: "#c0392b", fontWeight: "bold" }}>
-                              ~{burnCostTRX.toString()} TRX
+                              {burnCostTRX.gt(0) ? `~${burnCostTRX.toString()} TRX` : "—"}
+                              <br />
+                              <span style={{ fontSize: "0.78em", color: "#888", fontWeight: "normal" }}>
+                                ({bulk_burnSunPerEnergy.toString()} SUN/energy)
+                              </span>
                             </td>
                           </tr>
                           <tr style={{ background: "#edfaf1" }}>
@@ -2602,14 +2748,24 @@ class EnergyRental extends Component {
                               </span>{" "}
                               Brutus rental (5 min)
                             </td>
-                            <td>{est.energyNeeded.toLocaleString()}</td>
-                            <td>{est.bandwidthNeeded.toLocaleString()}</td>
+                            <td style={{ fontFamily: "monospace" }}>
+                              {Math.round(energyPerTx).toLocaleString()}
+                            </td>
+                            <td style={{ fontFamily: "monospace" }}>
+                              {energyNeeded.toLocaleString()}
+                            </td>
+                            <td>{staticEst.bandwidthNeeded.toLocaleString()}</td>
                             <td style={{ color: "#27ae60", fontWeight: "bold" }}>
-                              ~{brutusCostTRX.toString()} TRX
+                              {brutusCostTRX.gt(0) ? `~${brutusCostTRX.toString()} TRX` : "—"}
+                              <br />
+                              <span style={{ fontSize: "0.78em", color: "#888", fontWeight: "normal" }}>
+                                ({brutusUnitSun.gt(0) ? brutusUnitSun.dp(2).toString() : "?"} SUN/energy)
+                              </span>
                             </td>
                           </tr>
                         </tbody>
                       </table>
+
                       {savings.gt(0) && (
                         <p className="mb-2" style={{ fontSize: "0.9em", color: "#5a2d82" }}>
                           <strong>
@@ -2636,7 +2792,7 @@ class EnergyRental extends Component {
                           htmlFor="bulk_rent_check"
                           style={{ cursor: "pointer" }}
                         >
-                          <strong>Rent {est.energyNeeded.toLocaleString()} energy</strong> with Brutus before sending
+                          <strong>Rent {energyNeeded.toLocaleString()} energy</strong> with Brutus before sending
                           {brutusCostTRX.gt(0) && (
                             <span style={{ color: "#888" }}>
                               {" "}(~{brutusCostTRX.toString()} TRX)
@@ -2645,7 +2801,7 @@ class EnergyRental extends Component {
                         </label>
                       </div>
                     </div>
-                  ) : null;
+                  );
                 })()}
 
                 {/* ── Actions ── */}
