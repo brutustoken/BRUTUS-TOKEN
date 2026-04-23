@@ -503,7 +503,9 @@ class Staking extends Component {
 
     retiroRapido = new BigNumber(retiroRapido).minus(loteria)
 
-    if (accountAddress !== "TZJSXstGQcCVT1PeVp7iybt5bANcU2bDda") {
+    let isWhiteList = await contrato.BRST_TRX_Proxy_fast.whiteList(accountAddress).call()
+
+    if (!isWhiteList) {
       retiroRapido = retiroRapido.minus(2500)
     }
 
