@@ -517,6 +517,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="BRUT Token | Buy & Sell BRUT on Tron Network"
                description="Trade BRUT token against USDT on the Brutus Finance platform. Access real-time prices, charts, and quick swap functionality for the Brutus ecosystem token."
+               image="brut.png"
              />
              <Brut {...pageProps} />
            </>
@@ -528,6 +529,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="BRST Staking | Earn TRX Rewards on Brutus Finance"
                description="Stake BRST tokens to earn TRX rewards through the Brutus Finance staking platform. View APY, staking pools, and manage your BRST holdings."
+               image="brst.png"
              />
              <Brst {...pageProps} />
            </>
@@ -539,6 +541,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="BRGY NFT Gallery | Brutus Robot Collection"
                description="Explore the BRGY NFT collection - 10,000 unique robot NFTs on the Tron blockchain. View, buy, and trade Brutus Genesis robots in the official NFT gallery."
+               image="brgy.png"
              />
              <Nft {...pageProps} />
            </>
@@ -550,6 +553,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="BRLT Lottery | Win TRX Prizes on Tron Network"
                description="Participate in the Brutus lottery with BRLT tickets. Buy tickets for 100 TRX each and win weekly prizes. Transparent, blockchain-based lottery on the Tron network."
+               image="brlt.png"
              />
              <LOTERIA {...pageProps} />
            </>
@@ -562,6 +566,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="Energy & Bandwidth Rental | Decentralized Resource Marketplace"
                description="Rent energy and bandwidth on the Tron network through Brutus Finance. Access competitive prices, instant delivery, and a user-friendly platform for resource rental."
+               image="ebot.png"
              />
              <EBOT {...pageProps} />
            </>
@@ -573,6 +578,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="Provider Panel | Manage Energy Resources on Brutus"
                description="Manage your energy resources as a provider on Brutus Finance. Monitor earnings, adjust pricing, and optimize your resource rental operations."
+               image="banner.jpg"
              />
              <PRO {...pageProps} />
            </>
@@ -584,6 +590,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="API Panel | Brutus Finance Developer Access"
                description="Access Brutus Finance API keys and manage your integrations. View usage statistics, generate new keys, and connect to Brutus services programmatically."
+               image="banner.jpg"
              />
              <API {...pageProps} />
            </>
@@ -596,6 +603,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="Wallet Dashboard | Track Your Brutus Finance Portfolio"
                description="View your token balances, NFT holdings, and staking positions on Brutus Finance. Monitor BRUT, BRST, BRGY, and BRLT assets in one secure dashboard."
+               image="banner.jpg"
              />
              <Home {...pageProps} />
            </>
@@ -609,6 +617,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="Bulk Send | Distribute TRX and Tokens on Tron"
                description="Send TRX, BRUT, BRST, and other tokens to multiple addresses in a single transaction. Save on fees and time with Brutus Finance bulk transfer tools."
+               image="banner.jpg"
              />
              <BBSEND {...pageProps} />
            </>
@@ -620,6 +629,7 @@ const App = ({ i18n, t }) => {
              <SEO
                title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
                description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
+               image="banner.jpg"
              />
              <EBOT {...pageProps} />
            </>
