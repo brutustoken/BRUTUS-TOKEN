@@ -86,7 +86,6 @@ class EnergyRental extends Component {
     this.preCompra = this.preCompra.bind(this);
     this.compra = this.compra.bind(this);
     this.showMessage = this.showMessage.bind(this);
-    this.getMessageContent = this.getMessageContent.bind(this);
 
   }
 

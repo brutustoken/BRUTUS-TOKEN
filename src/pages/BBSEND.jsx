@@ -61,15 +61,15 @@ const TRC20_ABI = [
 // ── Well-known tokens ──────────────────────────────────────────────────────────
 // energyPerTx: static fallback used before simulation fires
 const KNOWN_TOKENS = [
-    { symbol: "TRX",         address: "TRX",                                      decimals: 6,  energyPerTx: 0 },
-    { symbol: "USDT",        address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",      decimals: 6,  energyPerTx: 65000 },
-    { symbol: "USDD",        address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz",      decimals: 18, energyPerTx: 65000 },
-    { symbol: "BRUT",        address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU",      decimals: 6,  energyPerTx: 32000 },
-    { symbol: "BRST",        address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3",      decimals: 6,  energyPerTx: 32000 },
-    { symbol: "APENFT",      address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq",      decimals: 6,  energyPerTx: 32000 },
-    { symbol: "BTT",         address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4",      decimals: 18, energyPerTx: 65000 },
-    { symbol: "BTC (WBTC)",  address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",      decimals: 8,  energyPerTx: 32000 },
-    { symbol: "Custom…",     address: "custom",                                    decimals: 6,  energyPerTx: 65000 },
+    { symbol: "TRX", address: "TRX", decimals: 6, energyPerTx: 0 },
+    { symbol: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6, energyPerTx: 65000 },
+    { symbol: "USDD", address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz", decimals: 18, energyPerTx: 65000 },
+    { symbol: "BRUT", address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU", decimals: 6, energyPerTx: 32000 },
+    { symbol: "BRST", address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3", decimals: 6, energyPerTx: 32000 },
+    { symbol: "APENFT", address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq", decimals: 6, energyPerTx: 32000 },
+    { symbol: "BTT", address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", decimals: 18, energyPerTx: 65000 },
+    { symbol: "BTC (WBTC)", address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9", decimals: 8, energyPerTx: 32000 },
+    { symbol: "Custom…", address: "custom", decimals: 6, energyPerTx: 65000 },
 ];
 
 // ── Local transaction history ──────────────────────────────────────────────────
@@ -115,9 +115,9 @@ function staticEstimateResources(recipients, token) {
     const ENERGY_PER_TX = isTRX ? 0 : (token.energyPerTx ?? 65000);
     const BANDWIDTH_PER_TX = isTRX ? 268 : 350;
     return {
-        energyNeeded:    ENERGY_PER_TX * validRows.length,
+        energyNeeded: ENERGY_PER_TX * validRows.length,
         bandwidthNeeded: BANDWIDTH_PER_TX * validRows.length,
-        txCount:         validRows.length,
+        txCount: validRows.length,
         isTRX,
     };
 }
@@ -165,7 +165,7 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
 
     // ── Page title ───────────────────────────────────────────────────────────
     useEffect(() => {
-        document.getElementById("tittle").innerText = t("ebot.tittle") + " — Bulk Send";
+        document.getElementById("tittle").innerText = "Bulk Send";
     }, [t]);
 
     // ── Resolve token address & decimals ─────────────────────────────────────
@@ -237,7 +237,7 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
 
             // Parse user energy
             const eLimit = accountResources.EnergyLimit || 0;
-            const eUsed  = accountResources.EnergyUsed  || 0;
+            const eUsed = accountResources.EnergyUsed || 0;
             setUserEnergy(Math.max(0, eLimit - eUsed));
 
             // Parse token balance
@@ -402,12 +402,12 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
         const staticEst = staticEstimateResources(rows, token);
         const estimate = {
             ...staticEst,
-            energyNeeded:  simResult.totalEnergy,
-            energyAvg:     simResult.energyAvg,
-            energyMin:     simResult.energyMin,
-            energyMax:     simResult.energyMax,
-            hasVariance:   simResult.energyMin !== simResult.energyMax,
-            energySource:  simResult.source,
+            energyNeeded: simResult.totalEnergy,
+            energyAvg: simResult.energyAvg,
+            energyMin: simResult.energyMin,
+            energyMax: simResult.energyMax,
+            hasVariance: simResult.energyMin !== simResult.energyMax,
+            energySource: simResult.source,
         };
 
         // Brutus unit price (SUN/energy, 5-min slot)
@@ -641,8 +641,8 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
                         step: confirmedStatus === "confirmed"
                             ? `Tx ${i + 1}/${rows.length} ✓ confirmed — ${txid.slice(0, 20)}…`
                             : confirmedStatus === "reverted"
-                            ? `Tx ${i + 1}/${rows.length} ✗ REVERTED — ${txid.slice(0, 20)}…`
-                            : `Tx ${i + 1}/${rows.length} ~ broadcast, confirmation timed out — ${txid.slice(0, 20)}…`,
+                                ? `Tx ${i + 1}/${rows.length} ✗ REVERTED — ${txid.slice(0, 20)}…`
+                                : `Tx ${i + 1}/${rows.length} ~ broadcast, confirmation timed out — ${txid.slice(0, 20)}…`,
                     }));
                 }
             } catch (e) {
@@ -702,18 +702,18 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
         appendTxHistory(historyEntries);
         setTxHistory(loadTxHistory());
 
-        const confirmed  = txResults.filter((r) => r.status === "confirmed").length;
-        const reverted   = txResults.filter((r) => r.status === "reverted").length;
-        const broadcast  = txResults.filter((r) => r.status === "ok" || r.status === "sent").length;
-        const failed     = txResults.filter((r) => r.status === "failed" || r.status === "error").length;
-        const cancelled  = txResults.filter((r) => r.status === "cancelled").length;
+        const confirmed = txResults.filter((r) => r.status === "confirmed").length;
+        const reverted = txResults.filter((r) => r.status === "reverted").length;
+        const broadcast = txResults.filter((r) => r.status === "ok" || r.status === "sent").length;
+        const failed = txResults.filter((r) => r.status === "failed" || r.status === "error").length;
+        const cancelled = txResults.filter((r) => r.status === "cancelled").length;
 
         const parts = [];
-        if (confirmed)  parts.push(`${confirmed} confirmed`);
-        if (broadcast)  parts.push(`${broadcast} broadcast`);
-        if (reverted)   parts.push(`${reverted} reverted`);
-        if (failed)     parts.push(`${failed} failed`);
-        if (cancelled)  parts.push(`${cancelled} cancelled`);
+        if (confirmed) parts.push(`${confirmed} confirmed`);
+        if (broadcast) parts.push(`${broadcast} broadcast`);
+        if (reverted) parts.push(`${reverted} reverted`);
+        if (failed) parts.push(`${failed} failed`);
+        if (cancelled) parts.push(`${cancelled} cancelled`);
 
         setSending(false);
         setProgress({
@@ -774,24 +774,24 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
 
     // Phase colours for progress panel
     const phaseColors = {
-        renting:      { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
-        signing:      { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill",              color: "#1565c0" },
-        broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast",             color: "#2e7d32" },
-        waiting:      { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split",       color: "#6a1b9a" },
-        error:        { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
-        cancelled:    { bg: "#f5f5f5", border: "#95a5a6", icon: "bi-slash-circle",          color: "#7f8c8d" },
-        done:         { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all",            color: "#1b5e20" },
+        renting: { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
+        signing: { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill", color: "#1565c0" },
+        broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast", color: "#2e7d32" },
+        waiting: { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split", color: "#6a1b9a" },
+        error: { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
+        cancelled: { bg: "#f5f5f5", border: "#95a5a6", icon: "bi-slash-circle", color: "#7f8c8d" },
+        done: { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all", color: "#1b5e20" },
     };
 
     // Status badge for history
     const statusBadge = (tx) => {
         const map = {
             confirmed: ["#1a7a3c", "bi-check2-circle", "Confirmed"],
-            ok:        ["#27ae60", "bi-check-circle-fill", "Broadcast"],
-            sent:      ["#e67e22", "bi-broadcast", "Sent~"],
-            reverted:  ["#c0392b", "bi-arrow-counterclockwise", "Reverted"],
-            failed:    ["#c0392b", "bi-x-circle-fill", "Failed"],
-            error:     ["#c0392b", "bi-x-circle-fill", "Error"],
+            ok: ["#27ae60", "bi-check-circle-fill", "Broadcast"],
+            sent: ["#e67e22", "bi-broadcast", "Sent~"],
+            reverted: ["#c0392b", "bi-arrow-counterclockwise", "Reverted"],
+            failed: ["#c0392b", "bi-x-circle-fill", "Failed"],
+            error: ["#c0392b", "bi-x-circle-fill", "Error"],
             cancelled: ["#95a5a6", "bi-slash-circle", "Cancelled"],
         };
         const [color, icon, label] = map[tx.status] || ["#aaa", "bi-question-circle", tx.status];
@@ -818,8 +818,8 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
     };
 
     const filteredHistory = txHistory.filter((tx) => {
-        if (historyFilter === "ok")        return ["confirmed", "ok", "sent"].includes(tx.status);
-        if (historyFilter === "error")     return ["failed", "error", "reverted"].includes(tx.status);
+        if (historyFilter === "ok") return ["confirmed", "ok", "sent"].includes(tx.status);
+        if (historyFilter === "error") return ["failed", "error", "reverted"].includes(tx.status);
         if (historyFilter === "cancelled") return tx.status === "cancelled";
         return true;
     });
@@ -1091,8 +1091,8 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
                                     {sending
                                         ? <><img src="images/cargando.gif" height="20px" alt="" /> Sending…</>
                                         : rentResources
-                                        ? <><i className="bi bi-lightning-charge-fill"></i> Rent &amp; Send ({validRows.length} recipients)</>
-                                        : <><i className="bi bi-send-fill"></i> Send all ({validRows.length} recipients)</>
+                                            ? <><i className="bi bi-lightning-charge-fill"></i> Rent &amp; Send ({validRows.length} recipients)</>
+                                            : <><i className="bi bi-send-fill"></i> Send all ({validRows.length} recipients)</>
                                     }
                                 </button>
                             </div>
@@ -1106,13 +1106,13 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
                                         <div className="d-flex align-items-center gap-2 mb-2">
                                             <i className={`bi ${theme.icon}`} style={{ color: theme.color, fontSize: "1.2rem" }}></i>
                                             <strong style={{ color: theme.color }}>
-                                                {progress.phase === "renting"      && "Renting energy…"}
-                                                {progress.phase === "signing"      && "Waiting for wallet signature…"}
+                                                {progress.phase === "renting" && "Renting energy…"}
+                                                {progress.phase === "signing" && "Waiting for wallet signature…"}
                                                 {progress.phase === "broadcasting" && "Broadcasting to TRON network…"}
-                                                {progress.phase === "waiting"      && "Waiting for confirmation…"}
-                                                {progress.phase === "error"        && "Transaction error"}
-                                                {progress.phase === "cancelled"    && "Cancelled by user"}
-                                                {progress.phase === "done"         && "Completed"}
+                                                {progress.phase === "waiting" && "Waiting for confirmation…"}
+                                                {progress.phase === "error" && "Transaction error"}
+                                                {progress.phase === "cancelled" && "Cancelled by user"}
+                                                {progress.phase === "done" && "Completed"}
                                             </strong>
                                             <span className="ms-auto" style={{ fontSize: "0.85em", color: "#555" }}>{progress.current} / {progress.total} tx</span>
                                         </div>
@@ -1197,9 +1197,9 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
                                 <span className="badge bg-secondary ms-1">{txHistory.length}</span>
                                 <div className="ms-auto d-flex gap-1 flex-wrap">
                                     {[
-                                        { key: "all",       label: "All" },
-                                        { key: "ok",        label: "✓ Success" },
-                                        { key: "error",     label: "✗ Failed / Reverted" },
+                                        { key: "all", label: "All" },
+                                        { key: "ok", label: "✓ Success" },
+                                        { key: "error", label: "✗ Failed / Reverted" },
                                         { key: "cancelled", label: "⊘ Cancelled" },
                                     ].map(({ key, label }) => (
                                         <button key={key} type="button"
@@ -1249,7 +1249,7 @@ function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
                                                             {tx.txid
                                                                 ? <a href={`https://tronscan.org/#/transaction/${tx.txid}`} target="_blank" rel="noopener noreferrer" style={{ color: "purple" }} title={tx.txid}>
                                                                     {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}{" "}<i className="bi bi-box-arrow-up-right" style={{ fontSize: "0.75em" }}></i>
-                                                                  </a>
+                                                                </a>
                                                                 : <span style={{ color: "#bbb" }} title={tx.errMsg}>— <small>{tx.errMsg?.slice(0, 30)}</small></span>
                                                             }
                                                         </td>
