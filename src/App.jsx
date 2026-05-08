@@ -509,58 +509,122 @@ const App = ({ i18n, t }) => {
       isViewerMode: tronlink.viewer && accountAddress === addressDefault,
     };
 
-    // Route to appropriate page
-    switch (ruta) {
-      case "brut":
-        return <Brut {...pageProps} />;
+     // Route to appropriate page
+     switch (ruta) {
+       case "brut":
+         return (
+           <>
+             <SEO
+               title="BRUT Token | Buy & Sell BRUT on Tron Network"
+               description="Trade BRUT token against USDT on the Brutus Finance platform. Access real-time prices, charts, and quick swap functionality for the Brutus ecosystem token."
+             />
+             <Brut {...pageProps} />
+           </>
+         );
 
-      case "brst":
-        return <Brst {...pageProps} />;
+       case "brst":
+         return (
+           <>
+             <SEO
+               title="BRST Staking | Earn TRX Rewards on Brutus Finance"
+               description="Stake BRST tokens to earn TRX rewards through the Brutus Finance staking platform. View APY, staking pools, and manage your BRST holdings."
+             />
+             <Brst {...pageProps} />
+           </>
+         );
 
-      case "brgy":
-        return <Nft {...pageProps} />;
+       case "brgy":
+         return (
+           <>
+             <SEO
+               title="BRGY NFT Gallery | Brutus Robot Collection"
+               description="Explore the BRGY NFT collection - 10,000 unique robot NFTs on the Tron blockchain. View, buy, and trade Brutus Genesis robots in the official NFT gallery."
+             />
+             <Nft {...pageProps} />
+           </>
+         );
 
-      case "brlt":
-        return <LOTERIA {...pageProps} />;
+       case "brlt":
+         return (
+           <>
+             <SEO
+               title="BRLT Lottery | Win TRX Prizes on Tron Network"
+               description="Participate in the Brutus lottery with BRLT tickets. Buy tickets for 100 TRX each and win weekly prizes. Transparent, blockchain-based lottery on the Tron network."
+             />
+             <LOTERIA {...pageProps} />
+           </>
+         );
 
-      case "rent":
-      case "ebot":
-        return (
-          <>
-            <SEO
-              title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
-              description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
-            />
-            <EBOT {...pageProps} />
-          </>
-        );
+       case "rent":
+       case "ebot":
+         return (
+           <>
+             <SEO
+               title="Energy & Bandwidth Rental | Decentralized Resource Marketplace"
+               description="Rent energy and bandwidth on the Tron network through Brutus Finance. Access competitive prices, instant delivery, and a user-friendly platform for resource rental."
+             />
+             <EBOT {...pageProps} />
+           </>
+         );
 
-      case "pro":
-        return <PRO {...pageProps} />;
+       case "pro":
+         return (
+           <>
+             <SEO
+               title="Provider Panel | Manage Energy Resources on Brutus"
+               description="Manage your energy resources as a provider on Brutus Finance. Monitor earnings, adjust pricing, and optimize your resource rental operations."
+             />
+             <PRO {...pageProps} />
+           </>
+         );
 
-      case "api":
-        return <API {...pageProps} />;
+       case "api":
+         return (
+           <>
+             <SEO
+               title="API Panel | Brutus Finance Developer Access"
+               description="Access Brutus Finance API keys and manage your integrations. View usage statistics, generate new keys, and connect to Brutus services programmatically."
+             />
+             <API {...pageProps} />
+           </>
+         );
 
-      case "portfolio":
-      case "wallet":
-        return <Home {...pageProps} />;
+       case "portfolio":
+       case "wallet":
+         return (
+           <>
+             <SEO
+               title="Wallet Dashboard | Track Your Brutus Finance Portfolio"
+               description="View your token balances, NFT holdings, and staking positions on Brutus Finance. Monitor BRUT, BRST, BRGY, and BRLT assets in one secure dashboard."
+             />
+             <Home {...pageProps} />
+           </>
+         );
 
-      case "bsend":
-      case "send":
-      case "bulk":
-        return <BBSEND {...pageProps} />
+       case "bsend":
+       case "send":
+       case "bulk":
+         return (
+           <>
+             <SEO
+               title="Bulk Send | Distribute TRX and Tokens on Tron"
+               description="Send TRX, BRUT, BRST, and other tokens to multiple addresses in a single transaction. Save on fees and time with Brutus Finance bulk transfer tools."
+             />
+             <BBSEND {...pageProps} />
+           </>
+         );
 
-      default:
-        return (
-          <>
-            <SEO
-              title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
-              description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
-            />
-            <EBOT {...pageProps} />
-          </>
-        );
-    }
+       default:
+         return (
+           <>
+             <SEO
+               title="Brutus | Decentralized Energy & Bandwidth Rental Platform"
+               description="Brutus is a decentralized platform for renting energy and bandwidth on the Tron network. We offer a user-friendly interface and competitive prices for all your resource rental needs."
+             />
+             <EBOT {...pageProps} />
+           </>
+         );
+     }
   };
 
   const { ruta, msj } = state;
