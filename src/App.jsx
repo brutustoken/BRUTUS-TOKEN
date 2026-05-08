@@ -26,6 +26,7 @@ const LOTERIA = React.lazy(() => import("./pages/BRLT.jsx"));
 const EBOT = React.lazy(() => import("./pages/EBOT.jsx"));
 const PRO = React.lazy(() => import("./pages/PRO.jsx"));
 const API = React.lazy(() => import("./pages/API.jsx"));
+const BBSEND = React.lazy(() => import("./pages/BBSEND.jsx"));
 
 import { config } from "./config/env.js";
 
@@ -543,6 +544,11 @@ const App = ({ i18n, t }) => {
       case "portfolio":
       case "wallet":
         return <Home {...pageProps} />;
+
+      case "bsend":
+      case "send":
+      case "bulk":
+        return <BBSEND {...pageProps} />
 
       default:
         return (

@@ -1,5 +1,28 @@
 {
     "solidity.compileUsingRemoteVersion": "v0.8.20+commit.a1b79de6",
     "solidity.defaultCompiler": "remote",
-    "solidity.compileUsingLocalVersion": "./soljson-v0.8.20+commit.a1b79de6.js"
+    "solidity.compileUsingLocalVersion": "./soljson-v0.8.20+commit.a1b79de6.js",
+
+    // ── ESLint (v9 flat config) ────────────────────────────────────────────
+    // Tell the VS Code ESLint extension to use the new flat config system
+    "eslint.useFlatConfig": true,
+
+    // Validate JS and JSX files (extension defaults to .js only)
+    "eslint.validate": [
+        "javascript",
+        "javascriptreact"
+    ],
+
+    // Show ESLint status in the status bar
+    "eslint.enable": true,
+
+    // Run ESLint on save as well as on type
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": "explicit"
+    },
+
+    // Visually distinguish warnings from errors in the editor gutter
+    "eslint.rules.customizations": [
+        { "rule": "no-unused-vars", "severity": "warn" }
+    ]
 }
