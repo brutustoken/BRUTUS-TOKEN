@@ -1,8 +1,30 @@
-import React, { Component } from "react";
+/**
+ * BBSEND — Bulk Token Send page
+ *
+ * Handles multi-recipient TRC-20 / TRX transfers with:
+ *   - Per-row triggerConstantContract energy simulation
+ *   - Balance validation before sending
+ *   - Optional Brutus energy rental pre-step
+ *   - Post-broadcast on-chain confirmation polling
+ *   - Persistent local transaction history
+ *
+ * This page is intentionally focused on bulk sending only.
+ * Energy rental (EBOT), staking (BRST), etc. live in their own pages.
+ *
+ * Brutus rental prices are fetched via the shared hook useBrutusRentalPrices,
+ * so both EBOT and BBSEND always show consistent pricing without duplicating
+ * the fetch logic.
+ */
+
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { withTranslation } from "react-i18next";
 import BigNumber from "bignumber.js";
 
-// Minimal TRC-20 ABI – only the functions we need
+import { config } from "../config/env";
+import utils from "../services";
+import { useBrutusRentalPrices } from "../hooks/useBrutusRentalPrices";
+
+// ── Minimal TRC-20 ABI ─────────────────────────────────────────────────────────
 const TRC20_ABI = [
     {
         constant: false,
@@ -36,953 +58,523 @@ const TRC20_ABI = [
     },
 ];
 
-// Well-known tokens on TRON mainnet
-// energyPerTx: conservative estimate of energy consumed per TRC-20 transfer
+// ── Well-known tokens ──────────────────────────────────────────────────────────
+// energyPerTx: static fallback used before simulation fires
 const KNOWN_TOKENS = [
-    { symbol: "TRX", address: "TRX", decimals: 6, energyPerTx: 0 },
-    { symbol: "USDT", address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t", decimals: 6, energyPerTx: 65000 },
-    { symbol: "USDD", address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz", decimals: 18, energyPerTx: 65000 },
-    { symbol: "BRUT", address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU", decimals: 6, energyPerTx: 32000 },
-    { symbol: "BRST", address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3", decimals: 6, energyPerTx: 32000 },
-    { symbol: "APENFT", address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq", decimals: 6, energyPerTx: 32000 },
-    // BTT TRC-20
-    { symbol: "BTT", address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4", decimals: 18, energyPerTx: 65000 },
-    // WBTC bridged on TRON (BitTorrent bridge / JustLend WBTC)
-    { symbol: "BTC (WBTC)", address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9", decimals: 8, energyPerTx: 32000 },
-    { symbol: "Custom…", address: "custom", decimals: 6, energyPerTx: 65000 },
+    { symbol: "TRX",         address: "TRX",                                      decimals: 6,  energyPerTx: 0 },
+    { symbol: "USDT",        address: "TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t",      decimals: 6,  energyPerTx: 65000 },
+    { symbol: "USDD",        address: "TXDk8mbtRbXeYuMNS83CfKPaYYT8XWv9Hz",      decimals: 18, energyPerTx: 65000 },
+    { symbol: "BRUT",        address: "TLGhEHUevHsfExxm4miyMxfmT5xumNr4BU",      decimals: 6,  energyPerTx: 32000 },
+    { symbol: "BRST",        address: "TF8YgHqnJdWzCbUyouje3RYrdDKJYpGfB3",      decimals: 6,  energyPerTx: 32000 },
+    { symbol: "APENFT",      address: "TFczxzPhnThNSqr5by8tvxsdCFRRz6cPNq",      decimals: 6,  energyPerTx: 32000 },
+    { symbol: "BTT",         address: "TAFjULxiVgT4qWk6UZwjqwZXTSaGaqnVp4",      decimals: 18, energyPerTx: 65000 },
+    { symbol: "BTC (WBTC)",  address: "TN3W4H6rK2ce4vX9YnFQHwKENnHjoxb3m9",      decimals: 8,  energyPerTx: 32000 },
+    { symbol: "Custom…",     address: "custom",                                    decimals: 6,  energyPerTx: 65000 },
 ];
 
-import { config } from "../config/env";
-import utils from "../services";
-
-const imgLoading = (
-    <img src="images/cargando.gif" height="20px" alt="loading..."></img>
-);
-
-const imgBotLoading = (
-    <img
-        src="images/loading-energy.gif"
-        width="100%"
-        alt="robot indicate loading energy"
-    ></img>
-);
-
-const amountsE = [
-    { amount: 65000, text: "65K" },
-    { amount: 130000, text: "130K" },
-    { amount: 200000, text: "200K" },
-    { amount: 1000000, text: "1M" },
-    { amount: 3000000, text: "3M" },
-];
-
-const amountB = [
-    { amount: 1000, text: "1k" },
-    { amount: 2000, text: "2k" },
-    { amount: 5000, text: "5k" },
-    { amount: 10000, text: "10k" },
-    { amount: 50000, text: "50k" },
-];
-
-let intervalId;
-
-// ── Local transaction history helpers ─────────────────────────────────────────
+// ── Local transaction history ──────────────────────────────────────────────────
 const TX_HISTORY_KEY = "brutus_bulk_tx_history";
 const TX_HISTORY_MAX = 200;
 
 function loadTxHistory() {
-    try {
-        return JSON.parse(localStorage.getItem(TX_HISTORY_KEY) || "[]");
-    } catch {
-        return [];
-    }
+    try { return JSON.parse(localStorage.getItem(TX_HISTORY_KEY) || "[]"); }
+    catch { return []; }
 }
 
 function saveTxHistory(entries) {
-    try {
-        // Keep newest first, cap at MAX
-        localStorage.setItem(
-            TX_HISTORY_KEY,
-            JSON.stringify(entries.slice(0, TX_HISTORY_MAX)),
-        );
-    } catch { /* storage full — ignore */ }
+    try { localStorage.setItem(TX_HISTORY_KEY, JSON.stringify(entries.slice(0, TX_HISTORY_MAX))); }
+    catch { /* storage full */ }
 }
 
 function appendTxHistory(newEntries) {
-    const existing = loadTxHistory();
-    saveTxHistory([...newEntries, ...existing]);
+    saveTxHistory([...newEntries, ...loadTxHistory()]);
 }
 
-// ── Post-broadcast tx verification ────────────────────────────────────────────
-/**
- * Poll tronWeb until the tx is confirmed or reverted on-chain.
- * Returns: 'confirmed' | 'reverted' | 'timeout'
- *
- * Strategy:
- *   - getTransaction  → tx shows up in the network  (accepted by node)
- *   - getTransactionInfo → receipt available (mined in a block)
- *     - receipt.result === 'SUCCESS'  → confirmed
- *     - receipt.result === 'FAILED'   → reverted
- * Polls every 3 s, gives up after maxWaitMs (default 60 s).
- */
+// ── On-chain confirmation polling ──────────────────────────────────────────────
 async function verifyTx(txid, tronWeb, maxWaitMs = 60000) {
-    const POLL_INTERVAL = 3000;
+    const POLL = 3000;
     const deadline = Date.now() + maxWaitMs;
-
     while (Date.now() < deadline) {
         try {
             const info = await tronWeb.trx.getTransactionInfo(txid);
-            // getTransactionInfo returns {} until the tx is mined
-            if (info && info.id) {
-                // receipt is available
-                if (info.receipt && info.receipt.result) {
-                    return info.receipt.result === 'SUCCESS' ? 'confirmed' : 'reverted';
-                }
-                // id present but no receipt yet — still being processed
+            if (info && info.id && info.receipt && info.receipt.result) {
+                return info.receipt.result === "SUCCESS" ? "confirmed" : "reverted";
             }
-        } catch (_) { /* not yet available */ }
-
-        await new Promise((r) => setTimeout(r, POLL_INTERVAL));
+        } catch (_) { /* not yet */ }
+        await new Promise((r) => setTimeout(r, POLL));
     }
-
-    return 'timeout';
+    return "timeout";
 }
 
-// ── Constantes para tipos de mensajes ─────────────────────────────────────────
-const MESSAGE_TYPES = {
-    CONNECT_WALLET: 'connectWallet',
-    ERANGE: 'eRange',
-    ERANGE2: 'eRange2',
-    ERESOURCE: 'eResource',
-    SOLD_OUT_ENERGY: 'soldOutEnergy',
-    SOLD_OUT: 'soldOut',
-    ERROR_PRICE: 'errorPrice',
-    NO_FUNDS: 'noFunds',
-    ETRONLINK: 'eTronlink',
-    INSUFFICIENT_RESOURCES: 'insufficientResources',
-    CONFIRM_ORDER: 'confirmOrder',
-    CONFIRM_TRANSACTION: 'confirmTransaction',
-    TRANSACTION_FAILED: 'transactionFailed',
-    PROCESSING_ORDER: 'processingOrder',
-    COMPLETED_SUCCESS: 'completedSuccess',
-    CONTACT_SUPPORT: 'contactSupport',
-};
+// ── Static energy estimate (synchronous, for immediate UI feedback) ────────────
+function staticEstimateResources(recipients, token) {
+    const validRows = recipients.filter(
+        (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
+    );
+    const isTRX = token.address === "TRX";
+    const ENERGY_PER_TX = isTRX ? 0 : (token.energyPerTx ?? 65000);
+    const BANDWIDTH_PER_TX = isTRX ? 268 : 350;
+    return {
+        energyNeeded:    ENERGY_PER_TX * validRows.length,
+        bandwidthNeeded: BANDWIDTH_PER_TX * validRows.length,
+        txCount:         validRows.length,
+        isTRX,
+    };
+}
 
-class EnergyRental extends Component {
-    constructor(props) {
-        super(props);
+// ── Main component ─────────────────────────────────────────────────────────────
+function BulkSendPage({ tronWeb, accountAddress, isViewerMode, t }) {
+    // ── Brutus rental prices (shared hook) ──────────────────────────────────
+    const { precios } = useBrutusRentalPrices();
 
-        this.state = {
-            deposito: "Loading...",
-            wallet: "Loading...",
-            precio: "****",
-            wallet_orden: "",
-            recurso: "energy",
-            cantidad: 32000,
-            montoMin: 32000,
-            minPrice: "2.56",
-            periodo: 5,
-            temporalidad: "min",
-            duration: "5min",
-            av_band: new BigNumber(0),
-            av_energy: new BigNumber(0),
-            available_bandwidth: [],
-            available_energy: [],
-            total_bandwidth_pool: 0,
-            total_energy_pool: 0,
-            titulo: "Titulo",
-            body: "Cuerpo del mensaje",
-            amounts: amountsE,
-            energyOn: false,
-            bandOn: false,
-            fromUrl: true,
+    // ── Modal state ──────────────────────────────────────────────────────────
+    const [modalTitle, setModalTitle] = useState("");
+    const [modalBody, setModalBody] = useState(null);
 
-            unitEnergyPrice: new BigNumber(1),
-            precios: { energy: [], bandwidth: [] },
+    const showModal = useCallback((title, body) => {
+        setModalTitle(title);
+        setModalBody(body);
+        window.$("#mensaje-bbsend").modal("show");
+    }, []);
 
-            referral: false,
+    // ── Token & recipients ───────────────────────────────────────────────────
+    const [token, setToken] = useState(KNOWN_TOKENS[1]); // USDT default
+    const [customAddress, setCustomAddress] = useState("");
+    const [customDecimals, setCustomDecimals] = useState("6");
+    const [recipients, setRecipients] = useState([{ address: "", amount: "" }]);
 
-            // ── Bulk Token Send state ──────────────────────────────────────────────
-            bulk_token: KNOWN_TOKENS[1], // default: USDT
-            bulk_customAddress: "",
-            bulk_customDecimals: "6",
-            bulk_recipients: [{ address: "", amount: "" }],
-            bulk_sending: false,
-            bulk_results: [],   // { address, amount, status, txid }
-            bulk_rentResources: true,   // auto-rent enabled by default
-            bulk_rentDone: false,        // flag: rental already executed this session
+    // ── Send state ───────────────────────────────────────────────────────────
+    const [sending, setSending] = useState(false);
+    const [results, setResults] = useState([]);     // per-row send results
+    const [progress, setProgress] = useState(null); // { current, total, phase, step }
+    const [rentResources, setRentResources] = useState(true);
 
-            // Progress tracking during bulk send
-            bulk_progress: null,        // null | { current, total, step, phase }
-            // phase: 'renting' | 'signing' | 'broadcasting' | 'waiting' | 'done'
+    // ── Energy & balance estimates ───────────────────────────────────────────
+    const [exactEstimate, setExactEstimate] = useState(null);
+    const [estimating, setEstimating] = useState(false);
+    const [burnSunPerEnergy, setBurnSunPerEnergy] = useState(new BigNumber(420));
+    const [userEnergy, setUserEnergy] = useState(null);
+    const [tokenBalance, setTokenBalance] = useState(null);
 
-            // Persistent local transaction history (loaded from localStorage)
-            bulk_txHistory: loadTxHistory(),
-            bulk_historyFilter: "all",  // 'all' | 'ok' | 'error'
+    // ── Transaction history ──────────────────────────────────────────────────
+    const [txHistory, setTxHistory] = useState(loadTxHistory);
+    const [historyFilter, setHistoryFilter] = useState("all");
 
-            // ── Exact energy estimate for the comparison panel ─────────────────────
-            // Updated asynchronously whenever recipients or token change
-            bulk_exactEstimate: null,   // null | { perRow, totalEnergy, energyMin, energyMax, energyAvg, txCount, source }
-            bulk_estimating: false,     // true while simulation is running
-            // Real on-chain burn rate (SUN per energy unit) from chain parameters.
-            // Default 420 SUN — current mainnet value as of 2025 (updateEnergyLimit).
-            bulk_burnSunPerEnergy: new BigNumber(420),
-            // Wallet's current available energy (fetched alongside simulation)
-            bulk_userEnergy: null,      // null = not yet fetched | number = available energy
-            // Sender's token balance (fetched alongside simulation)
-            // null = not yet fetched | BigNumber = balance in human units
-            bulk_tokenBalance: null,
-        };
+    // ── Debounce timer ref ───────────────────────────────────────────────────
+    const debounceRef = useRef(null);
 
-        this.handleChangePeriodo = this.handleChangePeriodo.bind(this);
-        this.handleChangeWallet = this.handleChangeWallet.bind(this);
+    // ── Page title ───────────────────────────────────────────────────────────
+    useEffect(() => {
+        document.getElementById("tittle").innerText = t("ebot.tittle") + " — Bulk Send";
+    }, [t]);
 
-        this.updateAmount = this.updateAmount.bind(this);
-
-        this.estado = this.estado.bind(this);
-
-        this.recursos = this.recursos.bind(this);
-        this.calcularRecurso = this.calcularRecurso.bind(this);
-        this.calcularPrecios = this.calcularPrecios.bind(this);
-
-        this.preCompra = this.preCompra.bind(this);
-        this.compra = this.compra.bind(this);
-        this.showMessage = this.showMessage.bind(this);
-        this.getMessageContent = this.getMessageContent.bind(this);
-
-        // Bulk send bindings
-        this.bulkAddRow = this.bulkAddRow.bind(this);
-        this.bulkRemoveRow = this.bulkRemoveRow.bind(this);
-        this.bulkUpdateRow = this.bulkUpdateRow.bind(this);
-        this.bulkPasteCSV = this.bulkPasteCSV.bind(this);
-        this.bulkSend = this.bulkSend.bind(this);
-        this.bulkClearHistory = this.bulkClearHistory.bind(this);
-        this._refreshExactEstimate = this._refreshExactEstimate.bind(this);
-        this._estimateDebounceTimer = null;
-    }
-
-    // ── Bulk Token Send helpers ────────────────────────────────────────────────
-
-    bulkAddRow() {
-        this.setState((prev) => ({
-            bulk_recipients: [...prev.bulk_recipients, { address: "", amount: "" }],
-        }));
-        this._scheduleEstimate();
-    }
-
-    bulkRemoveRow(index) {
-        this.setState((prev) => {
-            const rows = [...prev.bulk_recipients];
-            rows.splice(index, 1);
-            return { bulk_recipients: rows.length > 0 ? rows : [{ address: "", amount: "" }] };
-        });
-        this._scheduleEstimate();
-    }
-
-    bulkUpdateRow(index, field, value) {
-        this.setState((prev) => {
-            const rows = [...prev.bulk_recipients];
-            rows[index] = { ...rows[index], [field]: value };
-            return { bulk_recipients: rows };
-        });
-        // Re-simulate on any field change:
-        // - address: may affect energy (new account vs existing — first transfer costs more)
-        // - amount:  affects the simulated amountSun which can alter energy_used on some tokens
-        this._scheduleEstimate();
-    }
-
-    bulkClearHistory() {
-        localStorage.removeItem(TX_HISTORY_KEY);
-        this.setState({ bulk_txHistory: [] });
-    }
-
-    /** Parse a pasted CSV block: each line = "address,amount" */
-    bulkPasteCSV(text) {
-        const lines = text
-            .split(/[\n\r]+/)
-            .map((l) => l.trim())
-            .filter(Boolean);
-
-        const parsed = lines.map((line) => {
-            const parts = line.split(/[,;\t]+/);
-            return {
-                address: (parts[0] || "").trim(),
-                amount: (parts[1] || "").trim(),
-            };
-        });
-
-        if (parsed.length > 0) {
-            this.setState({ bulk_recipients: parsed });
-            this._scheduleEstimate();
+    // ── Resolve token address & decimals ─────────────────────────────────────
+    const resolvedToken = useCallback(() => {
+        if (token.address !== "custom") {
+            return { address: token.address, decimals: token.decimals, valid: true };
         }
-    }
+        const addr = customAddress.trim();
+        const dec = parseInt(customDecimals) || 6;
+        const valid = tronWeb ? tronWeb.isAddress(addr) : false;
+        return { address: addr, decimals: dec, valid };
+    }, [token, customAddress, customDecimals, tronWeb]);
 
-    /**
-     * Debounce wrapper: waits 600 ms after the last change before running the
-     * simulation, so we don't spam triggerConstantContract on every keystroke.
-     * Uses a closure over `this` so _refreshExactEstimate always reads the
-     * freshest this.state at execution time (after React has flushed all pending
-     * setState calls from the triggering event).
-     */
-    _scheduleEstimate() {
-        if (this._estimateDebounceTimer) clearTimeout(this._estimateDebounceTimer);
-        this._estimateDebounceTimer = setTimeout(() => {
-            this._estimateDebounceTimer = null;
-            this._refreshExactEstimate();
-        }, 600);
-    }
+    const validRows = recipients.filter(
+        (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
+    );
 
-    /**
-     * Run triggerConstantContract for one representative transfer and update
-     * bulk_exactEstimate + bulk_burnSunPerEnergy + bulk_userEnergy in state.
-     *
-     * Also fetches in parallel:
-     *   - real on-chain energy burn rate (getEnergyFee chain parameter)
-     *   - user's current available energy (EnergyLimit − EnergyUsed)
-     * so the panel can show exact deficit and both cost scenarios.
-     */
-    async _refreshExactEstimate() {
-        const { tronWeb, accountAddress, isViewerMode } = this.props;
-        // Skip if wallet not connected — we can't call triggerConstantContract
-        if (isViewerMode || !tronWeb) return;
+    // ── Schedule exact energy simulation ────────────────────────────────────
+    const scheduleEstimate = useCallback(() => {
+        if (debounceRef.current) clearTimeout(debounceRef.current);
+        debounceRef.current = setTimeout(async () => {
+            debounceRef.current = null;
+            if (isViewerMode || !tronWeb || !accountAddress) return;
 
-        const { bulk_token, bulk_customAddress, bulk_customDecimals, bulk_recipients } = this.state;
+            const { address: tokenAddress, decimals, valid } = resolvedToken();
+            if (!valid || tokenAddress === "custom") return;
 
-        // Resolve token
-        let tokenAddress = bulk_token.address;
-        let decimals = bulk_token.decimals;
-        if (bulk_token.address === "custom") {
-            tokenAddress = bulk_customAddress.trim();
-            decimals = parseInt(bulk_customDecimals) || 6;
-            if (!tronWeb.isAddress(tokenAddress)) return;
-        }
+            const rows = recipients.filter(
+                (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
+            );
+            if (rows.length === 0) {
+                setExactEstimate(null);
+                return;
+            }
 
-        const validRows = bulk_recipients.filter(
-            (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
-        );
+            setEstimating(true);
 
-        if (validRows.length === 0) {
-            this.setState({ bulk_exactEstimate: null });
-            return;
-        }
+            const isTRX = tokenAddress === "TRX";
 
-        this.setState({ bulk_estimating: true });
+            // Run simulation + chain params + energy balance + token balance in parallel
+            const [simResult, chainParams, accountResources, rawBalance] = await Promise.all([
+                // 1. Per-row energy simulation via triggerConstantContract
+                isTRX
+                    ? Promise.resolve({ perRow: [], totalEnergy: 0, energyMin: 0, energyMax: 0, energyAvg: 0, source: "simulation" })
+                    : simulateEnergyPerRow(tronWeb, accountAddress, tokenAddress, decimals, rows, token.energyPerTx ?? 65000),
 
-        try {
-            // ── Run all queries in parallel to minimise latency ──────────────────
-            const [exactEst, chainParams, accountResources, rawBalance] = await Promise.all([
-                // 1. Simulate energy cost via triggerConstantContract
-                this.bulkEstimateEnergyExact(tokenAddress, decimals, validRows),
-
-                // 2. Real on-chain burn rate (getEnergyFee chain parameter)
+                // 2. Real on-chain energy burn rate
                 tronWeb.trx.getChainParameters().catch(() => []),
 
-                // 3. User's current energy balance
+                // 3. User's available energy
                 tronWeb.trx.getAccountResources(accountAddress).catch(() => ({})),
 
-                // 4. Sender's token balance — balanceOf(accountAddress)
-                // For TRX we read the TRX balance instead
-                tokenAddress === "TRX"
+                // 4. Sender's token balance
+                isTRX
                     ? tronWeb.trx.getUnconfirmedBalance(accountAddress).catch(() => 0)
                     : (() => {
-                        const contract = tronWeb.contract(TRC20_ABI, tokenAddress);
-                        return contract.balanceOf(accountAddress).call().catch(() => null);
+                        const c = tronWeb.contract(TRC20_ABI, tokenAddress);
+                        return c.balanceOf(accountAddress).call().catch(() => null);
                     })(),
             ]);
 
-            // ── Parse burn rate ───────────────────────────────────────────────────
-            let burnSunPerEnergy = this.state.bulk_burnSunPerEnergy;
+            // Parse burn rate
+            let burnRate = new BigNumber(420);
             if (Array.isArray(chainParams)) {
-                const param = chainParams.find((p) => p.key === "getEnergyFee");
-                if (param && param.value) burnSunPerEnergy = new BigNumber(param.value);
+                const p = chainParams.find((x) => x.key === "getEnergyFee");
+                if (p && p.value) burnRate = new BigNumber(p.value);
             }
+            setBurnSunPerEnergy(burnRate);
 
-            // ── Parse user available energy ───────────────────────────────────────
-            const energyLimit = accountResources.EnergyLimit || 0;
-            const energyUsed = accountResources.EnergyUsed || 0;
-            const userEnergy = Math.max(0, energyLimit - energyUsed);
+            // Parse user energy
+            const eLimit = accountResources.EnergyLimit || 0;
+            const eUsed  = accountResources.EnergyUsed  || 0;
+            setUserEnergy(Math.max(0, eLimit - eUsed));
 
-            // ── Parse token balance ───────────────────────────────────────────────
-            // rawBalance can be: BigNumber object, plain number (string/int), or null
-            let tokenBalance = null;
+            // Parse token balance
+            let bal = null;
             if (rawBalance !== null && rawBalance !== undefined) {
-                // TRX path gives balance in SUN (number)
-                if (tokenAddress === "TRX") {
-                    tokenBalance = new BigNumber(rawBalance).shiftedBy(-6);
+                if (isTRX) {
+                    bal = new BigNumber(rawBalance).shiftedBy(-6);
                 } else {
-                    // TRC-20 path: some TronWeb versions return { _hex } or plain BigNumber or string
                     const raw = rawBalance?.remaining ?? rawBalance;
-                    tokenBalance = new BigNumber(raw.toString()).shiftedBy(-decimals);
+                    bal = new BigNumber(raw.toString()).shiftedBy(-decimals);
                 }
-                if (tokenBalance.isNaN() || tokenBalance.lt(0)) tokenBalance = new BigNumber(0);
+                if (bal.isNaN() || bal.lt(0)) bal = new BigNumber(0);
             }
+            setTokenBalance(bal);
 
-            this.setState({
-                bulk_exactEstimate: {
-                    perRow: exactEst.perRow,
-                    totalEnergy: exactEst.totalEnergy,
-                    energyMin: exactEst.energyMin,
-                    energyMax: exactEst.energyMax,
-                    energyAvg: exactEst.energyAvg,
-                    txCount: validRows.length,
-                    source: exactEst.source,
-                },
-                bulk_burnSunPerEnergy: burnSunPerEnergy,
-                bulk_userEnergy: userEnergy,
-                bulk_tokenBalance: tokenBalance,
-                bulk_estimating: false,
+            setExactEstimate({
+                ...simResult,
+                txCount: rows.length,
             });
-        } catch (_) {
-            this.setState({ bulk_estimating: false });
-        }
-    }
+            setEstimating(false);
+        }, 600);
+    }, [isViewerMode, tronWeb, accountAddress, resolvedToken, recipients, token.energyPerTx]);
 
-    /**
-     * Estimate energy & bandwidth needed for the current bulk send list.
-     * Uses the static per-token estimate as a fast synchronous approximation
-     * for the UI savings panel.  For the actual pre-flight check before sending
-     * use bulkEstimateEnergyExact() which simulates via triggerConstantContract.
-     *
-     * Returns { energyNeeded, bandwidthNeeded, txCount, isTRX }
-     */
-    bulkEstimateResources() {
-        const { bulk_recipients, bulk_token } = this.state;
-        const validRows = bulk_recipients.filter(
+    // Re-simulate whenever recipients or token changes
+    useEffect(() => {
+        scheduleEstimate();
+        return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+    }, [scheduleEstimate]);
+
+    // Invalidate estimates when token changes
+    const handleTokenChange = useCallback((e) => {
+        const found = KNOWN_TOKENS.find((tk) => tk.address === e.target.value);
+        setToken(found);
+        setExactEstimate(null);
+        setTokenBalance(null);
+    }, []);
+
+    // ── Recipients helpers ───────────────────────────────────────────────────
+    const addRow = () => setRecipients((prev) => [...prev, { address: "", amount: "" }]);
+
+    const removeRow = (idx) =>
+        setRecipients((prev) => {
+            const next = [...prev];
+            next.splice(idx, 1);
+            return next.length > 0 ? next : [{ address: "", amount: "" }];
+        });
+
+    const updateRow = (idx, field, value) =>
+        setRecipients((prev) => {
+            const next = [...prev];
+            next[idx] = { ...next[idx], [field]: value };
+            return next;
+        });
+
+    const pasteCSV = useCallback((text) => {
+        const parsed = text
+            .split(/[\n\r]+/)
+            .map((l) => l.trim())
+            .filter(Boolean)
+            .map((line) => {
+                const parts = line.split(/[,;\t]+/);
+                return { address: (parts[0] || "").trim(), amount: (parts[1] || "").trim() };
+            });
+        if (parsed.length > 0) setRecipients(parsed);
+    }, []);
+
+    // ── Send flow ────────────────────────────────────────────────────────────
+    const handleSend = async () => {
+        if (isViewerMode) {
+            showModal("To continue", "Connect your wallet to perform this operation.");
+            return;
+        }
+
+        const { address: tokenAddress, decimals, valid } = resolvedToken();
+        if (!valid) {
+            showModal("Invalid token address", "Please enter a valid TRC-20 contract address.");
+            return;
+        }
+
+        const rows = recipients.filter(
             (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
         );
 
-        const isTRX = bulk_token.address === "TRX";
-        // Use the per-token energy estimate; fall back to 65 000 for unknown custom tokens
-        const ENERGY_PER_TX = isTRX ? 0 : (bulk_token.energyPerTx ?? 65000);
-        // Bandwidth per tx (signature + data)
-        const BANDWIDTH_PER_TX = isTRX ? 268 : 350;
-
-        return {
-            energyNeeded: ENERGY_PER_TX * validRows.length,
-            bandwidthNeeded: BANDWIDTH_PER_TX * validRows.length,
-            txCount: validRows.length,
-            isTRX,
-        };
-    }
-
-    /**
-     * Simulate every TRC-20 transfer individually via triggerConstantContract,
-     * exactly as BRST-Proxy.jsx does in preClaim() — one simulation per row,
-     * run in parallel to minimise latency.
-     *
-     * Why per-row matters:
-     *   - A wallet receiving a token for the first time activates a new storage
-     *     slot, costing ~20 000 extra energy vs an existing holder.
-     *   - Per-row simulation captures this variance accurately.
-     *
-     * Returns {
-     *   perRow:      [{ address, energyUsed, source }],  // one entry per valid row
-     *   totalEnergy: number,   // exact sum (no blanket multiplier)
-     *   energyMin:   number,   // lowest single-tx cost (for display)
-     *   energyMax:   number,   // highest single-tx cost (for display)
-     *   energyAvg:   number,   // mean
-     *   source:      'simulation' | 'fallback',
-     * }
-     */
-    async bulkEstimateEnergyExact(tokenAddress, decimals, validRows) {
-        const { tronWeb, accountAddress } = this.props;
-        const { bulk_token } = this.state;
+        if (rows.length === 0) {
+            showModal("No valid recipients", "Add at least one recipient with a valid address and amount.");
+            return;
+        }
 
         const isTRX = tokenAddress === "TRX";
-        if (isTRX || validRows.length === 0) {
-            return {
-                perRow: [], totalEnergy: 0,
-                energyMin: 0, energyMax: 0, energyAvg: 0,
-                source: 'simulation',
-            };
-        }
+        const totalAmount = rows.reduce((s, r) => s.plus(new BigNumber(r.amount || 0)), new BigNumber(0));
 
-        const FALLBACK_PER_TX = bulk_token.energyPerTx ?? 65000;
-
-        // ── Simulate every row in parallel ──────────────────────────────────────
-        // Pattern from BRST-Proxy.jsx:preClaim() — triggerConstantContract with
-        // the exact inputs (real recipient address + real amount).
-        // No safety margin here: we report the raw simulation value so the user
-        // sees the true cost.  The rental itself adds a small floor (32 000 min)
-        // in _rentThenBulkSend, which is already documented there.
-        const simulations = await Promise.all(
-            validRows.map(async (row) => {
-                const toAddr = row.address.trim();
-                const amountSun = new BigNumber(row.amount)
-                    .shiftedBy(decimals)
-                    .dp(0)
-                    .toFixed(0);
-
-                const inputs = [
-                    { type: "address", value: tronWeb.address.toHex(toAddr) },
-                    { type: "uint256", value: amountSun },
-                ];
-
-                const sim = await tronWeb.transactionBuilder
-                    .triggerConstantContract(
-                        tronWeb.address.toHex(tokenAddress),
-                        "transfer(address,uint256)",
-                        { feeLimit: 150_000_000 },
-                        inputs,
-                        tronWeb.address.toHex(accountAddress),
-                    )
-                    .catch(() => null);
-
-                const energyUsed = (sim && sim.energy_used) ? sim.energy_used : FALLBACK_PER_TX;
-                const source = (sim && sim.energy_used) ? 'simulation' : 'fallback';
-
-                return { address: toAddr, energyUsed, source };
-            }),
-        );
-
-        const allSimulated = simulations.every((s) => s.source === 'simulation');
-        const totalEnergy = simulations.reduce((acc, s) => acc + s.energyUsed, 0);
-        const energyMin = Math.min(...simulations.map((s) => s.energyUsed));
-        const energyMax = Math.max(...simulations.map((s) => s.energyUsed));
-        const energyAvg = simulations.length > 0 ? Math.round(totalEnergy / simulations.length) : 0;
-
-        return {
-            perRow: simulations,
-            totalEnergy,
-            energyMin,
-            energyMax,
-            energyAvg,
-            source: allSimulated ? 'simulation' : 'fallback',
-        };
-    }
-
-    async bulkSend() {
-        const { isViewerMode, tronWeb, accountAddress } = this.props;
-
-        if (isViewerMode) {
-            this.showMessage(MESSAGE_TYPES.CONNECT_WALLET);
-            return;
-        }
-
-        const {
-            bulk_token,
-            bulk_customAddress,
-            bulk_customDecimals,
-            bulk_recipients,
-            bulk_rentResources,
-        } = this.state;
-
-        // Resolve token info
-        let tokenAddress = bulk_token.address;
-        let decimals = bulk_token.decimals;
-
-        if (bulk_token.address === "custom") {
-            tokenAddress = bulk_customAddress.trim();
-            decimals = parseInt(bulk_customDecimals) || 6;
-
-            if (!tronWeb.isAddress(tokenAddress)) {
-                this.setState({
-                    titulo: "Invalid token address",
-                    body: "Please enter a valid TRC-20 contract address for the custom token.",
-                });
-                window.$("#mensaje-ebot").modal("show");
-                return;
-            }
-        }
-
-        // Validate recipients
-        const validRows = bulk_recipients.filter(
-            (r) => r.address.trim() !== "" && parseFloat(r.amount) > 0,
-        );
-
-        if (validRows.length === 0) {
-            this.setState({
-                titulo: "No valid recipients",
-                body: "Add at least one recipient with a valid address and amount.",
-            });
-            window.$("#mensaje-ebot").modal("show");
-            return;
-        }
-
-        // Confirm before sending — include rental note if opted-in
-        const totalAmount = validRows
-            .reduce((s, r) => s.plus(new BigNumber(r.amount || 0)), new BigNumber(0))
-            .toFixed(decimals > 6 ? 6 : decimals);
-
-        // ── Balance check — block before any simulation or signing ───────────────
-        // Re-fetch balance at send time (state may be stale if user waited).
-        let senderBalance = this.state.bulk_tokenBalance;
+        // ── Balance check (fresh fetch) ──────────────────────────────────────
+        let senderBal = tokenBalance;
         if (!isTRX) {
             try {
-                const contract = tronWeb.contract(TRC20_ABI, tokenAddress);
-                const raw = await contract.balanceOf(accountAddress).call().catch(() => null);
+                const c = tronWeb.contract(TRC20_ABI, tokenAddress);
+                const raw = await c.balanceOf(accountAddress).call().catch(() => null);
                 if (raw !== null) {
-                    const rawVal = raw?.remaining ?? raw;
-                    senderBalance = new BigNumber(rawVal.toString()).shiftedBy(-decimals);
-                    if (senderBalance.isNaN() || senderBalance.lt(0)) senderBalance = new BigNumber(0);
-                    this.setState({ bulk_tokenBalance: senderBalance });
+                    const v = raw?.remaining ?? raw;
+                    senderBal = new BigNumber(v.toString()).shiftedBy(-decimals);
+                    if (senderBal.isNaN() || senderBal.lt(0)) senderBal = new BigNumber(0);
+                    setTokenBalance(senderBal);
                 }
-            } catch (_) { /* use last known value */ }
+            } catch (_) { /* use last known */ }
         }
 
-        if (senderBalance !== null) {
-            const totalBN = new BigNumber(totalAmount);
-            if (totalBN.gt(senderBalance)) {
-                this.setState({
-                    titulo: "Insufficient balance",
-                    body: (
-                        <span>
-                            <i className="bi bi-exclamation-triangle-fill" style={{ color: "#b91c1c", fontSize: "1.3em" }}></i>
-                            {" "}
-                            <strong style={{ color: "#b91c1c" }}>You don{"'"}t have enough {bulk_token.symbol}.</strong>
-                            <br /><br />
-                            <table style={{ width: "100%", fontSize: "0.92em" }}>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ color: "#555" }}>Your balance:</td>
-                                        <td style={{ fontFamily: "monospace", fontWeight: "bold", color: "#b91c1c" }}>
-                                            {senderBalance.dp(6).toString()} {bulk_token.symbol}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ color: "#555" }}>Total to send:</td>
-                                        <td style={{ fontFamily: "monospace", fontWeight: "bold" }}>
-                                            {totalBN.toString()} {bulk_token.symbol}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td style={{ color: "#555" }}>Deficit:</td>
-                                        <td style={{ fontFamily: "monospace", fontWeight: "bold", color: "#b91c1c" }}>
-                                            {totalBN.minus(senderBalance).dp(6).toString()} {bulk_token.symbol}
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                            <br />
-                            Please reduce the amounts or top up your wallet before sending.
-                            <br /><br />
-                            <button
-                                type="button"
-                                className="btn btn-danger btn-sm"
-                                onClick={() => window.$("#mensaje-ebot").modal("hide")}
-                            >
-                                <i className="bi bi-x-circle"></i> Close
-                            </button>
-                        </span>
-                    ),
-                });
-                window.$("#mensaje-ebot").modal("show");
-                return;
-            }
-        }
-
-        // ── Exact energy simulation ──────────────────────────────────────────────
-        // Show a "simulating…" notice while we run triggerConstantContract
-        this.setState({
-            titulo: "Estimating energy…",
-            body: (
+        if (senderBal !== null && totalAmount.gt(senderBal)) {
+            showModal(
+                "Insufficient balance",
                 <span>
-                    <img src="images/cargando.gif" height="20px" alt="loading..." />{" "}
-                    Simulating transaction to calculate exact energy needed…
-                </span>
-            ),
-        });
-        window.$("#mensaje-ebot").modal("show");
-
-        // Simulate via triggerConstantContract — one call per recipient (same
-        // pattern as BRST-Proxy.jsx:preClaim), run in parallel.
-        const exactEst = await this.bulkEstimateEnergyExact(tokenAddress, decimals, validRows);
-        // Static estimate for bandwidth (unchanged — not affected by simulation)
-        const staticEst = this.bulkEstimateResources();
-        const estimate = {
-            ...staticEst,
-            energyNeeded: exactEst.totalEnergy,
-            energyAvg: exactEst.energyAvg,
-            energyMin: exactEst.energyMin,
-            energyMax: exactEst.energyMax,
-            hasVariance: exactEst.energyMin !== exactEst.energyMax,
-            energySource: exactEst.source,
-        };
-
-        // Compute costs for confirmation dialog
-        const { precios } = this.state;
-        const brutusUnitPrice = (() => {
-            const list = precios.energy || [];
-            const found = list.find((p) => p.duration === "5min");
-            return found ? new BigNumber(found.UE) : new BigNumber(0);
-        })();
-        const rentalCostTRX = brutusUnitPrice
-            .times(estimate.energyNeeded)
-            .shiftedBy(-6)
-            .dp(4);
-
-        this.setState({
-            titulo: "Confirm Bulk Send",
-            body: (
-                <span>
-                    <b>Token:</b> {bulk_token.symbol}
-                    {bulk_token.address === "custom" ? ` (${tokenAddress})` : ""}
-                    <br />
-                    <b>Recipients:</b> {validRows.length}
-                    <br />
-                    <b>Total:</b> {totalAmount} {bulk_token.symbol}
-                    <br />
-                    <span style={{ color: "#555", fontSize: "0.9em" }}>
-                        <i className="bi bi-lightning-charge-fill"></i>{" "}
-                        <b>Energy:</b>{" "}
-                        {estimate.hasVariance
-                            ? <>{estimate.energyMin.toLocaleString()}–{estimate.energyMax.toLocaleString()} / tx</>
-                            : <>{estimate.energyAvg.toLocaleString()} / tx</>
-                        }
-                        {" "}({estimate.energySource === 'simulation' ? '✓ simulated' : '⚠ estimated'})
-                        {" — "}total: <b>{estimate.energyNeeded.toLocaleString()}</b>
-                    </span>
-                    {bulk_rentResources && estimate.energyNeeded > 0 && (
-                        <>
-                            <br />
-                            <span style={{ color: "#5a2d82" }}>
-                                <i className="bi bi-lightning-charge-fill"></i>{" "}
-                                <b>Brutus rental:</b> {estimate.energyNeeded.toLocaleString()} energy
-                                (~{rentalCostTRX.toString()} TRX) will be rented first.
-                            </span>
-                        </>
-                    )}
+                    <i className="bi bi-exclamation-triangle-fill" style={{ color: "#b91c1c", fontSize: "1.3em" }}></i>
+                    {" "}
+                    <strong style={{ color: "#b91c1c" }}>You don&apos;t have enough {token.symbol}.</strong>
                     <br /><br />
-                    <button
-                        type="button"
-                        className="btn btn-danger"
-                        onClick={() => window.$("#mensaje-ebot").modal("hide")}
-                    >
-                        Cancel <i className="bi bi-x-circle"></i>
-                    </button>{" "}
-                    <button
-                        type="button"
-                        className="btn btn-success"
-                        onClick={() => {
-                            window.$("#mensaje-ebot").modal("hide");
-                            if (bulk_rentResources && estimate.energyNeeded > 0) {
-                                this._rentThenBulkSend(estimate, tokenAddress, decimals, validRows);
-                            } else {
-                                this._executeBulkSend(tokenAddress, decimals, validRows);
-                            }
-                        }}
-                    >
-                        Confirm <i className="bi bi-bag-check"></i>
+                    <table style={{ width: "100%", fontSize: "0.92em" }}>
+                        <tbody>
+                            <tr>
+                                <td style={{ color: "#555" }}>Your balance:</td>
+                                <td style={{ fontFamily: "monospace", fontWeight: "bold", color: "#b91c1c" }}>
+                                    {senderBal.dp(6).toString()} {token.symbol}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style={{ color: "#555" }}>Total to send:</td>
+                                <td style={{ fontFamily: "monospace", fontWeight: "bold" }}>
+                                    {totalAmount.toString()} {token.symbol}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style={{ color: "#555" }}>Deficit:</td>
+                                <td style={{ fontFamily: "monospace", fontWeight: "bold", color: "#b91c1c" }}>
+                                    {totalAmount.minus(senderBal).dp(6).toString()} {token.symbol}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <br />
+                    Please reduce the amounts or top up your wallet before sending.
+                    <br /><br />
+                    <button type="button" className="btn btn-danger btn-sm"
+                        onClick={() => window.$("#mensaje-bbsend").modal("hide")}>
+                        <i className="bi bi-x-circle"></i> Close
                     </button>
-                </span>
-            ),
-        });
-        // Modal is already open — just update its content (no second show() needed)
-    }
-
-    /**
-     * Rent energy from Brutus for the connected wallet, then execute bulk send.
-     *
-     * Uses the exact energy figure from simulation.  Subtracts the user's current
-     * available energy so we only rent the actual deficit — matching the approach
-     * in BRST-Proxy.jsx:preClaim().
-     */
-    async _rentThenBulkSend(estimate, tokenAddress, decimals, validRows) {
-        const { tronWeb, accountAddress } = this.props;
-
-        // ── Query user's current available energy ──────────────────────────────────
-        let userAvailableEnergy = 0;
-        try {
-            const resources = await tronWeb.trx.getAccountResources(accountAddress);
-            const limit = resources.EnergyLimit || 0;
-            const used = resources.EnergyUsed || 0;
-            userAvailableEnergy = Math.max(0, limit - used);
-        } catch (_) { /* fall through with 0 */ }
-
-        // Only rent the deficit — same logic as BRST-Proxy:preClaim
-        let energyDeficit = estimate.energyNeeded - userAvailableEnergy;
-        if (energyDeficit <= 0) {
-            // User already has enough energy — skip rental and go straight to send
-            this.setState({
-                bulk_progress: {
-                    current: 0,
-                    total: validRows.length,
-                    phase: "signing",
-                    step: "Sufficient energy available — skipping rental.",
-                },
-            });
-            await new Promise((r) => setTimeout(r, 800));
-            this._executeBulkSend(tokenAddress, decimals, validRows);
+                </span>,
+            );
             return;
         }
 
-        // Apply minimum rental floor (32 000) + safety buffer
-        if (energyDeficit < 32000) {
-            energyDeficit = 32000;
-        } else {
-            energyDeficit = Math.ceil(energyDeficit * 1.05); // +5% safety margin
-        }
+        // ── Energy simulation ─────────────────────────────────────────────────
+        showModal(
+            "Estimating energy…",
+            <span>
+                <img src="images/cargando.gif" height="20px" alt="loading..." />{" "}
+                Simulating transactions to calculate exact energy needed…
+            </span>,
+        );
 
-        // ── Phase: renting ────────────────────────────────────────────────────────
-        this.setState({
-            bulk_progress: {
-                current: 0,
-                total: validRows.length,
-                phase: "renting",
-                step: `Wallet has ${userAvailableEnergy.toLocaleString()} energy — renting ${energyDeficit.toLocaleString()} more — please confirm in TronLink`,
-            },
-        });
+        const simResult = isTRX
+            ? { perRow: [], totalEnergy: 0, energyMin: 0, energyMax: 0, energyAvg: 0, source: "simulation" }
+            : await simulateEnergyPerRow(tronWeb, accountAddress, tokenAddress, decimals, rows, token.energyPerTx ?? 65000);
 
-        // Calculate the price for this energy amount
-        const { precios } = this.state;
-        const brutusUnitPrice = (() => {
-            const list = precios.energy || [];
-            const found = list.find((p) => p.duration === "5min");
+        const staticEst = staticEstimateResources(rows, token);
+        const estimate = {
+            ...staticEst,
+            energyNeeded:  simResult.totalEnergy,
+            energyAvg:     simResult.energyAvg,
+            energyMin:     simResult.energyMin,
+            energyMax:     simResult.energyMax,
+            hasVariance:   simResult.energyMin !== simResult.energyMax,
+            energySource:  simResult.source,
+        };
+
+        // Brutus unit price (SUN/energy, 5-min slot)
+        const brutusUnitSun = (() => {
+            const found = (precios.energy || []).find((p) => p.duration === "5min");
             return found ? new BigNumber(found.UE) : new BigNumber(0);
         })();
-        const precioPagar = brutusUnitPrice
-            .times(energyDeficit)
-            .shiftedBy(-6)
-            .dp(6);
+        const rentalCostTRX = brutusUnitSun.times(estimate.energyNeeded).shiftedBy(-6).dp(4);
+
+        // ── Confirmation dialog ───────────────────────────────────────────────
+        showModal(
+            "Confirm Bulk Send",
+            <span>
+                <b>Token:</b> {token.symbol}
+                {token.address === "custom" ? ` (${tokenAddress})` : ""}
+                <br />
+                <b>Recipients:</b> {rows.length}
+                <br />
+                <b>Total:</b> {totalAmount.toFixed(decimals > 6 ? 6 : decimals)} {token.symbol}
+                <br />
+                <span style={{ color: "#555", fontSize: "0.9em" }}>
+                    <i className="bi bi-lightning-charge-fill"></i>{" "}
+                    <b>Energy:</b>{" "}
+                    {estimate.hasVariance
+                        ? <>{estimate.energyMin.toLocaleString()}–{estimate.energyMax.toLocaleString()} / tx</>
+                        : <>{estimate.energyAvg.toLocaleString()} / tx</>
+                    }
+                    {" "}({estimate.energySource === "simulation" ? "✓ simulated" : "⚠ estimated"})
+                    {" — "}total: <b>{estimate.energyNeeded.toLocaleString()}</b>
+                </span>
+                {rentResources && estimate.energyNeeded > 0 && (
+                    <>
+                        <br />
+                        <span style={{ color: "#5a2d82" }}>
+                            <i className="bi bi-lightning-charge-fill"></i>{" "}
+                            <b>Brutus rental:</b> {estimate.energyNeeded.toLocaleString()} energy
+                            (~{rentalCostTRX.toString()} TRX) will be rented first.
+                        </span>
+                    </>
+                )}
+                <br /><br />
+                <button type="button" className="btn btn-danger"
+                    onClick={() => window.$("#mensaje-bbsend").modal("hide")}>
+                    Cancel <i className="bi bi-x-circle"></i>
+                </button>{" "}
+                <button type="button" className="btn btn-success"
+                    onClick={() => {
+                        window.$("#mensaje-bbsend").modal("hide");
+                        if (rentResources && estimate.energyNeeded > 0) {
+                            _rentThenSend(estimate, tokenAddress, decimals, rows, brutusUnitSun);
+                        } else {
+                            _executeSend(tokenAddress, decimals, rows);
+                        }
+                    }}>
+                    Confirm <i className="bi bi-bag-check"></i>
+                </button>
+            </span>,
+        );
+    };
+
+    // ── Rent energy, then send ────────────────────────────────────────────────
+    const _rentThenSend = async (estimate, tokenAddress, decimals, rows, brutusUnitSun) => {
+        // Query current energy again to only rent the deficit
+        let available = 0;
+        try {
+            const res = await tronWeb.trx.getAccountResources(accountAddress);
+            available = Math.max(0, (res.EnergyLimit || 0) - (res.EnergyUsed || 0));
+        } catch (_) { /* use 0 */ }
+
+        let deficit = estimate.energyNeeded - available;
+        if (deficit <= 0) {
+            setProgress({ current: 0, total: rows.length, phase: "signing", step: "Sufficient energy — skipping rental." });
+            await new Promise((r) => setTimeout(r, 800));
+            _executeSend(tokenAddress, decimals, rows);
+            return;
+        }
+
+        deficit = deficit < 32000 ? 32000 : Math.ceil(deficit * 1.05);
+
+        setProgress({
+            current: 0, total: rows.length, phase: "renting",
+            step: `Wallet has ${available.toLocaleString()} energy — renting ${deficit.toLocaleString()} more — confirm in TronLink`,
+        });
+
+        const precioPagar = brutusUnitSun.times(deficit).shiftedBy(-6).dp(6);
 
         try {
-            const unSignedTransaction = await tronWeb.transactionBuilder.sendTrx(
+            const unsigned = await tronWeb.transactionBuilder.sendTrx(
                 config.WALLET_API,
                 tronWeb.toSun(precioPagar.toNumber()),
                 accountAddress,
             );
-            const signedTransaction = await window.tronWeb.trx
-                .sign(unSignedTransaction)
-                .catch((e) => { throw e; });
+            const signed = await window.tronWeb.trx.sign(unsigned).catch((e) => { throw e; });
 
-            this.setState((prev) => ({
-                bulk_progress: {
-                    ...prev.bulk_progress,
-                    phase: "renting",
-                    step: "Sending energy rental order to Brutus…",
-                },
-            }));
+            setProgress((p) => ({ ...p, step: "Sending energy rental order to Brutus…" }));
 
             const rentResult = await utils.rentResource(
-                accountAddress,
-                "energy",
-                energyDeficit,
-                5,
-                "m",
-                precioPagar,
-                signedTransaction,
-                false,
+                accountAddress, "energy", deficit, 5, "m", precioPagar, signed, false,
             );
 
             if (!rentResult.result) {
-                // Rental failed — offer to continue anyway
-                this.setState({
-                    bulk_progress: null,
-                    titulo: "Rental failed",
-                    body: (
-                        <>
-                            Could not rent energy: {rentResult.msg || "unknown error"}
-                            <br /><br />
-                            <button
-                                type="button"
-                                className="btn btn-warning"
-                                onClick={() => {
-                                    window.$("#mensaje-ebot").modal("hide");
-                                    this._executeBulkSend(tokenAddress, decimals, validRows);
-                                }}
-                            >
-                                Continue without rental
-                            </button>{" "}
-                            <button
-                                type="button"
-                                className="btn btn-danger"
-                                data-bs-dismiss="modal"
-                            >
-                                Cancel
-                            </button>
-                        </>
-                    ),
-                });
-                window.$("#mensaje-ebot").modal("show");
+                setProgress(null);
+                showModal("Rental failed",
+                    <>
+                        Could not rent energy: {rentResult.msg || "unknown error"}
+                        <br /><br />
+                        <button type="button" className="btn btn-warning"
+                            onClick={() => { window.$("#mensaje-bbsend").modal("hide"); _executeSend(tokenAddress, decimals, rows); }}>
+                            Continue without rental
+                        </button>{" "}
+                        <button type="button" className="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                    </>,
+                );
                 return;
             }
 
-            // Give a brief moment for energy to propagate on-chain
-            this.setState((prev) => ({
-                bulk_progress: {
-                    ...prev.bulk_progress,
-                    step: "Energy rented ✓ — waiting for on-chain propagation (3 s)…",
-                },
-            }));
+            setProgress((p) => ({ ...p, step: "Energy rented ✓ — waiting for on-chain propagation (3 s)…" }));
             await new Promise((r) => setTimeout(r, 3000));
         } catch (e) {
-            this.setState({
-                bulk_progress: null,
-                titulo: "Rental transaction cancelled",
-                body: (
-                    <>
-                        {e?.message || e?.toString() || "Transaction was rejected."}
-                        <br /><br />
-                        <button
-                            type="button"
-                            className="btn btn-warning"
-                            onClick={() => {
-                                window.$("#mensaje-ebot").modal("hide");
-                                this._executeBulkSend(tokenAddress, decimals, validRows);
-                            }}
-                        >
-                            Continue without rental
-                        </button>{" "}
-                        <button
-                            type="button"
-                            className="btn btn-danger"
-                            data-bs-dismiss="modal"
-                        >
-                            Cancel
-                        </button>
-                    </>
-                ),
-            });
-            window.$("#mensaje-ebot").modal("show");
+            setProgress(null);
+            showModal("Rental cancelled",
+                <>
+                    {e?.message || e?.toString() || "Transaction was rejected."}
+                    <br /><br />
+                    <button type="button" className="btn btn-warning"
+                        onClick={() => { window.$("#mensaje-bbsend").modal("hide"); _executeSend(tokenAddress, decimals, rows); }}>
+                        Continue without rental
+                    </button>{" "}
+                    <button type="button" className="btn btn-danger" data-bs-dismiss="modal">Cancel</button>
+                </>,
+            );
             return;
         }
 
-        // Energy rented — proceed with bulk send
-        this._executeBulkSend(tokenAddress, decimals, validRows);
-    }
+        _executeSend(tokenAddress, decimals, rows);
+    };
 
-    async _executeBulkSend(tokenAddress, decimals, validRows) {
-        const { tronWeb, accountAddress } = this.props;
+    // ── Execute all transfers ─────────────────────────────────────────────────
+    const _executeSend = async (tokenAddress, decimals, rows) => {
         const isTRX = tokenAddress === "TRX";
-
-        // Resolve token symbol for history
         const tokenSymbol = (() => {
-            const found = KNOWN_TOKENS.find((t) => t.address === tokenAddress);
-            return found ? found.symbol : tokenAddress.slice(0, 8) + "…";
+            const f = KNOWN_TOKENS.find((tk) => tk.address === tokenAddress);
+            return f ? f.symbol : tokenAddress.slice(0, 8) + "…";
         })();
 
-        this.setState({
-            bulk_sending: true,
-            bulk_results: [],
-            bulk_progress: {
-                current: 0,
-                total: validRows.length,
-                phase: "signing",
-                step: "Loading token contract…",
-            },
-        });
+        setSending(true);
+        setResults([]);
+        setProgress({ current: 0, total: rows.length, phase: "signing", step: "Loading token contract…" });
 
         let contract;
         if (!isTRX) {
             try {
                 contract = await tronWeb.contract(TRC20_ABI, tokenAddress);
             } catch (e) {
-                this.setState({
-                    bulk_sending: false,
-                    bulk_progress: null,
-                    titulo: "Contract error",
-                    body: "Could not load the token contract: " + e.toString(),
-                });
-                window.$("#mensaje-ebot").modal("show");
+                setSending(false);
+                setProgress(null);
+                showModal("Contract error", "Could not load the token contract: " + e.toString());
                 return;
             }
         }
 
-        const results = [];
+        const txResults = [];
         const historyEntries = [];
         const sessionId = Date.now();
 
-        for (let i = 0; i < validRows.length; i++) {
-            const row = validRows[i];
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
             const toAddr = row.address.trim();
             const amountHuman = new BigNumber(row.amount);
             const amountSun = amountHuman.shiftedBy(decimals).dp(0).toFixed(0);
@@ -990,2466 +582,745 @@ class EnergyRental extends Component {
             let status = "pending";
             let txid = "";
             let errMsg = "";
+            let confirmedStatus = "pending";
 
-            // ── Step: waiting for wallet signature ───────────────────────────────
-            this.setState({
-                bulk_progress: {
-                    current: i + 1,
-                    total: validRows.length,
-                    phase: "signing",
-                    step: `Tx ${i + 1}/${validRows.length} — confirm in TronLink: ${amountHuman.toFixed()} ${tokenSymbol} → ${toAddr.slice(0, 14)}…`,
-                },
+            setProgress({
+                current: i + 1, total: rows.length, phase: "signing",
+                step: `Tx ${i + 1}/${rows.length} — confirm in TronLink: ${amountHuman.toFixed()} ${tokenSymbol} → ${toAddr.slice(0, 14)}…`,
             });
 
             try {
                 if (isTRX) {
-                    // ── TRX native transfer ─────────────────────────────────────────
-                    // Pattern: transactionBuilder → extendExpiration →
-                    //          window.tronLink.tronWeb.trx.sign → tronWeb.trx.sendRawTransaction
-                    const sunAmount = amountHuman.shiftedBy(6).dp(0).toFixed(0);
-
                     const unsigned = await tronWeb.transactionBuilder.sendTrx(
-                        toAddr,
-                        sunAmount,
-                        accountAddress,
+                        toAddr, amountHuman.shiftedBy(6).dp(0).toFixed(0), accountAddress,
                     );
-                    // Extend tx TTL so the user has time to confirm in TronLink
-                    const extended = await tronWeb.transactionBuilder.extendExpiration(
-                        unsigned,
-                        180,
-                    );
+                    const extended = await tronWeb.transactionBuilder.extendExpiration(unsigned, 180);
+                    const signed = await window.tronLink.tronWeb.trx.sign(extended).catch((e) => { throw e; });
 
-                    // Sign via TronLink (window.tronLink.tronWeb.trx.sign)
-                    const signed = await window.tronLink.tronWeb.trx
-                        .sign(extended)
-                        .catch((e) => { throw e; });
-
-                    // ── Step: broadcasting ──────────────────────────────────────────
-                    this.setState((prev) => ({
-                        bulk_progress: {
-                            ...prev.bulk_progress,
-                            phase: "broadcasting",
-                            step: `Tx ${i + 1}/${validRows.length} — broadcasting TRX transfer…`,
-                        },
-                    }));
-
+                    setProgress((p) => ({ ...p, phase: "broadcasting", step: `Tx ${i + 1}/${rows.length} — broadcasting TRX transfer…` }));
                     const receipt = await tronWeb.trx.sendRawTransaction(signed);
-
-                    // receipt.result === true → node accepted
                     txid = receipt.txid || receipt.transaction?.txID || "";
                     status = receipt.result ? "ok" : "failed";
-                    if (status === "failed") {
-                        errMsg = receipt.message
-                            ? Buffer.from(receipt.message, "hex").toString("utf8")
-                            : "Node rejected the transaction";
-                    }
+                    if (status === "failed") errMsg = receipt.message ? Buffer.from(receipt.message, "hex").toString("utf8") : "Node rejected";
                 } else {
-                    // ── TRC-20 transfer ─────────────────────────────────────────────
-                    // Pattern: transactionBuilder.triggerSmartContract → extendExpiration →
-                    //          window.tronLink.tronWeb.trx.sign → tronWeb.trx.sendRawTransaction
-                    //
-                    // This is the canonical signing flow used across all pages in this app.
-                    // Do NOT use contract.method().send() — it bypasses TronLink and can
-                    // silently fail or misreport status.
-
                     const inputs = [
                         { type: "address", value: tronWeb.address.toHex(toAddr) },
                         { type: "uint256", value: amountSun },
                     ];
-
                     const trigger = await tronWeb.transactionBuilder.triggerSmartContract(
-                        tronWeb.address.toHex(tokenAddress),
-                        "transfer(address,uint256)",
-                        { feeLimit: 150_000_000 },  // 150 TRX — covers high-energy tokens (USDD, BTT)
-                        inputs,
-                        tronWeb.address.toHex(accountAddress),
+                        tronWeb.address.toHex(tokenAddress), "transfer(address,uint256)",
+                        { feeLimit: 150_000_000 }, inputs, tronWeb.address.toHex(accountAddress),
                     );
+                    let tx = await tronWeb.transactionBuilder.extendExpiration(trigger.transaction, 180);
+                    tx = await window.tronLink.tronWeb.trx.sign(tx).catch((e) => { throw e; });
 
-                    // Extend TTL so the user has enough time to confirm in TronLink
-                    let transaction = await tronWeb.transactionBuilder.extendExpiration(
-                        trigger.transaction,
-                        180,
-                    );
-
-                    // Sign via TronLink — this opens the TronLink confirmation popup
-                    transaction = await window.tronLink.tronWeb.trx
-                        .sign(transaction)
-                        .catch((e) => { throw e; });
-
-                    // ── Step: broadcasting ──────────────────────────────────────────
-                    this.setState((prev) => ({
-                        bulk_progress: {
-                            ...prev.bulk_progress,
-                            phase: "broadcasting",
-                            step: `Tx ${i + 1}/${validRows.length} — broadcasting TRC-20 transfer…`,
-                        },
-                    }));
-
-                    const receipt = await tronWeb.trx.sendRawTransaction(transaction);
-
-                    // sendRawTransaction returns { result: true/false, txid: '...' }
+                    setProgress((p) => ({ ...p, phase: "broadcasting", step: `Tx ${i + 1}/${rows.length} — broadcasting TRC-20 transfer…` }));
+                    const receipt = await tronWeb.trx.sendRawTransaction(tx);
                     txid = receipt.txid || receipt.transaction?.txID || "";
                     status = receipt.result ? "ok" : "failed";
-                    if (status === "failed") {
-                        errMsg = receipt.message
-                            ? Buffer.from(receipt.message, "hex").toString("utf8")
-                            : "Node rejected the transaction";
-                    }
+                    if (status === "failed") errMsg = receipt.message ? Buffer.from(receipt.message, "hex").toString("utf8") : "Node rejected";
                 }
 
-                // ── Step: result feedback (node-level) ────────────────────────────
-                this.setState((prev) => ({
-                    bulk_progress: {
-                        ...prev.bulk_progress,
-                        phase: status === "ok" ? "waiting" : "error",
-                        step: status === "ok"
-                            ? `Tx ${i + 1}/${validRows.length} ✓ broadcast — waiting for on-chain confirmation… ${txid.slice(0, 20)}…`
-                            : `Tx ${i + 1}/${validRows.length} ✗ ${errMsg.slice(0, 60)}`,
-                    },
+                // On-chain confirmation poll
+                setProgress((p) => ({
+                    ...p, phase: "waiting",
+                    step: `Tx ${i + 1}/${rows.length} ✓ broadcast — waiting for on-chain confirmation… ${txid.slice(0, 20)}…`,
                 }));
 
-                // ── Step: on-chain confirmation poll ──────────────────────────────
-                // Only poll when the node accepted the tx (status === 'ok') and we
-                // have a txid.  TRX transfers: fast; TRC-20: may take a few seconds.
-                let confirmedStatus = "pending"; // 'confirmed' | 'reverted' | 'timeout' | 'pending'
                 if (status === "ok" && txid) {
                     confirmedStatus = await verifyTx(txid, tronWeb, 60000);
-
                     if (confirmedStatus === "reverted") {
-                        // The contract execution succeeded at node level (receipt.result=true)
-                        // but the EVM reverted — treat as failed.
                         status = "reverted";
-                        errMsg = "Transaction was broadcast but reverted on-chain (check energy/allowance)";
+                        errMsg = "Broadcast OK but reverted on-chain (check energy/allowance)";
                     } else if (confirmedStatus === "confirmed") {
                         status = "confirmed";
                     }
-                    // 'timeout' keeps status as 'ok' / 'sent' — we just note it in history
-
-                    this.setState((prev) => ({
-                        bulk_progress: {
-                            ...prev.bulk_progress,
-                            phase: confirmedStatus === "reverted" ? "error"
-                                : confirmedStatus === "confirmed" ? "broadcasting"
-                                    : "broadcasting",
-                            step: confirmedStatus === "confirmed"
-                                ? `Tx ${i + 1}/${validRows.length} ✓ confirmed on-chain — ${txid.slice(0, 20)}…`
-                                : confirmedStatus === "reverted"
-                                    ? `Tx ${i + 1}/${validRows.length} ✗ REVERTED on-chain — ${txid.slice(0, 20)}…`
-                                    : `Tx ${i + 1}/${validRows.length} ~ broadcast, confirmation timed out — ${txid.slice(0, 20)}…`,
-                        },
+                    setProgress((p) => ({
+                        ...p,
+                        phase: confirmedStatus === "reverted" ? "error" : "broadcasting",
+                        step: confirmedStatus === "confirmed"
+                            ? `Tx ${i + 1}/${rows.length} ✓ confirmed — ${txid.slice(0, 20)}…`
+                            : confirmedStatus === "reverted"
+                            ? `Tx ${i + 1}/${rows.length} ✗ REVERTED — ${txid.slice(0, 20)}…`
+                            : `Tx ${i + 1}/${rows.length} ~ broadcast, confirmation timed out — ${txid.slice(0, 20)}…`,
                     }));
                 }
             } catch (e) {
-                // ── Detect TronLink user rejection ────────────────────────────────
-                // TronLink throws a plain string or an object whose message matches
-                // well-known rejection phrases when the user clicks "Reject".
                 const eStr = (e?.message || e?.toString() || "").toLowerCase();
                 const isUserRejection =
-                    eStr.includes("declined") ||
-                    eStr.includes("rejected") ||
-                    eStr.includes("cancel") ||
-                    eStr.includes("user denied") ||
-                    eStr.includes("user rejected") ||
+                    eStr.includes("declined") || eStr.includes("rejected") ||
+                    eStr.includes("cancel") || eStr.includes("user denied") ||
                     eStr === "confirmation declined by user";
 
                 if (isUserRejection) {
-                    // User deliberately cancelled — do not treat as a system error.
                     status = "cancelled";
                     errMsg = "Cancelled by user in TronLink";
+                    setProgress((p) => ({ ...p, phase: "cancelled", step: `Tx ${i + 1}/${rows.length} — cancelled. Remaining transactions skipped.` }));
 
-                    this.setState((prev) => ({
-                        bulk_progress: {
-                            ...prev.bulk_progress,
-                            phase: "cancelled",
-                            step: `Tx ${i + 1}/${validRows.length} — cancelled by user. Remaining transactions skipped.`,
-                        },
-                    }));
+                    historyEntries.push({ id: `${sessionId}-${i}`, timestamp: Date.now(), token: tokenSymbol, tokenAddress, from: accountAddress, to: toAddr, amount: amountHuman.toFixed(), status: "cancelled", txid: "", errMsg });
+                    const updatedResults = [...txResults, { address: toAddr, amount: row.amount, status: "cancelled", txid: "", errMsg }];
+                    txResults.push(...updatedResults.slice(txResults.length));
+                    setResults([...txResults]);
 
-                    // Record this entry then stop — no point asking the user to sign
-                    // the remaining transactions if they already declined.
-                    const cancelledEntry = {
-                        id: `${sessionId}-${i}`,
-                        timestamp: Date.now(),
-                        token: tokenSymbol,
-                        tokenAddress,
-                        from: accountAddress,
-                        to: toAddr,
-                        amount: amountHuman.toFixed(),
-                        status: "cancelled",
-                        txid: "",
-                        errMsg,
-                    };
-                    historyEntries.push(cancelledEntry);
-                    results.push({ address: toAddr, amount: row.amount, status: "cancelled", txid: "", errMsg });
-                    this.setState({ bulk_results: [...results] });
-
-                    // Mark all remaining rows as cancelled too
-                    for (let j = i + 1; j < validRows.length; j++) {
-                        const remaining = validRows[j];
-                        const skippedEntry = {
-                            id: `${sessionId}-${j}`,
-                            timestamp: Date.now(),
-                            token: tokenSymbol,
-                            tokenAddress,
-                            from: accountAddress,
-                            to: remaining.address.trim(),
-                            amount: new BigNumber(remaining.amount).toFixed(),
-                            status: "cancelled",
-                            txid: "",
-                            errMsg: "Skipped — previous transaction cancelled by user",
-                        };
-                        historyEntries.push(skippedEntry);
-                        results.push({
-                            address: remaining.address.trim(),
-                            amount: remaining.amount,
-                            status: "cancelled",
-                            txid: "",
-                            errMsg: "Skipped — previous transaction cancelled by user",
-                        });
+                    for (let j = i + 1; j < rows.length; j++) {
+                        const msg = "Skipped — previous transaction cancelled by user";
+                        historyEntries.push({ id: `${sessionId}-${j}`, timestamp: Date.now(), token: tokenSymbol, tokenAddress, from: accountAddress, to: rows[j].address.trim(), amount: new BigNumber(rows[j].amount).toFixed(), status: "cancelled", txid: "", errMsg: msg });
+                        txResults.push({ address: rows[j].address.trim(), amount: rows[j].amount, status: "cancelled", txid: "", errMsg: msg });
                     }
-                    this.setState({ bulk_results: [...results] });
-
-                    // Exit the loop early
+                    setResults([...txResults]);
                     break;
                 }
 
-                // ── Not a user rejection — technical error ────────────────────────
-                // TronWeb can throw on polling timeout even when the tx was broadcast.
-                // Try to recover a txid from the error object before marking as error.
-                const eTxid =
-                    e?.transaction?.txID ||
-                    e?.txid ||
-                    (typeof e?.message === "string" && /^[0-9a-f]{64}$/i.test(e.message.trim())
-                        ? e.message.trim()
-                        : "");
-
+                const eTxid = e?.transaction?.txID || e?.txid || "";
                 if (eTxid) {
-                    // Tx was broadcast but polling timed out — mark as "sent" (unconfirmed)
-                    txid = eTxid;
-                    status = "sent";
+                    txid = eTxid; status = "sent";
                     errMsg = "Broadcast OK but confirmation timed out — check TronScan";
                 } else {
                     status = "error";
                     errMsg = e?.message || e?.toString() || "unknown error";
                 }
-
-                this.setState((prev) => ({
-                    bulk_progress: {
-                        ...prev.bulk_progress,
-                        phase: status === "sent" ? "broadcasting" : "error",
-                        step: status === "sent"
-                            ? `Tx ${i + 1}/${validRows.length} ~ sent (unconfirmed) — ${txid.slice(0, 20)}…`
-                            : `Tx ${i + 1}/${validRows.length} ✗ ${errMsg.slice(0, 60)}`,
-                    },
+                setProgress((p) => ({
+                    ...p,
+                    phase: status === "sent" ? "broadcasting" : "error",
+                    step: status === "sent"
+                        ? `Tx ${i + 1}/${rows.length} ~ sent (unconfirmed) — ${txid.slice(0, 20)}…`
+                        : `Tx ${i + 1}/${rows.length} ✗ ${errMsg.slice(0, 60)}`,
                 }));
             }
 
-            // Only push entry here for non-cancellation paths
-            // (cancellation already pushed above and broke the loop)
             if (status !== "cancelled") {
-                const entry = {
-                    id: `${sessionId}-${i}`,
-                    timestamp: Date.now(),
-                    token: tokenSymbol,
-                    tokenAddress,
-                    from: accountAddress,
-                    to: toAddr,
-                    amount: amountHuman.toFixed(),
-                    // status: 'confirmed' | 'reverted' | 'ok' | 'sent' | 'failed' | 'error'
-                    // 'confirmed' = node accepted + on-chain SUCCESS receipt
-                    // 'reverted'  = node accepted + on-chain FAILED receipt
-                    // 'ok'/'sent' = node accepted, chain confirmation timed out
-                    // 'failed'    = node rejected at broadcast
-                    // 'error'     = local/signing error
-                    status,
-                    confirmedStatus, // 'confirmed' | 'reverted' | 'timeout' | 'pending'
-                    txid,
-                    errMsg,
-                };
-                historyEntries.push(entry);
-                results.push({ address: toAddr, amount: row.amount, status, confirmedStatus, txid, errMsg });
-                this.setState({ bulk_results: [...results] });
+                historyEntries.push({ id: `${sessionId}-${i}`, timestamp: Date.now(), token: tokenSymbol, tokenAddress, from: accountAddress, to: toAddr, amount: amountHuman.toFixed(), status, confirmedStatus, txid, errMsg });
+                txResults.push({ address: toAddr, amount: row.amount, status, confirmedStatus, txid, errMsg });
+                setResults([...txResults]);
             }
 
-            // Small delay between txs to avoid nonce issues
-            if (status !== "cancelled" && i < validRows.length - 1) {
+            if (status !== "cancelled" && i < rows.length - 1) {
                 await new Promise((r) => setTimeout(r, 1500));
             }
         }
 
-        // Persist history
         appendTxHistory(historyEntries);
-        const freshHistory = loadTxHistory();
+        setTxHistory(loadTxHistory());
 
-        const confirmedCount = results.filter((r) => r.status === "confirmed").length;
-        const revertedCount = results.filter((r) => r.status === "reverted").length;
-        const okCount = results.filter((r) => r.status === "ok" || r.status === "sent").length;
-        const failCount = results.filter((r) => r.status === "failed" || r.status === "error").length;
-        const cancelledCount = results.filter((r) => r.status === "cancelled").length;
+        const confirmed  = txResults.filter((r) => r.status === "confirmed").length;
+        const reverted   = txResults.filter((r) => r.status === "reverted").length;
+        const broadcast  = txResults.filter((r) => r.status === "ok" || r.status === "sent").length;
+        const failed     = txResults.filter((r) => r.status === "failed" || r.status === "error").length;
+        const cancelled  = txResults.filter((r) => r.status === "cancelled").length;
 
-        const wasAborted = cancelledCount > 0;
+        const parts = [];
+        if (confirmed)  parts.push(`${confirmed} confirmed`);
+        if (broadcast)  parts.push(`${broadcast} broadcast`);
+        if (reverted)   parts.push(`${reverted} reverted`);
+        if (failed)     parts.push(`${failed} failed`);
+        if (cancelled)  parts.push(`${cancelled} cancelled`);
 
-        const summaryParts = [];
-        if (confirmedCount > 0) summaryParts.push(`${confirmedCount} confirmed`);
-        if (okCount > 0) summaryParts.push(`${okCount} broadcast (unconfirmed)`);
-        if (revertedCount > 0) summaryParts.push(`${revertedCount} reverted`);
-        if (failCount > 0) summaryParts.push(`${failCount} failed`);
-        if (cancelledCount > 0) summaryParts.push(`${cancelledCount} cancelled`);
-
-        this.setState({
-            bulk_sending: false,
-            bulk_txHistory: freshHistory,
-            bulk_progress: {
-                current: results.length,
-                total: validRows.length,
-                phase: wasAborted ? "cancelled" : revertedCount > 0 || failCount > 0 ? "error" : "done",
-                step: (wasAborted ? "Aborted: " : "Completed: ") + summaryParts.join(", ") + ". Results saved to history.",
-            },
+        setSending(false);
+        setProgress({
+            current: txResults.length,
+            total: rows.length,
+            phase: cancelled > 0 ? "cancelled" : reverted > 0 || failed > 0 ? "error" : "done",
+            step: (cancelled > 0 ? "Aborted: " : "Completed: ") + parts.join(", ") + ". Results saved to history.",
         });
-    }
+    };
 
-    /**
-     * Función centralizada para obtener el contenido de los mensajes
-     * @param {string} messageType - Tipo de mensaje de MESSAGE_TYPES
-     * @param {object} params - Parámetros adicionales para el mensaje
-     * @returns {object} - Objeto con titulo y body del mensaje
-     */
-    getMessageContent(messageType, params = {}) {
-        const { t, i18n } = this.props;
-        const { recurso, cantidad, periodo, temporalidad, wallet_orden, precio } = this.state;
+    // ── UI helpers ────────────────────────────────────────────────────────────
+    const staticEst = staticEstimateResources(recipients, token);
 
-        const messages = {
-            [MESSAGE_TYPES.CONNECT_WALLET]: {
-                titulo: "To continue",
-                body: "Connect your wallet to perform this operation.",
-            },
-            [MESSAGE_TYPES.ERANGE]: {
-                titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
-                body: t("ebot.alert.eRange", { returnObjects: true })[1],
-            },
-            [MESSAGE_TYPES.ERANGE2]: {
-                titulo: t("ebot.alert.eRange", { returnObjects: true })[0],
-                body: t("ebot.alert.eRange2"),
-            },
-            [MESSAGE_TYPES.ERESOURCE]: {
-                titulo: i18n.t("ebot.alert.eResource", { returnObjects: true })[0],
-                body: (
-                    <span>
-                        {i18n.t("ebot.alert.eResource", { returnObjects: true })[1]}
-                    </span>
-                ),
-            },
-            [MESSAGE_TYPES.SOLD_OUT_ENERGY]: {
-                titulo: <>{t("ebot.alert.soldOut", { returnObjects: true })[0]}</>,
-                body: (
-                    <>
-                        {" "}
-                        <img
-                            src="/images/alerts/recarge_energy.jpeg"
-                            alt="Energy sold out"
-                            style={{ borderRadius: "15px", width: "100%" }}
-                        ></img>{" "}
-                        <br></br>
-                        <br></br>
-                        {t("ebot.alert.soldOut", { returnObjects: true })[1]}
-                    </>
-                ),
-            },
-            [MESSAGE_TYPES.SOLD_OUT]: {
-                titulo: t("ebot.alert.soldOut", { returnObjects: true })[0],
-                body: t("ebot.alert.soldOut", { returnObjects: true })[1],
-            },
-            [MESSAGE_TYPES.ERROR_PRICE]: {
-                titulo: "Error",
-                body: "error to calculating price of resource",
-            },
-            [MESSAGE_TYPES.NO_FUNDS]: {
-                titulo: i18n.t("ebot.alert.noFounds", { returnObjects: true })[0],
-                body: (
-                    <span>
-                        {i18n.t("ebot.alert.noFounds", { returnObjects: true })[1]}
-                    </span>
-                ),
-            },
-            [MESSAGE_TYPES.ETRONLINK]: {
-                titulo: i18n.t("ebot.alert.eTronlink", { returnObjects: true })[0],
-                body: (
-                    <span>
-                        {i18n.t("ebot.alert.eTronlink", { returnObjects: true })[1]}
-                        <br></br>
-                        <button className="btn btn-danger" data-bs-dismiss="modal">
-                            Ok
-                        </button>
-                    </span>
-                ),
-            },
-            [MESSAGE_TYPES.INSUFFICIENT_RESOURCES]: {
-                titulo: "Error",
-                body: "insufficient resources to cover this order try a lower value or try again later.",
-            },
-            [MESSAGE_TYPES.CONFIRM_ORDER]: {
-                titulo: <>Confirm order information</>,
-                body: (
-                    <span>
-                        <b>Buy: </b> {cantidad + " " + recurso + " " + periodo + temporalidad}
-                        <br></br>
-                        <b>For: </b> {params.pagas} TRX<br></br>
-                        <b>To: </b> {wallet_orden}
-                        <br></br>
-                        <br></br>
-                        <br></br>
-                        <button
-                            type="button"
-                            className="btn btn-danger"
-                            onClick={() => {
-                                window.$("#mensaje-ebot").modal("hide");
-                            }}
-                        >
-                            Cancel <i className="bi bi-x-circle"></i>
-                        </button>{" "}
-                        <button
-                            type="button"
-                            className="btn btn-success"
-                            onClick={() => {
-                                this.compra(
-                                    cantidad,
-                                    periodo,
-                                    temporalidad,
-                                    recurso,
-                                    wallet_orden,
-                                    params.pagas,
-                                );
-                            }}
-                        >
-                            Confirm <i className="bi bi-bag-check"></i>
-                        </button>
-                    </span>
-                ),
-            },
-            [MESSAGE_TYPES.CONFIRM_TRANSACTION]: {
-                titulo: <>Confirm transaction {imgLoading}</>,
-                body: <>Please confirm the transaction from your wallet </>,
-            },
-            [MESSAGE_TYPES.TRANSACTION_FAILED]: {
-                titulo: "Transaction failed",
-                body: (
-                    <>
-                        {params.error?.toString()}
-                        <br></br>
-                        <br></br>
-                        <button
-                            type="button"
-                            className="btn btn-danger"
-                            onClick={() => {
-                                window.$("#mensaje-ebot").modal("hide");
-                            }}
-                        >
-                            Close
-                        </button>
-                    </>
-                ),
-            },
-            [MESSAGE_TYPES.PROCESSING_ORDER]: {
-                titulo: <>Your order is being processed {imgLoading}</>,
-                body: (
-                    <>
-                        {imgBotLoading}
-                        <br></br>Please wait while one of our robots processes your recharge. We try to be as fast as possible, but this may take up to 2 minutes for large orders.
-                    </>
-                ),
-            },
-            [MESSAGE_TYPES.COMPLETED_SUCCESS]: {
-                titulo: "Completed successfully",
-                body: (
-                    <>
-                        Rental of {recurso} is completed successfully.<br></br>
-                        <br></br>{" "}
-                        <button
-                            type="button"
-                            data-bs-dismiss="modal"
-                            className="btn btn-success"
-                        >
-                            Thank you!
-                        </button>
-                    </>
-                ),
-            },
-            [MESSAGE_TYPES.CONTACT_SUPPORT]: {
-                titulo: "Contact support",
-                body: "Support hash: " + params.hash + " | " + params.msg,
-            },
+    // Cumulative balance check per row
+    const rowBalanceState = (() => {
+        let running = new BigNumber(0);
+        return recipients.map((row) => {
+            const amt = parseFloat(row.amount);
+            if (!row.address.trim() && (isNaN(amt) || amt <= 0)) return { state: "empty", running: 0 };
+            if (isNaN(amt) || amt <= 0) return { state: "empty", running: running.toNumber() };
+            running = running.plus(new BigNumber(amt));
+            if (tokenBalance === null) return { state: "loading", running: running.toNumber() };
+            return {
+                state: running.gt(tokenBalance) ? "insufficient" : "ok",
+                running: running.toNumber(),
+            };
+        });
+    })();
+
+    const anyInsufficient = rowBalanceState.some((r) => r.state === "insufficient");
+    const tokenSymbolDisplay = token.symbol === "Custom…" ? "tokens" : token.symbol;
+
+    // Energy panel derived values
+    const totalEnergy = exactEstimate
+        ? exactEstimate.totalEnergy
+        : Math.round((staticEst.txCount > 0 ? staticEst.energyNeeded / staticEst.txCount : token.energyPerTx ?? 65000)) * staticEst.txCount;
+    const energyAvg = exactEstimate ? exactEstimate.energyAvg : Math.round(staticEst.energyNeeded / Math.max(staticEst.txCount, 1));
+    const energyMin = exactEstimate ? exactEstimate.energyMin : energyAvg;
+    const energyMax = exactEstimate ? exactEstimate.energyMax : energyAvg;
+    const hasVariance = exactEstimate ? exactEstimate.energyMin !== exactEstimate.energyMax : false;
+    const energySource = exactEstimate ? exactEstimate.source : "static";
+
+    const userAvailable = userEnergy !== null ? userEnergy : 0;
+    const userEnergyKnown = userEnergy !== null;
+    const deficit = Math.max(0, totalEnergy - userAvailable);
+    const needsRental = deficit > 0;
+
+    const brutusUnitSun = (() => {
+        const f = (precios.energy || []).find((p) => p.duration === "5min");
+        return f ? new BigNumber(f.UE) : new BigNumber(0);
+    })();
+    const brutusCostTRX = brutusUnitSun.times(deficit).shiftedBy(-6).dp(6);
+    const burnCostTRX = burnSunPerEnergy.times(deficit).shiftedBy(-6).dp(6);
+    const savings = burnCostTRX.minus(brutusCostTRX);
+    const savingsPct = burnCostTRX.gt(0) ? savings.div(burnCostTRX).times(100).dp(1) : new BigNumber(0);
+
+    const tokenBalanceBg = tokenBalance === null ? "#f0f4ff" : (tokenBalance.gte(recipients.reduce((a, r) => a.plus(new BigNumber(parseFloat(r.amount) || 0)), new BigNumber(0))) ? "#dcfce7" : "#fdecea");
+
+    // Phase colours for progress panel
+    const phaseColors = {
+        renting:      { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
+        signing:      { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill",              color: "#1565c0" },
+        broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast",             color: "#2e7d32" },
+        waiting:      { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split",       color: "#6a1b9a" },
+        error:        { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
+        cancelled:    { bg: "#f5f5f5", border: "#95a5a6", icon: "bi-slash-circle",          color: "#7f8c8d" },
+        done:         { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all",            color: "#1b5e20" },
+    };
+
+    // Status badge for history
+    const statusBadge = (tx) => {
+        const map = {
+            confirmed: ["#1a7a3c", "bi-check2-circle", "Confirmed"],
+            ok:        ["#27ae60", "bi-check-circle-fill", "Broadcast"],
+            sent:      ["#e67e22", "bi-broadcast", "Sent~"],
+            reverted:  ["#c0392b", "bi-arrow-counterclockwise", "Reverted"],
+            failed:    ["#c0392b", "bi-x-circle-fill", "Failed"],
+            error:     ["#c0392b", "bi-x-circle-fill", "Error"],
+            cancelled: ["#95a5a6", "bi-slash-circle", "Cancelled"],
         };
-
-        return messages[messageType] || {
-            titulo: "Information",
-            body: "An action has been performed.",
-        };
-    }
-
-    /**
-     * Función centralizada para mostrar mensajes al usuario
-     * @param {string} messageType - Tipo de mensaje de MESSAGE_TYPES
-     * @param {object} params - Parámetros adicionales para el mensaje
-     * @param {boolean} showModal - Si se debe mostrar el modal automáticamente (default: true)
-     */
-    showMessage(messageType, params = {}, showModal = true) {
-        const { titulo, body } = this.getMessageContent(messageType, params);
-
-        this.setState({
-            titulo,
-            body,
-        });
-
-        if (showModal) {
-            window.$("#mensaje-ebot").modal("show");
-        }
-    }
-
-    async componentDidMount() {
-        const { t } = this.props;
-
-        document.getElementById("tittle").innerText = t("ebot.tittle");
-
-        setTimeout(() => {
-            this.estado();
-        }, 2 * 1000);
-
-        intervalId = setInterval(() => {
-            this.estado();
-        }, 15 * 1000);
-    }
-
-    componentWillUnmount() {
-        clearInterval(intervalId);
-        if (this._estimateDebounceTimer) clearTimeout(this._estimateDebounceTimer);
-    }
-
-    handleChangeWallet(event) {
-        const dato = event.target.value;
-        this.setState({
-            wallet_orden: dato,
-        });
-    }
-
-    async handleChangePeriodo(event) {
-        const dato = event.target.value.toLowerCase();
-        let tmp = "d";
-
-        document.getElementById("periodo").value = dato;
-
-        if (dato.split("h").length > 1 || dato.split("hora").length > 1) {
-            tmp = "h";
-        }
-
-        if (dato.split("m").length > 1 || dato.split("min").length > 1) {
-            tmp = "m";
-        }
-
-        await this.setState({
-            periodo: parseInt(dato),
-            temporalidad: tmp,
-            duration: parseInt(dato) + tmp,
-        });
-
-        this.calcularRecurso();
-    }
-
-    updateAmount(amount) {
-        const { recurso } = this.state;
-
-        let montoMin = 32000;
-        if (recurso === "bandwidth") {
-            montoMin = 1000;
-        }
-
-        this.setState({ montoMin });
-
-        let cantidad = 0;
-        if (amount) {
-            cantidad = amount;
-            try {
-                const elAmount = document.getElementById("amount");
-
-                if (elAmount) {
-                    elAmount.value = amount;
-                }
-            } catch (e) {
-                console.log(e);
-            }
-        } else {
-            try {
-                const elAmount = document.getElementById("amount");
-
-                if (elAmount) {
-                    cantidad = elAmount.value;
-                }
-            } catch (e) {
-                console.log(e);
-            }
-        }
-
-        cantidad = parseInt(cantidad);
-
-        if (parseInt(cantidad) < montoMin || isNaN(cantidad)) {
-            cantidad = montoMin;
-        }
-
-        this.setState({ cantidad });
-
-        return cantidad;
-    }
-
-    async estado() {
-        const { fromUrl } = this.state;
-
-        await this.calcularPrecios();
-
-        const loc = document.location.href;
-        if ((loc.indexOf("amount") > 0 || loc.indexOf("amb") > 0) && fromUrl) {
-            const getString = loc.split("?")[1];
-            const GET = getString.split("&");
-            const get = {};
-            let tmp;
-
-            for (let i = 0, l = GET.length; i < l; i++) {
-                tmp = GET[i].split("=");
-                get[tmp[0]] = unescape(decodeURI(tmp[1]));
-            }
-
-            if (parseInt(get["amount"]) >= 32000) {
-                const cantidad = parseInt(get["amount"]);
-                let recurso = "energy";
-                let duration = "5min";
-                if (get["resource"] !== undefined) {
-                    recurso = get["resource"];
-                }
-
-                if (recurso === "band" || recurso === "bandwidth") {
-                    recurso = "bandwidth";
-                } else {
-                    recurso = "energy";
-                }
-
-                if (get["duration"] !== undefined) {
-                    duration = get["duration"];
-                }
-
-                await this.setState({
-                    cantidad,
-                    recurso,
-                    temporalidad: "m",
-                    periodo: "5",
-                    duration,
-                    fromUrl: false,
-                });
-
-                this.updateAmount(cantidad);
-
-                this.preCompra();
-            }
-
-            if (get["amb"] !== undefined) {
-                await this.setState({ referral: get["amb"] });
-            }
-        }
-
-        this.calcularRecurso();
-    }
-
-    async recursos() {
-        let { energyOn, bandOn } = this.state;
-
-        let consulta = false;
-        const URL = config.BOT_URL;
-
-        consulta = await fetch(URL)
-            .then((r) => r.json())
-            .catch((e) => {
-                console.log(e);
-                return false;
-            });
-
-        energyOn = consulta.available;
-        bandOn = consulta.available;
-
-        consulta = await fetch(URL + "available")
-            .then((r) => r.json())
-            .catch((e) => {
-                console.log(e);
-                return false;
-            });
-
-        if (!consulta) return false;
-
-        const available_energy = [
-            {
-                duration: "5min",
-                available: consulta.av_energy[0].available,
-            },
-            {
-                duration: "1h",
-                available: consulta.av_energy[0].available,
-            },
-            {
-                duration: "1d",
-                available: consulta.av_energy[1].available,
-            },
-            {
-                duration: "3d",
-                available: consulta.av_energy[2].available,
-            },
-            {
-                duration: "7d",
-                available: consulta.av_energy[3].available,
-            },
-            {
-                duration: "14d",
-                available: consulta.av_energy[3].available,
-            },
-            {
-                duration: "30d",
-                available: consulta.av_energy[3].available,
-            },
-        ];
-
-        const available_bandwidth = [
-            {
-                duration: "5min",
-                available: consulta.av_band[0].available,
-            },
-            {
-                duration: "1h",
-                available: consulta.av_band[0].available,
-            },
-            {
-                duration: "1d",
-                available: consulta.av_band[1].available,
-            },
-            {
-                duration: "3d",
-                available: consulta.av_band[2].available,
-            },
-            {
-                duration: "7d",
-                available: consulta.av_band[3].available,
-            },
-            {
-                duration: "14d",
-                available: consulta.av_band[3].available,
-            },
-            {
-                duration: "30d",
-                available: consulta.av_band[3].available,
-            },
-        ];
-
-        const elPeriodo = document.getElementById("periodo");
-        let duration = "5min";
-        if (elPeriodo) {
-            duration = elPeriodo.value;
-        }
-
-        this.setState({ duration });
-
-        let av_energy = available_energy.find((obj) => obj.duration === duration);
-        av_energy = new BigNumber(av_energy.available);
-        this.setState({ av_energy });
-
-        let av_band = available_bandwidth.find((obj) => obj.duration === duration);
-        av_band = new BigNumber(av_band.available);
-        this.setState({ av_band });
-
-        this.setState({
-            available_bandwidth,
-            available_energy,
-            total_bandwidth_pool: consulta.total_bandwidth_pool,
-            total_energy_pool: consulta.total_energy_pool,
-            energyOn,
-            bandOn,
-        });
-
-        return energyOn;
-    }
-
-    async calcularPrecios() {
-        await this.recursos();
-
-        const { precios, duration, recurso } = this.state;
-
-        const url = config.BOT_URL + "/prices/all";
-
-        const consulta = await fetch(url, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
-        })
-            .then(async (r) => await r.json())
-            .catch((e) => {
-                console.log(e);
-                return false;
-            });
-
-        if (consulta) {
-            precios["energy"] = [
-                {
-                    duration: "5min",
-                    UE: new BigNumber(consulta.energy_minutes_100K)
-                        .shiftedBy(1)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "1h",
-                    UE: new BigNumber(consulta.energy_hour_100K)
-                        .shiftedBy(1)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "1",
-                    UE: new BigNumber(consulta.energy_one_day_100K)
-                        .shiftedBy(1)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "2",
-                    UE: new BigNumber(consulta.energy_over_one_day_100K)
-                        .shiftedBy(1)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "3",
-                    UE: new BigNumber(consulta.energy_over_one_day_100K)
-                        .shiftedBy(1)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "4",
-                    UE: new BigNumber(consulta.energy_over_one_day_100K)
-                        .shiftedBy(1)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "7",
-                    UE: new BigNumber(consulta.energy_over_one_day_100K)
-                        .shiftedBy(1)
-                        .times(7 / 3)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "14",
-                    UE: new BigNumber(consulta.energy_over_one_day_100K)
-                        .shiftedBy(1)
-                        .times(14 / 3)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "30",
-                    UE: new BigNumber(consulta.energy_over_one_day_100K)
-                        .shiftedBy(1)
-                        .times(30 / 3)
-                        .dp(6)
-                        .toNumber(),
-                },
-            ];
-
-            precios["bandwidth"] = [
-                {
-                    duration: "5min",
-                    UE: new BigNumber(consulta.band_minutes_1000)
-                        .times(1000)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "1h",
-                    UE: new BigNumber(consulta.band_hour_1000)
-                        .times(1000)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "1",
-                    UE: new BigNumber(consulta.band_one_day_1000)
-                        .times(1000)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "2",
-                    UE: new BigNumber(consulta.band_one_day_1000)
-                        .times(1000)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "3",
-                    UE: new BigNumber(consulta.band_over_one_day_1000)
-                        .times(1000)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "4",
-                    UE: new BigNumber(consulta.band_over_one_day_1000)
-                        .times(1000)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "7",
-                    UE: new BigNumber(consulta.band_over_one_day_1000)
-                        .times(1000)
-                        .times(7 / 3)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "14",
-                    UE: new BigNumber(consulta.band_over_one_day_1000)
-                        .times(1000)
-                        .times(14 / 3)
-                        .dp(6)
-                        .toNumber(),
-                },
-                {
-                    duration: "30",
-                    UE: new BigNumber(consulta.band_over_one_day_1000)
-                        .times(1000)
-                        .times(30 / 3)
-                        .dp(6)
-                        .toNumber(),
-                },
-            ];
-
-            this.setState({ precios });
-        }
-
-        const priceList = precios[recurso];
-
-        if (priceList.length > 0) {
-            const foundPrice = priceList.find((price) => price.duration === duration);
-            if (foundPrice !== undefined) {
-                this.setState({ unitEnergyPrice: foundPrice.UE });
-            }
-        }
-
-        return precios;
-    }
-
-    async calcularRecurso() {
-        this.calcularPrecios();
-
-        let { recurso, montoMin, precio, duration } = this.state;
-
-        const cantidad = this.updateAmount();
-
-        let ok = true;
-
-        if (duration.indexOf("d") >= 0) {
-            if (parseInt(duration[0]) < 1 || parseInt(duration[0]) > 14) {
-                this.showMessage(MESSAGE_TYPES.ERANGE);
-                ok = false;
-            }
-
-            duration = duration.split("d")[0];
-        }
-
-        if (duration.indexOf("h") >= 0) {
-            if (parseInt(duration[0]) !== 1) {
-                this.showMessage(MESSAGE_TYPES.ERANGE2);
-                this.setState({ periodo: "1" });
-                ok = false;
-            }
-
-            duration = "1h";
-        }
-
-        if (duration.indexOf("m") >= 0) {
-            if (parseInt(duration[0]) !== 5) {
-                this.showMessage(MESSAGE_TYPES.ERANGE2);
-                this.setState({ periodo: "5" });
-                ok = false;
-            }
-
-            duration = "5min";
-        }
-
-        const priceList = this.state.precios[recurso];
-
-        if (ok && priceList.length > 0) {
-            const foundPrice = priceList.find((price) => price.duration === duration);
-
-            precio = new BigNumber(foundPrice.UE).times(cantidad);
-            // cobro adicional para aumentar la reserva de trx === 10_000 SUN
-            precio = precio.plus(0);
-
-            precio = precio.shiftedBy(-6).dp(6);
-
-            this.setState({ unitEnergyPrice: foundPrice.UE });
-
-            if (parseInt(cantidad) <= montoMin) {
-                this.setState({ minPrice: precio });
-            }
-        } else {
-            precio = "**.**";
-        }
-
-        this.setState({
-            precio: precio,
-        });
-
-        return precio;
-    }
-
-    async preCompra() {
-        const { isViewerMode } = this.props;
-
-        if (isViewerMode) {
-            this.showMessage(MESSAGE_TYPES.CONNECT_WALLET);
-            return;
-        }
-
-        await this.recursos();
-
-        let {
-            wallet_orden,
-            cantidad,
-            recurso,
-            energyOn,
-            bandOn,
-            av_energy,
-            av_band,
-            total_energy_pool,
-            total_bandwidth_pool,
-        } = this.state;
-        const { accountAddress, tronWeb } = this.props;
-
-        if (!energyOn || !bandOn) {
-            this.showMessage(MESSAGE_TYPES.ERESOURCE);
-            return;
-        }
-
-        if (av_energy.toNumber() < total_energy_pool * 0.005) {
-            energyOn = false;
-
-            if (recurso === "energy") {
-                this.showMessage(MESSAGE_TYPES.SOLD_OUT_ENERGY);
-            }
-        }
-
-        if (av_band.toNumber() < total_bandwidth_pool * 0.005) {
-            bandOn = false;
-            if (recurso !== "energy") {
-                this.showMessage(MESSAGE_TYPES.SOLD_OUT);
-            }
-        }
-
-        const pagas = (await this.calcularRecurso()).toNumber();
-
-        if (isNaN(pagas)) {
-            this.showMessage(MESSAGE_TYPES.ERROR_PRICE);
-            return;
-        }
-
-        if (wallet_orden === "" || !tronWeb.isAddress(wallet_orden)) {
-            this.setState({
-                wallet_orden: accountAddress,
-            });
-        }
-
-        if (
-            parseFloat(pagas) >
-            new BigNumber(await tronWeb.trx.getBalance(accountAddress))
-                .shiftedBy(-6)
-                .toNumber()
-        ) {
-            this.showMessage(MESSAGE_TYPES.NO_FUNDS);
-            return;
-        }
-
-        if (wallet_orden === "" || !tronWeb.isAddress(wallet_orden)) {
-            this.setState({
-                wallet_orden: accountAddress,
-            });
-        }
-
-        if (wallet_orden === "T9yD14Nj9j7xAB4dbGeiX9h8unkKHxuWwb") {
-            this.showMessage(MESSAGE_TYPES.ETRONLINK);
-            return;
-        }
-
-        if (recurso === "energy") {
-            if (cantidad > av_energy.toNumber()) {
-                this.showMessage(MESSAGE_TYPES.INSUFFICIENT_RESOURCES);
-                return;
-            }
-        } else {
-            if (cantidad > av_band.toNumber()) {
-                this.showMessage(MESSAGE_TYPES.INSUFFICIENT_RESOURCES);
-                return;
-            }
-        }
-
-        this.showMessage(MESSAGE_TYPES.CONFIRM_ORDER, { pagas });
-    }
-
-    async compra() {
-        const {
-            cantidad,
-            periodo,
-            temporalidad,
-            recurso,
-            wallet_orden,
-            precio,
-            referral,
-        } = this.state;
-
-        this.showMessage(MESSAGE_TYPES.CONFIRM_TRANSACTION);
-
-        const unSignedTransaction =
-            await this.props.tronWeb.transactionBuilder.sendTrx(
-                config.WALLET_API,
-                this.props.tronWeb.toSun(precio),
-                this.props.accountAddress,
+        const [color, icon, label] = map[tx.status] || ["#aaa", "bi-question-circle", tx.status];
+        return <span className="badge" style={{ background: color }}><i className={`bi ${icon}`}></i> {label}</span>;
+    };
+
+    // Inline tx status cell for recipients table
+    const txStatusCell = (result) => {
+        if (!result) return <span style={{ color: "#bbb" }}>—</span>;
+        const hrefs = ["confirmed", "ok", "sent", "reverted"];
+        if (hrefs.includes(result.status) && result.txid) {
+            const colorMap = { confirmed: "#1a7a3c", ok: "#27ae60", sent: "#e67e22", reverted: "#c0392b" };
+            const iconMap = { confirmed: "bi-check2-circle", ok: "bi-check-circle-fill", sent: "bi-broadcast", reverted: "bi-arrow-counterclockwise" };
+            const labelMap = { confirmed: "Confirmed", ok: "Broadcast", sent: "Sent~", reverted: "Reverted" };
+            return (
+                <a href={`https://tronscan.org/#/transaction/${result.txid}`} target="_blank" rel="noopener noreferrer"
+                    style={{ color: colorMap[result.status], fontWeight: "bold" }} title={result.errMsg || result.txid}>
+                    <i className={`bi ${iconMap[result.status]}`}></i> {labelMap[result.status]}
+                </a>
             );
-        // using adapter to sign the transaction
-        const signedTransaction = await window.tronWeb.trx
-            .sign(unSignedTransaction)
-            .catch((e) => {
-                this.showMessage(MESSAGE_TYPES.TRANSACTION_FAILED, { error: e });
-                return false;
-            });
-
-        if (!signedTransaction) {
-            return false;
         }
+        if (result.status === "cancelled") return <span style={{ color: "#7f8c8d", fontStyle: "italic" }} title={result.errMsg}><i className="bi bi-slash-circle"></i> Cancelled</span>;
+        return <span style={{ color: "#c0392b" }} title={result.errMsg}><i className="bi bi-x-circle-fill"></i> {result.status === "failed" ? "Failed" : "Error"}</span>;
+    };
 
-        this.showMessage(MESSAGE_TYPES.PROCESSING_ORDER);
+    const filteredHistory = txHistory.filter((tx) => {
+        if (historyFilter === "ok")        return ["confirmed", "ok", "sent"].includes(tx.status);
+        if (historyFilter === "error")     return ["failed", "error", "reverted"].includes(tx.status);
+        if (historyFilter === "cancelled") return tx.status === "cancelled";
+        return true;
+    });
 
-        const consulta2 = await utils.rentResource(
-            wallet_orden,
-            recurso,
-            cantidad,
-            periodo,
-            temporalidad,
-            precio,
-            signedTransaction,
-            referral,
-        );
-
-        if (consulta2.result) {
-            this.showMessage(MESSAGE_TYPES.COMPLETED_SUCCESS);
-        } else {
-            console.log(consulta2);
-            this.showMessage(MESSAGE_TYPES.CONTACT_SUPPORT, {
-                hash: consulta2.hash,
-                msg: consulta2.msg
-            });
-        }
-    }
-
-    render() {
-        const { t } = this.props;
-        const { unitEnergyPrice, amounts, recurso, av_energy, av_band } = this.state;
-
-        const amountButtons = amounts.map((amounts) => (
-            <button
-                key={"Amb-" + amounts.text}
-                id="ra1"
-                type="button"
-                className="btn btn-primary"
-                style={{ margin: "auto" }}
-                onClick={() => {
-                    this.updateAmount(amounts.amount);
-                    this.estado();
-                }}
-            >
-                {amounts.text}
-            </button>
-        ));
-
-        let texto = (
-            <>
-                Bandwidth Pool:{" "}
-                {av_band.toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-            </>
-        );
-        let porcentaje =
-            (av_band.toNumber() * 100) / this.state.total_bandwidth_pool;
-
-        if (recurso === "energy") {
-            texto = (
-                <>
-                    Energy Pool:{" "}
-                    {av_energy.toString(10).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
-                </>
-            );
-            porcentaje = (av_energy.toNumber() * 100) / this.state.total_energy_pool;
-        }
-
-        if (isNaN(porcentaje)) porcentaje = 0;
-
-        const medidor = (
-            <>
-                <p className="font-14">
-                    {texto} ({new BigNumber(porcentaje).dp(2).toString(10)}%)
-                </p>
-                <div
-                    className="progress"
-                    style={{ margin: "5px", backgroundColor: "lightgray" }}
-                >
-                    <div
-                        className="progress-bar"
-                        role="progressbar"
-                        style={{ width: porcentaje + "%" }}
-                        aria-valuenow={porcentaje}
-                        aria-valuemin="0"
-                        aria-valuemax="100"
-                    ></div>
+    // ── Render ────────────────────────────────────────────────────────────────
+    return (
+        <>
+            <div className="row mt-3">
+                <div className="col-md-12 text-center mb-3">
+                    <h1>Bulk Token Send</h1>
+                    <p className="font-14" style={{ color: "#888" }}>
+                        Send tokens to multiple addresses in one session — no smart-contract required.
+                    </p>
                 </div>
-            </>
-        );
 
-        function capitalizarPrimeraLetra(str) {
-            return str.charAt(0).toUpperCase() + str.slice(1);
-        }
+                {/* ── Left panel: send form ── */}
+                <div className="col-lg-8 col-sm-12">
+                    <div className="card">
+                        <div className="card-body">
 
-        return (
-            <>
+                            {/* Token selector */}
+                            <div className="row mb-3 align-items-end">
+                                <div className="col-md-5">
+                                    <label className="form-label font-14">Token</label>
+                                    <select className="form-select" value={token.address} onChange={handleTokenChange}>
+                                        {KNOWN_TOKENS.map((tk) => (
+                                            <option key={tk.address} value={tk.address}>{tk.symbol}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {token.address === "custom" && (
+                                    <>
+                                        <div className="col-md-5">
+                                            <label className="form-label font-14">Contract address (TRC-20)</label>
+                                            <input type="text" className="form-control" placeholder="T…"
+                                                value={customAddress}
+                                                onChange={(e) => { setCustomAddress(e.target.value); setExactEstimate(null); setTokenBalance(null); }} />
+                                        </div>
+                                        <div className="col-md-2">
+                                            <label className="form-label font-14">Decimals</label>
+                                            <input type="number" className="form-control" min="0" max="18"
+                                                value={customDecimals}
+                                                onChange={(e) => setCustomDecimals(e.target.value)} />
+                                        </div>
+                                    </>
+                                )}
+                            </div>
 
+                            {/* CSV paste */}
+                            <div className="mb-3">
+                                <label className="form-label font-14">
+                                    Paste CSV <span style={{ color: "#888" }}>(one line per recipient: address,amount)</span>
+                                </label>
+                                <textarea className="form-control" rows={3}
+                                    placeholder="TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U,100&#10;TAnotherAddr,50"
+                                    onBlur={(e) => { if (e.target.value.trim()) { pasteCSV(e.target.value); e.target.value = ""; } }} />
+                            </div>
 
-                {/* ══════════════════════════════════════════════════════════
-             BULK TOKEN SEND
-             ══════════════════════════════════════════════════════════ */}
-                <div className="row mt-5">
-                    <div className="col-md-12 text-center mb-3">
-                        <h1>Bulk Token Send</h1>
-                        <p className="font-14" style={{ color: "#888" }}>
-                            Send tokens to multiple addresses in one session — no smart-contract required.
-                        </p>
-                    </div>
+                            {/* Recipients table */}
+                            {anyInsufficient && tokenBalance !== null && (
+                                <div className="d-flex align-items-center gap-2 p-2 rounded mb-2"
+                                    style={{ background: "#fdecea", border: "1px solid #f5c6cb", fontSize: "0.88em" }}>
+                                    <i className="bi bi-exclamation-triangle-fill" style={{ color: "#b91c1c", fontSize: "1.1em" }}></i>
+                                    <span>
+                                        <strong style={{ color: "#b91c1c" }}>Insufficient balance.</strong>{" "}
+                                        Wallet has <strong>{tokenBalance.dp(6).toString()} {tokenSymbolDisplay}</strong>
+                                        {" "}but total is{" "}
+                                        <strong>{recipients.reduce((a, r) => a.plus(new BigNumber(parseFloat(r.amount) || 0)), new BigNumber(0)).dp(6).toString()} {tokenSymbolDisplay}</strong>.
+                                    </span>
+                                </div>
+                            )}
 
-                    <div className="col-lg-8 col-sm-12">
-                        <div className="card">
-                            <div className="card-body">
+                            <table className="table table-sm table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th>#</th>
+                                        <th>Recipient address</th>
+                                        <th>
+                                            Amount ({tokenSymbolDisplay})
+                                            {tokenBalance !== null && (
+                                                <span style={{ color: "#555", fontWeight: "normal", fontSize: "0.82em" }}>
+                                                    {" "}— balance:{" "}
+                                                    <strong style={{ color: anyInsufficient ? "#b91c1c" : "#16a34a" }}>
+                                                        {tokenBalance.dp(6).toString()}
+                                                    </strong>
+                                                </span>
+                                            )}
+                                        </th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {recipients.map((row, idx) => {
+                                        const rb = rowBalanceState[idx];
+                                        const isInsuff = rb?.state === "insufficient";
+                                        const result = results[idx];
+                                        return (
+                                            <tr key={idx} style={isInsuff ? { background: "#fdecea" } : undefined}>
+                                                <td style={{ verticalAlign: "middle" }}>{idx + 1}</td>
+                                                <td>
+                                                    <input type="text"
+                                                        className={`form-control form-control-sm${isInsuff ? " is-invalid" : ""}`}
+                                                        placeholder="T…" value={row.address}
+                                                        onChange={(e) => updateRow(idx, "address", e.target.value)} />
+                                                </td>
+                                                <td>
+                                                    <input type="number"
+                                                        className={`form-control form-control-sm${isInsuff ? " is-invalid" : ""}`}
+                                                        min="0" placeholder="0" value={row.amount}
+                                                        onChange={(e) => updateRow(idx, "amount", e.target.value)} />
+                                                    {isInsuff && (
+                                                        <div style={{ fontSize: "0.75em", color: "#b91c1c", marginTop: "2px" }}>
+                                                            <i className="bi bi-exclamation-circle"></i>{" "}
+                                                            cumulative {rb.running.toLocaleString()} &gt; balance {tokenBalance.dp(6).toString()}
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td style={{ verticalAlign: "middle", minWidth: "120px" }}>
+                                                    {!result && isInsuff
+                                                        ? <span style={{ color: "#b91c1c", fontWeight: "bold" }}><i className="bi bi-x-circle-fill"></i> Insufficient</span>
+                                                        : txStatusCell(result)
+                                                    }
+                                                </td>
+                                                <td style={{ verticalAlign: "middle" }}>
+                                                    <button type="button" className="btn btn-sm btn-outline-danger"
+                                                        onClick={() => removeRow(idx)} disabled={sending}>
+                                                        <i className="bi bi-trash"></i>
+                                                    </button>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
 
-                                {/* ── Token selector ── */}
-                                <div className="row mb-3 align-items-end">
-                                    <div className="col-md-5">
-                                        <label className="form-label font-14">Token</label>
-                                        <select
-                                            className="form-select"
-                                            value={this.state.bulk_token.address}
-                                            onChange={(e) => {
-                                                const found = KNOWN_TOKENS.find(
-                                                    (t) => t.address === e.target.value,
-                                                );
-                                                this.setState({
-                                                    bulk_token: found,
-                                                    bulk_exactEstimate: null, // invalidate old simulation
-                                                    bulk_tokenBalance: null,  // invalidate old balance
-                                                });
-                                                this._scheduleEstimate();
-                                            }}
-                                        >
-                                            {KNOWN_TOKENS.map((tk) => (
-                                                <option key={tk.address} value={tk.address}>
-                                                    {tk.symbol}
-                                                </option>
-                                            ))}
-                                        </select>
+                            {/* Energy & cost analysis panel */}
+                            {!staticEst.isTRX && (totalEnergy > 0 || estimating) && (
+                                <div className="mt-3 p-3 rounded"
+                                    style={{ background: needsRental && savings.gt(0) ? "#f8f4ff" : "#f0fdf4", border: `1px solid ${needsRental && savings.gt(0) ? "#c9a0e0" : "#86efac"}` }}>
+                                    <h6 className="d-flex align-items-center gap-2 mb-3" style={{ color: "#5a2d82" }}>
+                                        <i className="bi bi-lightning-charge-fill"></i>
+                                        Energy Analysis — {staticEst.txCount} tx
+                                        {estimating && <span style={{ fontSize: "0.8em", color: "#888", fontWeight: "normal" }}><img src="images/cargando.gif" height="14px" alt="" /> simulating…</span>}
+                                        {!estimating && exactEstimate && (
+                                            <span style={{ fontSize: "0.75em", fontWeight: "normal", color: energySource === "simulation" ? "#16a34a" : "#d97706" }}>
+                                                {energySource === "simulation" ? <><i className="bi bi-check-circle-fill"></i> exact simulation</> : <><i className="bi bi-exclamation-triangle-fill"></i> estimated</>}
+                                            </span>
+                                        )}
+                                    </h6>
+
+                                    {/* 5-card breakdown */}
+                                    <div className="row g-2 mb-3" style={{ fontSize: "0.88em" }}>
+                                        <div className="col-6 col-md">
+                                            <div className="p-2 rounded text-center" style={{ background: "#ede0f7" }}>
+                                                <div style={{ fontSize: "0.78em", color: "#7c3aed", textTransform: "uppercase" }}>Required</div>
+                                                <div style={{ fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace", color: "#5a2d82" }}>{totalEnergy.toLocaleString()}</div>
+                                                <div style={{ fontSize: "0.75em", color: "#888" }}>{hasVariance ? <>{energyMin.toLocaleString()}–{energyMax.toLocaleString()} / tx</> : <>{energyAvg.toLocaleString()} / tx</>}</div>
+                                            </div>
+                                        </div>
+                                        <div className="col-6 col-md">
+                                            <div className="p-2 rounded text-center" style={{ background: userAvailable >= totalEnergy ? "#dcfce7" : "#fef9c3" }}>
+                                                <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase" }}>Your wallet</div>
+                                                <div style={{ fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace", color: userAvailable >= totalEnergy ? "#16a34a" : "#b45309" }}>{userEnergyKnown ? userAvailable.toLocaleString() : <span style={{ color: "#aaa" }}>—</span>}</div>
+                                                <div style={{ fontSize: "0.75em", color: "#888" }}>{userEnergyKnown ? (userAvailable >= totalEnergy ? "✓ sufficient" : "insufficient") : "connect wallet"}</div>
+                                            </div>
+                                        </div>
+                                        <div className="col-6 col-md">
+                                            <div className="p-2 rounded text-center" style={{ background: deficit === 0 ? "#dcfce7" : "#fdecea" }}>
+                                                <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase" }}>To cover</div>
+                                                <div style={{ fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace", color: deficit === 0 ? "#16a34a" : "#b91c1c" }}>{deficit === 0 ? <><i className="bi bi-check2"></i> none</> : deficit.toLocaleString()}</div>
+                                                <div style={{ fontSize: "0.75em", color: "#888" }}>{deficit === 0 ? "no rental needed" : "energy deficit"}</div>
+                                            </div>
+                                        </div>
+                                        <div className="col-6 col-md">
+                                            <div className="p-2 rounded text-center" style={{ background: "#f0f4ff" }}>
+                                                <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase" }}>Bandwidth</div>
+                                                <div style={{ fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace", color: "#1d4ed8" }}>{staticEst.bandwidthNeeded.toLocaleString()}</div>
+                                                <div style={{ fontSize: "0.75em", color: "#888" }}>~{Math.round(staticEst.bandwidthNeeded / Math.max(staticEst.txCount, 1))} / tx</div>
+                                            </div>
+                                        </div>
+                                        <div className="col-6 col-md">
+                                            <div className="p-2 rounded text-center" style={{ background: tokenBalanceBg }}>
+                                                <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase" }}>{token.symbol} balance</div>
+                                                <div style={{ fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace", color: tokenBalance === null ? "#888" : anyInsufficient ? "#b91c1c" : "#16a34a" }}>{tokenBalance !== null ? tokenBalance.dp(6).toString() : <span style={{ color: "#aaa" }}>—</span>}</div>
+                                                <div style={{ fontSize: "0.75em", color: "#888" }}>{tokenBalance === null ? "loading…" : anyInsufficient ? "✗ insufficient" : "✓ ok"}</div>
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    {this.state.bulk_token.address === "custom" && (
+                                    {/* Cost comparison */}
+                                    {needsRental && (
                                         <>
-                                            <div className="col-md-5">
-                                                <label className="form-label font-14">
-                                                    Contract address (TRC-20)
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    className="form-control"
-                                                    placeholder="T…"
-                                                    value={this.state.bulk_customAddress}
-                                                    onChange={(e) => {
-                                                        this.setState({
-                                                            bulk_customAddress: e.target.value,
-                                                            bulk_exactEstimate: null,
-                                                            bulk_tokenBalance: null,
-                                                        });
-                                                        this._scheduleEstimate();
-                                                    }}
-                                                />
-                                            </div>
-                                            <div className="col-md-2">
-                                                <label className="form-label font-14">Decimals</label>
-                                                <input
-                                                    type="number"
-                                                    className="form-control"
-                                                    min="0"
-                                                    max="18"
-                                                    value={this.state.bulk_customDecimals}
-                                                    onChange={(e) =>
-                                                        this.setState({ bulk_customDecimals: e.target.value })
-                                                    }
-                                                />
-                                            </div>
+                                            <p style={{ fontSize: "0.82em", color: "#555", marginBottom: "6px" }}>
+                                                Cost to cover <strong>{deficit.toLocaleString()} energy</strong> deficit
+                                                {hasVariance && <span style={{ color: "#d97706", fontSize: "0.9em" }}> — <i className="bi bi-info-circle"></i> varies {energyMin.toLocaleString()}–{energyMax.toLocaleString()} / tx</span>}:
+                                            </p>
+                                            <table className="table table-sm mb-2" style={{ fontSize: "0.88em" }}>
+                                                <thead><tr style={{ background: "#ede0f7" }}><th>Option</th><th>Rate</th><th>Avg / tx</th><th>Total (TRX)</th><th></th></tr></thead>
+                                                <tbody>
+                                                    <tr style={{ background: "#edfaf1" }}>
+                                                        <td><span style={{ color: "#16a34a" }}><i className="bi bi-check-circle-fill"></i></span> <strong>Brutus rental</strong> <span style={{ color: "#888", fontSize: "0.85em" }}>(5 min)</span></td>
+                                                        <td style={{ fontFamily: "monospace", color: "#555" }}>{brutusUnitSun.gt(0) ? brutusUnitSun.dp(2).toString() : "?"} SUN/energy</td>
+                                                        <td style={{ fontFamily: "monospace", color: "#555" }}>{brutusUnitSun.gt(0) && staticEst.txCount > 0 ? brutusCostTRX.div(staticEst.txCount).dp(6).toString() : "—"} TRX</td>
+                                                        <td style={{ color: "#16a34a", fontWeight: "bold", fontFamily: "monospace" }}>{brutusCostTRX.gt(0) ? brutusCostTRX.toString() : "—"} TRX</td>
+                                                        <td>{savings.gt(0) && <span className="badge" style={{ background: "#16a34a", fontSize: "0.78em" }}>-{savingsPct.toString()}%</span>}</td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td><span style={{ color: "#b91c1c" }}><i className="bi bi-fire"></i></span> TRX burn <span style={{ color: "#888", fontSize: "0.85em" }}>(no rental)</span></td>
+                                                        <td style={{ fontFamily: "monospace", color: "#555" }}>{burnSunPerEnergy.toString()} SUN/energy</td>
+                                                        <td style={{ fontFamily: "monospace", color: "#555" }}>{staticEst.txCount > 0 ? burnCostTRX.div(staticEst.txCount).dp(6).toString() : "—"} TRX</td>
+                                                        <td style={{ color: "#b91c1c", fontWeight: "bold", fontFamily: "monospace" }}>{burnCostTRX.gt(0) ? burnCostTRX.toString() : "—"} TRX</td>
+                                                        <td></td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            {savings.gt(0) && (
+                                                <div className="d-flex align-items-center gap-2 p-2 rounded mb-2" style={{ background: "#dcfce7", border: "1px solid #86efac", fontSize: "0.88em" }}>
+                                                    <i className="bi bi-piggy-bank-fill" style={{ color: "#16a34a", fontSize: "1.1em" }}></i>
+                                                    <span>Renting saves <strong style={{ color: "#15803d" }}>~{savings.toString()} TRX ({savingsPct.toString()}%)</strong> vs TRX burn. <strong>Rental recommended.</strong></span>
+                                                </div>
+                                            )}
+                                            {!needsRental || deficit === 0 ? null : !savings.gt(0) && (
+                                                <div className="d-flex align-items-center gap-2 p-2 rounded mb-2" style={{ background: "#fef9c3", border: "1px solid #fde047", fontSize: "0.88em" }}>
+                                                    <i className="bi bi-info-circle-fill" style={{ color: "#b45309" }}></i>
+                                                    <span>Prices are similar — either option works.</span>
+                                                </div>
+                                            )}
                                         </>
                                     )}
-                                </div>
 
-                                {/* ── CSV paste helper ── */}
-                                <div className="mb-3">
-                                    <label className="form-label font-14">
-                                        Paste CSV{" "}
-                                        <span style={{ color: "#888" }}>
-                                            (one line per recipient: address,amount)
-                                        </span>
-                                    </label>
-                                    <textarea
-                                        className="form-control"
-                                        rows={3}
-                                        placeholder={"TGj1Ej1qRzL9feLTLhjwgxXF4Ct6GTWg2U,100\nTAnotherAddr,50"}
-                                        onBlur={(e) => {
-                                            if (e.target.value.trim()) {
-                                                this.bulkPasteCSV(e.target.value);
-                                                e.target.value = "";
+                                    {!needsRental && userEnergyKnown && (
+                                        <div className="d-flex align-items-center gap-2 p-2 rounded mb-2" style={{ background: "#dcfce7", border: "1px solid #86efac", fontSize: "0.88em" }}>
+                                            <i className="bi bi-check2-circle" style={{ color: "#16a34a", fontSize: "1.1em" }}></i>
+                                            <span>Your wallet has <strong>{userAvailable.toLocaleString()} energy</strong> — enough for all {staticEst.txCount} tx at no extra cost.</span>
+                                        </div>
+                                    )}
+
+                                    {/* Rent toggle */}
+                                    <div className="form-check form-switch mt-2">
+                                        <input className="form-check-input" type="checkbox" id="bulk_rent_check"
+                                            checked={rentResources}
+                                            onChange={(e) => setRentResources(e.target.checked)}
+                                            disabled={sending || !needsRental} />
+                                        <label className="form-check-label font-14" htmlFor="bulk_rent_check"
+                                            style={{ cursor: needsRental ? "pointer" : "default", color: needsRental ? "inherit" : "#aaa" }}>
+                                            {needsRental
+                                                ? <><strong>Rent {deficit.toLocaleString()} energy</strong> with Brutus before sending{brutusCostTRX.gt(0) && <span style={{ color: "#555" }}> ({brutusCostTRX.toString()} TRX)</span>}</>
+                                                : <span style={{ color: "#aaa" }}>No rental needed — wallet energy is sufficient</span>
                                             }
-                                        }}
-                                    />
+                                        </label>
+                                    </div>
                                 </div>
+                            )}
 
-                                {/* ── Recipients table ── */}
-                                {/* Pre-compute cumulative balance per row for inline validation */}
-                                {(() => {
-                                    const { bulk_tokenBalance, bulk_recipients, bulk_results, bulk_sending } = this.state;
-                                    const tokenSymbol = this.state.bulk_token.symbol === "Custom…" ? "tokens" : this.state.bulk_token.symbol;
+                            {/* Actions */}
+                            <div className="d-flex gap-2 flex-wrap mt-3">
+                                <button type="button" className="btn btn-outline-primary btn-sm" onClick={addRow} disabled={sending}>
+                                    <i className="bi bi-plus-circle"></i> Add row
+                                </button>
+                                <button type="button" className="btn btn-outline-secondary btn-sm" disabled={sending}
+                                    onClick={() => { setRecipients([{ address: "", amount: "" }]); setResults([]); setProgress(null); }}>
+                                    <i className="bi bi-arrow-counterclockwise"></i> Clear
+                                </button>
+                                <button type="button"
+                                    className={`btn ms-auto ${rentResources ? "btn-warning" : "btn-success"}`}
+                                    disabled={sending || anyInsufficient}
+                                    onClick={handleSend}>
+                                    {sending
+                                        ? <><img src="images/cargando.gif" height="20px" alt="" /> Sending…</>
+                                        : rentResources
+                                        ? <><i className="bi bi-lightning-charge-fill"></i> Rent &amp; Send ({validRows.length} recipients)</>
+                                        : <><i className="bi bi-send-fill"></i> Send all ({validRows.length} recipients)</>
+                                    }
+                                </button>
+                            </div>
 
-                                    // Build per-row balance state: walk rows accumulating amount,
-                                    // mark each row as 'ok' | 'insufficient' | 'no_balance'
-                                    let runningTotal = new BigNumber(0);
-                                    const rowBalance = bulk_recipients.map((row) => {
-                                        const amt = parseFloat(row.amount);
-                                        const hasValidInput = row.address.trim() !== "" || amt > 0;
-
-                                        if (!hasValidInput || isNaN(amt) || amt <= 0) {
-                                            return { state: 'empty', runningTotal: runningTotal.toNumber() };
-                                        }
-
-                                        runningTotal = runningTotal.plus(new BigNumber(amt));
-
-                                        if (bulk_tokenBalance === null) {
-                                            // Balance not yet fetched — neutral
-                                            return { state: 'loading', runningTotal: runningTotal.toNumber() };
-                                        }
-
-                                        if (runningTotal.gt(bulk_tokenBalance)) {
-                                            return { state: 'insufficient', runningTotal: runningTotal.toNumber() };
-                                        }
-
-                                        return { state: 'ok', runningTotal: runningTotal.toNumber() };
-                                    });
-
-                                    const anyInsufficient = rowBalance.some((r) => r.state === 'insufficient');
-
-                                    return (
-                                        <>
-                                            {/* Balance warning banner above table */}
-                                            {anyInsufficient && bulk_tokenBalance !== null && (
-                                                <div
-                                                    className="d-flex align-items-center gap-2 p-2 rounded mb-2"
-                                                    style={{ background: "#fdecea", border: "1px solid #f5c6cb", fontSize: "0.88em" }}
-                                                >
-                                                    <i className="bi bi-exclamation-triangle-fill" style={{ color: "#b91c1c", fontSize: "1.1em" }}></i>
-                                                    <span>
-                                                        <strong style={{ color: "#b91c1c" }}>Insufficient balance.</strong>{" "}
-                                                        Your wallet has{" "}
-                                                        <strong>{bulk_tokenBalance.dp(6).toString()} {tokenSymbol}</strong>
-                                                        {" "}but the total to send is{" "}
-                                                        <strong>{runningTotal.dp(6).toString()} {tokenSymbol}</strong>.
-                                                        {" "}Rows in red exceed your available balance.
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            <table className="table table-sm table-bordered">
-                                                <thead>
-                                                    <tr>
-                                                        <th>#</th>
-                                                        <th>Recipient address</th>
-                                                        <th>
-                                                            Amount ({tokenSymbol})
-                                                            {bulk_tokenBalance !== null && (
-                                                                <span style={{ color: "#555", fontWeight: "normal", fontSize: "0.82em" }}>
-                                                                    {" "}— balance:{" "}
-                                                                    <strong style={{ color: anyInsufficient ? "#b91c1c" : "#16a34a" }}>
-                                                                        {bulk_tokenBalance.dp(6).toString()}
-                                                                    </strong>
-                                                                </span>
-                                                            )}
-                                                        </th>
-                                                        <th>Status</th>
-                                                        <th></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {bulk_recipients.map((row, idx) => {
-                                                        const result = bulk_results[idx];
-                                                        const rb = rowBalance[idx];
-                                                        const isInsufficient = rb?.state === 'insufficient';
-
-                                                        return (
-                                                            <tr
-                                                                key={idx}
-                                                                style={isInsufficient ? { background: "#fdecea" } : undefined}
-                                                            >
-                                                                <td style={{ verticalAlign: "middle" }}>{idx + 1}</td>
-                                                                <td>
-                                                                    <input
-                                                                        type="text"
-                                                                        className={`form-control form-control-sm${isInsufficient ? " is-invalid" : ""}`}
-                                                                        placeholder="T…"
-                                                                        value={row.address}
-                                                                        onChange={(e) =>
-                                                                            this.bulkUpdateRow(idx, "address", e.target.value)
-                                                                        }
-                                                                    />
-                                                                </td>
-                                                                <td>
-                                                                    <input
-                                                                        type="number"
-                                                                        className={`form-control form-control-sm${isInsufficient ? " is-invalid" : ""}`}
-                                                                        min="0"
-                                                                        placeholder="0"
-                                                                        value={row.amount}
-                                                                        onChange={(e) =>
-                                                                            this.bulkUpdateRow(idx, "amount", e.target.value)
-                                                                        }
-                                                                    />
-                                                                    {isInsufficient && (
-                                                                        <div style={{ fontSize: "0.75em", color: "#b91c1c", marginTop: "2px" }}>
-                                                                            <i className="bi bi-exclamation-circle"></i>{" "}
-                                                                            cumulative {rb.runningTotal.toLocaleString()} &gt; balance {bulk_tokenBalance.dp(6).toString()}
-                                                                        </div>
-                                                                    )}
-                                                                </td>
-                                                                <td style={{ verticalAlign: "middle", minWidth: "120px" }}>
-                                                                    {/* Show insufficient badge when no tx result yet */}
-                                                                    {!result && isInsufficient ? (
-                                                                        <span style={{ color: "#b91c1c", fontWeight: "bold" }}>
-                                                                            <i className="bi bi-x-circle-fill"></i> Insufficient
-                                                                        </span>
-                                                                    ) : result ? (
-                                                                        result.status === "confirmed" ? (
-                                                                            <a
-                                                                                href={`https://tronscan.org/#/transaction/${result.txid}`}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                style={{ color: "#1a7a3c", fontWeight: "bold" }}
-                                                                                title={result.txid}
-                                                                            >
-                                                                                <i className="bi bi-check2-circle"></i> Confirmed
-                                                                            </a>
-                                                                        ) : result.status === "ok" ? (
-                                                                            <a
-                                                                                href={`https://tronscan.org/#/transaction/${result.txid}`}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                style={{ color: "#27ae60", fontWeight: "bold" }}
-                                                                                title={result.txid}
-                                                                            >
-                                                                                <i className="bi bi-check-circle-fill"></i> Broadcast
-                                                                            </a>
-                                                                        ) : result.status === "sent" ? (
-                                                                            <a
-                                                                                href={`https://tronscan.org/#/transaction/${result.txid}`}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                style={{ color: "#e67e22", fontWeight: "bold" }}
-                                                                                title={result.errMsg || result.txid}
-                                                                            >
-                                                                                <i className="bi bi-broadcast"></i> Sent~
-                                                                            </a>
-                                                                        ) : result.status === "reverted" ? (
-                                                                            <a
-                                                                                href={`https://tronscan.org/#/transaction/${result.txid}`}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                style={{ color: "#c0392b", fontWeight: "bold" }}
-                                                                                title={result.errMsg}
-                                                                            >
-                                                                                <i className="bi bi-arrow-counterclockwise"></i> Reverted
-                                                                            </a>
-                                                                        ) : result.status === "cancelled" ? (
-                                                                            <span
-                                                                                style={{ color: "#7f8c8d", fontStyle: "italic" }}
-                                                                                title={result.errMsg}
-                                                                            >
-                                                                                <i className="bi bi-slash-circle"></i> Cancelled
-                                                                            </span>
-                                                                        ) : (
-                                                                            <span style={{ color: "#c0392b" }} title={result.errMsg}>
-                                                                                <i className="bi bi-x-circle-fill"></i>{" "}
-                                                                                {result.status === "failed" ? "Failed" : "Error"}
-                                                                            </span>
-                                                                        )
-                                                                    ) : (
-                                                                        <span style={{ color: "#bbb" }}>—</span>
-                                                                    )}
-                                                                </td>
-                                                                <td style={{ verticalAlign: "middle" }}>
-                                                                    <button
-                                                                        type="button"
-                                                                        className="btn btn-sm btn-outline-danger"
-                                                                        onClick={() => this.bulkRemoveRow(idx)}
-                                                                        disabled={bulk_sending}
-                                                                    >
-                                                                        <i className="bi bi-trash"></i>
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        );
-                                                    })}
-                                                </tbody>
-                                            </table>
-                                        </>
-                                    );
-                                })()}
-
-                                {/* ── Energy & cost analysis panel ── */}
-                                {(() => {
-                                    const staticEst = this.bulkEstimateResources();
-                                    const {
-                                        precios,
-                                        bulk_rentResources,
-                                        bulk_exactEstimate,
-                                        bulk_estimating,
-                                        bulk_burnSunPerEnergy,
-                                        bulk_userEnergy,
-                                        bulk_tokenBalance,
-                                    } = this.state;
-                                    const tokenSymbol = this.state.bulk_token.symbol;
-
-                                    // txCount is always taken from the live synchronous estimate so
-                                    // the header updates immediately as the user fills in rows.
-                                    const txCount = staticEst.txCount;
-
-                                    // ── Energy values: use per-row simulation when available ──
-                                    // bulk_exactEstimate now contains the exact result per recipient,
-                                    // so totalEnergy is the real sum (not avg × count).
-                                    const hasExact = !!bulk_exactEstimate;
-                                    const staticPerTx = staticEst.txCount > 0
-                                        ? staticEst.energyNeeded / staticEst.txCount
-                                        : (this.state.bulk_token.energyPerTx ?? 65000);
-
-                                    // totalEnergy: exact sum from simulations, or static estimate
-                                    // We always recompute the static version against current txCount
-                                    // so the panel is live-synced even before simulation fires.
-                                    const totalEnergy = hasExact
-                                        ? bulk_exactEstimate.totalEnergy
-                                        : Math.round(staticPerTx) * txCount;
-
-                                    const energyAvg = hasExact
-                                        ? bulk_exactEstimate.energyAvg
-                                        : Math.round(staticPerTx);
-
-                                    const energyMin = hasExact ? bulk_exactEstimate.energyMin : energyAvg;
-                                    const energyMax = hasExact ? bulk_exactEstimate.energyMax : energyAvg;
-                                    const hasVariance = hasExact && energyMin !== energyMax;
-                                    const energySource = hasExact ? bulk_exactEstimate.source : 'static';
-
-                                    // User's available energy (null = still loading or not fetched yet)
-                                    const userAvailable = bulk_userEnergy !== null ? bulk_userEnergy : 0;
-                                    const userAvailableKnown = bulk_userEnergy !== null;
-
-                                    // How much extra energy needs to be rented / burned
-                                    const deficit = Math.max(0, totalEnergy - userAvailable);
-                                    // If user already has enough, no cost at all
-                                    const needsRental = deficit > 0;
-
-                                    // ── Token balance ─────────────────────────────────────────
-                                    const totalToSend = staticEst.isTRX ? new BigNumber(0) : (() => {
-                                        const { bulk_recipients } = this.state;
-                                        return bulk_recipients.reduce((acc, r) => {
-                                            const amt = parseFloat(r.amount);
-                                            return (isNaN(amt) || amt <= 0) ? acc : acc.plus(new BigNumber(amt));
-                                        }, new BigNumber(0));
-                                    })();
-                                    const tokenBalanceKnown = bulk_tokenBalance !== null;
-                                    const tokenBalanceOk = tokenBalanceKnown && bulk_tokenBalance.gte(totalToSend);
-                                    const tokenBalanceBg = !tokenBalanceKnown ? "#f0f4ff"
-                                        : tokenBalanceOk ? "#dcfce7" : "#fdecea";
-
-                                    // Brutus 5-min unit price (SUN per energy unit)
-                                    const brutusUnitSun = (() => {
-                                        const list = precios.energy || [];
-                                        const found = list.find((p) => p.duration === "5min");
-                                        return found ? new BigNumber(found.UE) : new BigNumber(0);
-                                    })();
-
-                                    // Cost of renting the DEFICIT from Brutus (TRX)
-                                    const brutusCostTRX = brutusUnitSun
-                                        .times(deficit)
-                                        .shiftedBy(-6)
-                                        .dp(6);
-
-                                    // Cost of burning TRX for the DEFICIT (at real chain rate)
-                                    const burnCostTRX = bulk_burnSunPerEnergy
-                                        .times(deficit)
-                                        .shiftedBy(-6)
-                                        .dp(6);
-
-                                    // Savings = burn cost − rental cost (both over the deficit only)
-                                    const savings = burnCostTRX.minus(brutusCostTRX);
-                                    const savingsPct = burnCostTRX.gt(0)
-                                        ? savings.div(burnCostTRX).times(100).dp(1)
-                                        : new BigNumber(0);
-
-                                    // Hide panel entirely for TRX sends or when no rows are valid yet
-                                    if (staticEst.isTRX) return null;
-                                    if (totalEnergy <= 0 && !bulk_estimating) return null;
-
-                                    // Colour theme driven by whether rental is worth it
-                                    const panelBg = needsRental && savings.gt(0) ? "#f8f4ff" : "#f0fdf4";
-                                    const panelBorder = needsRental && savings.gt(0) ? "#c9a0e0" : "#86efac";
-
-                                    return (
-                                        <div
-                                            className="mt-3 p-3 rounded"
-                                            style={{ background: panelBg, border: `1px solid ${panelBorder}` }}
-                                        >
-                                            {/* ── Header ─────────────────────────────────────────── */}
-                                            <h6 className="d-flex align-items-center gap-2 mb-3" style={{ color: "#5a2d82" }}>
-                                                <i className="bi bi-lightning-charge-fill"></i>
-                                                Energy Analysis — {txCount} tx
-                                                {bulk_estimating && (
-                                                    <span style={{ fontSize: "0.8em", color: "#888", fontWeight: "normal" }}>
-                                                        <img src="images/cargando.gif" height="14px" alt="" />{" "}
-                                                        simulating…
-                                                    </span>
-                                                )}
-                                                {!bulk_estimating && bulk_exactEstimate && (
-                                                    <span style={{
-                                                        fontSize: "0.75em",
-                                                        fontWeight: "normal",
-                                                        color: energySource === 'simulation' ? "#16a34a" : "#d97706",
-                                                    }}>
-                                                        {energySource === 'simulation'
-                                                            ? <><i className="bi bi-check-circle-fill"></i> exact simulation</>
-                                                            : <><i className="bi bi-exclamation-triangle-fill"></i> estimated</>
-                                                        }
-                                                    </span>
-                                                )}
-                                            </h6>
-
-                                            {/* ── Energy breakdown ───────────────────────────────── */}
-                                            <div className="row g-2 mb-3" style={{ fontSize: "0.88em" }}>
-
-                                                {/* Required */}
-                                                <div className="col-6 col-md-3">
-                                                    <div className="p-2 rounded text-center" style={{ background: "#ede0f7" }}>
-                                                        <div style={{ fontSize: "0.78em", color: "#7c3aed", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                                                            Required
-                                                        </div>
-                                                        <div style={{ fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace", color: "#5a2d82" }}>
-                                                            {totalEnergy.toLocaleString()}
-                                                        </div>
-                                                        <div style={{ fontSize: "0.75em", color: "#888" }}>
-                                                            {hasVariance
-                                                                ? <>{energyMin.toLocaleString()}–{energyMax.toLocaleString()} / tx</>
-                                                                : <>{energyAvg.toLocaleString()} / tx</>
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Available */}
-                                                <div className="col-6 col-md-3">
-                                                    <div className="p-2 rounded text-center" style={{ background: userAvailable >= totalEnergy ? "#dcfce7" : "#fef9c3" }}>
-                                                        <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                                                            Your wallet
-                                                        </div>
-                                                        <div style={{
-                                                            fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace",
-                                                            color: userAvailable >= totalEnergy ? "#16a34a" : "#b45309",
-                                                        }}>
-                                                            {userAvailableKnown
-                                                                ? userAvailable.toLocaleString()
-                                                                : <span style={{ color: "#aaa" }}>—</span>
-                                                            }
-                                                        </div>
-                                                        <div style={{ fontSize: "0.75em", color: "#888" }}>
-                                                            {userAvailableKnown
-                                                                ? (userAvailable >= totalEnergy ? "✓ sufficient" : "insufficient")
-                                                                : "connect wallet"
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Deficit */}
-                                                <div className="col-6 col-md-3">
-                                                    <div className="p-2 rounded text-center" style={{ background: deficit === 0 ? "#dcfce7" : "#fdecea" }}>
-                                                        <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                                                            To cover
-                                                        </div>
-                                                        <div style={{
-                                                            fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace",
-                                                            color: deficit === 0 ? "#16a34a" : "#b91c1c",
-                                                        }}>
-                                                            {deficit === 0
-                                                                ? <><i className="bi bi-check2"></i> none</>
-                                                                : deficit.toLocaleString()
-                                                            }
-                                                        </div>
-                                                        <div style={{ fontSize: "0.75em", color: "#888" }}>
-                                                            {deficit === 0 ? "no rental needed" : "energy deficit"}
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Bandwidth */}
-                                                <div className="col-6 col-md-3">
-                                                    <div className="p-2 rounded text-center" style={{ background: "#f0f4ff" }}>
-                                                        <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                                                            Bandwidth
-                                                        </div>
-                                                        <div style={{ fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace", color: "#1d4ed8" }}>
-                                                            {staticEst.bandwidthNeeded.toLocaleString()}
-                                                        </div>
-                                                        <div style={{ fontSize: "0.75em", color: "#888" }}>
-                                                            ~{Math.round(staticEst.bandwidthNeeded / Math.max(txCount, 1))} / tx
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                {/* Token balance */}
-                                                <div className="col-6 col-md-3">
-                                                    <div className="p-2 rounded text-center" style={{ background: tokenBalanceBg }}>
-                                                        <div style={{ fontSize: "0.78em", color: "#555", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                                                            {tokenSymbol} balance
-                                                        </div>
-                                                        <div style={{
-                                                            fontSize: "1.15em", fontWeight: "bold", fontFamily: "monospace",
-                                                            color: !tokenBalanceKnown ? "#888"
-                                                                : tokenBalanceOk ? "#16a34a" : "#b91c1c",
-                                                        }}>
-                                                            {tokenBalanceKnown
-                                                                ? bulk_tokenBalance.dp(6).toString()
-                                                                : <span style={{ color: "#aaa" }}>—</span>
-                                                            }
-                                                        </div>
-                                                        <div style={{ fontSize: "0.75em", color: "#888" }}>
-                                                            {!tokenBalanceKnown ? "loading…"
-                                                                : tokenBalanceOk
-                                                                    ? `✓ need ${totalToSend.dp(6).toString()}`
-                                                                    : `✗ need ${totalToSend.dp(6).toString()}`
-                                                            }
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* ── Cost comparison (only when there's a deficit) ──── */}
-                                            {needsRental && (
-                                                <>
-                                                    <p style={{ fontSize: "0.82em", color: "#555", marginBottom: "6px" }}>
-                                                        Cost to cover{" "}
-                                                        <strong>{deficit.toLocaleString()} energy</strong> deficit
-                                                        {hasVariance && (
-                                                            <span style={{ color: "#d97706", fontSize: "0.9em" }}>
-                                                                {" "}— <i className="bi bi-info-circle"></i> energy varies per recipient ({energyMin.toLocaleString()}–{energyMax.toLocaleString()} / tx)
-                                                            </span>
-                                                        )}
-                                                        :
-                                                    </p>
-                                                    <table className="table table-sm mb-2" style={{ fontSize: "0.88em" }}>
-                                                        <thead>
-                                                            <tr style={{ background: "#ede0f7" }}>
-                                                                <th>Option</th>
-                                                                <th>Rate</th>
-                                                                <th>Avg / tx</th>
-                                                                <th>Total cost (TRX)</th>
-                                                                <th></th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {/* Brutus rental */}
-                                                            <tr style={{ background: "#edfaf1" }}>
-                                                                <td>
-                                                                    <span style={{ color: "#16a34a" }}>
-                                                                        <i className="bi bi-check-circle-fill"></i>
-                                                                    </span>{" "}
-                                                                    <strong>Brutus rental</strong>{" "}
-                                                                    <span style={{ color: "#888", fontSize: "0.85em" }}>(5 min)</span>
-                                                                </td>
-                                                                <td style={{ fontFamily: "monospace", color: "#555" }}>
-                                                                    {brutusUnitSun.gt(0) ? brutusUnitSun.dp(2).toString() : "?"} SUN/energy
-                                                                </td>
-                                                                <td style={{ fontFamily: "monospace", color: "#555" }}>
-                                                                    {brutusUnitSun.gt(0) && txCount > 0
-                                                                        ? brutusCostTRX.div(txCount).dp(6).toString()
-                                                                        : "—"} TRX
-                                                                </td>
-                                                                <td style={{ color: "#16a34a", fontWeight: "bold", fontFamily: "monospace" }}>
-                                                                    {brutusCostTRX.gt(0) ? brutusCostTRX.toString() : "—"} TRX
-                                                                </td>
-                                                                <td>
-                                                                    {savings.gt(0) && (
-                                                                        <span className="badge" style={{ background: "#16a34a", fontSize: "0.78em" }}>
-                                                                            -{savingsPct.toString()}%
-                                                                        </span>
-                                                                    )}
-                                                                </td>
-                                                            </tr>
-                                                            {/* TRX burn */}
-                                                            <tr>
-                                                                <td>
-                                                                    <span style={{ color: "#b91c1c" }}>
-                                                                        <i className="bi bi-fire"></i>
-                                                                    </span>{" "}
-                                                                    TRX burn{" "}
-                                                                    <span style={{ color: "#888", fontSize: "0.85em" }}>(no rental)</span>
-                                                                </td>
-                                                                <td style={{ fontFamily: "monospace", color: "#555" }}>
-                                                                    {bulk_burnSunPerEnergy.toString()} SUN/energy
-                                                                </td>
-                                                                <td style={{ fontFamily: "monospace", color: "#555" }}>
-                                                                    {txCount > 0
-                                                                        ? burnCostTRX.div(txCount).dp(6).toString()
-                                                                        : "—"} TRX
-                                                                </td>
-                                                                <td style={{ color: "#b91c1c", fontWeight: "bold", fontFamily: "monospace" }}>
-                                                                    {burnCostTRX.gt(0) ? burnCostTRX.toString() : "—"} TRX
-                                                                </td>
-                                                                <td></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-
-                                                    {/* Per-row breakdown (only when variance detected) */}
-                                                    {hasVariance && bulk_exactEstimate && bulk_exactEstimate.perRow && (
-                                                        <details style={{ fontSize: "0.82em", marginBottom: "8px" }}>
-                                                            <summary style={{ cursor: "pointer", color: "#7c3aed" }}>
-                                                                <i className="bi bi-table"></i> Per-recipient energy breakdown
-                                                            </summary>
-                                                            <table className="table table-sm mt-2 mb-0" style={{ fontSize: "0.85em" }}>
-                                                                <thead>
-                                                                    <tr style={{ background: "#f3e8ff" }}>
-                                                                        <th>#</th>
-                                                                        <th>Recipient</th>
-                                                                        <th>Energy</th>
-                                                                        <th>Source</th>
-                                                                    </tr>
-                                                                </thead>
-                                                                <tbody>
-                                                                    {bulk_exactEstimate.perRow.map((row, idx) => (
-                                                                        <tr key={idx}>
-                                                                            <td>{idx + 1}</td>
-                                                                            <td style={{ fontFamily: "monospace", fontSize: "0.9em" }}>
-                                                                                {row.address.slice(0, 10)}…{row.address.slice(-6)}
-                                                                            </td>
-                                                                            <td style={{
-                                                                                fontFamily: "monospace",
-                                                                                fontWeight: row.energyUsed === energyMax ? "bold" : "normal",
-                                                                                color: row.energyUsed === energyMax ? "#b91c1c"
-                                                                                    : row.energyUsed === energyMin ? "#16a34a"
-                                                                                        : "inherit",
-                                                                            }}>
-                                                                                {row.energyUsed.toLocaleString()}
-                                                                            </td>
-                                                                            <td>
-                                                                                {row.source === 'simulation'
-                                                                                    ? <span style={{ color: "#16a34a", fontSize: "0.85em" }}>✓ simulated</span>
-                                                                                    : <span style={{ color: "#d97706", fontSize: "0.85em" }}>⚠ estimated</span>
-                                                                                }
-                                                                            </td>
-                                                                        </tr>
-                                                                    ))}
-                                                                </tbody>
-                                                            </table>
-                                                        </details>
-                                                    )}
-
-                                                    {/* Recommendation */}
-                                                    {savings.gt(0) ? (
-                                                        <div
-                                                            className="d-flex align-items-center gap-2 p-2 rounded mb-2"
-                                                            style={{ background: "#dcfce7", border: "1px solid #86efac", fontSize: "0.88em" }}
-                                                        >
-                                                            <i className="bi bi-piggy-bank-fill" style={{ color: "#16a34a", fontSize: "1.1em" }}></i>
-                                                            <span>
-                                                                Renting saves you{" "}
-                                                                <strong style={{ color: "#15803d" }}>
-                                                                    ~{savings.toString()} TRX ({savingsPct.toString()}%)
-                                                                </strong>{" "}
-                                                                compared to TRX burn.{" "}
-                                                                <strong>Rental recommended.</strong>
-                                                            </span>
-                                                        </div>
-                                                    ) : !needsRental ? null : (
-                                                        <div
-                                                            className="d-flex align-items-center gap-2 p-2 rounded mb-2"
-                                                            style={{ background: "#fef9c3", border: "1px solid #fde047", fontSize: "0.88em" }}
-                                                        >
-                                                            <i className="bi bi-info-circle-fill" style={{ color: "#b45309" }}></i>
-                                                            <span>Prices are similar — either option works.</span>
-                                                        </div>
-                                                    )}
-                                                </>
-                                            )}
-
-                                            {/* No deficit — user has enough energy */}
-                                            {!needsRental && userAvailableKnown && (
-                                                <div
-                                                    className="d-flex align-items-center gap-2 p-2 rounded mb-2"
-                                                    style={{ background: "#dcfce7", border: "1px solid #86efac", fontSize: "0.88em" }}
-                                                >
-                                                    <i className="bi bi-check2-circle" style={{ color: "#16a34a", fontSize: "1.1em" }}></i>
-                                                    <span>
-                                                        Your wallet has <strong>{userAvailable.toLocaleString()} energy</strong> — enough to send all {txCount} transaction{txCount !== 1 ? "s" : ""} at no extra cost.
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            {/* ── Checkbox opt-in ───────────────────────────────── */}
-                                            <div className="form-check form-switch mt-2">
-                                                <input
-                                                    className="form-check-input"
-                                                    type="checkbox"
-                                                    id="bulk_rent_check"
-                                                    checked={bulk_rentResources}
-                                                    onChange={(e) =>
-                                                        this.setState({ bulk_rentResources: e.target.checked })
-                                                    }
-                                                    disabled={this.state.bulk_sending || !needsRental}
-                                                />
-                                                <label
-                                                    className="form-check-label font-14"
-                                                    htmlFor="bulk_rent_check"
-                                                    style={{ cursor: needsRental ? "pointer" : "default", color: needsRental ? "inherit" : "#aaa" }}
-                                                >
-                                                    {needsRental ? (
-                                                        <>
-                                                            <strong>Rent {deficit.toLocaleString()} energy</strong> with Brutus before sending
-                                                            {brutusCostTRX.gt(0) && (
-                                                                <span style={{ color: "#555" }}>
-                                                                    {" "}({brutusCostTRX.toString()} TRX)
-                                                                </span>
-                                                            )}
-                                                        </>
-                                                    ) : (
-                                                        <span style={{ color: "#aaa" }}>No rental needed — wallet energy is sufficient</span>
-                                                    )}
-                                                </label>
-                                            </div>
+                            {/* Progress panel */}
+                            {progress && (() => {
+                                const theme = phaseColors[progress.phase] || phaseColors.signing;
+                                const pct = progress.total > 0 ? Math.round((progress.current / progress.total) * 100) : 0;
+                                return (
+                                    <div className="mt-3 p-3 rounded" style={{ background: theme.bg, border: `1.5px solid ${theme.border}` }}>
+                                        <div className="d-flex align-items-center gap-2 mb-2">
+                                            <i className={`bi ${theme.icon}`} style={{ color: theme.color, fontSize: "1.2rem" }}></i>
+                                            <strong style={{ color: theme.color }}>
+                                                {progress.phase === "renting"      && "Renting energy…"}
+                                                {progress.phase === "signing"      && "Waiting for wallet signature…"}
+                                                {progress.phase === "broadcasting" && "Broadcasting to TRON network…"}
+                                                {progress.phase === "waiting"      && "Waiting for confirmation…"}
+                                                {progress.phase === "error"        && "Transaction error"}
+                                                {progress.phase === "cancelled"    && "Cancelled by user"}
+                                                {progress.phase === "done"         && "Completed"}
+                                            </strong>
+                                            <span className="ms-auto" style={{ fontSize: "0.85em", color: "#555" }}>{progress.current} / {progress.total} tx</span>
                                         </div>
-                                    );
-                                })()}
-
-                                {/* ── Actions ── */}
-                                <div className="d-flex gap-2 flex-wrap mt-3">
-                                    <button
-                                        type="button"
-                                        className="btn btn-outline-primary btn-sm"
-                                        onClick={this.bulkAddRow}
-                                        disabled={this.state.bulk_sending}
-                                    >
-                                        <i className="bi bi-plus-circle"></i> Add row
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className="btn btn-outline-secondary btn-sm"
-                                        disabled={this.state.bulk_sending}
-                                        onClick={() =>
-                                            this.setState({
-                                                bulk_recipients: [{ address: "", amount: "" }],
-                                                bulk_results: [],
-                                                bulk_progress: null,
-                                            })
-                                        }
-                                    >
-                                        <i className="bi bi-arrow-counterclockwise"></i> Clear
-                                    </button>
-
-                                    <button
-                                        type="button"
-                                        className={`btn ms-auto ${this.state.bulk_rentResources ? "btn-warning" : "btn-success"}`}
-                                        disabled={this.state.bulk_sending}
-                                        onClick={this.bulkSend}
-                                    >
-                                        {this.state.bulk_sending ? (
-                                            <>{imgLoading} Sending…</>
-                                        ) : this.state.bulk_rentResources ? (
-                                            <>
-                                                <i className="bi bi-lightning-charge-fill"></i> Rent &amp; Send (
-                                                {this.state.bulk_recipients.filter(
-                                                    (r) => r.address && parseFloat(r.amount) > 0,
-                                                ).length}{" "}
-                                                recipients)
-                                            </>
-                                        ) : (
-                                            <>
-                                                <i className="bi bi-send-fill"></i> Send all (
-                                                {this.state.bulk_recipients.filter(
-                                                    (r) => r.address && parseFloat(r.amount) > 0,
-                                                ).length}{" "}
-                                                recipients)
-                                            </>
+                                        <div className="progress mb-2" style={{ height: "10px", backgroundColor: "#ddd" }}>
+                                            <div className="progress-bar progress-bar-striped progress-bar-animated"
+                                                style={{ width: `${pct}%`, backgroundColor: theme.color, transition: "width 0.4s ease" }}
+                                                aria-valuenow={pct} aria-valuemin="0" aria-valuemax="100" />
+                                        </div>
+                                        <p className="mb-2" style={{ fontSize: "0.85em", color: "#333", wordBreak: "break-all", fontFamily: "monospace" }}>{progress.step}</p>
+                                        {progress.total > 1 && (
+                                            <div className="d-flex gap-3 flex-wrap" style={{ fontSize: "0.82em" }}>
+                                                {[
+                                                    { filter: (r) => r.status === "confirmed", color: "#1a7a3c", icon: "bi-check2-circle", label: "confirmed" },
+                                                    { filter: (r) => r.status === "ok" || r.status === "sent", color: "#27ae60", icon: "bi-check-circle-fill", label: "broadcast" },
+                                                    { filter: (r) => r.status === "reverted", color: "#c0392b", icon: "bi-arrow-counterclockwise", label: "reverted" },
+                                                    { filter: (r) => r.status === "failed" || r.status === "error", color: "#c0392b", icon: "bi-x-circle-fill", label: "failed" },
+                                                    { filter: (r) => r.status === "cancelled", color: "#7f8c8d", icon: "bi-slash-circle", label: "cancelled" },
+                                                ].map(({ filter, color, icon, label }) => (
+                                                    <span key={label} style={{ color }}><i className={`bi ${icon}`}></i> {results.filter(filter).length} {label}</span>
+                                                ))}
+                                                <span style={{ color: "#888" }}><i className="bi bi-hourglass"></i> {Math.max(0, progress.total - results.length)} pending</span>
+                                            </div>
                                         )}
+                                        {(progress.phase === "done" || progress.phase === "cancelled" || (progress.phase === "error" && !sending)) && (
+                                            <button type="button" className="btn btn-sm btn-outline-secondary mt-2" onClick={() => setProgress(null)}>
+                                                <i className="bi bi-x"></i> Dismiss
+                                            </button>
+                                        )}
+                                        {!["done", "cancelled", "error"].includes(progress.phase) && (
+                                            <p className="mb-0 mt-2" style={{ fontSize: "0.78em", color: "#c0392b", fontWeight: "bold" }}>
+                                                <i className="bi bi-exclamation-triangle-fill"></i> Do not close or refresh this tab — transactions are in progress.
+                                            </p>
+                                        )}
+                                    </div>
+                                );
+                            })()}
+                        </div>
+                    </div>
+                </div>
+
+                {/* ── Right panel: how-it-works ── */}
+                <div className="col-lg-4 pt-2 col-sm-12">
+                    <div className="card h-100">
+                        <div className="card-body">
+                            <h5>How it works</h5>
+                            <ol className="font-14" style={{ paddingLeft: "1.2rem" }}>
+                                <li>Choose a token (USDT, BRUT, BTT… or paste a custom TRC-20 address).</li>
+                                <li>Add recipients manually or paste a CSV block.</li>
+                                <li>Enable <b>Rent with Brutus</b> to pre-rent energy and pay much less in fees.</li>
+                                <li>Click <b>Send all</b> — each transfer is signed individually by your TronLink wallet.</li>
+                                <li>Track results inline; click a green checkmark to view the tx on TronScan.</li>
+                            </ol>
+                            <hr />
+                            <p className="font-14" style={{ color: "#888" }}>
+                                <i className="bi bi-info-circle"></i> USDT / TRC-20 transfers consume ~32 000–65 000 energy each.
+                                Without staked/rented energy TRON burns ~420 SUN per energy unit from your TRX balance.
+                            </p>
+                            <hr />
+                            <p className="font-14"><b>Supported tokens:</b></p>
+                            <ul className="font-14" style={{ paddingLeft: "1.2rem" }}>
+                                {KNOWN_TOKENS.filter((tk) => tk.address !== "custom").map((tk) => (
+                                    <li key={tk.address}>
+                                        <b>{tk.symbol}</b>
+                                        {tk.address !== "TRX" && (
+                                            <> — <a href={`https://tronscan.org/#/token20/${tk.address}`} target="_blank" rel="noopener noreferrer" style={{ fontSize: "0.8em", color: "purple" }}>{tk.address.slice(0, 8)}…</a></>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ── Transaction history ── */}
+            {txHistory.length > 0 && (
+                <div className="row mt-4">
+                    <div className="col-12">
+                        <div className="card">
+                            <div className="card-header d-flex align-items-center gap-2 flex-wrap">
+                                <h5 className="mb-0"><i className="bi bi-clock-history"></i> Transaction History</h5>
+                                <span className="badge bg-secondary ms-1">{txHistory.length}</span>
+                                <div className="ms-auto d-flex gap-1 flex-wrap">
+                                    {[
+                                        { key: "all",       label: "All" },
+                                        { key: "ok",        label: "✓ Success" },
+                                        { key: "error",     label: "✗ Failed / Reverted" },
+                                        { key: "cancelled", label: "⊘ Cancelled" },
+                                    ].map(({ key, label }) => (
+                                        <button key={key} type="button"
+                                            className={`btn btn-sm ${historyFilter === key ? "btn-primary" : "btn-outline-secondary"}`}
+                                            onClick={() => setHistoryFilter(key)}>{label}</button>
+                                    ))}
+                                    <button type="button" className="btn btn-sm btn-outline-danger"
+                                        onClick={() => { localStorage.removeItem(TX_HISTORY_KEY); setTxHistory([]); }}
+                                        title="Clear all history">
+                                        <i className="bi bi-trash"></i> Clear
                                     </button>
                                 </div>
-
-                                {/* ── Inline progress panel ── */}
-                                {(() => {
-                                    const prog = this.state.bulk_progress;
-                                    if (!prog) return null;
-
-                                    const phaseColors = {
-                                        renting: { bg: "#fff8e1", border: "#f9a825", icon: "bi-lightning-charge-fill", color: "#f57f17" },
-                                        signing: { bg: "#e8f4fd", border: "#1976d2", icon: "bi-pen-fill", color: "#1565c0" },
-                                        broadcasting: { bg: "#e8f5e9", border: "#388e3c", icon: "bi-broadcast", color: "#2e7d32" },
-                                        waiting: { bg: "#f3e5f5", border: "#7b1fa2", icon: "bi-hourglass-split", color: "#6a1b9a" },
-                                        error: { bg: "#fdecea", border: "#c62828", icon: "bi-exclamation-triangle-fill", color: "#b71c1c" },
-                                        cancelled: { bg: "#f5f5f5", border: "#95a5a6", icon: "bi-slash-circle", color: "#7f8c8d" },
-                                        done: { bg: "#e8f5e9", border: "#2e7d32", icon: "bi-check2-all", color: "#1b5e20" },
-                                    };
-
-                                    const theme = phaseColors[prog.phase] || phaseColors.signing;
-                                    const pct = prog.total > 0
-                                        ? Math.round((prog.current / prog.total) * 100)
-                                        : 0;
-
-                                    return (
-                                        <div
-                                            className="mt-3 p-3 rounded"
-                                            style={{
-                                                background: theme.bg,
-                                                border: `1.5px solid ${theme.border}`,
-                                                position: "relative",
-                                            }}
-                                        >
-                                            {/* Header row */}
-                                            <div className="d-flex align-items-center gap-2 mb-2">
-                                                <i
-                                                    className={`bi ${theme.icon}`}
-                                                    style={{ color: theme.color, fontSize: "1.2rem" }}
-                                                ></i>
-                                                <strong style={{ color: theme.color }}>
-                                                    {prog.phase === "renting" && "Renting energy…"}
-                                                    {prog.phase === "signing" && "Waiting for wallet signature…"}
-                                                    {prog.phase === "broadcasting" && "Broadcasting to TRON network…"}
-                                                    {prog.phase === "waiting" && "Waiting for confirmation…"}
-                                                    {prog.phase === "error" && "Transaction error"}
-                                                    {prog.phase === "cancelled" && "Cancelled by user"}
-                                                    {prog.phase === "done" && "Completed"}
-                                                </strong>
-                                                <span className="ms-auto" style={{ fontSize: "0.85em", color: "#555" }}>
-                                                    {prog.current} / {prog.total} tx
-                                                </span>
-                                            </div>
-
-                                            {/* Progress bar */}
-                                            <div
-                                                className="progress mb-2"
-                                                style={{ height: "10px", backgroundColor: "#ddd" }}
-                                            >
-                                                <div
-                                                    className="progress-bar progress-bar-striped progress-bar-animated"
-                                                    role="progressbar"
-                                                    style={{
-                                                        width: `${pct}%`,
-                                                        backgroundColor: theme.color,
-                                                        transition: "width 0.4s ease",
-                                                    }}
-                                                    aria-valuenow={pct}
-                                                    aria-valuemin="0"
-                                                    aria-valuemax="100"
-                                                ></div>
-                                            </div>
-
-                                            {/* Current step text */}
-                                            <p
-                                                className="mb-2"
-                                                style={{
-                                                    fontSize: "0.85em",
-                                                    color: "#333",
-                                                    wordBreak: "break-all",
-                                                    fontFamily: "monospace",
-                                                }}
-                                            >
-                                                {prog.step}
-                                            </p>
-
-                                            {/* Mini counters */}
-                                            {prog.total > 1 && (
-                                                <div className="d-flex gap-3 flex-wrap" style={{ fontSize: "0.82em" }}>
-                                                    <span style={{ color: "#1a7a3c" }}>
-                                                        <i className="bi bi-check2-circle"></i>{" "}
-                                                        {this.state.bulk_results.filter((r) => r.status === "confirmed").length} confirmed
-                                                    </span>
-                                                    <span style={{ color: "#27ae60" }}>
-                                                        <i className="bi bi-check-circle-fill"></i>{" "}
-                                                        {this.state.bulk_results.filter((r) => r.status === "ok" || r.status === "sent").length} broadcast
-                                                    </span>
-                                                    <span style={{ color: "#c0392b" }}>
-                                                        <i className="bi bi-arrow-counterclockwise"></i>{" "}
-                                                        {this.state.bulk_results.filter((r) => r.status === "reverted").length} reverted
-                                                    </span>
-                                                    <span style={{ color: "#c0392b" }}>
-                                                        <i className="bi bi-x-circle-fill"></i>{" "}
-                                                        {this.state.bulk_results.filter((r) => r.status === "failed" || r.status === "error").length} failed
-                                                    </span>
-                                                    <span style={{ color: "#7f8c8d" }}>
-                                                        <i className="bi bi-slash-circle"></i>{" "}
-                                                        {this.state.bulk_results.filter((r) => r.status === "cancelled").length} cancelled
-                                                    </span>
-                                                    <span style={{ color: "#888" }}>
-                                                        <i className="bi bi-hourglass"></i>{" "}
-                                                        {Math.max(0, prog.total - this.state.bulk_results.length)} pending
-                                                    </span>
-                                                </div>
-                                            )}
-
-                                            {/* Dismiss button when done, cancelled, or error (not actively running) */}
-                                            {(prog.phase === "done" || prog.phase === "cancelled" || (prog.phase === "error" && !this.state.bulk_sending)) && (
-                                                <button
-                                                    type="button"
-                                                    className="btn btn-sm btn-outline-secondary mt-2"
-                                                    onClick={() => this.setState({ bulk_progress: null })}
-                                                >
-                                                    <i className="bi bi-x"></i> Dismiss
-                                                </button>
-                                            )}
-
-                                            {/* Warning: do not close tab (only while actively running) */}
-                                            {prog.phase !== "done" && prog.phase !== "cancelled" && prog.phase !== "error" && (
-                                                <p
-                                                    className="mb-0 mt-2"
-                                                    style={{
-                                                        fontSize: "0.78em",
-                                                        color: "#c0392b",
-                                                        fontWeight: "bold",
-                                                    }}
-                                                >
-                                                    <i className="bi bi-exclamation-triangle-fill"></i>{" "}
-                                                    Do not close or refresh this tab — transactions are in progress.
-                                                </p>
-                                            )}
-                                        </div>
-                                    );
-                                })()}
-
                             </div>
-                        </div>
-                    </div>
-
-                    {/* ── Info panel ── */}
-                    <div className="col-lg-4 pt-2 col-sm-12">
-                        <div className="card h-100">
-                            <div className="card-body">
-                                <h5>How it works</h5>
-                                <ol className="font-14" style={{ paddingLeft: "1.2rem" }}>
-                                    <li>Choose a token (USDT, BRUT, BTT… or paste a custom TRC-20 address).</li>
-                                    <li>Add recipients manually or paste a CSV block.</li>
-                                    <li>
-                                        Optionally enable <b>Rent with Brutus</b> to pre-rent energy
-                                        and pay much less in fees.
-                                    </li>
-                                    <li>
-                                        Click <b>Send all</b> — each transfer is signed individually
-                                        by your connected TronLink wallet.
-                                    </li>
-                                    <li>Track results inline; click a green checkmark to view the tx on TronScan.</li>
-                                </ol>
-                                <hr />
-                                <p className="font-14" style={{ color: "#888" }}>
-                                    <i className="bi bi-info-circle"></i> USDT / TRC-20 transfers
-                                    consume ~32 000 energy each. Without staked/rented energy TRON
-                                    burns ~280 SUN per energy unit from your TRX balance.
-                                </p>
-                                <hr />
-                                <p className="font-14">
-                                    <b>Supported tokens:</b>
-                                </p>
-                                <ul className="font-14" style={{ paddingLeft: "1.2rem" }}>
-                                    {KNOWN_TOKENS.filter((t) => t.address !== "custom").map((t) => (
-                                        <li key={t.address}>
-                                            <b>{t.symbol}</b>
-                                            {t.address !== "TRX" && (
-                                                <>{" — "}<a
-                                                    href={`https://tronscan.org/#/token20/${t.address}`}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    style={{ fontSize: "0.8em", color: "purple" }}
-                                                >
-                                                    {t.address.slice(0, 8)}…
-                                                </a></>
-                                            )}
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                {/* ══════════════════════════════════════════════════════════
-             TRANSACTION HISTORY
-             ══════════════════════════════════════════════════════════ */}
-                {this.state.bulk_txHistory.length > 0 && (() => {
-                    const { bulk_txHistory, bulk_historyFilter } = this.state;
-
-                    const filtered = bulk_txHistory.filter((tx) => {
-                        if (bulk_historyFilter === "ok") return tx.status === "confirmed" || tx.status === "ok" || tx.status === "sent";
-                        if (bulk_historyFilter === "error") return tx.status === "failed" || tx.status === "error" || tx.status === "reverted";
-                        if (bulk_historyFilter === "cancelled") return tx.status === "cancelled";
-                        return true;
-                    });
-
-                    const statusBadge = (tx) => {
-                        if (tx.status === "confirmed") {
-                            return (
-                                <span className="badge" style={{ background: "#1a7a3c" }}>
-                                    <i className="bi bi-check2-circle"></i> Confirmed
-                                </span>
-                            );
-                        }
-                        if (tx.status === "ok") {
-                            return (
-                                <span className="badge" style={{ background: "#27ae60" }}>
-                                    <i className="bi bi-check-circle-fill"></i> Broadcast
-                                </span>
-                            );
-                        }
-                        if (tx.status === "sent") {
-                            return (
-                                <span className="badge" style={{ background: "#e67e22" }}>
-                                    <i className="bi bi-broadcast"></i> Sent~
-                                </span>
-                            );
-                        }
-                        if (tx.status === "reverted") {
-                            return (
-                                <span className="badge bg-danger" title={tx.errMsg}>
-                                    <i className="bi bi-arrow-counterclockwise"></i> Reverted
-                                </span>
-                            );
-                        }
-                        if (tx.status === "cancelled") {
-                            return (
-                                <span className="badge" style={{ background: "#95a5a6" }} title={tx.errMsg}>
-                                    <i className="bi bi-slash-circle"></i> Cancelled
-                                </span>
-                            );
-                        }
-                        return (
-                            <span className="badge bg-danger" title={tx.errMsg}>
-                                <i className="bi bi-x-circle-fill"></i>{" "}
-                                {tx.status === "failed" ? "Failed" : "Error"}
-                            </span>
-                        );
-                    };
-
-                    return (
-                        <div className="row mt-4">
-                            <div className="col-12">
-                                <div className="card">
-                                    <div className="card-header d-flex align-items-center gap-2 flex-wrap">
-                                        <h5 className="mb-0">
-                                            <i className="bi bi-clock-history"></i> Transaction History
-                                        </h5>
-                                        <span className="badge bg-secondary ms-1">{bulk_txHistory.length}</span>
-
-                                        {/* Filter tabs */}
-                                        <div className="ms-auto d-flex gap-1 flex-wrap">
-                                            {[
-                                                { key: "all", label: "All" },
-                                                { key: "ok", label: "✓ Success" },
-                                                { key: "error", label: "✗ Failed / Reverted" },
-                                                { key: "cancelled", label: "⊘ Cancelled" },
-                                            ].map(({ key, label }) => (
-                                                <button
-                                                    key={key}
-                                                    type="button"
-                                                    className={`btn btn-sm ${bulk_historyFilter === key ? "btn-primary" : "btn-outline-secondary"}`}
-                                                    onClick={() => this.setState({ bulk_historyFilter: key })}
-                                                >
-                                                    {label}
-                                                </button>
-                                            ))}
-                                            <button
-                                                type="button"
-                                                className="btn btn-sm btn-outline-danger"
-                                                onClick={this.bulkClearHistory}
-                                                title="Clear all history (local only)"
-                                            >
-                                                <i className="bi bi-trash"></i> Clear
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div className="card-body p-0">
-                                        <div style={{ overflowX: "auto" }}>
-                                            <table className="table table-sm table-hover mb-0" style={{ fontSize: "0.82em" }}>
-                                                <thead style={{ background: "#f4f4f4" }}>
-                                                    <tr>
-                                                        <th style={{ whiteSpace: "nowrap" }}>Date / Time</th>
-                                                        <th>Token</th>
-                                                        <th>Amount</th>
-                                                        <th>Recipient</th>
-                                                        <th>Status</th>
-                                                        <th>Tx Hash</th>
+                            <div className="card-body p-0">
+                                <div style={{ overflowX: "auto" }}>
+                                    <table className="table table-sm table-hover mb-0" style={{ fontSize: "0.82em" }}>
+                                        <thead style={{ background: "#f4f4f4" }}>
+                                            <tr>
+                                                <th style={{ whiteSpace: "nowrap" }}>Date / Time</th>
+                                                <th>Token</th>
+                                                <th>Amount</th>
+                                                <th>Recipient</th>
+                                                <th>Status</th>
+                                                <th>Tx Hash</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {filteredHistory.length === 0 ? (
+                                                <tr><td colSpan={6} className="text-center text-muted py-3">No transactions match the selected filter.</td></tr>
+                                            ) : filteredHistory.map((tx) => {
+                                                const dt = new Date(tx.timestamp);
+                                                return (
+                                                    <tr key={tx.id}>
+                                                        <td style={{ whiteSpace: "nowrap", color: "#555" }}>
+                                                            {dt.toLocaleDateString()}<br />
+                                                            <span style={{ color: "#999" }}>{dt.toLocaleTimeString()}</span>
+                                                        </td>
+                                                        <td><strong>{tx.token}</strong></td>
+                                                        <td style={{ fontFamily: "monospace" }}>{tx.amount}</td>
+                                                        <td style={{ fontFamily: "monospace" }}>
+                                                            <a href={`https://tronscan.org/#/address/${tx.to}`} target="_blank" rel="noopener noreferrer" style={{ color: "#555" }} title={tx.to}>
+                                                                {tx.to.slice(0, 8)}…{tx.to.slice(-6)}
+                                                            </a>
+                                                        </td>
+                                                        <td>{statusBadge(tx)}</td>
+                                                        <td style={{ fontFamily: "monospace" }}>
+                                                            {tx.txid
+                                                                ? <a href={`https://tronscan.org/#/transaction/${tx.txid}`} target="_blank" rel="noopener noreferrer" style={{ color: "purple" }} title={tx.txid}>
+                                                                    {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}{" "}<i className="bi bi-box-arrow-up-right" style={{ fontSize: "0.75em" }}></i>
+                                                                  </a>
+                                                                : <span style={{ color: "#bbb" }} title={tx.errMsg}>— <small>{tx.errMsg?.slice(0, 30)}</small></span>
+                                                            }
+                                                        </td>
                                                     </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {filtered.length === 0 ? (
-                                                        <tr>
-                                                            <td colSpan={6} className="text-center text-muted py-3">
-                                                                No transactions match the selected filter.
-                                                            </td>
-                                                        </tr>
-                                                    ) : (
-                                                        filtered.map((tx) => {
-                                                            const dt = new Date(tx.timestamp);
-                                                            const dateStr = dt.toLocaleDateString();
-                                                            const timeStr = dt.toLocaleTimeString();
-                                                            return (
-                                                                <tr key={tx.id}>
-                                                                    <td style={{ whiteSpace: "nowrap", color: "#555" }}>
-                                                                        {dateStr}<br />
-                                                                        <span style={{ color: "#999" }}>{timeStr}</span>
-                                                                    </td>
-                                                                    <td>
-                                                                        <strong>{tx.token}</strong>
-                                                                    </td>
-                                                                    <td style={{ fontFamily: "monospace" }}>
-                                                                        {tx.amount}
-                                                                    </td>
-                                                                    <td style={{ fontFamily: "monospace" }}>
-                                                                        <a
-                                                                            href={`https://tronscan.org/#/address/${tx.to}`}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            style={{ color: "#555" }}
-                                                                            title={tx.to}
-                                                                        >
-                                                                            {tx.to.slice(0, 8)}…{tx.to.slice(-6)}
-                                                                        </a>
-                                                                    </td>
-                                                                    <td>{statusBadge(tx)}</td>
-                                                                    <td style={{ fontFamily: "monospace" }}>
-                                                                        {tx.txid ? (
-                                                                            <a
-                                                                                href={`https://tronscan.org/#/transaction/${tx.txid}`}
-                                                                                target="_blank"
-                                                                                rel="noopener noreferrer"
-                                                                                style={{ color: "purple" }}
-                                                                                title={tx.txid}
-                                                                            >
-                                                                                {tx.txid.slice(0, 10)}…{tx.txid.slice(-6)}
-                                                                                {" "}<i className="bi bi-box-arrow-up-right" style={{ fontSize: "0.75em" }}></i>
-                                                                            </a>
-                                                                        ) : (
-                                                                            <span style={{ color: "#bbb" }} title={tx.errMsg}>
-                                                                                — <small>{tx.errMsg?.slice(0, 30)}</small>
-                                                                            </span>
-                                                                        )}
-                                                                    </td>
-                                                                </tr>
-                                                            );
-                                                        })
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <p
-                                            className="text-muted px-3 py-2 mb-0"
-                                            style={{ fontSize: "0.75em", borderTop: "1px solid #eee" }}
-                                        >
-                                            <i className="bi bi-info-circle"></i>{" "}
-                                            History is stored locally in your browser. Clearing browser data will erase it.
-                                            Max {TX_HISTORY_MAX} entries kept (newest first).
-                                        </p>
-                                    </div>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
-                        </div>
-                    );
-                })()}
-
-                {/* data-bs-backdrop/keyboard are disabled while a bulk op is running */}
-                <div
-                    className="modal fade"
-                    id="mensaje-ebot"
-                    data-bs-backdrop={this.state.bulk_sending ? "static" : "true"}
-                    data-bs-keyboard={this.state.bulk_sending ? "false" : "true"}
-                >
-                    <div className="modal-dialog" role="document">
-                        <div className="modal-content">
-                            <div className="modal-header">
-                                <h5 className="modal-title">{this.state.titulo}</h5>
-                                {/* Hide close button while sending to prevent accidental dismissal */}
-                                {!this.state.bulk_sending && (
-                                    <button
-                                        type="button"
-                                        className="btn-close"
-                                        data-bs-dismiss="modal"
-                                    ></button>
-                                )}
-                            </div>
-                            <div className="modal-body">
-                                <p>{this.state.body}</p>
-                                {/* Inline mini-progress inside modal when sending */}
-                                {this.state.bulk_sending && this.state.bulk_progress && (
-                                    <div className="mt-2">
-                                        <div
-                                            className="progress"
-                                            style={{ height: "8px", backgroundColor: "#ddd" }}
-                                        >
-                                            <div
-                                                className="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                                                role="progressbar"
-                                                style={{
-                                                    width: `${this.state.bulk_progress.total > 0
-                                                        ? Math.round((this.state.bulk_progress.current / this.state.bulk_progress.total) * 100)
-                                                        : 0}%`,
-                                                }}
-                                            ></div>
-                                        </div>
-                                        <p
-                                            className="mt-1 mb-0"
-                                            style={{ fontSize: "0.78em", color: "#555", fontFamily: "monospace" }}
-                                        >
-                                            {this.state.bulk_progress.step}
-                                        </p>
-                                        <p
-                                            className="mt-1 mb-0"
-                                            style={{ fontSize: "0.75em", color: "#c0392b", fontWeight: "bold" }}
-                                        >
-                                            <i className="bi bi-exclamation-triangle-fill"></i>{" "}
-                                            Do not close this window.
-                                        </p>
-                                    </div>
-                                )}
+                                <p className="text-muted px-3 py-2 mb-0" style={{ fontSize: "0.75em", borderTop: "1px solid #eee" }}>
+                                    <i className="bi bi-info-circle"></i> History is stored locally in your browser. Max {TX_HISTORY_MAX} entries (newest first).
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </>
-        );
-    }
+            )}
+
+            {/* ── Modal ── */}
+            <div className="modal fade" id="mensaje-bbsend"
+                data-bs-backdrop={sending ? "static" : "true"}
+                data-bs-keyboard={sending ? "false" : "true"}>
+                <div className="modal-dialog" role="document">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h5 className="modal-title">{modalTitle}</h5>
+                            {!sending && <button type="button" className="btn-close" data-bs-dismiss="modal"></button>}
+                        </div>
+                        <div className="modal-body">
+                            <p>{modalBody}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </>
+    );
 }
 
-const EnergyRentalWithTranslation = withTranslation()(EnergyRental);
+// ── Pure helper: simulate energy per row (extracted for reuse) ─────────────────
+async function simulateEnergyPerRow(tronWeb, accountAddress, tokenAddress, decimals, rows, fallbackPerTx) {
+    const simulations = await Promise.all(
+        rows.map(async (row) => {
+            const toAddr = row.address.trim();
+            const amountSun = new BigNumber(row.amount).shiftedBy(decimals).dp(0).toFixed(0);
+            const inputs = [
+                { type: "address", value: tronWeb.address.toHex(toAddr) },
+                { type: "uint256", value: amountSun },
+            ];
+            const sim = await tronWeb.transactionBuilder
+                .triggerConstantContract(
+                    tronWeb.address.toHex(tokenAddress),
+                    "transfer(address,uint256)",
+                    { feeLimit: 150_000_000 },
+                    inputs,
+                    tronWeb.address.toHex(accountAddress),
+                )
+                .catch(() => null);
 
-export default EnergyRentalWithTranslation;
+            const energyUsed = sim && sim.energy_used ? sim.energy_used : fallbackPerTx;
+            const source = sim && sim.energy_used ? "simulation" : "fallback";
+            return { address: toAddr, energyUsed, source };
+        }),
+    );
+
+    const allSim = simulations.every((s) => s.source === "simulation");
+    const totalEnergy = simulations.reduce((acc, s) => acc + s.energyUsed, 0);
+    const energyMin = Math.min(...simulations.map((s) => s.energyUsed));
+    const energyMax = Math.max(...simulations.map((s) => s.energyUsed));
+    const energyAvg = simulations.length > 0 ? Math.round(totalEnergy / simulations.length) : 0;
+
+    return { perRow: simulations, totalEnergy, energyMin, energyMax, energyAvg, source: allSim ? "simulation" : "fallback" };
+}
+
+export default withTranslation()(BulkSendPage);
