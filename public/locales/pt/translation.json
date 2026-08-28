@@ -78,7 +78,6 @@
         "e precisa de pelo menos",
         ", alugure-os por",
         "realizar esta operação."
-
       ],
       "tfail": [
         "Falha na transação"
@@ -133,10 +132,14 @@
     "yearly": "Anualmente",
     "likely": "provável",
     "estimated": "Estimado",
-    "calcullatorText": "Esta calculadora utiliza a média dos últimos dias de ganhos {{days}} para gerar uma estimativa mais próxima da realidade, já que os ganhos podem variar de um dia para o próximo e não são fixos, mas variáveis."
+    "calcullatorText": "Esta calculadora utiliza a média dos últimos dias de ganhos {{days}} para gerar uma estimativa mais próxima da realidade, já que os ganhos podem variar de um dia para o próximo e não são fixos, mas variáveis.",
+    "donate": {
+      "title": "Thank you ❤️",
+      "body": "Thanks for your TRX donation — it helps BRST grow!"
+    }
   },
   "inicio": {
-    "tittle": "Painel de controle",
+    "tittle": "My Wallet",
     "try": "Tente agora!",
     "position": "Minha posição",
     "name": "Nome",
